@@ -46,7 +46,7 @@ public:
 	std::string 	diagnostic( size_t offset, const char* format, ... );
 
 	source_chunk    next_chunk();
-	void			parsed_token( const token& token );
+	void			parsed_spelling( const token& token );
 	void			parsed_newline( size_t offset );
 
 
@@ -65,14 +65,4 @@ private:
 
 
 #endif /* SOURCE_CODE_H */
-
-
-
-
-
-
-
-
-
-
 

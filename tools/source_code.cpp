@@ -85,7 +85,7 @@ source_chunk source_code::next_chunk()
 	return chunk;
 }
 
-void source_code::parsed_token( const token& token )
+void source_code::parsed_spelling( const token& token )
 {
 	// Entire file is in memory so no need to preserve token spelling.
 }
@@ -95,8 +95,4 @@ void source_code::parsed_newline( size_t offset )
 	assert( offset > newlines.back() );
 	newlines.push_back( offset );
 }
-
-
-
-
 
