@@ -21,8 +21,9 @@ public:
     ~alloc_region();
 
     void* alloc( size_t size );
+    void* alloc_max( size_t min_size, size_t* out_size );
     void  free( void* p );
-    void* realloc( void* p, size_t oldsize, size_t size );
+    void* realloc( void* p, size_t old_size, size_t new_size );
 
 
 private:
@@ -36,7 +37,6 @@ private:
     static const size_t BLOCK_SIZE;
     static block LAST_BLOCK;
     block* head;
-
 
 };
 
