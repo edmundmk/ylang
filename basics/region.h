@@ -1,24 +1,24 @@
 //
-// alloc_region.h
+// region.h
 //
 // Created 17th September 2013.
 // (c) Edmund Kapusniak 2013.  All rights reserved.
 //
 
 
-#ifndef ALLOC_REGION_H
-#define ALLOC_REGION_H
+#ifndef REGION_H
+#define REGION_H
 
 
 #include <stdlib.h>
 
 
-class alloc_region
+class region
 {
 public:
 
-    alloc_region();
-    ~alloc_region();
+    region();
+    ~region();
 
     void* alloc( size_t size );
     void* alloc_max( size_t min_size, size_t* out_size );
@@ -41,9 +41,9 @@ private:
 };
 
 
-void* operator new( size_t size, alloc_region& region );
-void  operator delete( void* p, alloc_region& region );
+void* operator new( size_t size, region& region );
+void  operator delete( void* p, region& region );
 
 
-#endif /* ALLOC_REGION_H */
+#endif /* REGION_H */
 

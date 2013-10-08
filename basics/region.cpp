@@ -1,21 +1,21 @@
 //
-// alloc_region.cpp
+// region.cpp
 //
 // Created 17th September 2013.
 // (c) Edmund Kapusniak 2013.  All rights reserved.
 //
 
 
-#include "alloc_region.h"
+#include "region.h"
 #include <assert.h>
 #include <string.h>
 #include <intmath.h>
 
 
-alloc_region::block alloc_region::LAST_BLOCK = { NULL, BLOCK_SIZE };
+region::block region::LAST_BLOCK = { NULL, BLOCK_SIZE };
 
 
-alloc_region::alloc_region()
+region::region()
     :   head( &LAST_BLOCK )
 {
     for ( size_t i = 0; i < FREE_SIZE; ++i )
@@ -24,7 +24,7 @@ alloc_region::alloc_region()
     }
 }
 
-alloc_region::~alloc_region()
+region::~region()
 {
     while ( head != &LAST_BLOCK )
     {
@@ -34,7 +34,7 @@ alloc_region::~alloc_region()
     }
 }
 
-void* alloc_region::alloc( size_t size )
+void* region::alloc( size_t size )
 {
     assert( size <= BLOCK_SIZE - sizeof( block ) );
 
@@ -62,7 +62,7 @@ void* alloc_region::alloc( size_t size )
     return p;
 }
 
-void* alloc_region::alloc_max( size_t min_size, size_t* out_size )
+void* region::alloc_max( size_t min_size, size_t* out_size )
 {
     assert( min_size <= BLOCK_SIZE - sizeof( block ) );
     
@@ -81,7 +81,7 @@ void* alloc_region::alloc_max( size_t min_size, size_t* out_size )
 }
 
 
-void alloc_region::free( void* p, size_t size )
+void region::free( void* p, size_t size )
 {
     if ( is_pow2( size ) )
     {
@@ -96,7 +96,7 @@ void alloc_region::free( void* p, size_t size )
 }
 
 
-void* alloc_region::realloc( void* p, size_t old_size, size_t new_size )
+void* region::realloc( void* p, size_t old_size, size_t new_size )
 {
     if ( p == (char*)head + head->offset - old_size
             && head->offset - old_size + new_size <= BLOCK_SIZE )
@@ -120,12 +120,12 @@ void* alloc_region::realloc( void* p, size_t old_size, size_t new_size )
 
 
 
-void* operator new( size_t size, alloc_region& region )
+void* operator new( size_t size, region& region )
 {
     return region.alloc( size );
 }
 
-void  operator delete( void* p, alloc_region& region )
+void  operator delete( void* p, region& region )
 {
 }
 
