@@ -22,7 +22,7 @@ public:
 
     void* alloc( size_t size );
     void* alloc_max( size_t min_size, size_t* out_size );
-    void  free( void* p );
+    void  free( void* p, size_t size );
     void* realloc( void* p, size_t old_size, size_t new_size );
 
 
