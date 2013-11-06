@@ -42,8 +42,8 @@ private:
     friend struct std::hash< symbol >;
     friend bool operator == ( const symbol& a, const symbol& b );
 
-    hash_t      shash;
-    const char* sname;
+    hash_t  shash;
+    char*   sname;
 
 };
 

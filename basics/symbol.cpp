@@ -11,87 +11,93 @@
 
 
 symbol::symbol()
-    :   hash( 0 )
-    ,   name( NULL )
+    :   shash( 0 )
+    ,   sname( NULL )
 {
 }
 
 symbol::symbol( symbol&& s )
-    :   hash( s.hash )
-    ,   name( s.name )
+    :   shash( s.shash )
+    ,   sname( s.sname )
 {
-    s.name = NULL;
+    s.sname = NULL;
 }
 
 symbol::symbol( const symbol& s )
-    :   hash( s.hash )
-    ,   name( strdup( s.name ) )
+    :   shash( s.shash )
+    ,   sname( strdup( s.sname ) )
 {
 }
 
 symbol::symbol( const char* s )
-    :   hash( ::hash( s ) )
-    ,   name( strdup( s ) )
+    :   shash( ::hash( s ) )
+    ,   sname( strdup( s ) )
 {
 }
 
 symbol::symbol( const std::string& s )
-    :   hash( ::hash( s.c_str(), s.size() ) )
-    ,   name( strdup( s.c_str() )
+    :   shash( ::hash( s.c_str(), s.size() ) )
+    ,   sname( strdup( s.c_str() ) )
 {
 }
 
-symbol::symbol& operator = ( symbol&& s )
+symbol& symbol::operator = ( symbol&& s )
 {
-    hash = s.hash;
-    free( name );
-    name = s.name;
-    s.name = NULL;
+    shash = s.shash;
+    free( sname );
+    sname = s.sname;
+    s.sname = NULL;
+    return *this;
 }
 
-symbol::symbol& operator = ( const symbol& s )
+symbol& symbol::operator = ( const symbol& s )
 {
-    hash = s.hash;
-    free( name );
-    name = s.name ? strdup( s.name ) : NULL;
+    shash = s.shash;
+    free( sname );
+    sname = s.sname ? strdup( s.sname ) : NULL;
+    return *this;
 }
 
-symbol::symbol& operator = ( const char* s )
+symbol& symbol::operator = ( const char* s )
 {
-    hash = ::hash( s );
-    free( name );
-    name = strdup( s );
+    shash = ::hash( s );
+    free( sname );
+    sname = strdup( s );
+    return *this;
 }
 
-symbol::symbol& operator = ( const std::string& s )
+symbol& symbol::operator = ( const std::string& s )
 {
-    hash = ::hash( s.c_str(), s.size() );
-    free( name );
-    name = strdup( s.c_str() );
+    shash = ::hash( s.c_str(), s.size() );
+    free( sname );
+    sname = strdup( s.c_str() );
+    return *this;
 }
 
 symbol::~symbol()
 {
-    free( name );
+    free( sname );
 }
 
 
 symbol::operator bool () const
 {
-    return name != NULL;
+    return sname != NULL;
 }
 
 symbol::operator std::string () const
 {
-    return std::string( name ? name : "" );
+    return std::string( sname ? sname : "" );
 }
 
 const char* symbol::c_str() const
 {
-    return name ? name : "";
+    return sname ? sname : "";
 }
 
 hash_t symbol::hash()
 {
-    return hash;
+    return shash;
 }
+
+

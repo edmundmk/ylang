@@ -16,21 +16,21 @@ region::block region::LAST_BLOCK = { NULL, BLOCK_SIZE };
 
 
 region::region()
-    :   head( &LAST_BLOCK )
+    :   rhead( &LAST_BLOCK )
 {
-    for ( size_t i = 0; i < FREE_SIZE; ++i )
+    for ( size_t i = 0; i < FREE_COUNT; ++i )
     {
-        free[ i ] = NULL;
+        rfree[ i ] = NULL;
     }
 }
 
 region::~region()
 {
-    while ( head != &LAST_BLOCK )
+    while ( rhead != &LAST_BLOCK )
     {
-        block* old_block = head;
-        head = head->next;
-        free( old_block );
+        block* old_block = rhead;
+        rhead = rhead->next;
+        ::free( old_block );
     }
 }
 
@@ -41,24 +41,24 @@ void* region::alloc( size_t size )
     if ( is_pow2( size ) )
     {
         size_t log_size = log2i( size );
-        if ( log_size < free_count && free[ log_size ] )
+        if ( log_size < FREE_COUNT && rfree[ log_size ] )
         {
-            void* p = free[ log_size ];
-            free[ log_size ] = free[ log_size ]->next;
+            void* p = rfree[ log_size ];
+            rfree[ log_size ] = rfree[ log_size ]->next;
             return p;
         }
     }
 
-    if ( head->offset + size > BLOCK_SIZE )
+    if ( rhead->offset + size > BLOCK_SIZE )
     {
         block* new_block = (block*)malloc( BLOCK_SIZE );
-        new_block->next   = head;
+        new_block->next   = rhead;
         new_block->offset = sizeof( block );
-        head = new_block;
+        rhead = new_block;
     }
     
-    void* p = (char*)head + head->offset;
-    head->offset += size;
+    void* p = (char*)rhead + rhead->offset;
+    rhead->offset += size;
     return p;
 }
 
@@ -66,17 +66,17 @@ void* region::alloc_max( size_t min_size, size_t* out_size )
 {
     assert( min_size <= BLOCK_SIZE - sizeof( block ) );
     
-    if ( head->offset + min_size > BLOCK_SIZE )
+    if ( rhead->offset + min_size > BLOCK_SIZE )
     {
         block* new_block = (block*)malloc( BLOCK_SIZE );
-        new_block->next   = head;
+        new_block->next   = rhead;
         new_block->offset = sizeof( block );
-        head = new_block;
+        rhead = new_block;
     }
 
-    void* p = (char*)head + head->offset;
-    *out_size = BLOCK_SIZE - head_offset;
-    head->offset = BLOCK_SIZE;
+    void* p = (char*)rhead + rhead->offset;
+    *out_size = BLOCK_SIZE - rhead->offset;
+    rhead->offset = BLOCK_SIZE;
     return p;
 }
 
@@ -88,9 +88,9 @@ void region::free( void* p, size_t size )
         size_t log_size = log2i( size );
         if ( log_size < FREE_COUNT )
         {
-            slot* s = (slot*)p;
-            s->next = free[ log_size ];
-            free[ log_size ] = s;
+            block* s = (block*)p;
+            s->next = rfree[ log_size ];
+            rfree[ log_size ] = s;
         }
     }
 }
@@ -98,11 +98,11 @@ void region::free( void* p, size_t size )
 
 void* region::realloc( void* p, size_t old_size, size_t new_size )
 {
-    if ( p == (char*)head + head->offset - old_size
-            && head->offset - old_size + new_size <= BLOCK_SIZE )
+    if ( p == (char*)rhead + rhead->offset - old_size
+            && rhead->offset - old_size + new_size <= BLOCK_SIZE )
     {
         // This is the last allocation and there is space in the block.
-        head->offset = head->offset - old_size + new_size;
+        rhead->offset = rhead->offset - old_size + new_size;
         return p;
     }
     else

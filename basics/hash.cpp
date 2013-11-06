@@ -10,6 +10,9 @@
 #include <string.h>
 
 
+#pragma clang diagnostic ignored "-Wunused-function"
+
+
 namespace
 {
 
