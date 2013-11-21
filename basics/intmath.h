@@ -10,6 +10,8 @@
 #define INTMATH_H
 
 
+#include <assert.h>
+
 #ifdef _MSC_VER
 #include <intrin.h>
 #endif
@@ -31,6 +33,10 @@ bool                is_pow2( unsigned long long x );
 unsigned int        ceil_pow2( unsigned int x );
 unsigned long       ceil_pow2( unsigned long x );
 unsigned long long  ceil_pow2( unsigned long long x );
+
+unsigned int        align( unsigned int x, unsigned int alignment );
+unsigned long       align( unsigned long x, unsigned long alignment );
+unsigned long long  align( unsigned long long x, unsigned long long alignment );
 
 
 
@@ -161,6 +167,25 @@ inline unsigned long long ceil_pow2( unsigned long long x )
         return x;
 }
 
+
+
+inline unsigned int align( unsigned int x, unsigned int alignment )
+{
+    assert( is_pow2( alignment ) );
+    return ( x + ( alignment - 1 ) ) & ( alignment - 1 );
+}
+
+inline unsigned long align( unsigned long x, unsigned long alignment )
+{
+    assert( is_pow2( alignment ) );
+    return ( x + ( alignment - 1 ) ) & ( alignment - 1 );
+}
+
+inline unsigned long long align( unsigned long long x, unsigned long long alignment )
+{
+    assert( is_pow2( alignment ) );
+    return ( x + ( alignment - 1 ) ) & ( alignment - 1 );
+}
 
 
 #endif

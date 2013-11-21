@@ -95,7 +95,7 @@ const char* symbol::c_str() const
     return sname ? sname : "";
 }
 
-hash_t symbol::hash()
+hash_t symbol::hash() const
 {
     return shash;
 }

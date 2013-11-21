@@ -33,8 +33,7 @@ public:
     explicit operator bool () const;
     operator std::string () const;
     const char* c_str() const;
-
-    hash_t hash();
+    hash_t hash() const;
 
 
 private:
