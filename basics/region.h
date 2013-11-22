@@ -6,19 +6,21 @@
 //
 
 
+
 #ifndef REGION_H
 #define REGION_H
 
 
-#include <stdlib.h>
-#include <utility>
+
+#include <new>
 #include <unordered_set>
+
 
 
 class region;
 class region_scope;
 class region_buffer;
-template < typename alloc_t > class region_allocator;
+template < class T > struct region_allocator;
 
 
 
@@ -30,32 +32,28 @@ class region
 {
 public:
 
+    static const size_t BLOCK_SIZE  = 4096;
+    static const size_t ALIGNMENT   = 8;
+
     region();
     ~region();
 
-    void* malloc( size_t size );
-    void  free( void* p, size_t size );
-    void* realloc( void* p, size_t old_size, size_t new_size );
+    size_t  align( size_t size );
+    size_t  maxalloc();
+    void*   malloc( size_t new_size );
+    void*   realloc( void* p, size_t old_size, size_t new_size );
+    void    free( void* p, size_t old_size );
 
 
 private:
 
-    friend class region_buffer;
+    void*   _malloc( size_t new_size );
+    void*   _realloc( void* p, size_t old_size, size_t new_size );
+    void    _free( void* p, size_t old_size );
 
-    struct block
-    {
-        block*  next;
-        size_t  offset;
-    };
-
-    static const size_t ALIGNMENT;
-    static const size_t BLOCK_SIZE;
-    static const size_t HEADER_SIZE;
-    static const size_t MAX_ALLOC;
-    static block LAST_BLOCK;
-
-    std::unordered_set< void* > rlarge;
-    block* rhead;
+    std::unordered_set< void* > allocs;
+    char*   block;
+    size_t  next;
 
 };
 
@@ -65,12 +63,12 @@ class region_scope
 {
 public:
 
-    region_scope( region& region );
+    region_scope( region* region );
     ~region_scope();
 
 private:
 
-    region* rprevious;
+    region* previous;
 
 };
 
@@ -80,102 +78,148 @@ class region_buffer
 {
 public:
 
-    region_buffer( region& region );
+    region_buffer();
     ~region_buffer();
-    
-    void    append( char byte );
+
+    void    append( char c );
     size_t  size();
     void*   tearoff();
 
-
 private:
 
-    void    grow();
+    void    _expand();
 
-    region& rregion;
-    char*   rbuffer;
-    size_t  roffset;
-    size_t  rcapacity;
+    char*   buffer;
+    size_t  capacity;
+    size_t  index;
 
 };
 
 
 
-template < typename alloc_t >
+template < typename T >
 class region_allocator
 {
 public:
 
-    typedef alloc_t value_type;
+    typedef T value_type;
 
-    alloc_t*    allocate( size_t n );
-    void        deallocate( alloc_t* p, size_t n );
+    T*      allocate( size_t n );
+    void    deallocate( T* p, size_t n );
 
 };
 
 
 
-void* operator new( size_t size, region& region );
-void  operator delete( void* p, region& region );
+void* operator new ( size_t size, region* region );
+void  operator delete ( void* p, region* region );
 
 
 
-
-
-
-inline region_scope::region_scope( region& region )
-    :   rprevious( region_current )
+inline size_t region::align( size_t size )
 {
-    region_current = &region;
+    return ( size + ( ALIGNMENT - 1 ) ) & ( ALIGNMENT - 1 );
+}
+
+inline size_t region::maxalloc()
+{
+    return BLOCK_SIZE - next;
+}
+
+inline void* region::malloc( size_t new_size )
+{
+    if ( next + new_size <= BLOCK_SIZE )
+    {
+        void* p = block + next;
+        next += new_size;
+        return p;
+    }
+    else
+    {
+        return _malloc( new_size );
+    }
+}
+
+inline void* region::realloc( void* p, size_t old_size, size_t new_size )
+{
+    if ( p == NULL )
+        return malloc( new_size );
+
+    if ( new_size == 0 )
+        return free( p, old_size ), (void*)NULL;
+
+    size_t prev = next - old_size;
+    if ( (char*)p == block + prev && prev + new_size <= BLOCK_SIZE )
+    {
+        next = prev + new_size;
+        return p;
+    }
+    else
+    {
+        return _realloc( p, old_size, new_size );
+    }
+}
+
+inline void region::free( void* p, size_t old_size )
+{
+    if ( p == NULL )
+        return;
+
+    if ( (char*)p + old_size == block + next )
+    {
+        next = next - old_size;
+    }
+    else
+    {
+        _free( p, old_size );
+    }
+}
+
+
+
+inline region_scope::region_scope( region* region )
+    :   previous( region_current )
+{
+    region_current = region;
 }
 
 inline region_scope::~region_scope()
 {
-    region_current = rprevious;
+    region_current = previous;
 }
 
 
 
-template < typename alloc_t >
-inline alloc_t* region_allocator< alloc_t >::allocate( size_t n )
+inline void region_buffer::append( char c )
 {
-    return (alloc_t*)region_current->malloc( sizeof( alloc_t ) * n );
-}
-
-template < typename alloc_t >
-inline void region_allocator< alloc_t >::deallocate( alloc_t* p, size_t n )
-{
-    region_current->free( p, sizeof( alloc_t ) * n );
-}
-
-
-
-inline void region_buffer::append( char byte )
-{
-    if ( roffset >= rcapacity )
+    if ( index >= capacity )
     {
-        grow();
+        _expand();
     }
-    
-    rbuffer[ roffset ] = byte;
-    roffset += 1;
+
+    buffer[ index++ ] = c;
 }
 
-
-
-
-inline void* operator new( size_t size, region& region )
+inline size_t region_buffer::size()
 {
-    return region.malloc( size );
+    return index;
 }
 
-inline void operator delete( void* p, region& region )
+
+
+template < typename T >
+inline T* region_allocator< T >::allocate( size_t n )
 {
+    return (T*)region_current->malloc( sizeof( T ) * n );
+}
+
+template < typename T >
+inline void region_allocator< T >::deallocate( T* p, size_t n )
+{
+    region_current->free( p, sizeof( T ) * n );
 }
 
 
 
-
-
-#endif /* REGION_H */
+#endif
 
