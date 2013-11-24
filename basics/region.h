@@ -32,7 +32,7 @@ class region
 {
 public:
 
-    static const size_t BLOCK_SIZE  = 4096;
+    static const size_t BLOCK_SIZE  = 4 * 1024 * 1024;
     static const size_t ALIGNMENT   = 8;
 
     region();
@@ -121,7 +121,7 @@ void  operator delete ( void* p, region* region );
 
 inline size_t region::align( size_t size )
 {
-    return ( size + ( ALIGNMENT - 1 ) ) & ( ALIGNMENT - 1 );
+    return ( size + ( ALIGNMENT - 1 ) ) & ~( ALIGNMENT - 1 );
 }
 
 inline size_t region::maxalloc()
