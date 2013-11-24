@@ -172,19 +172,19 @@ inline unsigned long long ceil_pow2( unsigned long long x )
 inline unsigned int align( unsigned int x, unsigned int alignment )
 {
     assert( is_pow2( alignment ) );
-    return ( x + ( alignment - 1 ) ) & ( alignment - 1 );
+    return ( x + ( alignment - 1 ) ) & ~( alignment - 1 );
 }
 
 inline unsigned long align( unsigned long x, unsigned long alignment )
 {
     assert( is_pow2( alignment ) );
-    return ( x + ( alignment - 1 ) ) & ( alignment - 1 );
+    return ( x + ( alignment - 1 ) ) & ~( alignment - 1 );
 }
 
 inline unsigned long long align( unsigned long long x, unsigned long long alignment )
 {
     assert( is_pow2( alignment ) );
-    return ( x + ( alignment - 1 ) ) & ( alignment - 1 );
+    return ( x + ( alignment - 1 ) ) & ~( alignment - 1 );
 }
 
 

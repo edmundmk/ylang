@@ -110,8 +110,7 @@ region_buffer::~region_buffer()
 void* region_buffer::tearoff()
 {
     // Reallocate the buffer.
-    size_t final_size = region_current->align( index );
-    buffer = (char*)region_current->realloc( buffer, capacity, final_size );
+    buffer = (char*)region_current->realloc( buffer, capacity, index );
 
     // Return the memory.
     void* p = buffer;

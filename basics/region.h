@@ -14,6 +14,7 @@
 
 #include <new>
 #include <unordered_set>
+#include <intmath.h>
 
 
 
@@ -38,7 +39,6 @@ public:
     region();
     ~region();
 
-    size_t  align( size_t size );
     size_t  maxalloc();
     void*   malloc( size_t new_size );
     void*   realloc( void* p, size_t old_size, size_t new_size );
@@ -119,11 +119,6 @@ void  operator delete ( void* p, region* region );
 
 
 
-inline size_t region::align( size_t size )
-{
-    return ( size + ( ALIGNMENT - 1 ) ) & ~( ALIGNMENT - 1 );
-}
-
 inline size_t region::maxalloc()
 {
     return BLOCK_SIZE - next;
@@ -131,6 +126,8 @@ inline size_t region::maxalloc()
 
 inline void* region::malloc( size_t new_size )
 {
+    new_size = align( new_size, ALIGNMENT );
+
     if ( next + new_size <= BLOCK_SIZE )
     {
         void* p = block + next;
@@ -145,6 +142,9 @@ inline void* region::malloc( size_t new_size )
 
 inline void* region::realloc( void* p, size_t old_size, size_t new_size )
 {
+    old_size = align( old_size, ALIGNMENT );
+    new_size = align( new_size, ALIGNMENT );
+
     if ( p == NULL )
         return malloc( new_size );
 
@@ -167,6 +167,8 @@ inline void region::free( void* p, size_t old_size )
 {
     if ( p == NULL )
         return;
+
+    old_size = align( old_size, ALIGNMENT );
 
     if ( (char*)p + old_size == block + next )
     {
