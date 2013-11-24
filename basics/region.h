@@ -81,8 +81,11 @@ public:
     region_buffer();
     ~region_buffer();
 
+    void    clear();
     void    append( char c );
     size_t  size();
+    void*   get();
+    
     void*   tearoff();
 
 private:
@@ -190,6 +193,11 @@ inline region_scope::~region_scope()
 
 
 
+inline void region_buffer::clear()
+{
+    index = 0;
+}
+
 inline void region_buffer::append( char c )
 {
     if ( index >= capacity )
@@ -205,6 +213,11 @@ inline size_t region_buffer::size()
     return index;
 }
 
+inline void* region_buffer::get()
+{
+    return buffer;
+}
+
 
 
 template < typename T >
@@ -217,6 +230,18 @@ template < typename T >
 inline void region_allocator< T >::deallocate( T* p, size_t n )
 {
     region_current->free( p, sizeof( T ) * n );
+}
+
+
+
+inline void* operator new ( size_t size, region* region )
+{
+    return region_current->malloc( size );
+}
+
+inline void operator delete ( void* p, region* region )
+{
+    // don't know the size so can't free.
 }
 
 
