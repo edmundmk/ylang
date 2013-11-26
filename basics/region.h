@@ -113,6 +113,8 @@ public:
 };
 
 
+void* region_malloc( size_t size );
+void  region_free( void* p );
 
 void* operator new ( size_t size, region* region );
 void  operator delete ( void* p, region* region );
@@ -236,9 +238,21 @@ inline void region_allocator< T >::deallocate( T* p, size_t n )
 
 
 
-inline void* operator new ( size_t size, region* region )
+inline void* region_malloc( size_t size )
 {
     return region_current->malloc( size );
+}
+
+inline void region_free( void* p )
+{
+}
+
+
+
+
+inline void* operator new ( size_t size, region* region )
+{
+    return region->malloc( size );
 }
 
 inline void operator delete ( void* p, region* region )
