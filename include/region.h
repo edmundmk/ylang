@@ -17,6 +17,17 @@
 #include <intmath.h>
 
 
+#ifdef __APPLE__
+    #include <TargetConditionals.h>
+    #if TARGET_OS_IPHONE
+        #define __thread
+    #else
+        #define __thread __thread
+    #endif
+#else
+#define __thread __thread
+#endif
+
 
 class region;
 class region_scope;
