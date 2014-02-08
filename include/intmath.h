@@ -38,6 +38,9 @@ unsigned int        align( unsigned int x, unsigned int alignment );
 unsigned long       align( unsigned long x, unsigned long alignment );
 unsigned long long  align( unsigned long long x, unsigned long long alignment );
 
+unsigned int        popcount( unsigned int x );
+unsigned long       popcount( unsigned long x );
+unsigned long long  popcount( unsigned long long x );
 
 
 inline unsigned int clz( unsigned int x )
@@ -186,6 +189,81 @@ inline unsigned long long align( unsigned long long x, unsigned long long alignm
     assert( is_pow2( alignment ) );
     return ( x + ( alignment - 1 ) ) & ~( alignment - 1 );
 }
+
+
+inline unsigned int popcount( unsigned int x )
+{
+#ifdef MSC_VER
+
+#if __POPCNT__
+
+    return __popcnt( x )
+    
+#else
+
+    // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+    x = x - ( ( x >> 1 ) & 0x55555555 );
+    x = ( x & 0x33333333 ) + ( ( x >> 2 ) & 0x33333333 );
+    return ( ( x + ( x >> 4 ) & 0x0F0F0F0F ) * 0x01010101 ) >> 24;
+
+#endif
+    
+#else
+
+    return __builtin_popcount( x );
+    
+#endif
+}
+
+inline unsigned long popcount( unsigned long x )
+{
+#ifdef MSC_VER
+
+#if __POPCNT__
+
+    return __popcnt( (unsigned int)x );
+    
+#else
+
+    // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+    x = x - ( ( x >> 1 ) & 0x55555555l );
+    x = ( x & 0x33333333l ) + ( ( x >> 2 ) & 0x33333333l );
+    return ( ( x + ( x >> 4 ) & 0x0F0F0F0Fl ) * 0x01010101l ) >> 24;
+
+#endif
+
+#else
+
+    return __builtin_popcountl( x );
+
+#endif
+}
+
+inline unsigned long long popcount( unsigned long long x )
+{
+#ifdef MSC_VER
+
+#if __POPCNT__
+
+    return __popcnt64( x );
+
+#else
+
+    // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+    v = v - ( ( v >> 1 ) & 0x5555555555555555ll );
+    v = ( v & 0x3333333333333333ll ) + ( ( v >> 2 ) & 0x3333333333333333ll );
+    v = ( v + ( v >> 4 ) ) & 0x0F0F0F0F0F0F0F0Fll;
+    return ( v * 0x0101010101010101ll ) >> 56;
+
+#endif
+
+#else
+
+    return __builtin_popcountll( x );
+
+#endif
+}
+
 
 
 #endif
