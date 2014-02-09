@@ -33,7 +33,7 @@ public:
     explicit operator bool () const;
     operator std::string () const;
     const char* c_str() const;
-    hash_t hash() const;
+    hash32_t hash() const;
 
 
 private:
@@ -41,8 +41,8 @@ private:
     friend struct std::hash< symbol >;
     friend bool operator == ( const symbol& a, const symbol& b );
 
-    hash_t  shash;
-    char*   sname;
+    hash32_t    shash;
+    char*       sname;
 
 };
 
@@ -52,7 +52,7 @@ namespace std
 {
 template <> struct hash< symbol >
 {
-    inline size_t operator () ( const symbol& s )
+    inline size_t operator () ( const symbol& s ) const
     {
         return s.shash;
     }

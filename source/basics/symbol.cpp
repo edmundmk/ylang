@@ -30,13 +30,13 @@ symbol::symbol( const symbol& s )
 }
 
 symbol::symbol( const char* s )
-    :   shash( ::hash( s ) )
+    :   shash( hash32( s ) )
     ,   sname( strdup( s ) )
 {
 }
 
 symbol::symbol( const std::string& s )
-    :   shash( ::hash( s.c_str(), s.size() ) )
+    :   shash( hash32( s.c_str(), s.size() ) )
     ,   sname( strdup( s.c_str() ) )
 {
 }
@@ -60,7 +60,7 @@ symbol& symbol::operator = ( const symbol& s )
 
 symbol& symbol::operator = ( const char* s )
 {
-    shash = ::hash( s );
+    shash = hash32( s );
     free( sname );
     sname = strdup( s );
     return *this;
@@ -68,7 +68,7 @@ symbol& symbol::operator = ( const char* s )
 
 symbol& symbol::operator = ( const std::string& s )
 {
-    shash = ::hash( s.c_str(), s.size() );
+    shash = hash32( s.c_str(), s.size() );
     free( sname );
     sname = strdup( s.c_str() );
     return *this;
@@ -95,7 +95,7 @@ const char* symbol::c_str() const
     return sname ? sname : "";
 }
 
-hash_t symbol::hash() const
+hash32_t symbol::hash() const
 {
     return shash;
 }
