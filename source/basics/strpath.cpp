@@ -266,6 +266,10 @@ std::string path_relative(
     std::string dpath = path_canonicalize( directory );
     std::string tpath = path_canonicalize( target );
     
+    // Check for relative to current directory.
+    if ( dpath.compare( PERIOD_SEPARATOR ) == 0 )
+        return tpath;
+    
     // Either both paths must be absolute or both relative to a common base.
     if ( path_is_absolute( dpath ) != path_is_absolute( tpath ) )
         return tpath;
