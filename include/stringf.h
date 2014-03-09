@@ -20,7 +20,7 @@
 
 #define va_copy( vlist, arguments ) vlist = arguments
 
-inline int vsnprintf( char* str, size_t size, const char* format, va_list ap )
+inline int _msc_vsnprintf( char* str, size_t size, const char* format, va_list ap )
 {
     va_list vlist;
     va_copy( vlist, ap );
@@ -32,6 +32,18 @@ inline int vsnprintf( char* str, size_t size, const char* format, va_list ap )
     }
     return result;
 }
+
+inline int _msc_snprintf( char* str, size_t size, const char* format, ... )
+{
+    va_list arguments;
+    va_start( arguments, format );
+    int result = _msc_vsnprintf( str, size, format, arguments );
+    va_end( arguments )
+    return result;
+}
+
+#define vsnprintf _msc_vsnprintf
+#define snprintf _msc_snprintf
 
 #endif
 
