@@ -94,6 +94,8 @@ public:
 
     void    clear();
     void    append( char c );
+    void    append( uint8_t c );
+    void    append( void* data, size_t size );
     size_t  size();
     void*   get();
     
@@ -101,7 +103,7 @@ public:
 
 private:
 
-    void    _expand();
+    void    _expand( size_t new_capacity );
 
     char*   buffer;
     size_t  capacity;
@@ -217,11 +219,32 @@ inline void region_buffer::append( char c )
 {
     if ( index >= capacity )
     {
-        _expand();
+        _expand( index + 1 );
     }
 
     buffer[ index++ ] = c;
 }
+
+inline void region_buffer::append( uint8_t c )
+{
+    if ( index >= capacity )
+    {
+        _expand( index + 1 );
+    }
+
+    buffer[ index++ ] = c;
+}
+
+inline void region_buffer::append( void* data, size_t size )
+{
+    if ( index + size > capacity )
+    {
+        _expand( index + size );
+    }
+    
+    memcpy( buffer + index, data, size );
+}
+
 
 inline size_t region_buffer::size()
 {

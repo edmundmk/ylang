@@ -120,15 +120,16 @@ void* region_buffer::tearoff()
     return p;
 }
 
-void region_buffer::_expand()
+void region_buffer::_expand( size_t new_capacity )
 {
+    assert( new_capacity > capacity );
+
     // Find a new capacity larger than the current capacity.
-    size_t new_capacity;
-    if ( capacity < region_current->maxalloc() )
+    if ( new_capacity <= region_current->maxalloc() )
         new_capacity = region_current->maxalloc();
-    else if ( capacity < region::BLOCK_SIZE )
+    else if ( new_capacity <= region::BLOCK_SIZE )
         new_capacity = region::BLOCK_SIZE;
-    else
+    else if ( new_capacity <= capacity * 2 )
         new_capacity = capacity * 2;
 
     // Reallocate.
