@@ -95,7 +95,7 @@ public:
     void    clear();
     void    append( char c );
     void    append( uint8_t c );
-    void    append( void* data, size_t size );
+    void    append( const void* data, size_t size );
     size_t  size();
     void*   get();
     
@@ -235,7 +235,7 @@ inline void region_buffer::append( uint8_t c )
     buffer[ index++ ] = c;
 }
 
-inline void region_buffer::append( void* data, size_t size )
+inline void region_buffer::append( const void* data, size_t size )
 {
     if ( index + size > capacity )
     {
@@ -243,6 +243,7 @@ inline void region_buffer::append( void* data, size_t size )
     }
     
     memcpy( buffer + index, data, size );
+    index += size;
 }
 
 
