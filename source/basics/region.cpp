@@ -107,6 +107,16 @@ region_buffer::~region_buffer()
     region_current->free( buffer, capacity );
 }
 
+void region_buffer::shrink()
+{
+    // Shrink the allocation to be only the size of the contained data.  This
+    // is useful if we are going to allocate something else from the region
+    // but this buffer is not yet finished - it will force a copy on the next
+    // buffer realloc, but avoids consuming the entirety of a block.
+    buffer = (char*)region_current->realloc( buffer, capacity, index );
+    capacity = index;
+}
+
 void* region_buffer::tearoff()
 {
     // Reallocate the buffer.

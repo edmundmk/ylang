@@ -99,6 +99,7 @@ public:
     size_t  size();
     void*   get();
     
+    void    shrink();
     void*   tearoff();
 
 private:
@@ -166,10 +167,12 @@ inline void* region::realloc( void* p, size_t old_size, size_t new_size )
     if ( new_size == 0 )
         return free( p, old_size ), (void*)NULL;
 
-    size_t prev = next - old_size;
-    if ( (char*)p == block + prev && prev + new_size <= BLOCK_SIZE )
+    if ( old_size < next
+            && (char*)p == block + next - old_size
+            && next - old_size + new_size <= BLOCK_SIZE )
     {
-        next = prev + new_size;
+        next -= old_size;
+        next += new_size;
         return p;
     }
     else
