@@ -80,24 +80,5 @@ symbol::~symbol()
 }
 
 
-symbol::operator bool () const
-{
-    return sname != NULL;
-}
-
-symbol::operator std::string () const
-{
-    return std::string( sname ? sname : "" );
-}
-
-const char* symbol::c_str() const
-{
-    return sname ? sname : "";
-}
-
-hash32_t symbol::hash() const
-{
-    return shash;
-}
 
 
