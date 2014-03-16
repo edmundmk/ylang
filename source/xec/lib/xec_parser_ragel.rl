@@ -32,6 +32,7 @@
     
     action neof
     {
+        data.shrink();
         int sloc = (int)( offset + ( p - buffer ) );
         diagnostic( sloc, "unexpected end of file" );
         fbreak;
@@ -39,6 +40,7 @@
     
     action nchar
     {
+        data.shrink();
         int sloc = (int)( offset + ( p - buffer ) );
         if ( fc >= 0x20 && fc <= 0x7E )
             diagnostic( sloc, "unexpected character '%c'", fc );
@@ -275,7 +277,7 @@ xec_token_lookup xec_parser::lookup_identifier( region_buffer* data )
     else
     {
         text = (const char*)data->tearoff();
-        assert( key.c_str() == text );
+        key = symkey( key.hash(), text, size );
         identifiers.insert( key );
     }
     
@@ -374,6 +376,7 @@ bool xec_parser::parse( const char* path )
         
         if ( iseof && ferror( file ) )
         {
+            data.shrink();
             diagnostic( offset, "error reading file" );
             goto error;
         }
