@@ -285,12 +285,12 @@ inline void region_free( void* p )
 
 
 
-inline void* operator new ( size_t size, region* region )
+inline void* operator new ( size_t size, region& region )
 {
-    return region->malloc( size );
+    return region.malloc( size );
 }
 
-inline void operator delete ( void* p, region* region )
+inline void operator delete ( void* p, region& region )
 {
     // don't know the size so can't free.
 }
