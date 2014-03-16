@@ -41,6 +41,7 @@
 %nonassoc RPN .
 %nonassoc ASTERISK .
 %nonassoc PLUS .
+%nonassoc COMMA .
 %nonassoc MINUS .
 %nonassoc PERIOD .
 %nonassoc SOLIDUS .

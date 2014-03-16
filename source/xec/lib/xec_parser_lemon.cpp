@@ -60,7 +60,7 @@
 **                       defined, then do no error processing.
 */
 #define YYCODETYPE unsigned char
-#define YYNOCODE 72
+#define YYNOCODE 73
 #define YYACTIONTYPE unsigned char
 #define XecParseTOKENTYPE void*
 typedef union {
@@ -148,17 +148,17 @@ static const YYACTIONTYPE yy_action[] = {
  /*     0 */     1,    3,
 };
 static const YYCODETYPE yy_lookahead[] = {
- /*     0 */     0,   70,
+ /*     0 */     0,   71,
 };
 #define YY_SHIFT_USE_DFLT (-1)
 #define YY_SHIFT_MAX 0
 static const signed char yy_shift_ofst[] = {
  /*     0 */     0,
 };
-#define YY_REDUCE_USE_DFLT (-70)
+#define YY_REDUCE_USE_DFLT (-71)
 #define YY_REDUCE_MAX 0
 static const signed char yy_reduce_ofst[] = {
- /*     0 */   -69,
+ /*     0 */   -70,
 };
 static const YYACTIONTYPE yy_default[] = {
  /*     0 */     2,
@@ -262,17 +262,17 @@ static const char *const yyTokenName[] = {
   "VAR",           "WHILE",         "YIELD",         "IDENTIFIER",  
   "NUMBER",        "STRING",        "XMARK",         "PERCENT",     
   "AMPERSAND",     "LPN",           "RPN",           "ASTERISK",    
-  "PLUS",          "MINUS",         "PERIOD",        "SOLIDUS",     
-  "COLON",         "SEMICOLON",     "LESS",          "ASSIGN",      
-  "GREATER",       "QMARK",         "LSQ",           "RSQ",         
-  "CARET",         "LBR",           "VBAR",          "RBR",         
-  "TILDE",         "INCREMENT",     "DECREMENT",     "LSHIFT",      
-  "RSHIFT",        "URSHIFT",       "NOTEQUAL",      "LESSEQUAL",   
-  "EQUAL",         "GREATEREQUAL",  "MODASSIGN",     "BITANDASSIGN",
-  "MULASSIGN",     "ADDASSIGN",     "SUBASSIGN",     "DIVASSIGN",   
-  "BITXORASSIGN",  "BITORASSIGN",   "INTDIVASSIGN",  "LSHIFTASSIGN",
-  "RSHIFTASSIGN",  "URSHIFTASSIGN",  "LOGICAND",      "LOGICXOR",    
-  "LOGICOR",       "error",         "something",   
+  "PLUS",          "COMMA",         "MINUS",         "PERIOD",      
+  "SOLIDUS",       "COLON",         "SEMICOLON",     "LESS",        
+  "ASSIGN",        "GREATER",       "QMARK",         "LSQ",         
+  "RSQ",           "CARET",         "LBR",           "VBAR",        
+  "RBR",           "TILDE",         "INCREMENT",     "DECREMENT",   
+  "LSHIFT",        "RSHIFT",        "URSHIFT",       "NOTEQUAL",    
+  "LESSEQUAL",     "EQUAL",         "GREATEREQUAL",  "MODASSIGN",   
+  "BITANDASSIGN",  "MULASSIGN",     "ADDASSIGN",     "SUBASSIGN",   
+  "DIVASSIGN",     "BITXORASSIGN",  "BITORASSIGN",   "INTDIVASSIGN",
+  "LSHIFTASSIGN",  "RSHIFTASSIGN",  "URSHIFTASSIGN",  "LOGICAND",    
+  "LOGICXOR",      "LOGICOR",       "error",         "something",   
 };
 #endif /* NDEBUG */
 
@@ -585,7 +585,7 @@ static const struct {
   YYCODETYPE lhs;         /* Symbol on the left-hand side of the rule */
   unsigned char nrhs;     /* Number of right-hand side symbols in the rule */
 } yyRuleInfo[] = {
-  { 70, 0 },
+  { 71, 0 },
 };
 
 static void yy_accept(yyParser*);  /* Forward Declaration */

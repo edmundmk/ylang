@@ -37,58 +37,59 @@ struct xec_token_operators
     
     xec_token_operators()
     {
-        operators.emplace( XEC_TOKEN_XMARK,           symkey( "!") );
-        operators.emplace( XEC_TOKEN_PERCENT,         symkey( "%") );
-        operators.emplace( XEC_TOKEN_AMPERSAND,       symkey( "&") );
-        operators.emplace( XEC_TOKEN_LPN,             symkey( "(") );
-        operators.emplace( XEC_TOKEN_RPN,             symkey( ")") );
-        operators.emplace( XEC_TOKEN_ASTERISK,        symkey( "*") );
-        operators.emplace( XEC_TOKEN_PLUS,            symkey( "+") );
-        operators.emplace( XEC_TOKEN_MINUS,           symkey( "-") );
-        operators.emplace( XEC_TOKEN_PERIOD,          symkey( ".") );
-        operators.emplace( XEC_TOKEN_SOLIDUS,         symkey( "/") );
-        operators.emplace( XEC_TOKEN_COLON,           symkey( ":") );
-        operators.emplace( XEC_TOKEN_SEMICOLON,       symkey( ";") );
-        operators.emplace( XEC_TOKEN_LESS,            symkey( "<") );
-        operators.emplace( XEC_TOKEN_ASSIGN,          symkey( "=") );
-        operators.emplace( XEC_TOKEN_GREATER,         symkey( ">") );
-        operators.emplace( XEC_TOKEN_QMARK,           symkey( "?") );
-        operators.emplace( XEC_TOKEN_LSQ,             symkey( "[") );
-        operators.emplace( XEC_TOKEN_RSQ,             symkey( "]") );
-        operators.emplace( XEC_TOKEN_CARET,           symkey( "^") );
-        operators.emplace( XEC_TOKEN_LBR,             symkey( "{") );
-        operators.emplace( XEC_TOKEN_VBAR,            symkey( "|") );
-        operators.emplace( XEC_TOKEN_RBR,             symkey( "}") );
-        operators.emplace( XEC_TOKEN_TILDE,           symkey( "~") );
+        operators.emplace( XEC_TOKEN_XMARK,           symkey( "!" ) );
+        operators.emplace( XEC_TOKEN_PERCENT,         symkey( "%" ) );
+        operators.emplace( XEC_TOKEN_AMPERSAND,       symkey( "&" ) );
+        operators.emplace( XEC_TOKEN_LPN,             symkey( "(" ) );
+        operators.emplace( XEC_TOKEN_RPN,             symkey( ")" ) );
+        operators.emplace( XEC_TOKEN_ASTERISK,        symkey( "*" ) );
+        operators.emplace( XEC_TOKEN_PLUS,            symkey( "+" ) );
+        operators.emplace( XEC_TOKEN_COMMA,           symkey( "," ) );
+        operators.emplace( XEC_TOKEN_MINUS,           symkey( "-" ) );
+        operators.emplace( XEC_TOKEN_PERIOD,          symkey( "." ) );
+        operators.emplace( XEC_TOKEN_SOLIDUS,         symkey( "/" ) );
+        operators.emplace( XEC_TOKEN_COLON,           symkey( ":" ) );
+        operators.emplace( XEC_TOKEN_SEMICOLON,       symkey( ";" ) );
+        operators.emplace( XEC_TOKEN_LESS,            symkey( "<" ) );
+        operators.emplace( XEC_TOKEN_ASSIGN,          symkey( "=" ) );
+        operators.emplace( XEC_TOKEN_GREATER,         symkey( ">" ) );
+        operators.emplace( XEC_TOKEN_QMARK,           symkey( "?" ) );
+        operators.emplace( XEC_TOKEN_LSQ,             symkey( "[" ) );
+        operators.emplace( XEC_TOKEN_RSQ,             symkey( "]" ) );
+        operators.emplace( XEC_TOKEN_CARET,           symkey( "^" ) );
+        operators.emplace( XEC_TOKEN_LBR,             symkey( "{" ) );
+        operators.emplace( XEC_TOKEN_VBAR,            symkey( "|" ) );
+        operators.emplace( XEC_TOKEN_RBR,             symkey( "}" ) );
+        operators.emplace( XEC_TOKEN_TILDE,           symkey( "~" ) );
     
-        operators.emplace( XEC_TOKEN_INCREMENT,       symkey( "++") );
-        operators.emplace( XEC_TOKEN_DECREMENT,       symkey( "--") );
+        operators.emplace( XEC_TOKEN_INCREMENT,       symkey( "++" ) );
+        operators.emplace( XEC_TOKEN_DECREMENT,       symkey( "--" ) );
     
-        operators.emplace( XEC_TOKEN_LSHIFT,          symkey( "<<") );
-        operators.emplace( XEC_TOKEN_RSHIFT,          symkey( ">>") );
-        operators.emplace( XEC_TOKEN_URSHIFT,         symkey( ">>>") );
+        operators.emplace( XEC_TOKEN_LSHIFT,          symkey( "<<" ) );
+        operators.emplace( XEC_TOKEN_RSHIFT,          symkey( ">>" ) );
+        operators.emplace( XEC_TOKEN_URSHIFT,         symkey( ">>>" ) );
     
-        operators.emplace( XEC_TOKEN_NOTEQUAL,        symkey( "!=") );
-        operators.emplace( XEC_TOKEN_LESSEQUAL,       symkey( "<=") );
-        operators.emplace( XEC_TOKEN_EQUAL,           symkey( "==") );
-        operators.emplace( XEC_TOKEN_GREATEREQUAL,    symkey( ">=") );
+        operators.emplace( XEC_TOKEN_NOTEQUAL,        symkey( "!=" ) );
+        operators.emplace( XEC_TOKEN_LESSEQUAL,       symkey( "<=" ) );
+        operators.emplace( XEC_TOKEN_EQUAL,           symkey( "==" ) );
+        operators.emplace( XEC_TOKEN_GREATEREQUAL,    symkey( ">=" ) );
     
-        operators.emplace( XEC_TOKEN_MODASSIGN,       symkey( "%=") );
-        operators.emplace( XEC_TOKEN_BITANDASSIGN,    symkey( "&=") );
-        operators.emplace( XEC_TOKEN_MULASSIGN,       symkey( "*=") );
-        operators.emplace( XEC_TOKEN_ADDASSIGN,       symkey( "+=") );
-        operators.emplace( XEC_TOKEN_SUBASSIGN,       symkey( "-=") );
-        operators.emplace( XEC_TOKEN_DIVASSIGN,       symkey( "/=") );
-        operators.emplace( XEC_TOKEN_BITXORASSIGN,    symkey( "^=") );
-        operators.emplace( XEC_TOKEN_BITORASSIGN,     symkey( "|=") );
-        operators.emplace( XEC_TOKEN_INTDIVASSIGN,    symkey( "~=") );
-        operators.emplace( XEC_TOKEN_LSHIFTASSIGN,    symkey( "<<=") );
-        operators.emplace( XEC_TOKEN_RSHIFTASSIGN,    symkey( ">>=") );
-        operators.emplace( XEC_TOKEN_URSHIFTASSIGN,   symkey( ">>>=") );
+        operators.emplace( XEC_TOKEN_MODASSIGN,       symkey( "%=" ) );
+        operators.emplace( XEC_TOKEN_BITANDASSIGN,    symkey( "&=" ) );
+        operators.emplace( XEC_TOKEN_MULASSIGN,       symkey( "*=" ) );
+        operators.emplace( XEC_TOKEN_ADDASSIGN,       symkey( "+=" ) );
+        operators.emplace( XEC_TOKEN_SUBASSIGN,       symkey( "-=" ) );
+        operators.emplace( XEC_TOKEN_DIVASSIGN,       symkey( "/=" ) );
+        operators.emplace( XEC_TOKEN_BITXORASSIGN,    symkey( "^=" ) );
+        operators.emplace( XEC_TOKEN_BITORASSIGN,     symkey( "|=" ) );
+        operators.emplace( XEC_TOKEN_INTDIVASSIGN,    symkey( "~=" ) );
+        operators.emplace( XEC_TOKEN_LSHIFTASSIGN,    symkey( "<<=" ) );
+        operators.emplace( XEC_TOKEN_RSHIFTASSIGN,    symkey( ">>=" ) );
+        operators.emplace( XEC_TOKEN_URSHIFTASSIGN,   symkey( ">>>=" ) );
     
-        operators.emplace( XEC_TOKEN_LOGICAND,        symkey( "&&") );
-        operators.emplace( XEC_TOKEN_LOGICXOR,        symkey( "^^") );
-        operators.emplace( XEC_TOKEN_LOGICOR,         symkey( "||") );
+        operators.emplace( XEC_TOKEN_LOGICAND,        symkey( "&&" ) );
+        operators.emplace( XEC_TOKEN_LOGICXOR,        symkey( "^^" ) );
+        operators.emplace( XEC_TOKEN_LOGICOR,         symkey( "||" ) );
     }
     
     bool lookup( xec_token_kind kind, xec_token_lookup* out_lookup )
@@ -239,6 +240,7 @@ void xec_token::debug_print()
     case XEC_TOKEN_RPN:             kind_name = "RPN";              break;
     case XEC_TOKEN_ASTERISK:        kind_name = "ASTERISK";         break;
     case XEC_TOKEN_PLUS:            kind_name = "PLUS";             break;
+    case XEC_TOKEN_COMMA:           kind_name = "COMMA";            break;
     case XEC_TOKEN_MINUS:           kind_name = "MINUS";            break;
     case XEC_TOKEN_PERIOD:          kind_name = "PERIOD";           break;
     case XEC_TOKEN_SOLIDUS:         kind_name = "SOLIDUS";          break;
@@ -286,7 +288,7 @@ void xec_token::debug_print()
     case XEC_TOKEN_LOGICOR:         kind_name = "LOGICOR";          break;
     }
     
-    printf( "%s %.*s\n", kind_name, (int)size, text );
+    printf( "%s '%.*s'\n", kind_name, (int)size, text );
 }
 
 

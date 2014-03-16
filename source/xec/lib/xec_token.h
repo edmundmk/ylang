@@ -52,6 +52,7 @@ enum xec_token_kind
     XEC_TOKEN_RPN           = LEMON_RPN,
     XEC_TOKEN_ASTERISK      = LEMON_ASTERISK,
     XEC_TOKEN_PLUS          = LEMON_PLUS,
+    XEC_TOKEN_COMMA         = LEMON_COMMA,
     XEC_TOKEN_MINUS         = LEMON_MINUS,
     XEC_TOKEN_PERIOD        = LEMON_PERIOD,
     XEC_TOKEN_SOLIDUS       = LEMON_SOLIDUS,

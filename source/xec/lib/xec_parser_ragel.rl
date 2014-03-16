@@ -26,7 +26,7 @@
     alphtype unsigned char;
     
     
-    action nl { newlines.push_back( (int)( offset + ( p - buffer ) ) ); }
+    action nl { newlines.push_back( (int)( offset + ( p - buffer ) - 1 ) ); }
     action ts { sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
     action dc { data.append( (char)fc ); }
     
@@ -54,7 +54,7 @@
     
     # Newlines (handling CR LF properly), comments, and whitespace.
 
-    newline         = ( '\n' | '\r' | '\r\n' ) $1 %0 %nl ;
+    newline         = ( '\n' | '\r' | '\r\n' ) $1 %0 %nl %!nl ;
     block_comment   = '/*' ( any | newline )* :>> '*/' ;
     line_comment    = '//' any* :>> newline ;
     whitespace      = ( [ \t] | newline | block_comment | line_comment )+ ;
@@ -180,6 +180,7 @@
         |   ')'     >ts %{ TOKEN( XEC_TOKEN_RPN, sloc ); }
         |   '*'     >ts %{ TOKEN( XEC_TOKEN_ASTERISK, sloc ); }
         |   '+'     >ts %{ TOKEN( XEC_TOKEN_PLUS, sloc ); }
+        |   ','     >ts %{ TOKEN( XEC_TOKEN_COMMA, sloc ); }
         |   '-'     >ts %{ TOKEN( XEC_TOKEN_MINUS, sloc ); }
         |   '.'     >ts %{ TOKEN( XEC_TOKEN_PERIOD, sloc ); }
         |   '/'     >ts %{ TOKEN( XEC_TOKEN_SOLIDUS, sloc ); }

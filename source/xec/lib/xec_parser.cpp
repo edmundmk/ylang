@@ -47,7 +47,7 @@ int xec_parser::get_column( int sloc )
     auto i = std::upper_bound( newlines.begin(), newlines.end(), sloc );
     if ( i != newlines.begin() )
         line_start = *( i - 1 );
-    return sloc - line_start + 1;
+    return sloc - line_start;
 }
 
 
