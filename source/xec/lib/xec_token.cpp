@@ -90,6 +90,8 @@ struct xec_token_operators
         operators.emplace( XEC_TOKEN_LOGICAND,        symkey( "&&" ) );
         operators.emplace( XEC_TOKEN_LOGICXOR,        symkey( "^^" ) );
         operators.emplace( XEC_TOKEN_LOGICOR,         symkey( "||" ) );
+        
+        operators.emplace( XEC_TOKEN_ELLIPSIS,        symkey( "..." ) );
     }
     
     bool lookup( xec_token_kind kind, xec_token_lookup* out_lookup )
@@ -137,12 +139,16 @@ struct xec_token_keywords
         keywords.emplace( symkey( "default" ),  XEC_KEYWORD_DEFAULT );
         keywords.emplace( symkey( "do" ),       XEC_KEYWORD_DO );
         keywords.emplace( symkey( "else" ),     XEC_KEYWORD_ELSE );
+        keywords.emplace( symkey( "false" ),    XEC_KEYWORD_FALSE );
         keywords.emplace( symkey( "finally" ),  XEC_KEYWORD_FINALLY );
         keywords.emplace( symkey( "for" ),      XEC_KEYWORD_FOR );
         keywords.emplace( symkey( "if" ),       XEC_KEYWORD_IF );
+        keywords.emplace( symkey( "new" ),      XEC_KEYWORD_NEW );
+        keywords.emplace( symkey( "null" ),     XEC_KEYWORD_NULL );
         keywords.emplace( symkey( "return" ),   XEC_KEYWORD_RETURN );
         keywords.emplace( symkey( "switch" ),   XEC_KEYWORD_SWITCH );
         keywords.emplace( symkey( "throw" ),    XEC_KEYWORD_THROW );
+        keywords.emplace( symkey( "true" ),     XEC_KEYWORD_TRUE );
         keywords.emplace( symkey( "try" ),      XEC_KEYWORD_TRY );
         keywords.emplace( symkey( "using" ),    XEC_KEYWORD_USING );
         keywords.emplace( symkey( "var" ),      XEC_KEYWORD_VAR );
@@ -217,12 +223,16 @@ void xec_token::debug_print()
     case XEC_KEYWORD_DEFAULT:       kind_name = "DEFAULT";          break;
     case XEC_KEYWORD_DO:            kind_name = "DO";               break;
     case XEC_KEYWORD_ELSE:          kind_name = "ELSE";             break;
+    case XEC_KEYWORD_FALSE:         kind_name = "FALSE";            break;
     case XEC_KEYWORD_FINALLY:       kind_name = "FINALLY";          break;
     case XEC_KEYWORD_FOR:           kind_name = "FOR";              break;
     case XEC_KEYWORD_IF:            kind_name = "IF";               break;
+    case XEC_KEYWORD_NEW:           kind_name = "NEW";              break;
+    case XEC_KEYWORD_NULL:          kind_name = "NULL";             break;
     case XEC_KEYWORD_RETURN:        kind_name = "RETURN";           break;
     case XEC_KEYWORD_SWITCH:        kind_name = "SWITCH";           break;
     case XEC_KEYWORD_THROW:         kind_name = "THROW";            break;
+    case XEC_KEYWORD_TRUE:          kind_name = "TRUE";             break;
     case XEC_KEYWORD_TRY:           kind_name = "TRY";              break;
     case XEC_KEYWORD_USING:         kind_name = "USING";            break;
     case XEC_KEYWORD_VAR:           kind_name = "VAR";              break;
@@ -286,6 +296,8 @@ void xec_token::debug_print()
     case XEC_TOKEN_LOGICAND:        kind_name = "LOGICAND";         break;
     case XEC_TOKEN_LOGICXOR:        kind_name = "LOGICXOR";         break;
     case XEC_TOKEN_LOGICOR:         kind_name = "LOGICOR";          break;
+    
+    case XEC_TOKEN_ELLIPSIS:        kind_name = "ELLIPSIS";         break;
     }
     
     printf( "%s '%.*s'\n", kind_name, (int)size, text );
