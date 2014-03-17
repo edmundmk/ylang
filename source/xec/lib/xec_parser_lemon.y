@@ -11,92 +11,10 @@
 }
 
 
-%nonassoc BREAK .
-%nonassoc CASE .
-%nonassoc CATCH .
-%nonassoc CONTINUE .
-%nonassoc DEFAULT .
-%nonassoc DO .
-%nonassoc ELSE .
-%nonassoc FALSE .
-%nonassoc FINALLY .
-%nonassoc FOR .
-%nonassoc IF .
-%nonassoc NEW .
-%nonassoc NULL .
-%nonassoc RETURN .
-%nonassoc SWITCH .
-%nonassoc THROW .
-%nonassoc TRUE .
-%nonassoc TRY .
-%nonassoc USING .
-%nonassoc VAR .
-%nonassoc WHILE .
-%nonassoc YIELD .
-
-%nonassoc IDENTIFIER .
-%nonassoc NUMBER .
-%nonassoc STRING .
-    
-%nonassoc XMARK .
-%nonassoc PERCENT .
-%nonassoc AMPERSAND .
-%nonassoc LPN .
-%nonassoc RPN .
-%nonassoc ASTERISK .
-%nonassoc PLUS .
-%nonassoc COMMA .
-%nonassoc MINUS .
-%nonassoc PERIOD .
-%nonassoc SOLIDUS .
-%nonassoc COLON .
-%nonassoc SEMICOLON .
-%nonassoc LESS .
-%nonassoc ASSIGN .
-%nonassoc GREATER .
-%nonassoc QMARK .
-%nonassoc LSQ .
-%nonassoc RSQ .
-%nonassoc CARET .
-%nonassoc LBR .
-%nonassoc VBAR .
-%nonassoc RBR .
-%nonassoc TILDE .
-    
-%nonassoc INCREMENT .
-%nonassoc DECREMENT .
-
-%nonassoc LSHIFT .
-%nonassoc RSHIFT .
-%nonassoc URSHIFT .
-    
-%nonassoc NOTEQUAL .
-%nonassoc LESSEQUAL .
-%nonassoc EQUAL .
-%nonassoc GREATEREQUAL .
-    
-%nonassoc MODASSIGN .
-%nonassoc BITANDASSIGN .
-%nonassoc MULASSIGN .
-%nonassoc ADDASSIGN .
-%nonassoc SUBASSIGN .
-%nonassoc DIVASSIGN .
-%nonassoc BITXORASSIGN .
-%nonassoc BITORASSIGN .
-%nonassoc INTDIVASSIGN .
-%nonassoc LSHIFTASSIGN .
-%nonassoc RSHIFTASSIGN .
-%nonassoc URSHIFTASSIGN .
-    
-%nonassoc LOGICAND .
-%nonassoc LOGICXOR .
-%nonassoc LOGICOR .
-
-%nonassoc ELLIPSIS .
 
 
 
-blah ::= expr_final .
+blah ::= expr_final SEMICOLON .
 blah ::= decl .
 
 
@@ -124,17 +42,27 @@ decl(x)         ::= PERIOD name LPN arg_list RPN YIELD LBR stmt_list RBR .
 // Expressions.
 //
 
+expr_call(x)    ::= proto LPN arg_list RPN .
+expr_call(x)    ::= expr_call LPN arg_list RPN .
+expr_call(x)    ::= expr_postfix LPN arg_list RPN .
+
 expr_postfix(x) ::= LPN expr RPN .
 expr_postfix(x) ::= name PERIOD LSQ expr_value RSQ .
 expr_postfix(x) ::= name LSQ expr_value RSQ .
-expr_postfix(x) ::= proto .
+expr_postfix(x) ::= proto PERIOD IDENTIFIER .
+expr_postfix(x) ::= proto PERIOD LSQ expr_value RSQ .
+expr_postfix(x) ::= proto LSQ expr_value RSQ .
+expr_postfix(x) ::= expr_call PERIOD IDENTIFIER .
+expr_postfix(x) ::= expr_call PERIOD LSQ expr_value RSQ .
+expr_postfix(x) ::= expr_call LSQ expr_value RSQ .
 expr_postfix(x) ::= expr_postfix PERIOD IDENTIFIER .
 expr_postfix(x) ::= expr_postfix PERIOD LSQ expr_value RSQ .
 expr_postfix(x) ::= expr_postfix LSQ expr_value RSQ .
-expr_postfix(x) ::= expr_postfix LPN arg_list RPN .
 
 expr_basic(x)   ::= name .
 expr_basic(x)   ::= expr_postfix .
+expr_basic(x)   ::= proto .
+expr_basic(x)   ::= expr_call .
 expr_basic(x)   ::= NUMBER .
 expr_basic(x)   ::= STRING .
 expr_basic(x)   ::= TRUE .
@@ -150,12 +78,14 @@ expr_unary(x)   ::= TILDE expr_basic .
 
 expr_value(x)   ::= expr_unary . /* no it doesn't */
 
-expr_value(x)   ::= NEW expr_value /* LPN arg_list RPN */ .
+expr_value(x)   ::= NEW name LPN arg_list RPN .
+expr_value(x)   ::= NEW expr_postfix LPN arg_list RPN .
 expr_value(x)   ::= COLON expr_value LBR odecl_list RBR .
 expr_value(x)   ::= COLON LBR odecl_list RBR .
 expr_value(x)   ::= QMARK LPN arg_list RPN LBR stmt_list RBR .
 expr_value(x)   ::= QMARK LPN arg_list RPN YIELD LBR stmt_list RBR .
-expr_value(x)   ::= expr_postfix YIELD .
+expr_value(x)   ::= proto YIELD .
+expr_value(x)   ::= expr_call YIELD .
 
 
 expr_final(x)   ::= expr_value .
@@ -170,6 +100,90 @@ odecl_list ::= COMMA .
 stmt_list ::= COMMA .
 
 
+
+tokens ::=
+ BREAK
+ CASE
+ CATCH
+ CONTINUE
+ DEFAULT
+ DO
+ ELSE
+ FALSE
+ FINALLY
+ FOR
+ IF
+ NEW
+ NULL
+ RETURN
+ SWITCH
+ THROW
+ TRUE
+ TRY
+ USING
+ VAR
+ WHILE
+ YIELD
+
+ IDENTIFIER
+ NUMBER
+ STRING
+    
+ XMARK
+ PERCENT
+ AMPERSAND
+ LPN
+ RPN
+ ASTERISK
+ PLUS
+ COMMA
+ MINUS
+ PERIOD
+ SOLIDUS
+ COLON
+ SEMICOLON
+ LESS
+ ASSIGN
+ GREATER
+ QMARK
+ LSQ
+ RSQ
+ CARET
+ LBR
+ VBAR
+ RBR
+ TILDE
+    
+ INCREMENT
+ DECREMENT
+
+ LSHIFT
+ RSHIFT
+ URSHIFT
+    
+ NOTEQUAL
+ LESSEQUAL
+ EQUAL
+ GREATEREQUAL
+    
+ MODASSIGN
+ BITANDASSIGN
+ MULASSIGN
+ ADDASSIGN
+ SUBASSIGN
+ DIVASSIGN
+ BITXORASSIGN
+ BITORASSIGN
+ INTDIVASSIGN
+ LSHIFTASSIGN
+ RSHIFTASSIGN
+ URSHIFTASSIGN
+    
+ LOGICAND
+ LOGICXOR
+ LOGICOR
+
+ ELLIPSIS .
 
 
 
