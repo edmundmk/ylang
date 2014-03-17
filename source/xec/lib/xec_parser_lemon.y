@@ -75,8 +75,18 @@ expr_unary(x)   ::= MINUS expr_basic .
 expr_unary(x)   ::= XMARK expr_basic .
 expr_unary(x)   ::= TILDE expr_basic .
 
+expr_mul(x)     ::= expr_unary .
+expr_mul(x)     ::= expr_mul ASTERISK expr_unary .
+expr_mul(x)     ::= expr_mul SOLIDUS expr_unary .
+expr_mul(x)     ::= expr_mul PERCENT expr_unary .
+expr_mul(x)     ::= expr_mul TILDE expr_unary .
 
-expr_value(x)   ::= expr_unary . /* no it doesn't */
+expr_add(x)     ::= expr_mul .
+expr_add(x)     ::= expr_add PLUS expr_mul .
+expr_add(x)     ::= expr_add MINUS expr_mul .
+
+
+expr_value(x)   ::= expr_add . /* no it doesn't */
 
 expr_value(x)   ::= NEW name LPN arg_list RPN .
 expr_value(x)   ::= NEW expr_postfix LPN arg_list RPN .

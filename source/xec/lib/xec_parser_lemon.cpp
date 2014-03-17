@@ -60,7 +60,7 @@
 **                       defined, then do no error processing.
 */
 #define YYCODETYPE unsigned char
-#define YYNOCODE 92
+#define YYNOCODE 94
 #define YYACTIONTYPE unsigned char
 #define XecParseTOKENTYPE void*
 typedef union {
@@ -74,8 +74,8 @@ typedef union {
 #define XecParseARG_PDECL
 #define XecParseARG_FETCH
 #define XecParseARG_STORE
-#define YYNSTATE 146
-#define YYNRULE 58
+#define YYNSTATE 160
+#define YYNRULE 66
 #define YY_NO_ACTION      (YYNSTATE+YYNRULE+2)
 #define YY_ACCEPT_ACTION  (YYNSTATE+YYNRULE+1)
 #define YY_ERROR_ACTION   (YYNSTATE+YYNRULE)
@@ -145,119 +145,138 @@ static const YYMINORTYPE yyzerominor = { 0 };
 **  yy_default[]       Default action for each state.
 */
 static const YYACTIONTYPE yy_action[] = {
- /*     0 */   107,   24,    1,   92,   22,   33,    3,  107,   59,    1,
- /*    10 */   117,  141,  136,  135,  133,   14,   16,   15,   13,   17,
- /*    20 */    74,  103,  107,   29,    1,  126,   95,  128,    3,   72,
- /*    30 */    70,   69,  117,  141,  136,  135,  133,   14,   16,   15,
- /*    40 */    13,   17,   74,  103,  107,  130,    1,  139,   35,   96,
- /*    50 */     3,   93,   63,   11,  117,  141,  136,  135,  133,   14,
- /*    60 */    16,   15,   13,   17,   74,  107,  107,    1,   56,   64,
- /*    70 */    91,    3,   65,   75,   79,  117,  141,  136,  135,  133,
- /*    80 */    14,   16,   15,   13,   17,   74,  107,  100,    1,   62,
- /*    90 */    89,   94,    3,   88,   86,   10,  117,  141,  136,  135,
- /*   100 */   133,   14,   16,   15,   13,   17,   74,   52,   20,  205,
- /*   110 */    77,   61,   37,   38,    8,  113,  102,  140,   41,   39,
- /*   120 */    78,  129,  119,    5,  104,    6,   47,   40,   76,  107,
- /*   130 */   102,    1,   41,   39,   80,  129,  119,   73,   32,  117,
- /*   140 */   141,  136,  135,  133,   47,   40,  146,  147,   68,  124,
- /*   150 */    41,   46,  125,  129,  119,   47,   40,  142,   51,   81,
- /*   160 */   123,   41,   46,  115,  129,  119,   47,   40,  105,  137,
- /*   170 */    66,   18,   41,   46,   43,  129,  119,   47,   40,  127,
- /*   180 */   131,   71,   34,   41,   46,   55,  129,  119,  138,   47,
- /*   190 */    40,   60,  143,   87,   98,   41,   46,  101,  129,  119,
- /*   200 */   106,   47,   40,  120,  108,   83,  111,   41,   46,  114,
- /*   210 */   129,  119,   47,   40,  116,   30,   82,  134,   41,   46,
- /*   220 */   145,  129,  119,   47,   40,   26,  100,   67,  110,   41,
- /*   230 */    46,   57,  129,  119,   47,   40,  118,   21,   84,  132,
- /*   240 */    41,   46,  206,  129,  119,   47,   40,  206,  206,   85,
- /*   250 */   206,   41,   46,  206,  129,  119,   47,   45,  206,  206,
- /*   260 */   206,  206,   50,   46,  206,   97,   53,   23,  206,   27,
- /*   270 */    47,   45,   90,    7,  206,  206,   50,   46,  206,  121,
- /*   280 */   206,   47,   45,  206,  206,   47,   45,   50,   46,  206,
- /*   290 */   122,   50,   46,  206,  144,   52,   36,  206,   31,  206,
- /*   300 */     4,  206,    8,  206,   58,   25,  206,   44,   42,  206,
- /*   310 */   109,   12,  206,   49,   48,   54,   28,   53,   23,  150,
- /*   320 */   150,  206,    2,  112,    7,  206,  150,   53,   23,  206,
- /*   330 */    58,   25,   54,   28,    7,   99,  206,   12,  206,    9,
- /*   340 */   206,   52,   36,   54,   19,  159,  159,  206,    8,  206,
- /*   350 */     9,  206,  159,
+ /*     0 */   121,   32,    1,  102,   29,   34,    3,   13,   14,  157,
+ /*    10 */   131,  107,  154,  153,  151,   20,   19,   22,   21,  121,
+ /*    20 */   148,    1,   23,   84,  117,    3,   88,   85,   10,  131,
+ /*    30 */   107,  154,  153,  151,   20,   19,   22,   21,  173,  173,
+ /*    40 */   144,   23,   84,  117,  121,  173,    1,   80,   40,  121,
+ /*    50 */     3,    1,   79,  106,  131,  107,  154,  153,  151,   20,
+ /*    60 */    19,   22,   21,  121,  103,    1,   23,   84,   38,    3,
+ /*    70 */    73,  105,   89,  131,  107,  154,  153,  151,   20,   19,
+ /*    80 */    22,   21,  121,   72,    1,   23,   84,  121,    3,   64,
+ /*    90 */    74,  101,  131,  107,  154,  153,  151,   20,   19,   22,
+ /*   100 */    21,  146,   82,  114,   23,   84,  227,   92,   71,   43,
+ /*   110 */    44,    9,   99,  116,   42,   48,   50,   87,  147,  137,
+ /*   120 */    45,   61,  118,  104,   54,   49,   98,  121,  116,    1,
+ /*   130 */    48,   50,   90,  147,  137,   45,   61,  131,  107,  154,
+ /*   140 */   153,  151,   20,   19,   22,   21,   54,   49,   83,   75,
+ /*   150 */    78,   96,   48,   53,   86,  147,  137,   45,   61,  122,
+ /*   160 */    54,   49,  160,  161,   94,  159,   48,   53,  142,  147,
+ /*   170 */   137,   45,   61,   54,   49,  129,  119,   97,  155,   48,
+ /*   180 */    53,   60,  147,  137,   45,   61,   54,   49,  143,  141,
+ /*   190 */    77,   57,   48,   53,   35,  147,  137,   45,   61,   54,
+ /*   200 */    49,  145,  149,   95,   25,   48,   53,   67,  147,  137,
+ /*   210 */    45,   61,   54,   49,  156,   24,   69,  112,   48,   53,
+ /*   220 */   108,  147,  137,   45,   61,   54,   49,  115,  120,   91,
+ /*   230 */    70,   48,   53,  138,  147,  137,   45,   61,   54,   49,
+ /*   240 */    39,  125,   81,  128,   48,   53,  130,  147,  137,   45,
+ /*   250 */    61,   54,   49,  152,  111,   76,  114,   48,   53,  124,
+ /*   260 */   147,  137,   45,   61,   54,   49,   28,   66,   93,  228,
+ /*   270 */    48,   53,  132,  147,  137,   45,   61,   54,   52,   15,
+ /*   280 */    18,   16,   17,   55,   53,  150,  147,  137,   47,   54,
+ /*   290 */    52,  121,  228,    1,  228,   55,   53,  228,  147,  137,
+ /*   300 */    46,  131,  107,  154,  153,  151,   54,   52,  228,  228,
+ /*   310 */   228,  228,   55,   53,  228,  147,  133,   54,   52,  228,
+ /*   320 */   228,  228,  228,   55,   53,  228,  147,  136,   54,   52,
+ /*   330 */   228,  228,   63,   37,   55,   53,  158,  147,  134,    2,
+ /*   340 */    54,   52,  228,  228,    4,  228,   55,   53,  228,  147,
+ /*   350 */   135,   68,   31,  228,   41,  113,    8,  127,    6,  228,
+ /*   360 */    65,   30,  228,   54,   52,    7,  126,    5,  228,   55,
+ /*   370 */    53,  228,  110,   65,   30,  228,   36,   62,   33,  100,
+ /*   380 */     5,   54,   52,  123,   12,   54,   52,   55,   53,  228,
+ /*   390 */   139,   55,   53,  228,  140,   54,   52,  228,   68,   31,
+ /*   400 */   228,   55,   53,  228,  109,    6,   56,   51,   62,   33,
+ /*   410 */    63,   37,   59,   58,  228,   12,  228,   11,  228,  164,
+ /*   420 */   164,   65,   30,   63,   26,  228,  164,  228,    5,  228,
+ /*   430 */    11,  228,   68,   27,  228,  228,  228,  228,  228,    6,
 };
 static const YYCODETYPE yy_lookahead[] = {
- /*     0 */     2,    3,    4,    3,    4,    6,    8,    2,    9,    4,
- /*    10 */    12,   13,   14,   15,   16,   17,   18,   19,   20,   21,
- /*    20 */    22,   23,    2,    6,    4,   24,    9,   24,    8,   82,
- /*    30 */    81,   81,   12,   13,   14,   15,   16,   17,   18,   19,
- /*    40 */    20,   21,   22,   23,    2,    2,    4,   24,    6,   84,
- /*    50 */     8,   81,   81,   10,   12,   13,   14,   15,   16,   17,
- /*    60 */    18,   19,   20,   21,   22,    2,    2,    4,   79,   81,
- /*    70 */    84,    8,   81,   81,   11,   12,   13,   14,   15,   16,
- /*    80 */    17,   18,   19,   20,   21,   22,    2,    2,    4,   81,
- /*    90 */    84,   84,    8,   82,   82,   10,   12,   13,   14,   15,
- /*   100 */    16,   17,   18,   19,   20,   21,   22,    3,    4,   76,
- /*   110 */    77,   78,   79,   80,   10,    2,   83,    2,   85,   86,
- /*   120 */    84,   88,   89,   10,   77,   10,   79,   80,   84,    2,
- /*   130 */    83,    4,   85,   86,   87,   88,   89,   82,    6,   12,
- /*   140 */    13,   14,   15,   16,   79,   80,    0,    0,   83,   11,
- /*   150 */    85,   86,   11,   88,   89,   79,   80,    5,    5,   83,
- /*   160 */    11,   85,   86,    5,   88,   89,   79,   80,    5,    5,
- /*   170 */    83,    6,   85,   86,    5,   88,   89,   79,   80,    7,
- /*   180 */     7,   83,    4,   85,   86,    5,   88,   89,    7,   79,
- /*   190 */    80,    1,    7,   83,   23,   85,   86,    5,   88,   89,
- /*   200 */    11,   79,   80,    7,   11,   83,   11,   85,   86,   11,
- /*   210 */    88,   89,   79,   80,   11,    6,   83,    7,   85,   86,
- /*   220 */     7,   88,   89,   79,   80,    6,    2,   83,    7,   85,
- /*   230 */    86,    5,   88,   89,   79,   80,    7,    6,   83,    7,
- /*   240 */    85,   86,   91,   88,   89,   79,   80,   91,   91,   83,
- /*   250 */    91,   85,   86,   91,   88,   89,   79,   80,   91,   91,
- /*   260 */    91,   91,   85,   86,   91,   88,    3,    4,   91,    6,
- /*   270 */    79,   80,    9,   10,   91,   91,   85,   86,   91,   88,
- /*   280 */    91,   79,   80,   91,   91,   79,   80,   85,   86,   91,
- /*   290 */    88,   85,   86,   91,   88,    3,    4,   91,    6,   91,
- /*   300 */     8,   91,   10,   91,    3,    4,   91,   79,   80,   91,
- /*   310 */     9,   10,   91,   85,   86,    3,    4,    3,    4,    3,
- /*   320 */     4,   91,   10,    9,   10,   91,   10,    3,    4,   91,
- /*   330 */     3,    4,    3,    4,   10,   23,   91,   10,   91,   10,
- /*   340 */    91,    3,    4,    3,    4,    3,    4,   91,   10,   91,
- /*   350 */    10,   91,   10,
+ /*     0 */     2,    3,    4,    3,    4,    6,    8,   17,   18,   27,
+ /*    10 */    12,   13,   14,   15,   16,   17,   18,   19,   20,    2,
+ /*    20 */     2,    4,   24,   25,   26,    8,   84,   81,   10,   12,
+ /*    30 */    13,   14,   15,   16,   17,   18,   19,   20,    3,    4,
+ /*    40 */    27,   24,   25,   26,    2,   10,    4,   81,    6,    2,
+ /*    50 */     8,    4,   81,   84,   12,   13,   14,   15,   16,   17,
+ /*    60 */    18,   19,   20,    2,   81,    4,   24,   25,    6,    8,
+ /*    70 */    81,    9,   11,   12,   13,   14,   15,   16,   17,   18,
+ /*    80 */    19,   20,    2,   81,    4,   24,   25,    2,    8,   79,
+ /*    90 */    81,   84,   12,   13,   14,   15,   16,   17,   18,   19,
+ /*   100 */    20,   27,   82,    2,   24,   25,   76,   77,   78,   79,
+ /*   110 */    80,   10,   84,   83,    6,   85,   86,    9,   88,   89,
+ /*   120 */    90,   91,   77,   84,   79,   80,   82,    2,   83,    4,
+ /*   130 */    85,   86,   87,   88,   89,   90,   91,   12,   13,   14,
+ /*   140 */    15,   16,   17,   18,   19,   20,   79,   80,   82,   81,
+ /*   150 */    83,   82,   85,   86,   84,   88,   89,   90,   91,   11,
+ /*   160 */    79,   80,    0,    0,   83,    5,   85,   86,   11,   88,
+ /*   170 */    89,   90,   91,   79,   80,    5,    5,   83,    5,   85,
+ /*   180 */    86,    5,   88,   89,   90,   91,   79,   80,   11,   11,
+ /*   190 */    83,    5,   85,   86,    6,   88,   89,   90,   91,   79,
+ /*   200 */    80,    7,    7,   83,    4,   85,   86,    5,   88,   89,
+ /*   210 */    90,   91,   79,   80,    7,    6,   83,   26,   85,   86,
+ /*   220 */     7,   88,   89,   90,   91,   79,   80,    5,   11,   83,
+ /*   230 */     1,   85,   86,    7,   88,   89,   90,   91,   79,   80,
+ /*   240 */     6,   11,   83,   11,   85,   86,   11,   88,   89,   90,
+ /*   250 */    91,   79,   80,    7,    7,   83,    2,   85,   86,    7,
+ /*   260 */    88,   89,   90,   91,   79,   80,    6,    5,   83,   93,
+ /*   270 */    85,   86,    7,   88,   89,   90,   91,   79,   80,   20,
+ /*   280 */    21,   22,   23,   85,   86,    7,   88,   89,   90,   79,
+ /*   290 */    80,    2,   93,    4,   93,   85,   86,   93,   88,   89,
+ /*   300 */    90,   12,   13,   14,   15,   16,   79,   80,   93,   93,
+ /*   310 */    93,   93,   85,   86,   93,   88,   89,   79,   80,   93,
+ /*   320 */    93,   93,   93,   85,   86,   93,   88,   89,   79,   80,
+ /*   330 */    93,   93,    3,    4,   85,   86,    2,   88,   89,   10,
+ /*   340 */    79,   80,   93,   93,   10,   93,   85,   86,   93,   88,
+ /*   350 */    89,    3,    4,   93,    6,   26,    8,    2,   10,   93,
+ /*   360 */     3,    4,   93,   79,   80,   10,    9,   10,   93,   85,
+ /*   370 */    86,   93,   88,    3,    4,   93,    6,    3,    4,    9,
+ /*   380 */    10,   79,   80,    9,   10,   79,   80,   85,   86,   93,
+ /*   390 */    88,   85,   86,   93,   88,   79,   80,   93,    3,    4,
+ /*   400 */    93,   85,   86,   93,   88,   10,   79,   80,    3,    4,
+ /*   410 */     3,    4,   85,   86,   93,   10,   93,   10,   93,    3,
+ /*   420 */     4,    3,    4,    3,    4,   93,   10,   93,   10,   93,
+ /*   430 */    10,   93,    3,    4,   93,   93,   93,   93,   93,   10,
 };
-#define YY_SHIFT_USE_DFLT (-3)
-#define YY_SHIFT_MAX 96
+#define YY_SHIFT_USE_DFLT (-19)
+#define YY_SHIFT_MAX 106
 static const short yy_shift_ofst[] = {
- /*     0 */    -2,   20,   63,   42,   84,   84,   84,   84,   84,   84,
- /*    10 */    84,   84,   84,  127,  127,  127,  127,    5,    3,    1,
- /*    20 */     1,   23,    1,    1,   64,    1,   23,   23,    1,   23,
- /*    30 */     3,    3,   23,   23,    1,    3,    1,  292,  263,  312,
- /*    40 */   314,  301,  324,  342,  104,  324,  329,  338,  340,  327,
- /*    50 */   327,  316,   85,  113,   43,   -1,    0,   17,  115,  132,
- /*    60 */   146,  147,  152,  158,  163,  164,  138,  141,  149,  153,
- /*    70 */   169,  165,  172,  173,  178,  180,  181,  190,  185,  171,
- /*    80 */   192,  189,  193,  195,  198,  203,  196,  209,  210,  213,
- /*    90 */   219,  221,  224,  226,  229,  231,  232,
+ /*     0 */    -2,   17,   61,   42,   80,   80,   80,   80,   80,   80,
+ /*    10 */    80,   80,   80,  125,  125,  125,  125,  125,  125,  289,
+ /*    20 */   289,  289,  289,   47,  -18,   13,   13,   13,  -18,   13,
+ /*    30 */    13,   13,   85,   13,  -18,   74,  -18,   13,  -18,   74,
+ /*    40 */    74,   74,  -18,  348,  370,  259,  259,  259,  374,  357,
+ /*    50 */   329,  418,  418,  407,  395,  405,  429,   35,  420,  405,
+ /*    60 */   416,  -10,  334,   18,    0,  355,   62,  108,  101,  148,
+ /*    70 */   162,  163,  160,  170,  171,  173,  157,  177,  178,  176,
+ /*    80 */   186,  188,  194,  195,  200,  202,  207,  209,  213,  191,
+ /*    90 */   222,  217,  229,  230,  232,  235,  226,  234,  246,  247,
+ /*   100 */    -1,  252,  254,  262,  265,  260,  278,
 };
-#define YY_REDUCE_USE_DFLT (-54)
-#define YY_REDUCE_MAX 36
+#define YY_REDUCE_USE_DFLT (-59)
+#define YY_REDUCE_MAX 42
 static const short yy_reduce_ofst[] = {
- /*     0 */    33,   47,   87,   98,  110,  122,  133,  144,  155,   87,
- /*    10 */   166,   76,   65,  191,  177,  202,  206,  228,  -53,  -51,
- /*    20 */   -50,  -35,  -30,  -29,  -11,  -12,  -14,    6,   -9,    7,
- /*    30 */    11,   12,   36,   44,   -8,   55,    8,
+ /*     0 */    30,   45,  172,  159,  133,  107,   81,  185,   94,  120,
+ /*    10 */   146,  172,   67,  198,  210,  227,  261,  249,  238,  316,
+ /*    20 */   284,  302,  306,  327,  -58,  -54,  -34,  -29,  -31,  -17,
+ /*    30 */   -11,    2,   10,    9,    7,   20,   28,   68,   39,   44,
+ /*    40 */    66,   69,   70,
 };
 static const YYACTIONTYPE yy_default[] = {
- /*     0 */   204,  204,  204,  204,  204,  204,  204,  204,  204,  204,
- /*    10 */   204,  204,  204,  204,  204,  204,  204,  204,  204,  204,
- /*    20 */   204,  204,  204,  204,  204,  204,  204,  204,  204,  204,
- /*    30 */   204,  204,  204,  204,  204,  204,  204,  172,  174,  173,
- /*    40 */   174,  175,  204,  188,  204,  174,  173,  172,  204,  204,
- /*    50 */   175,  187,  204,  204,  204,  204,  204,  204,  204,  204,
- /*    60 */   204,  204,  204,  204,  204,  204,  204,  204,  204,  204,
- /*    70 */   204,  204,  204,  204,  204,  204,  204,  204,  204,  204,
- /*    80 */   204,  204,  204,  204,  204,  204,  204,  204,  204,  204,
- /*    90 */   193,  204,  204,  204,  204,  204,  204,  182,  197,  196,
- /*   100 */   149,  160,  195,  198,  199,  158,  170,  148,  167,  194,
- /*   110 */   154,  164,  193,  163,  162,  157,  161,  176,  155,  186,
- /*   120 */   151,  185,  184,  168,  171,  165,  200,  189,  201,  181,
- /*   130 */   169,  190,  156,  180,  152,  179,  178,  159,  191,  202,
- /*   140 */   166,  177,  150,  192,  183,  153,
+ /*     0 */   226,  226,  226,  226,  226,  226,  226,  226,  226,  226,
+ /*    10 */   226,  226,  226,  226,  226,  226,  226,  226,  226,  226,
+ /*    20 */   226,  226,  226,  226,  226,  226,  226,  226,  226,  226,
+ /*    30 */   226,  226,  226,  226,  226,  226,  226,  226,  226,  226,
+ /*    40 */   226,  226,  226,  186,  188,  205,  207,  206,  189,  188,
+ /*    50 */   187,  226,  188,  187,  186,  189,  226,  210,  226,  226,
+ /*    60 */   209,  208,  226,  226,  226,  226,  226,  226,  226,  226,
+ /*    70 */   226,  226,  226,  226,  226,  226,  226,  226,  226,  226,
+ /*    80 */   226,  226,  226,  226,  226,  226,  226,  226,  226,  226,
+ /*    90 */   226,  226,  226,  226,  226,  226,  226,  226,  226,  226,
+ /*   100 */   215,  226,  226,  226,  226,  226,  226,  191,  214,  197,
+ /*   110 */   196,  167,  219,  218,  163,  174,  217,  220,  221,  172,
+ /*   120 */   184,  162,  181,  216,  168,  178,  215,  177,  176,  171,
+ /*   130 */   175,  190,  169,  204,  203,  202,  201,  200,  165,  199,
+ /*   140 */   198,  182,  185,  179,  222,  211,  223,  195,  183,  212,
+ /*   150 */   170,  194,  166,  193,  192,  173,  213,  224,  180,  164,
 };
 #define YY_SZ_ACTTAB (int)(sizeof(yy_action)/sizeof(yy_action[0]))
 
@@ -356,13 +375,13 @@ static const char *const yyTokenName[] = {
   "COLON",         "YIELD",         "LSQ",           "RSQ",         
   "NUMBER",        "STRING",        "TRUE",          "FALSE",       
   "NULL",          "PLUS",          "MINUS",         "XMARK",       
-  "TILDE",         "NEW",           "QMARK",         "ELLIPSIS",    
-  "COMMA",         "BREAK",         "CASE",          "CATCH",       
-  "CONTINUE",      "DEFAULT",       "DO",            "ELSE",        
-  "FINALLY",       "FOR",           "IF",            "RETURN",      
-  "SWITCH",        "THROW",         "TRY",           "USING",       
-  "VAR",           "WHILE",         "PERCENT",       "AMPERSAND",   
-  "ASTERISK",      "SOLIDUS",       "LESS",          "ASSIGN",      
+  "TILDE",         "ASTERISK",      "SOLIDUS",       "PERCENT",     
+  "NEW",           "QMARK",         "ELLIPSIS",      "COMMA",       
+  "BREAK",         "CASE",          "CATCH",         "CONTINUE",    
+  "DEFAULT",       "DO",            "ELSE",          "FINALLY",     
+  "FOR",           "IF",            "RETURN",        "SWITCH",      
+  "THROW",         "TRY",           "USING",         "VAR",         
+  "WHILE",         "AMPERSAND",     "LESS",          "ASSIGN",      
   "GREATER",       "CARET",         "VBAR",          "INCREMENT",   
   "DECREMENT",     "LSHIFT",        "RSHIFT",        "URSHIFT",     
   "NOTEQUAL",      "LESSEQUAL",     "EQUAL",         "GREATEREQUAL",
@@ -373,7 +392,8 @@ static const char *const yyTokenName[] = {
   "blah",          "expr_final",    "decl",          "name",        
   "proto",         "arg_list",      "odecl_list",    "expr_value",  
   "stmt_list",     "expr_call",     "expr_postfix",  "expr",        
-  "expr_basic",    "expr_unary",    "tokens",      
+  "expr_basic",    "expr_unary",    "expr_mul",      "expr_add",    
+  "tokens",      
 };
 #endif /* NDEBUG */
 
@@ -421,24 +441,32 @@ static const char *const yyRuleName[] = {
  /*  37 */ "expr_unary ::= MINUS expr_basic",
  /*  38 */ "expr_unary ::= XMARK expr_basic",
  /*  39 */ "expr_unary ::= TILDE expr_basic",
- /*  40 */ "expr_value ::= expr_unary",
- /*  41 */ "expr_value ::= NEW name LPN arg_list RPN",
- /*  42 */ "expr_value ::= NEW expr_postfix LPN arg_list RPN",
- /*  43 */ "expr_value ::= COLON expr_value LBR odecl_list RBR",
- /*  44 */ "expr_value ::= COLON LBR odecl_list RBR",
- /*  45 */ "expr_value ::= QMARK LPN arg_list RPN LBR stmt_list RBR",
- /*  46 */ "expr_value ::= QMARK LPN arg_list RPN YIELD LBR stmt_list RBR",
- /*  47 */ "expr_value ::= proto YIELD",
- /*  48 */ "expr_value ::= expr_call YIELD",
- /*  49 */ "expr_final ::= expr_value",
- /*  50 */ "expr_final ::= expr_postfix ELLIPSIS",
- /*  51 */ "expr_final ::= expr_postfix LSQ RSQ ELLIPSIS",
- /*  52 */ "expr_final ::= ELLIPSIS",
- /*  53 */ "expr ::= expr_final",
- /*  54 */ "arg_list ::= COMMA",
- /*  55 */ "odecl_list ::= COMMA",
- /*  56 */ "stmt_list ::= COMMA",
- /*  57 */ "tokens ::= BREAK CASE CATCH CONTINUE DEFAULT DO ELSE FALSE FINALLY FOR IF NEW NULL RETURN SWITCH THROW TRUE TRY USING VAR WHILE YIELD IDENTIFIER NUMBER STRING XMARK PERCENT AMPERSAND LPN RPN ASTERISK PLUS COMMA MINUS PERIOD SOLIDUS COLON SEMICOLON LESS ASSIGN GREATER QMARK LSQ RSQ CARET LBR VBAR RBR TILDE INCREMENT DECREMENT LSHIFT RSHIFT URSHIFT NOTEQUAL LESSEQUAL EQUAL GREATEREQUAL MODASSIGN BITANDASSIGN MULASSIGN ADDASSIGN SUBASSIGN DIVASSIGN BITXORASSIGN BITORASSIGN INTDIVASSIGN LSHIFTASSIGN RSHIFTASSIGN URSHIFTASSIGN LOGICAND LOGICXOR LOGICOR ELLIPSIS",
+ /*  40 */ "expr_mul ::= expr_unary",
+ /*  41 */ "expr_mul ::= expr_mul ASTERISK expr_unary",
+ /*  42 */ "expr_mul ::= expr_mul SOLIDUS expr_unary",
+ /*  43 */ "expr_mul ::= expr_mul PERCENT expr_unary",
+ /*  44 */ "expr_mul ::= expr_mul TILDE expr_unary",
+ /*  45 */ "expr_add ::= expr_mul",
+ /*  46 */ "expr_add ::= expr_add PLUS expr_mul",
+ /*  47 */ "expr_add ::= expr_add MINUS expr_mul",
+ /*  48 */ "expr_value ::= expr_add",
+ /*  49 */ "expr_value ::= NEW name LPN arg_list RPN",
+ /*  50 */ "expr_value ::= NEW expr_postfix LPN arg_list RPN",
+ /*  51 */ "expr_value ::= COLON expr_value LBR odecl_list RBR",
+ /*  52 */ "expr_value ::= COLON LBR odecl_list RBR",
+ /*  53 */ "expr_value ::= QMARK LPN arg_list RPN LBR stmt_list RBR",
+ /*  54 */ "expr_value ::= QMARK LPN arg_list RPN YIELD LBR stmt_list RBR",
+ /*  55 */ "expr_value ::= proto YIELD",
+ /*  56 */ "expr_value ::= expr_call YIELD",
+ /*  57 */ "expr_final ::= expr_value",
+ /*  58 */ "expr_final ::= expr_postfix ELLIPSIS",
+ /*  59 */ "expr_final ::= expr_postfix LSQ RSQ ELLIPSIS",
+ /*  60 */ "expr_final ::= ELLIPSIS",
+ /*  61 */ "expr ::= expr_final",
+ /*  62 */ "arg_list ::= COMMA",
+ /*  63 */ "odecl_list ::= COMMA",
+ /*  64 */ "stmt_list ::= COMMA",
+ /*  65 */ "tokens ::= BREAK CASE CATCH CONTINUE DEFAULT DO ELSE FALSE FINALLY FOR IF NEW NULL RETURN SWITCH THROW TRUE TRY USING VAR WHILE YIELD IDENTIFIER NUMBER STRING XMARK PERCENT AMPERSAND LPN RPN ASTERISK PLUS COMMA MINUS PERIOD SOLIDUS COLON SEMICOLON LESS ASSIGN GREATER QMARK LSQ RSQ CARET LBR VBAR RBR TILDE INCREMENT DECREMENT LSHIFT RSHIFT URSHIFT NOTEQUAL LESSEQUAL EQUAL GREATEREQUAL MODASSIGN BITANDASSIGN MULASSIGN ADDASSIGN SUBASSIGN DIVASSIGN BITXORASSIGN BITORASSIGN INTDIVASSIGN LSHIFTASSIGN RSHIFTASSIGN URSHIFTASSIGN LOGICAND LOGICXOR LOGICOR ELLIPSIS",
 };
 #endif /* NDEBUG */
 
@@ -783,6 +811,14 @@ static const struct {
   { 89, 2 },
   { 89, 2 },
   { 89, 2 },
+  { 90, 1 },
+  { 90, 3 },
+  { 90, 3 },
+  { 90, 3 },
+  { 90, 3 },
+  { 91, 1 },
+  { 91, 3 },
+  { 91, 3 },
   { 83, 1 },
   { 83, 5 },
   { 83, 5 },
@@ -800,7 +836,7 @@ static const struct {
   { 81, 1 },
   { 82, 1 },
   { 84, 1 },
-  { 90, 74 },
+  { 92, 74 },
 };
 
 static void yy_accept(yyParser*);  /* Forward Declaration */
@@ -896,24 +932,32 @@ static void yy_reduce(
       /* (37) expr_unary ::= MINUS expr_basic */ yytestcase(yyruleno==37);
       /* (38) expr_unary ::= XMARK expr_basic */ yytestcase(yyruleno==38);
       /* (39) expr_unary ::= TILDE expr_basic */ yytestcase(yyruleno==39);
-      /* (40) expr_value ::= expr_unary */ yytestcase(yyruleno==40);
-      /* (41) expr_value ::= NEW name LPN arg_list RPN */ yytestcase(yyruleno==41);
-      /* (42) expr_value ::= NEW expr_postfix LPN arg_list RPN */ yytestcase(yyruleno==42);
-      /* (43) expr_value ::= COLON expr_value LBR odecl_list RBR */ yytestcase(yyruleno==43);
-      /* (44) expr_value ::= COLON LBR odecl_list RBR */ yytestcase(yyruleno==44);
-      /* (45) expr_value ::= QMARK LPN arg_list RPN LBR stmt_list RBR */ yytestcase(yyruleno==45);
-      /* (46) expr_value ::= QMARK LPN arg_list RPN YIELD LBR stmt_list RBR */ yytestcase(yyruleno==46);
-      /* (47) expr_value ::= proto YIELD */ yytestcase(yyruleno==47);
-      /* (48) expr_value ::= expr_call YIELD */ yytestcase(yyruleno==48);
-      /* (49) expr_final ::= expr_value */ yytestcase(yyruleno==49);
-      /* (50) expr_final ::= expr_postfix ELLIPSIS */ yytestcase(yyruleno==50);
-      /* (51) expr_final ::= expr_postfix LSQ RSQ ELLIPSIS */ yytestcase(yyruleno==51);
-      /* (52) expr_final ::= ELLIPSIS */ yytestcase(yyruleno==52);
-      /* (53) expr ::= expr_final */ yytestcase(yyruleno==53);
-      /* (54) arg_list ::= COMMA */ yytestcase(yyruleno==54);
-      /* (55) odecl_list ::= COMMA */ yytestcase(yyruleno==55);
-      /* (56) stmt_list ::= COMMA */ yytestcase(yyruleno==56);
-      /* (57) tokens ::= BREAK CASE CATCH CONTINUE DEFAULT DO ELSE FALSE FINALLY FOR IF NEW NULL RETURN SWITCH THROW TRUE TRY USING VAR WHILE YIELD IDENTIFIER NUMBER STRING XMARK PERCENT AMPERSAND LPN RPN ASTERISK PLUS COMMA MINUS PERIOD SOLIDUS COLON SEMICOLON LESS ASSIGN GREATER QMARK LSQ RSQ CARET LBR VBAR RBR TILDE INCREMENT DECREMENT LSHIFT RSHIFT URSHIFT NOTEQUAL LESSEQUAL EQUAL GREATEREQUAL MODASSIGN BITANDASSIGN MULASSIGN ADDASSIGN SUBASSIGN DIVASSIGN BITXORASSIGN BITORASSIGN INTDIVASSIGN LSHIFTASSIGN RSHIFTASSIGN URSHIFTASSIGN LOGICAND LOGICXOR LOGICOR ELLIPSIS */ yytestcase(yyruleno==57);
+      /* (40) expr_mul ::= expr_unary */ yytestcase(yyruleno==40);
+      /* (41) expr_mul ::= expr_mul ASTERISK expr_unary */ yytestcase(yyruleno==41);
+      /* (42) expr_mul ::= expr_mul SOLIDUS expr_unary */ yytestcase(yyruleno==42);
+      /* (43) expr_mul ::= expr_mul PERCENT expr_unary */ yytestcase(yyruleno==43);
+      /* (44) expr_mul ::= expr_mul TILDE expr_unary */ yytestcase(yyruleno==44);
+      /* (45) expr_add ::= expr_mul */ yytestcase(yyruleno==45);
+      /* (46) expr_add ::= expr_add PLUS expr_mul */ yytestcase(yyruleno==46);
+      /* (47) expr_add ::= expr_add MINUS expr_mul */ yytestcase(yyruleno==47);
+      /* (48) expr_value ::= expr_add */ yytestcase(yyruleno==48);
+      /* (49) expr_value ::= NEW name LPN arg_list RPN */ yytestcase(yyruleno==49);
+      /* (50) expr_value ::= NEW expr_postfix LPN arg_list RPN */ yytestcase(yyruleno==50);
+      /* (51) expr_value ::= COLON expr_value LBR odecl_list RBR */ yytestcase(yyruleno==51);
+      /* (52) expr_value ::= COLON LBR odecl_list RBR */ yytestcase(yyruleno==52);
+      /* (53) expr_value ::= QMARK LPN arg_list RPN LBR stmt_list RBR */ yytestcase(yyruleno==53);
+      /* (54) expr_value ::= QMARK LPN arg_list RPN YIELD LBR stmt_list RBR */ yytestcase(yyruleno==54);
+      /* (55) expr_value ::= proto YIELD */ yytestcase(yyruleno==55);
+      /* (56) expr_value ::= expr_call YIELD */ yytestcase(yyruleno==56);
+      /* (57) expr_final ::= expr_value */ yytestcase(yyruleno==57);
+      /* (58) expr_final ::= expr_postfix ELLIPSIS */ yytestcase(yyruleno==58);
+      /* (59) expr_final ::= expr_postfix LSQ RSQ ELLIPSIS */ yytestcase(yyruleno==59);
+      /* (60) expr_final ::= ELLIPSIS */ yytestcase(yyruleno==60);
+      /* (61) expr ::= expr_final */ yytestcase(yyruleno==61);
+      /* (62) arg_list ::= COMMA */ yytestcase(yyruleno==62);
+      /* (63) odecl_list ::= COMMA */ yytestcase(yyruleno==63);
+      /* (64) stmt_list ::= COMMA */ yytestcase(yyruleno==64);
+      /* (65) tokens ::= BREAK CASE CATCH CONTINUE DEFAULT DO ELSE FALSE FINALLY FOR IF NEW NULL RETURN SWITCH THROW TRUE TRY USING VAR WHILE YIELD IDENTIFIER NUMBER STRING XMARK PERCENT AMPERSAND LPN RPN ASTERISK PLUS COMMA MINUS PERIOD SOLIDUS COLON SEMICOLON LESS ASSIGN GREATER QMARK LSQ RSQ CARET LBR VBAR RBR TILDE INCREMENT DECREMENT LSHIFT RSHIFT URSHIFT NOTEQUAL LESSEQUAL EQUAL GREATEREQUAL MODASSIGN BITANDASSIGN MULASSIGN ADDASSIGN SUBASSIGN DIVASSIGN BITXORASSIGN BITORASSIGN INTDIVASSIGN LSHIFTASSIGN RSHIFTASSIGN URSHIFTASSIGN LOGICAND LOGICXOR LOGICOR ELLIPSIS */ yytestcase(yyruleno==65);
         break;
   };
   yygoto = yyRuleInfo[yyruleno].lhs;
