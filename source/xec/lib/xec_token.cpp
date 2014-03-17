@@ -73,6 +73,8 @@ struct xec_token_operators
         operators.emplace( XEC_TOKEN_LESSEQUAL,       symkey( "<=" ) );
         operators.emplace( XEC_TOKEN_EQUAL,           symkey( "==" ) );
         operators.emplace( XEC_TOKEN_GREATEREQUAL,    symkey( ">=" ) );
+        operators.emplace( XEC_TOKEN_NOTIN,           symkey( "!in" ) );
+        operators.emplace( XEC_TOKEN_NOTIN,           symkey( "!is" ) );
     
         operators.emplace( XEC_TOKEN_MODASSIGN,       symkey( "%=" ) );
         operators.emplace( XEC_TOKEN_BITANDASSIGN,    symkey( "&=" ) );
@@ -154,6 +156,9 @@ struct xec_token_keywords
         keywords.emplace( symkey( "var" ),      XEC_KEYWORD_VAR );
         keywords.emplace( symkey( "while" ),    XEC_KEYWORD_WHILE );
         keywords.emplace( symkey( "yield" ),    XEC_KEYWORD_YIELD );
+        
+        keywords.emplace( symkey( "in" ),       XEC_TOKEN_IN );
+        keywords.emplace( symkey( "is" ),       XEC_TOKEN_IS );
     }
     
     bool lookup( hash32_t hash,
@@ -279,6 +284,10 @@ void xec_token::debug_print()
     case XEC_TOKEN_LESSEQUAL:       kind_name = "LESSEQUAL";        break;
     case XEC_TOKEN_EQUAL:           kind_name = "EQUAL";            break;
     case XEC_TOKEN_GREATEREQUAL:    kind_name = "GREATEREQUAL";     break;
+    case XEC_TOKEN_IN:              kind_name = "IN";               break;
+    case XEC_TOKEN_NOTIN:           kind_name = "NOTIN";            break;
+    case XEC_TOKEN_IS:              kind_name = "IS";               break;
+    case XEC_TOKEN_NOTIS:           kind_name = "NOTIS";            break;
     
     case XEC_TOKEN_MODASSIGN:       kind_name = "MODASSIGN";        break;
     case XEC_TOKEN_BITANDASSIGN:    kind_name = "BITANDASSIGN";     break;

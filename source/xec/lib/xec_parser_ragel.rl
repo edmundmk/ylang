@@ -209,6 +209,8 @@
         |   '<='    >ts %{ TOKEN( XEC_TOKEN_LESSEQUAL, sloc ); }
         |   '=='    >ts %{ TOKEN( XEC_TOKEN_EQUAL, sloc ); }
         |   '>='    >ts %{ TOKEN( XEC_TOKEN_GREATEREQUAL, sloc ); }
+        |   '!in'   >ts %{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
+        |   '!is'   >ts %{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 
         |   '%='    >ts %{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
         |   '&='    >ts %{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }

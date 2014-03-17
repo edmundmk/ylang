@@ -85,6 +85,10 @@ enum xec_token_kind
     XEC_TOKEN_LESSEQUAL     = LEMON_LESSEQUAL,
     XEC_TOKEN_EQUAL         = LEMON_EQUAL,
     XEC_TOKEN_GREATEREQUAL  = LEMON_GREATEREQUAL,
+    XEC_TOKEN_IN            = LEMON_IN,
+    XEC_TOKEN_NOTIN         = LEMON_NOTIN,
+    XEC_TOKEN_IS            = LEMON_IS,
+    XEC_TOKEN_NOTIS         = LEMON_NOTIS,
     
     XEC_TOKEN_MODASSIGN     = LEMON_MODASSIGN,
     XEC_TOKEN_BITANDASSIGN  = LEMON_BITANDASSIGN,
@@ -112,12 +116,16 @@ enum xec_token_kind
 #undef LEMON_DEFAULT
 #undef LEMON_DO
 #undef LEMON_ELSE
+#undef LEMON_FALSE
 #undef LEMON_FINALLY
 #undef LEMON_FOR
 #undef LEMON_IF
+#undef LEMON_NEW
+#undef LEMON_NULL
 #undef LEMON_RETURN
 #undef LEMON_SWITCH
 #undef LEMON_THROW
+#undef LEMON_TRUE
 #undef LEMON_TRY
 #undef LEMON_USING
 #undef LEMON_VAR
@@ -135,6 +143,7 @@ enum xec_token_kind
 #undef LEMON_RPN
 #undef LEMON_ASTERISK
 #undef LEMON_PLUS
+#undef LEMON_COMMA
 #undef LEMON_MINUS
 #undef LEMON_PERIOD
 #undef LEMON_SOLIDUS
@@ -163,6 +172,10 @@ enum xec_token_kind
 #undef LEMON_LESSEQUAL
 #undef LEMON_EQUAL
 #undef LEMON_GREATEREQUAL
+#undef LEMON_IN
+#undef LEMON_NOTIN
+#undef LEMON_IS
+#undef LEMON_NOTIS
     
 #undef LEMON_MODASSIGN
 #undef LEMON_BITANDASSIGN
@@ -171,7 +184,7 @@ enum xec_token_kind
 #undef LEMON_SUBASSIGN
 #undef LEMON_DIVASSIGN
 #undef LEMON_BITXORASSIGN
-#undef LEMON_ORASSIGN
+#undef LEMON_BITORASSIGN
 #undef LEMON_INTDIVASSIGN
 #undef LEMON_LSHIFTASSIGN
 #undef LEMON_RSHIFTASSIGN

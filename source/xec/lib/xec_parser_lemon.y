@@ -14,7 +14,7 @@
 
 
 
-blah ::= expr_final SEMICOLON .
+blah ::= expr SEMICOLON .
 blah ::= decl .
 
 
@@ -85,9 +85,43 @@ expr_add(x)     ::= expr_mul .
 expr_add(x)     ::= expr_add PLUS expr_mul .
 expr_add(x)     ::= expr_add MINUS expr_mul .
 
+expr_shift(x)   ::= expr_add .
+expr_shift(x)   ::= expr_shift LSHIFT expr_add .
+expr_shift(x)   ::= expr_shift RSHIFT expr_add .
+expr_shift(x)   ::= expr_shift URSHIFT expr_add .
 
-expr_value(x)   ::= expr_add . /* no it doesn't */
+expr_bitand(x)  ::= expr_shift .
+expr_bitand(x)  ::= expr_bitand AMPERSAND expr_shift .
 
+expr_bitxor(x)  ::= expr_bitand .
+expr_bitxor(x)  ::= expr_bitxor CARET expr_bitand .
+
+expr_bitor(x)   ::= expr_bitxor .
+expr_bitor(x)   ::= expr_bitor VBAR expr_bitxor .
+
+expr_compare(x) ::= expr_bitor .
+expr_compare(x) ::= expr_compare EQUAL expr_bitor .
+expr_compare(x) ::= expr_compare NOTEQUAL expr_bitor .
+expr_compare(x) ::= expr_compare LESS expr_bitor .
+expr_compare(x) ::= expr_compare GREATER expr_bitor .
+expr_compare(x) ::= expr_compare LESSEQUAL expr_bitor .
+expr_compare(x) ::= expr_compare GREATEREQUAL expr_bitor .
+expr_compare(x) ::= expr_compare IN expr_bitor .
+expr_compare(x) ::= expr_compare NOTIN expr_bitor .
+expr_compare(x) ::= expr_compare IS expr_bitor .
+expr_compare(x) ::= expr_compare NOTIS expr_bitor .
+
+expr_and(x)     ::= expr_compare .
+expr_and(x)     ::= expr_and LOGICAND expr_compare .
+
+expr_xor(x)     ::= expr_and .
+expr_xor(x)     ::= expr_xor LOGICXOR expr_and .
+
+expr_or(x)      ::= expr_xor .
+expr_or(x)      ::= expr_or LOGICOR expr_xor .
+
+expr_value(x)   ::= expr_or .
+expr_value(x)   ::= expr_or QMARK expr_value COLON expr_value .
 expr_value(x)   ::= NEW name LPN arg_list RPN .
 expr_value(x)   ::= NEW expr_postfix LPN arg_list RPN .
 expr_value(x)   ::= COLON expr_value LBR odecl_list RBR .
@@ -97,15 +131,44 @@ expr_value(x)   ::= QMARK LPN arg_list RPN YIELD LBR stmt_list RBR .
 expr_value(x)   ::= proto YIELD .
 expr_value(x)   ::= expr_call YIELD .
 
+expr_lbody(x)   ::= expr_value .
+expr_lbody(x)   ::= expr_lbody COMMA expr_value .
 
-expr_final(x)   ::= expr_value .
 expr_final(x)   ::= expr_postfix ELLIPSIS .
 expr_final(x)   ::= expr_postfix LSQ RSQ ELLIPSIS .
 expr_final(x)   ::= ELLIPSIS .
 
+expr_list(x)    ::= expr_lbody .
+expr_list(x)    ::= expr_lbody COMMA expr_final .
 
-expr ::= expr_final . /* no it doesn't */
-arg_list ::= COMMA .
+expr_assign(x)  ::= expr_list .
+expr_assign(x)  ::= expr_lbody assign_op expr_list .
+
+assign_op(x)    ::= ASSIGN .
+assign_op(x)    ::= MULASSIGN .
+assign_op(x)    ::= DIVASSIGN .
+assign_op(x)    ::= MODASSIGN .
+assign_op(x)    ::= INTDIVASSIGN .
+assign_op(x)    ::= ADDASSIGN .
+assign_op(x)    ::= SUBASSIGN .
+assign_op(x)    ::= LSHIFTASSIGN .
+assign_op(x)    ::= RSHIFTASSIGN .
+assign_op(x)    ::= URSHIFTASSIGN .
+assign_op(x)    ::= BITANDASSIGN .
+assign_op(x)    ::= BITXORASSIGN .
+assign_op(x)    ::= BITORASSIGN .
+
+expr(x)         ::= expr_assign .
+
+arg_list        ::= .
+arg_list        ::= expr_list .
+
+
+
+
+
+
+
 odecl_list ::= COMMA .
 stmt_list ::= COMMA .
 
