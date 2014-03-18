@@ -19,6 +19,10 @@
 %nonassoc IF .
 %nonassoc ELSE .
 
+%nonassoc TRY .
+%nonassoc CATCH .
+%nonassoc FINALLY .
+
 
 
 //
@@ -77,9 +81,6 @@ odecl(x)        ::= name_list ASSIGN expr_list SEMICOLON .
 
 odecl_list(x)   ::= odecl .
 odecl_list(x)   ::= odecl_list odecl .
-
-
-
 
 
 
@@ -187,13 +188,20 @@ expr_value(x)   ::= LBR keyval_list RBR .
 expr_lbody(x)   ::= expr_value .
 expr_lbody(x)   ::= expr_lbody COMMA expr_value .
 
-expr_final(x)   ::= expr_postfix ELLIPSIS .
-expr_final(x)   ::= expr_postfix LSQ RSQ ELLIPSIS .
 expr_final(x)   ::= ELLIPSIS .
+expr_final(x)   ::= proto ELLIPSIS .
+expr_final(x)   ::= expr_call ELLIPSIS .
+expr_final(x)   ::= proto YIELD ELLIPSIS .
+expr_final(x)   ::= expr_call YIELD ELLIPSIS .
+expr_final(x)   ::= name LSQ RSQ ELLIPSIS .
+expr_final(x)   ::= proto LSQ RSQ ELLIPSIS .
+expr_final(x)   ::= expr_call LSQ RSQ ELLIPSIS .
+expr_final(x)   ::= expr_postfix LSQ RSQ ELLIPSIS .
 
 expr_list(x)    ::= expr_final .
 expr_list(x)    ::= expr_lbody .
 expr_list(x)    ::= expr_lbody COMMA expr_final .
+expr_list(x)    ::= YIELD expr_list .
 
 expr_assign(x)  ::= expr_list .
 expr_assign(x)  ::= expr_lbody assign_op expr_list .
@@ -227,7 +235,6 @@ keyval_list(x)  ::= keyval_lbody COMMA .
 
 
 
-
 //
 // Expression statements must exclude { in the initial position.
 //
@@ -238,11 +245,10 @@ sexpr_lbody(x)  ::= sexpr_lbody COMMA expr_value .
 sexpr_list(x)   ::= expr_final .
 sexpr_list(x)   ::= sexpr_lbody .
 sexpr_list(x)   ::= sexpr_lbody COMMA expr_final .
+sexpr_list(x)   ::= YIELD expr_list .
 
 sexpr_assign(x) ::= sexpr_list .
 sexpr_assign(x) ::= sexpr_lbody assign_op expr_list .
-
-
 
 
 
@@ -273,10 +279,17 @@ stmt            ::= CONTINUE SEMICOLON .
 stmt            ::= BREAK SEMICOLON .
 stmt            ::= RETURN SEMICOLON .
 stmt            ::= RETURN expr_list SEMICOLON .
+stmt            ::= USING condition SEMICOLON .
+stmt            ::= TRY stmt catch_list .
+stmt            ::= TRY stmt FINALLY stmt .
+stmt            ::= TRY stmt catch_list FINALLY stmt .
+stmt            ::= THROW expr_value SEMICOLON .
 
+catch(x)        ::= CATCH LPN expr_value COLON expr_simple RPN stmt .
+catch(x)        ::= CATCH LPN VAR name COLON expr_simple RPN stmt .
 
-
-
+catch_list      ::= catch .
+catch_list      ::= catch_list catch .
 
 stmt_list       ::= stmt .
 stmt_list       ::= decl .
