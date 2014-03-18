@@ -14,8 +14,23 @@
 
 
 
-blah ::= expr SEMICOLON .
-blah ::= decl .
+script          ::= .
+script          ::= stmt_list .
+
+
+
+//
+// Braces with optional contents.
+//
+
+expr_paren(x)   ::= LPN RPN .
+expr_paren(x)   ::= LPN expr_list RPN .
+
+stmt_brace(x)   ::= LBR RBR .
+stmt_brace(x)   ::= LBR stmt_list RBR .
+
+odecl_brace(x)  ::= LBR RBR .
+odecl_brace(x)  ::= LBR odecl_list RBR .
 
 
 
@@ -26,14 +41,26 @@ blah ::= decl .
 name(x)         ::= IDENTIFIER .
 name(x)         ::= name PERIOD IDENTIFIER .
 
-proto(x)        ::= name LPN arg_list RPN .
+name_list(x)    ::= name .
+name_list(x)    ::= name_list COMMA name .
 
-decl(x)         ::= name LBR odecl_list RBR .
-decl(x)         ::= name COLON expr_value LBR odecl_list RBR .
-decl(x)         ::= proto LBR stmt_list RBR .
-decl(x)         ::= proto YIELD LBR stmt_list RBR .
-decl(x)         ::= PERIOD name LPN arg_list RPN LBR stmt_list RBR .
-decl(x)         ::= PERIOD name LPN arg_list RPN YIELD LBR stmt_list RBR .
+proto(x)        ::= name expr_paren .
+
+decl(x)         ::= name odecl_brace .
+decl(x)         ::= name COLON expr_simple odecl_brace .
+decl(x)         ::= proto stmt_brace .
+decl(x)         ::= proto YIELD stmt_brace .
+decl(x)         ::= PERIOD proto stmt_brace .
+decl(x)         ::= PERIOD proto YIELD stmt_brace .
+
+odecl(x)        ::= SEMICOLON .
+odecl(x)        ::= decl .
+odecl(x)        ::= name_list ASSIGN expr_list SEMICOLON .
+
+odecl_list(x)   ::= odecl .
+odecl_list(x)   ::= odecl_list odecl .
+
+
 
 
 
@@ -42,11 +69,11 @@ decl(x)         ::= PERIOD name LPN arg_list RPN YIELD LBR stmt_list RBR .
 // Expressions.
 //
 
-expr_call(x)    ::= proto LPN arg_list RPN .
-expr_call(x)    ::= expr_call LPN arg_list RPN .
-expr_call(x)    ::= expr_postfix LPN arg_list RPN .
+expr_call(x)    ::= proto expr_paren .
+expr_call(x)    ::= expr_call expr_paren .
+expr_call(x)    ::= expr_postfix expr_paren .
 
-expr_postfix(x) ::= LPN expr RPN .
+expr_postfix(x) ::= LPN expr_assign RPN .
 expr_postfix(x) ::= name PERIOD LSQ expr_value RSQ .
 expr_postfix(x) ::= name LSQ expr_value RSQ .
 expr_postfix(x) ::= proto PERIOD IDENTIFIER .
@@ -59,10 +86,12 @@ expr_postfix(x) ::= expr_postfix PERIOD IDENTIFIER .
 expr_postfix(x) ::= expr_postfix PERIOD LSQ expr_value RSQ .
 expr_postfix(x) ::= expr_postfix LSQ expr_value RSQ .
 
-expr_basic(x)   ::= name .
-expr_basic(x)   ::= expr_postfix .
-expr_basic(x)   ::= proto .
-expr_basic(x)   ::= expr_call .
+expr_simple(x)  ::= name .
+expr_simple(x)  ::= expr_postfix .
+expr_simple(x)  ::= proto .
+expr_simple(x)  ::= expr_call .
+
+expr_basic(x)   ::= expr_simple .
 expr_basic(x)   ::= NUMBER .
 expr_basic(x)   ::= STRING .
 expr_basic(x)   ::= TRUE .
@@ -120,16 +149,22 @@ expr_xor(x)     ::= expr_xor LOGICXOR expr_and .
 expr_or(x)      ::= expr_xor .
 expr_or(x)      ::= expr_or LOGICOR expr_xor .
 
-expr_value(x)   ::= expr_or .
-expr_value(x)   ::= expr_or QMARK expr_value COLON expr_value .
-expr_value(x)   ::= NEW name LPN arg_list RPN .
-expr_value(x)   ::= NEW expr_postfix LPN arg_list RPN .
-expr_value(x)   ::= COLON expr_value LBR odecl_list RBR .
-expr_value(x)   ::= COLON LBR odecl_list RBR .
-expr_value(x)   ::= QMARK LPN arg_list RPN LBR stmt_list RBR .
-expr_value(x)   ::= QMARK LPN arg_list RPN YIELD LBR stmt_list RBR .
-expr_value(x)   ::= proto YIELD .
-expr_value(x)   ::= expr_call YIELD .
+expr_nolbr(x)   ::= expr_or .
+expr_nolbr(x)   ::= expr_or QMARK expr_value COLON expr_value .
+expr_nolbr(x)   ::= NEW name expr_paren .
+expr_nolbr(x)   ::= NEW expr_postfix expr_paren .
+expr_nolbr(x)   ::= LSQ RSQ .
+expr_nolbr(x)   ::= LSQ value_list RSQ .
+expr_nolbr(x)   ::= COLON odecl_brace .
+expr_nolbr(x)   ::= COLON expr_simple odecl_brace .
+expr_nolbr(x)   ::= QMARK expr_paren stmt_brace .
+expr_nolbr(x)   ::= PERIOD QMARK expr_paren stmt_brace .
+expr_nolbr(x)   ::= proto YIELD .
+expr_nolbr(x)   ::= expr_call YIELD .
+
+expr_value(x)   ::= expr_nolbr(x) .
+expr_value(x)   ::= LBR RBR .
+expr_value(x)   ::= LBR keyval_list RBR .
 
 expr_lbody(x)   ::= expr_value .
 expr_lbody(x)   ::= expr_lbody COMMA expr_value .
@@ -138,6 +173,7 @@ expr_final(x)   ::= expr_postfix ELLIPSIS .
 expr_final(x)   ::= expr_postfix LSQ RSQ ELLIPSIS .
 expr_final(x)   ::= ELLIPSIS .
 
+expr_list(x)    ::= expr_final .
 expr_list(x)    ::= expr_lbody .
 expr_list(x)    ::= expr_lbody COMMA expr_final .
 
@@ -158,19 +194,62 @@ assign_op(x)    ::= BITANDASSIGN .
 assign_op(x)    ::= BITXORASSIGN .
 assign_op(x)    ::= BITORASSIGN .
 
-expr(x)         ::= expr_assign .
+value_list(x)   ::= expr_final .
+value_list(x)   ::= expr_final COMMA .
+value_list(x)   ::= expr_lbody .
+value_list(x)   ::= expr_lbody COMMA .
+value_list(x)   ::= expr_lbody COMMA expr_final .
+value_list(x)   ::= expr_lbody COMMA expr_final COMMA .
 
-arg_list        ::= .
-arg_list        ::= expr_list .
+keyval_lbody(x) ::= expr_value COLON expr_value .
+keyval_lbody(x) ::= keyval_lbody COMMA expr_value COLON expr_value .
+
+keyval_list(x)  ::= keyval_lbody .
+keyval_list(x)  ::= keyval_lbody COMMA .
+
+
+
+
+//
+// Expression statements must exclude { in the initial position.
+//
+
+sexpr_lbody(x)  ::= expr_nolbr .
+sexpr_lbody(x)  ::= sexpr_lbody COMMA expr_value .
+
+sexpr_list(x)   ::= expr_final .
+sexpr_list(x)   ::= sexpr_lbody .
+sexpr_list(x)   ::= sexpr_lbody COMMA expr_final .
+
+sexpr_assign(x) ::= sexpr_list .
+sexpr_assign(x) ::= sexpr_lbody assign_op expr_list .
 
 
 
 
 
+//
+// Statements
+//
 
 
-odecl_list ::= COMMA .
-stmt_list ::= COMMA .
+stmt            ::= stmt_brace .
+stmt            ::= sexpr_assign SEMICOLON .
+
+
+
+
+
+stmt_list       ::= stmt .
+stmt_list       ::= decl .
+stmt_list       ::= SEMICOLON .
+stmt_list       ::= stmt_list stmt .
+stmt_list       ::= stmt_list decl .
+stmt_list       ::= stmt_list SEMICOLON .
+
+
+
+
 
 
 
