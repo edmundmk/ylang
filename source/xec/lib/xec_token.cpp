@@ -93,6 +93,7 @@ struct xec_token_operators
         operators.emplace( XEC_TOKEN_LOGICXOR,        symkey( "^^" ) );
         operators.emplace( XEC_TOKEN_LOGICOR,         symkey( "||" ) );
         
+        operators.emplace( XEC_TOKEN_EACHKEY,         symkey( "::" ) );
         operators.emplace( XEC_TOKEN_ELLIPSIS,        symkey( "..." ) );
     }
     
@@ -306,6 +307,7 @@ void xec_token::debug_print()
     case XEC_TOKEN_LOGICXOR:        kind_name = "LOGICXOR";         break;
     case XEC_TOKEN_LOGICOR:         kind_name = "LOGICOR";          break;
     
+    case XEC_TOKEN_EACHKEY:         kind_name = "EACHKEY";          break;
     case XEC_TOKEN_ELLIPSIS:        kind_name = "ELLIPSIS";         break;
     }
     

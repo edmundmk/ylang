@@ -229,6 +229,7 @@
         |   '^^'    >ts %{ TOKEN( XEC_TOKEN_LOGICXOR, sloc ); }
         |   '||'    >ts %{ TOKEN( XEC_TOKEN_LOGICOR, sloc ); }
         
+        |   '::'    >ts %{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
         |   '...'   >ts %{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 
     )**

@@ -107,6 +107,7 @@ enum xec_token_kind
     XEC_TOKEN_LOGICXOR      = LEMON_LOGICXOR,
     XEC_TOKEN_LOGICOR       = LEMON_LOGICOR,
     
+    XEC_TOKEN_EACHKEY       = LEMON_EACHKEY,
     XEC_TOKEN_ELLIPSIS      = LEMON_ELLIPSIS,
 
 #undef LEMON_BREAK
@@ -193,6 +194,9 @@ enum xec_token_kind
 #undef LEMON_LOGICAND
 #undef LEMON_LOGICXOR
 #undef LEMON_LOGICOR
+
+#undef LEMON_EACHKEY
+#undef LEMON_ELLIPSIS
 };
 
 

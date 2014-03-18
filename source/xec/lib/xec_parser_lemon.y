@@ -12,7 +12,18 @@
 
 
 
+//
+// 'Dangling else' conflict.
+//
 
+%nonassoc IF .
+%nonassoc ELSE .
+
+
+
+//
+// Entire script.
+//
 
 script          ::= .
 script          ::= stmt_list .
@@ -46,15 +57,22 @@ name_list(x)    ::= name_list COMMA name .
 
 proto(x)        ::= name expr_paren .
 
-decl(x)         ::= name odecl_brace .
-decl(x)         ::= name COLON expr_simple odecl_brace .
-decl(x)         ::= proto stmt_brace .
-decl(x)         ::= proto YIELD stmt_brace .
+decl_common(x)  ::= name odecl_brace .
+decl_common(x)  ::= name COLON expr_simple odecl_brace .
+decl_common(x)  ::= proto stmt_brace .
+decl_common(x)  ::= proto YIELD stmt_brace .
+
+decl(x)         ::= decl_common .
 decl(x)         ::= PERIOD proto stmt_brace .
 decl(x)         ::= PERIOD proto YIELD stmt_brace .
+decl(x)         ::= VAR name_list SEMICOLON .
+decl(x)         ::= VAR name_list ASSIGN expr_list SEMICOLON .
 
 odecl(x)        ::= SEMICOLON .
-odecl(x)        ::= decl .
+odecl(x)        ::= decl_common .
+odecl(x)        ::= proto SEMICOLON .
+odecl(x)        ::= proto YIELD SEMICOLON .
+odecl(x)        ::= name_list SEMICOLON .
 odecl(x)        ::= name_list ASSIGN expr_list SEMICOLON .
 
 odecl_list(x)   ::= odecl .
@@ -90,6 +108,8 @@ expr_simple(x)  ::= name .
 expr_simple(x)  ::= expr_postfix .
 expr_simple(x)  ::= proto .
 expr_simple(x)  ::= expr_call .
+expr_simple(x)  ::= proto YIELD .
+expr_simple(x)  ::= expr_call YIELD .
 
 expr_basic(x)   ::= expr_simple .
 expr_basic(x)   ::= NUMBER .
@@ -159,8 +179,6 @@ expr_nolbr(x)   ::= COLON odecl_brace .
 expr_nolbr(x)   ::= COLON expr_simple odecl_brace .
 expr_nolbr(x)   ::= QMARK expr_paren stmt_brace .
 expr_nolbr(x)   ::= PERIOD QMARK expr_paren stmt_brace .
-expr_nolbr(x)   ::= proto YIELD .
-expr_nolbr(x)   ::= expr_call YIELD .
 
 expr_value(x)   ::= expr_nolbr(x) .
 expr_value(x)   ::= LBR RBR .
@@ -233,8 +251,28 @@ sexpr_assign(x) ::= sexpr_lbody assign_op expr_list .
 //
 
 
+condition       ::= expr_assign .
+condition       ::= VAR name_list ASSIGN expr_list .
+
 stmt            ::= stmt_brace .
 stmt            ::= sexpr_assign SEMICOLON .
+stmt            ::= IF LPN condition RPN stmt .
+stmt            ::= IF LPN condition RPN stmt ELSE stmt .
+stmt            ::= SWITCH LPN condition RPN stmt_brace .
+stmt            ::= CASE expr_value COLON .
+stmt            ::= DEFAULT COLON .
+stmt            ::= WHILE LPN condition RPN stmt .
+stmt            ::= DO stmt WHILE LPN expr_assign RPN SEMICOLON .
+stmt            ::= FOR LPN expr_lbody COLON expr_value RPN stmt .
+stmt            ::= FOR LPN expr_lbody EACHKEY expr_value RPN stmt .
+stmt            ::= FOR LPN VAR name_list COLON expr_value RPN stmt .
+stmt            ::= FOR LPN VAR name_list EACHKEY expr_value RPN stmt .
+stmt            ::= FOR LPN condition SEMICOLON
+                            expr_assign SEMICOLON expr_assign RPN stmt .
+stmt            ::= CONTINUE SEMICOLON .
+stmt            ::= BREAK SEMICOLON .
+stmt            ::= RETURN SEMICOLON .
+stmt            ::= RETURN expr_list SEMICOLON .
 
 
 
@@ -335,6 +373,7 @@ tokens ::=
  LOGICXOR
  LOGICOR
 
+ EACHKEY
  ELLIPSIS .
 
 

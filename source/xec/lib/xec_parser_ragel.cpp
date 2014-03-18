@@ -22,7 +22,7 @@
 
 
 
-#line 240 "xec_parser_ragel.rl"
+#line 241 "xec_parser_ragel.rl"
 
 
 
@@ -35,7 +35,7 @@ static const int lexer_error = 0;
 static const int lexer_en_main = 24;
 
 
-#line 244 "xec_parser_ragel.rl"
+#line 245 "xec_parser_ragel.rl"
 
 
 
@@ -164,7 +164,7 @@ bool xec_parser::parse( const char* path )
 	cs = lexer_start;
 	}
 
-#line 367 "xec_parser_ragel.rl"
+#line 368 "xec_parser_ragel.rl"
     
     
     // Perform lexing.
@@ -256,7 +256,7 @@ tr1:
         if ( diagnostics.size() >= ERROR_LIMIT )
             goto error;
     }
-#line 238 "xec_parser_ragel.rl"
+#line 239 "xec_parser_ragel.rl"
 	{ {goto st24;} }
 	goto st0;
 tr87:
@@ -273,7 +273,7 @@ tr87:
         if ( diagnostics.size() >= ERROR_LIMIT )
             goto error;
     }
-#line 238 "xec_parser_ragel.rl"
+#line 239 "xec_parser_ragel.rl"
 	{ {goto st24;} }
 	goto st0;
 #line 280 "xec_parser_ragel.cpp"
@@ -346,7 +346,7 @@ tr523:
 	{ TOKEN( XEC_TOKEN_PERIOD, sloc ); }
 	goto st25;
 tr554:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 	goto st25;
 tr585:
@@ -477,39 +477,43 @@ tr1484:
 #line 209 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_LESSEQUAL, sloc ); }
 	goto st25;
-tr1516:
+tr1515:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+	goto st25;
+tr1547:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 	goto st25;
-tr1547:
+tr1578:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 	goto st25;
-tr1578:
+tr1609:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 	goto st25;
-tr1609:
+tr1640:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 	goto st25;
-tr1640:
+tr1671:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 	goto st25;
-tr1671:
+tr1702:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 	goto st25;
-tr1702:
+tr1733:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 	goto st25;
-tr1733:
+tr1764:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 	goto st25;
-tr1764:
+tr1795:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 	goto st25;
@@ -517,7 +521,7 @@ st25:
 	if ( ++p == pe )
 		goto _test_eof25;
 case 25:
-#line 521 "xec_parser_ragel.cpp"
+#line 525 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto st25;
 		case 10u: goto st26;
@@ -626,7 +630,7 @@ tr524:
 	{ TOKEN( XEC_TOKEN_PERIOD, sloc ); }
 	goto st26;
 tr555:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 	goto st26;
 tr586:
@@ -757,39 +761,43 @@ tr1485:
 #line 209 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_LESSEQUAL, sloc ); }
 	goto st26;
-tr1517:
+tr1516:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+	goto st26;
+tr1548:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 	goto st26;
-tr1548:
+tr1579:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 	goto st26;
-tr1579:
+tr1610:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 	goto st26;
-tr1610:
+tr1641:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 	goto st26;
-tr1641:
+tr1672:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 	goto st26;
-tr1672:
+tr1703:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 	goto st26;
-tr1703:
+tr1734:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 	goto st26;
-tr1734:
+tr1765:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 	goto st26;
-tr1765:
+tr1796:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 	goto st26;
@@ -797,7 +805,7 @@ st26:
 	if ( ++p == pe )
 		goto _test_eof26;
 case 26:
-#line 801 "xec_parser_ragel.cpp"
+#line 809 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr88;
 		case 10u: goto tr89;
@@ -906,7 +914,7 @@ tr525:
 	{ TOKEN( XEC_TOKEN_PERIOD, sloc ); }
 	goto st27;
 tr556:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 	goto st27;
 tr587:
@@ -1037,39 +1045,43 @@ tr1486:
 #line 209 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_LESSEQUAL, sloc ); }
 	goto st27;
-tr1518:
+tr1517:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+	goto st27;
+tr1549:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 	goto st27;
-tr1549:
+tr1580:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 	goto st27;
-tr1580:
+tr1611:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 	goto st27;
-tr1611:
+tr1642:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 	goto st27;
-tr1642:
+tr1673:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 	goto st27;
-tr1673:
+tr1704:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 	goto st27;
-tr1704:
+tr1735:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 	goto st27;
-tr1735:
+tr1766:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 	goto st27;
-tr1766:
+tr1797:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 	goto st27;
@@ -1077,7 +1089,7 @@ st27:
 	if ( ++p == pe )
 		goto _test_eof27;
 case 27:
-#line 1081 "xec_parser_ragel.cpp"
+#line 1093 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr88;
 		case 10u: goto st26;
@@ -1220,7 +1232,7 @@ tr526:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st28;
 tr557:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -1413,55 +1425,61 @@ tr1487:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st28;
-tr1519:
+tr1518:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st28;
+tr1550:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st28;
-tr1550:
+tr1581:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st28;
-tr1581:
+tr1612:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st28;
-tr1612:
+tr1643:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st28;
-tr1643:
+tr1674:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st28;
-tr1674:
+tr1705:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st28;
-tr1705:
+tr1736:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st28;
-tr1736:
+tr1767:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st28;
-tr1767:
+tr1798:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -1471,7 +1489,7 @@ st28:
 	if ( ++p == pe )
 		goto _test_eof28;
 case 28:
-#line 1475 "xec_parser_ragel.cpp"
+#line 1493 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr119;
 		case 10u: goto tr120;
@@ -1493,7 +1511,7 @@ case 28:
 		case 58u: goto tr136;
 		case 59u: goto tr137;
 		case 60u: goto tr138;
-		case 61u: goto st84;
+		case 61u: goto st85;
 		case 62u: goto tr140;
 		case 63u: goto tr141;
 		case 91u: goto tr143;
@@ -1705,7 +1723,7 @@ tr527:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st1;
 tr558:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -1898,55 +1916,61 @@ tr1488:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st1;
-tr1520:
+tr1519:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st1;
+tr1551:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st1;
-tr1551:
+tr1582:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st1;
-tr1582:
+tr1613:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st1;
-tr1613:
+tr1644:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st1;
-tr1644:
+tr1675:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st1;
-tr1675:
+tr1706:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st1;
-tr1706:
+tr1737:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st1;
-tr1737:
+tr1768:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st1;
-tr1768:
+tr1799:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -1956,7 +1980,7 @@ st1:
 	if ( ++p == pe )
 		goto _test_eof1;
 case 1:
-#line 1960 "xec_parser_ragel.cpp"
+#line 1984 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 10u: goto tr1;
 		case 13u: goto tr1;
@@ -2110,7 +2134,7 @@ tr528:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st30;
 tr559:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -2303,55 +2327,61 @@ tr1489:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st30;
-tr1521:
+tr1520:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st30;
+tr1552:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st30;
-tr1552:
+tr1583:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st30;
-tr1583:
+tr1614:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st30;
-tr1614:
+tr1645:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st30;
-tr1645:
+tr1676:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st30;
-tr1676:
+tr1707:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st30;
-tr1707:
+tr1738:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st30;
-tr1738:
+tr1769:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st30;
-tr1769:
+tr1800:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -2361,7 +2391,7 @@ st30:
 	if ( ++p == pe )
 		goto _test_eof30;
 case 30:
-#line 2365 "xec_parser_ragel.cpp"
+#line 2395 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr182;
 		case 10u: goto tr183;
@@ -2383,7 +2413,7 @@ case 30:
 		case 58u: goto tr199;
 		case 59u: goto tr200;
 		case 60u: goto tr201;
-		case 61u: goto st83;
+		case 61u: goto st84;
 		case 62u: goto tr203;
 		case 63u: goto tr204;
 		case 91u: goto tr206;
@@ -2498,7 +2528,7 @@ tr529:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st31;
 tr560:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -2691,55 +2721,61 @@ tr1490:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st31;
-tr1522:
+tr1521:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st31;
+tr1553:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st31;
-tr1553:
+tr1584:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st31;
-tr1584:
+tr1615:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st31;
-tr1615:
+tr1646:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st31;
-tr1646:
+tr1677:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st31;
-tr1677:
+tr1708:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st31;
-tr1708:
+tr1739:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st31;
-tr1739:
+tr1770:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st31;
-tr1770:
+tr1801:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -2749,7 +2785,7 @@ st31:
 	if ( ++p == pe )
 		goto _test_eof31;
 case 31:
-#line 2753 "xec_parser_ragel.cpp"
+#line 2789 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr213;
 		case 10u: goto tr214;
@@ -2771,7 +2807,7 @@ case 31:
 		case 58u: goto tr230;
 		case 59u: goto tr231;
 		case 60u: goto tr232;
-		case 61u: goto st82;
+		case 61u: goto st83;
 		case 62u: goto tr234;
 		case 63u: goto tr235;
 		case 91u: goto tr237;
@@ -2938,7 +2974,7 @@ tr530:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st33;
 tr561:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -3131,55 +3167,61 @@ tr1491:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st33;
-tr1523:
+tr1522:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st33;
+tr1554:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st33;
-tr1554:
+tr1585:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st33;
-tr1585:
+tr1616:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st33;
-tr1616:
+tr1647:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st33;
-tr1647:
+tr1678:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st33;
-tr1678:
+tr1709:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st33;
-tr1709:
+tr1740:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st33;
-tr1740:
+tr1771:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st33;
-tr1771:
+tr1802:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -3189,7 +3231,7 @@ st33:
 	if ( ++p == pe )
 		goto _test_eof33;
 case 33:
-#line 3193 "xec_parser_ragel.cpp"
+#line 3235 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr275;
 		case 10u: goto tr276;
@@ -3332,7 +3374,7 @@ tr531:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st34;
 tr562:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -3525,55 +3567,61 @@ tr1492:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st34;
-tr1524:
+tr1523:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st34;
+tr1555:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st34;
-tr1555:
+tr1586:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st34;
-tr1586:
+tr1617:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st34;
-tr1617:
+tr1648:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st34;
-tr1648:
+tr1679:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st34;
-tr1679:
+tr1710:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st34;
-tr1710:
+tr1741:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st34;
-tr1741:
+tr1772:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st34;
-tr1772:
+tr1803:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -3583,7 +3631,7 @@ st34:
 	if ( ++p == pe )
 		goto _test_eof34;
 case 34:
-#line 3587 "xec_parser_ragel.cpp"
+#line 3635 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr306;
 		case 10u: goto tr307;
@@ -3726,7 +3774,7 @@ tr532:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st35;
 tr563:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -3913,55 +3961,61 @@ tr1493:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st35;
-tr1525:
+tr1524:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st35;
+tr1556:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st35;
-tr1556:
+tr1587:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st35;
-tr1587:
+tr1618:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st35;
-tr1618:
+tr1649:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st35;
-tr1649:
+tr1680:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st35;
-tr1680:
+tr1711:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st35;
-tr1711:
+tr1742:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st35;
-tr1742:
+tr1773:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st35;
-tr1773:
+tr1804:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -3971,7 +4025,7 @@ st35:
 	if ( ++p == pe )
 		goto _test_eof35;
 case 35:
-#line 3975 "xec_parser_ragel.cpp"
+#line 4029 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr337;
 		case 10u: goto tr338;
@@ -3993,7 +4047,7 @@ case 35:
 		case 58u: goto tr354;
 		case 59u: goto tr355;
 		case 60u: goto tr356;
-		case 61u: goto st81;
+		case 61u: goto st82;
 		case 62u: goto tr358;
 		case 63u: goto tr359;
 		case 91u: goto tr361;
@@ -4108,7 +4162,7 @@ tr533:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st36;
 tr564:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -4301,55 +4355,61 @@ tr1494:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st36;
-tr1526:
+tr1525:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st36;
+tr1557:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st36;
-tr1557:
+tr1588:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st36;
-tr1588:
+tr1619:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st36;
-tr1619:
+tr1650:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st36;
-tr1650:
+tr1681:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st36;
-tr1681:
+tr1712:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st36;
-tr1712:
+tr1743:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st36;
-tr1743:
+tr1774:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st36;
-tr1774:
+tr1805:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -4359,7 +4419,7 @@ st36:
 	if ( ++p == pe )
 		goto _test_eof36;
 case 36:
-#line 4363 "xec_parser_ragel.cpp"
+#line 4423 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr368;
 		case 10u: goto tr369;
@@ -4381,7 +4441,7 @@ case 36:
 		case 58u: goto tr385;
 		case 59u: goto tr386;
 		case 60u: goto tr387;
-		case 61u: goto st80;
+		case 61u: goto st81;
 		case 62u: goto tr389;
 		case 63u: goto tr390;
 		case 91u: goto tr392;
@@ -4548,7 +4608,7 @@ tr534:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st38;
 tr565:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -4741,55 +4801,61 @@ tr1495:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st38;
-tr1527:
+tr1526:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st38;
+tr1558:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st38;
-tr1558:
+tr1589:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st38;
-tr1589:
+tr1620:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st38;
-tr1620:
+tr1651:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st38;
-tr1651:
+tr1682:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st38;
-tr1682:
+tr1713:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st38;
-tr1713:
+tr1744:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st38;
-tr1744:
+tr1775:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st38;
-tr1775:
+tr1806:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -4799,7 +4865,7 @@ st38:
 	if ( ++p == pe )
 		goto _test_eof38;
 case 38:
-#line 4803 "xec_parser_ragel.cpp"
+#line 4869 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr430;
 		case 10u: goto tr431;
@@ -4936,7 +5002,7 @@ tr535:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st39;
 tr566:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -5129,55 +5195,61 @@ tr1496:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st39;
-tr1528:
+tr1527:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st39;
+tr1559:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st39;
-tr1559:
+tr1590:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st39;
-tr1590:
+tr1621:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st39;
-tr1621:
+tr1652:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st39;
-tr1652:
+tr1683:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st39;
-tr1683:
+tr1714:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st39;
-tr1714:
+tr1745:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st39;
-tr1745:
+tr1776:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st39;
-tr1776:
+tr1807:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -5187,7 +5259,7 @@ st39:
 	if ( ++p == pe )
 		goto _test_eof39;
 case 39:
-#line 5191 "xec_parser_ragel.cpp"
+#line 5263 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr461;
 		case 10u: goto tr462;
@@ -5209,7 +5281,7 @@ case 39:
 		case 58u: goto tr478;
 		case 59u: goto tr479;
 		case 60u: goto tr480;
-		case 61u: goto st79;
+		case 61u: goto st80;
 		case 62u: goto tr482;
 		case 63u: goto tr483;
 		case 91u: goto tr485;
@@ -5370,7 +5442,7 @@ tr505:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st41;
 tr567:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -5563,55 +5635,61 @@ tr1497:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st41;
-tr1529:
+tr1528:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st41;
+tr1560:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st41;
-tr1560:
+tr1591:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st41;
-tr1591:
+tr1622:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st41;
-tr1622:
+tr1653:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st41;
-tr1653:
+tr1684:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st41;
-tr1684:
+tr1715:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st41;
-tr1715:
+tr1746:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st41;
-tr1746:
+tr1777:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st41;
-tr1777:
+tr1808:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -5621,7 +5699,7 @@ st41:
 	if ( ++p == pe )
 		goto _test_eof41;
 case 41:
-#line 5625 "xec_parser_ragel.cpp"
+#line 5703 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr523;
 		case 10u: goto tr524;
@@ -5811,7 +5889,7 @@ tr537:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st43;
 tr568:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -5998,55 +6076,61 @@ tr1498:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st43;
-tr1530:
+tr1529:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st43;
+tr1561:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st43;
-tr1561:
+tr1592:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st43;
-tr1592:
+tr1623:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st43;
-tr1623:
+tr1654:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st43;
-tr1654:
+tr1685:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st43;
-tr1685:
+tr1716:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st43;
-tr1716:
+tr1747:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st43;
-tr1747:
+tr1778:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st43;
-tr1778:
+tr1809:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -6056,7 +6140,7 @@ st43:
 	if ( ++p == pe )
 		goto _test_eof43;
 case 43:
-#line 6060 "xec_parser_ragel.cpp"
+#line 6144 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr585;
 		case 10u: goto tr586;
@@ -6078,7 +6162,7 @@ case 43:
 		case 58u: goto tr600;
 		case 59u: goto tr601;
 		case 60u: goto tr602;
-		case 61u: goto st78;
+		case 61u: goto st79;
 		case 62u: goto tr604;
 		case 63u: goto tr605;
 		case 91u: goto tr607;
@@ -6107,7 +6191,7 @@ st3:
 	if ( ++p == pe )
 		goto _test_eof3;
 case 3:
-#line 6111 "xec_parser_ragel.cpp"
+#line 6195 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 10u: goto st4;
 		case 13u: goto st5;
@@ -6122,7 +6206,7 @@ st4:
 	if ( ++p == pe )
 		goto _test_eof4;
 case 4:
-#line 6126 "xec_parser_ragel.cpp"
+#line 6210 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 10u: goto tr10;
 		case 13u: goto tr11;
@@ -6137,7 +6221,7 @@ st5:
 	if ( ++p == pe )
 		goto _test_eof5;
 case 5:
-#line 6141 "xec_parser_ragel.cpp"
+#line 6225 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 10u: goto st4;
 		case 13u: goto tr11;
@@ -6152,7 +6236,7 @@ st6:
 	if ( ++p == pe )
 		goto _test_eof6;
 case 6:
-#line 6156 "xec_parser_ragel.cpp"
+#line 6240 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 10u: goto st4;
 		case 13u: goto st5;
@@ -6301,7 +6385,7 @@ tr538:
 	{ data.append( (char)(*p) ); }
 	goto st44;
 tr569:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -6545,7 +6629,15 @@ tr1499:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st44;
-tr1531:
+tr1530:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+#line 31 "xec_parser_ragel.rl"
+	{ data.append( (char)(*p) ); }
+	goto st44;
+tr1562:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -6553,7 +6645,7 @@ tr1531:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st44;
-tr1562:
+tr1593:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -6561,7 +6653,7 @@ tr1562:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st44;
-tr1593:
+tr1624:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -6569,7 +6661,7 @@ tr1593:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st44;
-tr1624:
+tr1655:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -6577,7 +6669,7 @@ tr1624:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st44;
-tr1655:
+tr1686:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -6585,7 +6677,7 @@ tr1655:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st44;
-tr1686:
+tr1717:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -6593,7 +6685,7 @@ tr1686:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st44;
-tr1717:
+tr1748:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -6601,7 +6693,7 @@ tr1717:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st44;
-tr1748:
+tr1779:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -6609,7 +6701,7 @@ tr1748:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st44;
-tr1779:
+tr1810:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -6621,7 +6713,7 @@ st44:
 	if ( ++p == pe )
 		goto _test_eof44;
 case 44:
-#line 6625 "xec_parser_ragel.cpp"
+#line 6717 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr614;
 		case 10u: goto tr615;
@@ -6675,7 +6767,7 @@ st8:
 	if ( ++p == pe )
 		goto _test_eof8;
 case 8:
-#line 6679 "xec_parser_ragel.cpp"
+#line 6771 "xec_parser_ragel.cpp"
 	if ( 48u <= (*p) && (*p) <= 57u )
 		goto tr17;
 	goto tr1;
@@ -6687,7 +6779,7 @@ st45:
 	if ( ++p == pe )
 		goto _test_eof45;
 case 45:
-#line 6691 "xec_parser_ragel.cpp"
+#line 6783 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr614;
 		case 10u: goto tr615;
@@ -6831,7 +6923,7 @@ tr540:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st46;
 tr571:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -6850,12 +6942,6 @@ tr631:
                     const char* number = (const char*)data.tearoff();
                     TOKEN( XEC_TOKEN_NUMBER, sloc, number, length );
                 }
-#line 30 "xec_parser_ragel.rl"
-	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
-	goto st46;
-tr665:
-#line 187 "xec_parser_ragel.rl"
-	{ TOKEN( XEC_TOKEN_COLON, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st46;
@@ -7024,55 +7110,61 @@ tr1501:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st46;
-tr1533:
+tr1532:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st46;
+tr1564:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st46;
-tr1564:
+tr1595:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st46;
-tr1595:
+tr1626:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st46;
-tr1626:
+tr1657:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st46;
-tr1657:
+tr1688:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st46;
-tr1688:
+tr1719:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st46;
-tr1719:
+tr1750:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st46;
-tr1750:
+tr1781:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st46;
-tr1781:
+tr1812:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -7082,7 +7174,7 @@ st46:
 	if ( ++p == pe )
 		goto _test_eof46;
 case 46:
-#line 7086 "xec_parser_ragel.cpp"
+#line 7178 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr648;
 		case 10u: goto tr649;
@@ -7101,7 +7193,7 @@ case 46:
 		case 46u: goto tr661;
 		case 47u: goto tr662;
 		case 48u: goto tr663;
-		case 58u: goto tr665;
+		case 58u: goto st76;
 		case 59u: goto tr666;
 		case 60u: goto tr667;
 		case 61u: goto tr668;
@@ -7261,7 +7353,7 @@ tr539:
 	{ data.append( (char)(*p) ); }
 	goto st47;
 tr570:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -7505,7 +7597,15 @@ tr1500:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st47;
-tr1532:
+tr1531:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+#line 31 "xec_parser_ragel.rl"
+	{ data.append( (char)(*p) ); }
+	goto st47;
+tr1563:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -7513,7 +7613,7 @@ tr1532:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st47;
-tr1563:
+tr1594:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -7521,7 +7621,7 @@ tr1563:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st47;
-tr1594:
+tr1625:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -7529,7 +7629,7 @@ tr1594:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st47;
-tr1625:
+tr1656:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -7537,7 +7637,7 @@ tr1625:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st47;
-tr1656:
+tr1687:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -7545,7 +7645,7 @@ tr1656:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st47;
-tr1687:
+tr1718:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -7553,7 +7653,7 @@ tr1687:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st47;
-tr1718:
+tr1749:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -7561,7 +7661,7 @@ tr1718:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st47;
-tr1749:
+tr1780:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -7569,7 +7669,7 @@ tr1749:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st47;
-tr1780:
+tr1811:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -7581,7 +7681,7 @@ st47:
 	if ( ++p == pe )
 		goto _test_eof47;
 case 47:
-#line 7585 "xec_parser_ragel.cpp"
+#line 7685 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr614;
 		case 10u: goto tr615;
@@ -7725,7 +7825,7 @@ tr541:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st48;
 tr572:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -7918,55 +8018,61 @@ tr1502:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st48;
-tr1534:
+tr1533:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st48;
+tr1565:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st48;
-tr1565:
+tr1596:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st48;
-tr1596:
+tr1627:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st48;
-tr1627:
+tr1658:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st48;
-tr1658:
+tr1689:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st48;
-tr1689:
+tr1720:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st48;
-tr1720:
+tr1751:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st48;
-tr1751:
+tr1782:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st48;
-tr1782:
+tr1813:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -7976,7 +8082,7 @@ st48:
 	if ( ++p == pe )
 		goto _test_eof48;
 case 48:
-#line 7980 "xec_parser_ragel.cpp"
+#line 8086 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr680;
 		case 10u: goto tr681;
@@ -8119,7 +8225,7 @@ tr542:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st49;
 tr573:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -8306,55 +8412,61 @@ tr1503:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st49;
-tr1535:
+tr1534:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st49;
+tr1566:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st49;
-tr1566:
+tr1597:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st49;
-tr1597:
+tr1628:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st49;
-tr1628:
+tr1659:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st49;
-tr1659:
+tr1690:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st49;
-tr1690:
+tr1721:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st49;
-tr1721:
+tr1752:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st49;
-tr1752:
+tr1783:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st49;
-tr1783:
+tr1814:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -8364,7 +8476,7 @@ st49:
 	if ( ++p == pe )
 		goto _test_eof49;
 case 49:
-#line 8368 "xec_parser_ragel.cpp"
+#line 8480 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr711;
 		case 10u: goto tr712;
@@ -8563,7 +8675,7 @@ tr543:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st52;
 tr574:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -8696,55 +8808,61 @@ tr1504:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st52;
-tr1536:
+tr1535:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st52;
+tr1567:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st52;
-tr1567:
+tr1598:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st52;
-tr1598:
+tr1629:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st52;
-tr1629:
+tr1660:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st52;
-tr1660:
+tr1691:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st52;
-tr1691:
+tr1722:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st52;
-tr1722:
+tr1753:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st52;
-tr1753:
+tr1784:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st52;
-tr1784:
+tr1815:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -8754,7 +8872,7 @@ st52:
 	if ( ++p == pe )
 		goto _test_eof52;
 case 52:
-#line 8758 "xec_parser_ragel.cpp"
+#line 8876 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr804;
 		case 10u: goto tr805;
@@ -8943,7 +9061,7 @@ tr544:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st54;
 tr575:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -9124,55 +9242,61 @@ tr1505:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st54;
-tr1537:
+tr1536:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st54;
+tr1568:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st54;
-tr1568:
+tr1599:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st54;
-tr1599:
+tr1630:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st54;
-tr1630:
+tr1661:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st54;
-tr1661:
+tr1692:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st54;
-tr1692:
+tr1723:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st54;
-tr1723:
+tr1754:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st54;
-tr1754:
+tr1785:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st54;
-tr1785:
+tr1816:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -9182,7 +9306,7 @@ st54:
 	if ( ++p == pe )
 		goto _test_eof54;
 case 54:
-#line 9186 "xec_parser_ragel.cpp"
+#line 9310 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr866;
 		case 10u: goto tr867;
@@ -9371,7 +9495,7 @@ tr545:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st56;
 tr576:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -9564,55 +9688,61 @@ tr1506:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st56;
-tr1538:
+tr1537:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st56;
+tr1569:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st56;
-tr1569:
+tr1600:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st56;
-tr1600:
+tr1631:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st56;
-tr1631:
+tr1662:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st56;
-tr1662:
+tr1693:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st56;
-tr1693:
+tr1724:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st56;
-tr1724:
+tr1755:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st56;
-tr1755:
+tr1786:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st56;
-tr1786:
+tr1817:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -9622,7 +9752,7 @@ st56:
 	if ( ++p == pe )
 		goto _test_eof56;
 case 56:
-#line 9626 "xec_parser_ragel.cpp"
+#line 9756 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr928;
 		case 10u: goto tr929;
@@ -9801,7 +9931,7 @@ tr546:
 	{ data.append( (char)(*p) ); }
 	goto st57;
 tr577:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -10045,7 +10175,15 @@ tr1507:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st57;
-tr1539:
+tr1538:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+#line 31 "xec_parser_ragel.rl"
+	{ data.append( (char)(*p) ); }
+	goto st57;
+tr1570:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -10053,7 +10191,7 @@ tr1539:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st57;
-tr1570:
+tr1601:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -10061,7 +10199,7 @@ tr1570:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st57;
-tr1601:
+tr1632:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -10069,7 +10207,7 @@ tr1601:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st57;
-tr1632:
+tr1663:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -10077,7 +10215,7 @@ tr1632:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st57;
-tr1663:
+tr1694:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -10085,7 +10223,7 @@ tr1663:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st57;
-tr1694:
+tr1725:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -10093,7 +10231,7 @@ tr1694:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st57;
-tr1725:
+tr1756:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -10101,7 +10239,7 @@ tr1725:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st57;
-tr1756:
+tr1787:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -10109,7 +10247,7 @@ tr1756:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st57;
-tr1787:
+tr1818:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -10121,7 +10259,7 @@ st57:
 	if ( ++p == pe )
 		goto _test_eof57;
 case 57:
-#line 10125 "xec_parser_ragel.cpp"
+#line 10263 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr959;
 		case 10u: goto tr960;
@@ -10263,7 +10401,7 @@ tr547:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st58;
 tr578:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -10456,55 +10594,61 @@ tr1508:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st58;
-tr1540:
+tr1539:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st58;
+tr1571:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st58;
-tr1571:
+tr1602:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st58;
-tr1602:
+tr1633:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st58;
-tr1633:
+tr1664:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st58;
-tr1664:
+tr1695:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st58;
-tr1695:
+tr1726:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st58;
-tr1726:
+tr1757:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st58;
-tr1757:
+tr1788:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st58;
-tr1788:
+tr1819:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -10514,7 +10658,7 @@ st58:
 	if ( ++p == pe )
 		goto _test_eof58;
 case 58:
-#line 10518 "xec_parser_ragel.cpp"
+#line 10662 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr988;
 		case 10u: goto tr989;
@@ -10657,7 +10801,7 @@ tr548:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st59;
 tr579:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -10850,55 +10994,61 @@ tr1509:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st59;
-tr1541:
+tr1540:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st59;
+tr1572:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st59;
-tr1572:
+tr1603:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st59;
-tr1603:
+tr1634:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st59;
-tr1634:
+tr1665:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st59;
-tr1665:
+tr1696:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st59;
-tr1696:
+tr1727:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st59;
-tr1727:
+tr1758:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st59;
-tr1758:
+tr1789:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st59;
-tr1789:
+tr1820:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -10908,7 +11058,7 @@ st59:
 	if ( ++p == pe )
 		goto _test_eof59;
 case 59:
-#line 10912 "xec_parser_ragel.cpp"
+#line 11062 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr1019;
 		case 10u: goto tr1020;
@@ -11051,7 +11201,7 @@ tr549:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st60;
 tr580:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -11238,55 +11388,61 @@ tr1510:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st60;
-tr1542:
+tr1541:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st60;
+tr1573:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st60;
-tr1573:
+tr1604:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st60;
-tr1604:
+tr1635:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st60;
-tr1635:
+tr1666:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st60;
-tr1666:
+tr1697:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st60;
-tr1697:
+tr1728:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st60;
-tr1728:
+tr1759:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st60;
-tr1759:
+tr1790:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st60;
-tr1790:
+tr1821:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -11296,7 +11452,7 @@ st60:
 	if ( ++p == pe )
 		goto _test_eof60;
 case 60:
-#line 11300 "xec_parser_ragel.cpp"
+#line 11456 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr1050;
 		case 10u: goto tr1051;
@@ -11485,7 +11641,7 @@ tr550:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st62;
 tr581:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -11678,55 +11834,61 @@ tr1511:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st62;
-tr1543:
+tr1542:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st62;
+tr1574:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st62;
-tr1574:
+tr1605:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st62;
-tr1605:
+tr1636:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st62;
-tr1636:
+tr1667:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st62;
-tr1667:
+tr1698:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st62;
-tr1698:
+tr1729:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st62;
-tr1729:
+tr1760:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st62;
-tr1760:
+tr1791:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st62;
-tr1791:
+tr1822:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -11736,7 +11898,7 @@ st62:
 	if ( ++p == pe )
 		goto _test_eof62;
 case 62:
-#line 11740 "xec_parser_ragel.cpp"
+#line 11902 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr1112;
 		case 10u: goto tr1113;
@@ -11879,7 +12041,7 @@ tr551:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st63;
 tr582:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -12066,55 +12228,61 @@ tr1512:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st63;
-tr1544:
+tr1543:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st63;
+tr1575:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st63;
-tr1575:
+tr1606:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st63;
-tr1606:
+tr1637:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st63;
-tr1637:
+tr1668:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st63;
-tr1668:
+tr1699:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st63;
-tr1699:
+tr1730:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st63;
-tr1730:
+tr1761:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st63;
-tr1761:
+tr1792:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st63;
-tr1792:
+tr1823:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -12124,7 +12292,7 @@ st63:
 	if ( ++p == pe )
 		goto _test_eof63;
 case 63:
-#line 12128 "xec_parser_ragel.cpp"
+#line 12296 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr1143;
 		case 10u: goto tr1144;
@@ -12313,7 +12481,7 @@ tr552:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st65;
 tr583:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -12506,55 +12674,61 @@ tr1513:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st65;
-tr1545:
+tr1544:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st65;
+tr1576:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st65;
-tr1576:
+tr1607:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st65;
-tr1607:
+tr1638:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st65;
-tr1638:
+tr1669:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st65;
-tr1669:
+tr1700:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st65;
-tr1700:
+tr1731:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st65;
-tr1731:
+tr1762:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st65;
-tr1762:
+tr1793:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st65;
-tr1793:
+tr1824:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -12564,7 +12738,7 @@ st65:
 	if ( ++p == pe )
 		goto _test_eof65;
 case 65:
-#line 12568 "xec_parser_ragel.cpp"
+#line 12742 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr1205;
 		case 10u: goto tr1206;
@@ -12707,7 +12881,7 @@ tr553:
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st66;
 tr584:
-#line 232 "xec_parser_ragel.rl"
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
@@ -12900,55 +13074,61 @@ tr1514:
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st66;
-tr1546:
+tr1545:
+#line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+#line 30 "xec_parser_ragel.rl"
+	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
+	goto st66;
+tr1577:
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st66;
-tr1577:
+tr1608:
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st66;
-tr1608:
+tr1639:
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st66;
-tr1639:
+tr1670:
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st66;
-tr1670:
+tr1701:
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st66;
-tr1701:
+tr1732:
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st66;
-tr1732:
+tr1763:
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st66;
-tr1763:
+tr1794:
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 #line 30 "xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	goto st66;
-tr1794:
+tr1825:
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 #line 30 "xec_parser_ragel.rl"
@@ -12958,7 +13138,7 @@ st66:
 	if ( ++p == pe )
 		goto _test_eof66;
 case 66:
-#line 12962 "xec_parser_ragel.cpp"
+#line 13142 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr1236;
 		case 10u: goto tr1237;
@@ -13377,7 +13557,7 @@ st9:
 	if ( ++p == pe )
 		goto _test_eof9;
 case 9:
-#line 13381 "xec_parser_ragel.cpp"
+#line 13561 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 43u: goto tr18;
 		case 45u: goto tr18;
@@ -13393,7 +13573,7 @@ st10:
 	if ( ++p == pe )
 		goto _test_eof10;
 case 10:
-#line 13397 "xec_parser_ragel.cpp"
+#line 13577 "xec_parser_ragel.cpp"
 	if ( 48u <= (*p) && (*p) <= 57u )
 		goto tr19;
 	goto tr1;
@@ -13405,7 +13585,7 @@ st75:
 	if ( ++p == pe )
 		goto _test_eof75;
 case 75:
-#line 13409 "xec_parser_ragel.cpp"
+#line 13589 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr614;
 		case 10u: goto tr615;
@@ -13447,6 +13627,52 @@ case 75:
 	} else
 		goto tr637;
 	goto tr1;
+st76:
+	if ( ++p == pe )
+		goto _test_eof76;
+case 76:
+	switch( (*p) ) {
+		case 9u: goto tr1515;
+		case 10u: goto tr1516;
+		case 13u: goto tr1517;
+		case 32u: goto tr1515;
+		case 33u: goto tr1518;
+		case 34u: goto tr1519;
+		case 37u: goto tr1520;
+		case 38u: goto tr1521;
+		case 40u: goto tr1522;
+		case 41u: goto tr1523;
+		case 42u: goto tr1524;
+		case 43u: goto tr1525;
+		case 44u: goto tr1526;
+		case 45u: goto tr1527;
+		case 46u: goto tr1528;
+		case 47u: goto tr1529;
+		case 48u: goto tr1530;
+		case 58u: goto tr1532;
+		case 59u: goto tr1533;
+		case 60u: goto tr1534;
+		case 61u: goto tr1535;
+		case 62u: goto tr1536;
+		case 63u: goto tr1537;
+		case 91u: goto tr1539;
+		case 93u: goto tr1540;
+		case 94u: goto tr1541;
+		case 95u: goto tr1538;
+		case 123u: goto tr1542;
+		case 124u: goto tr1543;
+		case 125u: goto tr1544;
+		case 126u: goto tr1545;
+	}
+	if ( (*p) < 65u ) {
+		if ( 49u <= (*p) && (*p) <= 57u )
+			goto tr1531;
+	} else if ( (*p) > 90u ) {
+		if ( 97u <= (*p) && (*p) <= 122u )
+			goto tr1538;
+	} else
+		goto tr1538;
+	goto tr1;
 tr642:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
@@ -13455,7 +13681,7 @@ st11:
 	if ( ++p == pe )
 		goto _test_eof11;
 case 11:
-#line 13459 "xec_parser_ragel.cpp"
+#line 13685 "xec_parser_ragel.cpp"
 	if ( (*p) < 65u ) {
 		if ( 48u <= (*p) && (*p) <= 57u )
 			goto tr20;
@@ -13468,12 +13694,12 @@ case 11:
 tr20:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
-	goto st76;
-st76:
+	goto st77;
+st77:
 	if ( ++p == pe )
-		goto _test_eof76;
-case 76:
-#line 13477 "xec_parser_ragel.cpp"
+		goto _test_eof77;
+case 77:
+#line 13703 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr614;
 		case 10u: goto tr615;
@@ -13489,7 +13715,7 @@ case 76:
 		case 43u: goto tr624;
 		case 44u: goto tr625;
 		case 45u: goto tr626;
-		case 46u: goto tr1515;
+		case 46u: goto tr1546;
 		case 47u: goto tr628;
 		case 58u: goto tr631;
 		case 59u: goto tr632;
@@ -13523,7 +13749,7 @@ case 76:
 	} else
 		goto tr637;
 	goto tr1;
-tr1515:
+tr1546:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	goto st12;
@@ -13531,7 +13757,7 @@ st12:
 	if ( ++p == pe )
 		goto _test_eof12;
 case 12:
-#line 13535 "xec_parser_ragel.cpp"
+#line 13761 "xec_parser_ragel.cpp"
 	if ( (*p) < 65u ) {
 		if ( 48u <= (*p) && (*p) <= 57u )
 			goto tr21;
@@ -13544,12 +13770,12 @@ case 12:
 tr21:
 #line 31 "xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
-	goto st77;
-st77:
+	goto st78;
+st78:
 	if ( ++p == pe )
-		goto _test_eof77;
-case 77:
-#line 13553 "xec_parser_ragel.cpp"
+		goto _test_eof78;
+case 78:
+#line 13779 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 9u: goto tr614;
 		case 10u: goto tr615;
@@ -13598,52 +13824,6 @@ case 77:
 			goto tr21;
 	} else
 		goto tr637;
-	goto tr1;
-st78:
-	if ( ++p == pe )
-		goto _test_eof78;
-case 78:
-	switch( (*p) ) {
-		case 9u: goto tr1516;
-		case 10u: goto tr1517;
-		case 13u: goto tr1518;
-		case 32u: goto tr1516;
-		case 33u: goto tr1519;
-		case 34u: goto tr1520;
-		case 37u: goto tr1521;
-		case 38u: goto tr1522;
-		case 40u: goto tr1523;
-		case 41u: goto tr1524;
-		case 42u: goto tr1525;
-		case 43u: goto tr1526;
-		case 44u: goto tr1527;
-		case 45u: goto tr1528;
-		case 46u: goto tr1529;
-		case 47u: goto tr1530;
-		case 48u: goto tr1531;
-		case 58u: goto tr1533;
-		case 59u: goto tr1534;
-		case 60u: goto tr1535;
-		case 61u: goto tr1536;
-		case 62u: goto tr1537;
-		case 63u: goto tr1538;
-		case 91u: goto tr1540;
-		case 93u: goto tr1541;
-		case 94u: goto tr1542;
-		case 95u: goto tr1539;
-		case 123u: goto tr1543;
-		case 124u: goto tr1544;
-		case 125u: goto tr1545;
-		case 126u: goto tr1546;
-	}
-	if ( (*p) < 65u ) {
-		if ( 49u <= (*p) && (*p) <= 57u )
-			goto tr1532;
-	} else if ( (*p) > 90u ) {
-		if ( 97u <= (*p) && (*p) <= 122u )
-			goto tr1539;
-	} else
-		goto tr1539;
 	goto tr1;
 st79:
 	if ( ++p == pe )
@@ -13875,212 +14055,6 @@ case 83:
 	} else
 		goto tr1694;
 	goto tr1;
-tr3:
-#line 97 "xec_parser_ragel.rl"
-	{
-                    uloc = (int)( offset + ( p - buffer ) );
-                }
-	goto st13;
-st13:
-	if ( ++p == pe )
-		goto _test_eof13;
-case 13:
-#line 13889 "xec_parser_ragel.cpp"
-	switch( (*p) ) {
-		case 34u: goto tr22;
-		case 47u: goto tr23;
-		case 92u: goto tr24;
-		case 98u: goto tr25;
-		case 102u: goto tr26;
-		case 110u: goto tr27;
-		case 114u: goto tr28;
-		case 116u: goto tr29;
-		case 117u: goto st14;
-		case 120u: goto st20;
-	}
-	goto tr1;
-st14:
-	if ( ++p == pe )
-		goto _test_eof14;
-case 14:
-	if ( (*p) < 65u ) {
-		if ( 48u <= (*p) && (*p) <= 57u )
-			goto tr32;
-	} else if ( (*p) > 70u ) {
-		if ( 97u <= (*p) && (*p) <= 102u )
-			goto tr34;
-	} else
-		goto tr33;
-	goto tr1;
-tr32:
-#line 100 "xec_parser_ragel.rl"
-	{ temp = ( (*p) - '0' ) << 20; }
-	goto st15;
-tr33:
-#line 102 "xec_parser_ragel.rl"
-	{ temp = ( (*p) - 'A' + 0x0A ) << 20; }
-	goto st15;
-tr34:
-#line 101 "xec_parser_ragel.rl"
-	{ temp = ( (*p) - 'a' + 0x0A ) << 20; }
-	goto st15;
-st15:
-	if ( ++p == pe )
-		goto _test_eof15;
-case 15:
-#line 13932 "xec_parser_ragel.cpp"
-	if ( (*p) < 65u ) {
-		if ( 48u <= (*p) && (*p) <= 57u )
-			goto tr35;
-	} else if ( (*p) > 70u ) {
-		if ( 97u <= (*p) && (*p) <= 102u )
-			goto tr37;
-	} else
-		goto tr36;
-	goto tr1;
-tr35:
-#line 104 "xec_parser_ragel.rl"
-	{ temp |= ( (*p) - '0' ) << 16; }
-	goto st16;
-tr36:
-#line 106 "xec_parser_ragel.rl"
-	{ temp |= ( (*p) - 'A' + 0x0A ) << 16; }
-	goto st16;
-tr37:
-#line 105 "xec_parser_ragel.rl"
-	{ temp |= ( (*p) - 'a' + 0x0A ) << 16; }
-	goto st16;
-st16:
-	if ( ++p == pe )
-		goto _test_eof16;
-case 16:
-#line 13958 "xec_parser_ragel.cpp"
-	if ( (*p) < 65u ) {
-		if ( 48u <= (*p) && (*p) <= 57u )
-			goto tr38;
-	} else if ( (*p) > 70u ) {
-		if ( 97u <= (*p) && (*p) <= 102u )
-			goto tr40;
-	} else
-		goto tr39;
-	goto tr1;
-tr38:
-#line 108 "xec_parser_ragel.rl"
-	{ temp |= ( (*p) - '0' ) << 12; }
-	goto st17;
-tr39:
-#line 110 "xec_parser_ragel.rl"
-	{ temp |= ( (*p) - 'A' + 0x0A ) << 12; }
-	goto st17;
-tr40:
-#line 109 "xec_parser_ragel.rl"
-	{ temp |= ( (*p) - 'a' + 0x0A ) << 12; }
-	goto st17;
-st17:
-	if ( ++p == pe )
-		goto _test_eof17;
-case 17:
-#line 13984 "xec_parser_ragel.cpp"
-	if ( (*p) < 65u ) {
-		if ( 48u <= (*p) && (*p) <= 57u )
-			goto tr41;
-	} else if ( (*p) > 70u ) {
-		if ( 97u <= (*p) && (*p) <= 102u )
-			goto tr43;
-	} else
-		goto tr42;
-	goto tr1;
-tr41:
-#line 112 "xec_parser_ragel.rl"
-	{ temp |= ( (*p) - '0' ) << 8; }
-	goto st18;
-tr42:
-#line 114 "xec_parser_ragel.rl"
-	{ temp |= ( (*p) - 'A' + 0x0A ) << 8; }
-	goto st18;
-tr43:
-#line 113 "xec_parser_ragel.rl"
-	{ temp |= ( (*p) - 'a' + 0x0A ) << 8; }
-	goto st18;
-st18:
-	if ( ++p == pe )
-		goto _test_eof18;
-case 18:
-#line 14010 "xec_parser_ragel.cpp"
-	if ( (*p) < 65u ) {
-		if ( 48u <= (*p) && (*p) <= 57u )
-			goto tr44;
-	} else if ( (*p) > 70u ) {
-		if ( 97u <= (*p) && (*p) <= 102u )
-			goto tr46;
-	} else
-		goto tr45;
-	goto tr1;
-tr44:
-#line 116 "xec_parser_ragel.rl"
-	{ temp |= ( (*p) - '0' ) << 4; }
-	goto st19;
-tr45:
-#line 118 "xec_parser_ragel.rl"
-	{ temp |= ( (*p) - 'A' + 0x0A ) << 4; }
-	goto st19;
-tr46:
-#line 117 "xec_parser_ragel.rl"
-	{ temp |= ( (*p) - 'a' + 0x0A ) << 4; }
-	goto st19;
-st19:
-	if ( ++p == pe )
-		goto _test_eof19;
-case 19:
-#line 14036 "xec_parser_ragel.cpp"
-	if ( (*p) < 65u ) {
-		if ( 48u <= (*p) && (*p) <= 57u )
-			goto tr47;
-	} else if ( (*p) > 70u ) {
-		if ( 97u <= (*p) && (*p) <= 102u )
-			goto tr49;
-	} else
-		goto tr48;
-	goto tr1;
-st20:
-	if ( ++p == pe )
-		goto _test_eof20;
-case 20:
-	if ( (*p) < 65u ) {
-		if ( 48u <= (*p) && (*p) <= 57u )
-			goto tr50;
-	} else if ( (*p) > 70u ) {
-		if ( 97u <= (*p) && (*p) <= 102u )
-			goto tr52;
-	} else
-		goto tr51;
-	goto tr1;
-tr50:
-#line 87 "xec_parser_ragel.rl"
-	{ temp = ( (*p) - '0' ) << 4; }
-	goto st21;
-tr51:
-#line 89 "xec_parser_ragel.rl"
-	{ temp = ( (*p) - 'A' + 0x0A ) << 4; }
-	goto st21;
-tr52:
-#line 88 "xec_parser_ragel.rl"
-	{ temp = ( (*p) - 'a' + 0x0A ) << 4; }
-	goto st21;
-st21:
-	if ( ++p == pe )
-		goto _test_eof21;
-case 21:
-#line 14075 "xec_parser_ragel.cpp"
-	if ( (*p) < 65u ) {
-		if ( 48u <= (*p) && (*p) <= 57u )
-			goto tr53;
-	} else if ( (*p) > 70u ) {
-		if ( 97u <= (*p) && (*p) <= 102u )
-			goto tr55;
-	} else
-		goto tr54;
-	goto tr1;
 st84:
 	if ( ++p == pe )
 		goto _test_eof84;
@@ -14127,14 +14101,211 @@ case 84:
 	} else
 		goto tr1725;
 	goto tr1;
-st22:
+tr3:
+#line 97 "xec_parser_ragel.rl"
+	{
+                    uloc = (int)( offset + ( p - buffer ) );
+                }
+	goto st13;
+st13:
 	if ( ++p == pe )
-		goto _test_eof22;
-case 22:
+		goto _test_eof13;
+case 13:
+#line 14115 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
-		case 110u: goto st85;
-		case 115u: goto st86;
+		case 34u: goto tr22;
+		case 47u: goto tr23;
+		case 92u: goto tr24;
+		case 98u: goto tr25;
+		case 102u: goto tr26;
+		case 110u: goto tr27;
+		case 114u: goto tr28;
+		case 116u: goto tr29;
+		case 117u: goto st14;
+		case 120u: goto st20;
 	}
+	goto tr1;
+st14:
+	if ( ++p == pe )
+		goto _test_eof14;
+case 14:
+	if ( (*p) < 65u ) {
+		if ( 48u <= (*p) && (*p) <= 57u )
+			goto tr32;
+	} else if ( (*p) > 70u ) {
+		if ( 97u <= (*p) && (*p) <= 102u )
+			goto tr34;
+	} else
+		goto tr33;
+	goto tr1;
+tr32:
+#line 100 "xec_parser_ragel.rl"
+	{ temp = ( (*p) - '0' ) << 20; }
+	goto st15;
+tr33:
+#line 102 "xec_parser_ragel.rl"
+	{ temp = ( (*p) - 'A' + 0x0A ) << 20; }
+	goto st15;
+tr34:
+#line 101 "xec_parser_ragel.rl"
+	{ temp = ( (*p) - 'a' + 0x0A ) << 20; }
+	goto st15;
+st15:
+	if ( ++p == pe )
+		goto _test_eof15;
+case 15:
+#line 14158 "xec_parser_ragel.cpp"
+	if ( (*p) < 65u ) {
+		if ( 48u <= (*p) && (*p) <= 57u )
+			goto tr35;
+	} else if ( (*p) > 70u ) {
+		if ( 97u <= (*p) && (*p) <= 102u )
+			goto tr37;
+	} else
+		goto tr36;
+	goto tr1;
+tr35:
+#line 104 "xec_parser_ragel.rl"
+	{ temp |= ( (*p) - '0' ) << 16; }
+	goto st16;
+tr36:
+#line 106 "xec_parser_ragel.rl"
+	{ temp |= ( (*p) - 'A' + 0x0A ) << 16; }
+	goto st16;
+tr37:
+#line 105 "xec_parser_ragel.rl"
+	{ temp |= ( (*p) - 'a' + 0x0A ) << 16; }
+	goto st16;
+st16:
+	if ( ++p == pe )
+		goto _test_eof16;
+case 16:
+#line 14184 "xec_parser_ragel.cpp"
+	if ( (*p) < 65u ) {
+		if ( 48u <= (*p) && (*p) <= 57u )
+			goto tr38;
+	} else if ( (*p) > 70u ) {
+		if ( 97u <= (*p) && (*p) <= 102u )
+			goto tr40;
+	} else
+		goto tr39;
+	goto tr1;
+tr38:
+#line 108 "xec_parser_ragel.rl"
+	{ temp |= ( (*p) - '0' ) << 12; }
+	goto st17;
+tr39:
+#line 110 "xec_parser_ragel.rl"
+	{ temp |= ( (*p) - 'A' + 0x0A ) << 12; }
+	goto st17;
+tr40:
+#line 109 "xec_parser_ragel.rl"
+	{ temp |= ( (*p) - 'a' + 0x0A ) << 12; }
+	goto st17;
+st17:
+	if ( ++p == pe )
+		goto _test_eof17;
+case 17:
+#line 14210 "xec_parser_ragel.cpp"
+	if ( (*p) < 65u ) {
+		if ( 48u <= (*p) && (*p) <= 57u )
+			goto tr41;
+	} else if ( (*p) > 70u ) {
+		if ( 97u <= (*p) && (*p) <= 102u )
+			goto tr43;
+	} else
+		goto tr42;
+	goto tr1;
+tr41:
+#line 112 "xec_parser_ragel.rl"
+	{ temp |= ( (*p) - '0' ) << 8; }
+	goto st18;
+tr42:
+#line 114 "xec_parser_ragel.rl"
+	{ temp |= ( (*p) - 'A' + 0x0A ) << 8; }
+	goto st18;
+tr43:
+#line 113 "xec_parser_ragel.rl"
+	{ temp |= ( (*p) - 'a' + 0x0A ) << 8; }
+	goto st18;
+st18:
+	if ( ++p == pe )
+		goto _test_eof18;
+case 18:
+#line 14236 "xec_parser_ragel.cpp"
+	if ( (*p) < 65u ) {
+		if ( 48u <= (*p) && (*p) <= 57u )
+			goto tr44;
+	} else if ( (*p) > 70u ) {
+		if ( 97u <= (*p) && (*p) <= 102u )
+			goto tr46;
+	} else
+		goto tr45;
+	goto tr1;
+tr44:
+#line 116 "xec_parser_ragel.rl"
+	{ temp |= ( (*p) - '0' ) << 4; }
+	goto st19;
+tr45:
+#line 118 "xec_parser_ragel.rl"
+	{ temp |= ( (*p) - 'A' + 0x0A ) << 4; }
+	goto st19;
+tr46:
+#line 117 "xec_parser_ragel.rl"
+	{ temp |= ( (*p) - 'a' + 0x0A ) << 4; }
+	goto st19;
+st19:
+	if ( ++p == pe )
+		goto _test_eof19;
+case 19:
+#line 14262 "xec_parser_ragel.cpp"
+	if ( (*p) < 65u ) {
+		if ( 48u <= (*p) && (*p) <= 57u )
+			goto tr47;
+	} else if ( (*p) > 70u ) {
+		if ( 97u <= (*p) && (*p) <= 102u )
+			goto tr49;
+	} else
+		goto tr48;
+	goto tr1;
+st20:
+	if ( ++p == pe )
+		goto _test_eof20;
+case 20:
+	if ( (*p) < 65u ) {
+		if ( 48u <= (*p) && (*p) <= 57u )
+			goto tr50;
+	} else if ( (*p) > 70u ) {
+		if ( 97u <= (*p) && (*p) <= 102u )
+			goto tr52;
+	} else
+		goto tr51;
+	goto tr1;
+tr50:
+#line 87 "xec_parser_ragel.rl"
+	{ temp = ( (*p) - '0' ) << 4; }
+	goto st21;
+tr51:
+#line 89 "xec_parser_ragel.rl"
+	{ temp = ( (*p) - 'A' + 0x0A ) << 4; }
+	goto st21;
+tr52:
+#line 88 "xec_parser_ragel.rl"
+	{ temp = ( (*p) - 'a' + 0x0A ) << 4; }
+	goto st21;
+st21:
+	if ( ++p == pe )
+		goto _test_eof21;
+case 21:
+#line 14301 "xec_parser_ragel.cpp"
+	if ( (*p) < 65u ) {
+		if ( 48u <= (*p) && (*p) <= 57u )
+			goto tr53;
+	} else if ( (*p) > 70u ) {
+		if ( 97u <= (*p) && (*p) <= 102u )
+			goto tr55;
+	} else
+		goto tr54;
 	goto tr1;
 st85:
 	if ( ++p == pe )
@@ -14182,6 +14353,15 @@ case 85:
 	} else
 		goto tr1756;
 	goto tr1;
+st22:
+	if ( ++p == pe )
+		goto _test_eof22;
+case 22:
+	switch( (*p) ) {
+		case 110u: goto st86;
+		case 115u: goto st87;
+	}
+	goto tr1;
 st86:
 	if ( ++p == pe )
 		goto _test_eof86;
@@ -14228,6 +14408,52 @@ case 86:
 	} else
 		goto tr1787;
 	goto tr1;
+st87:
+	if ( ++p == pe )
+		goto _test_eof87;
+case 87:
+	switch( (*p) ) {
+		case 9u: goto tr1795;
+		case 10u: goto tr1796;
+		case 13u: goto tr1797;
+		case 32u: goto tr1795;
+		case 33u: goto tr1798;
+		case 34u: goto tr1799;
+		case 37u: goto tr1800;
+		case 38u: goto tr1801;
+		case 40u: goto tr1802;
+		case 41u: goto tr1803;
+		case 42u: goto tr1804;
+		case 43u: goto tr1805;
+		case 44u: goto tr1806;
+		case 45u: goto tr1807;
+		case 46u: goto tr1808;
+		case 47u: goto tr1809;
+		case 48u: goto tr1810;
+		case 58u: goto tr1812;
+		case 59u: goto tr1813;
+		case 60u: goto tr1814;
+		case 61u: goto tr1815;
+		case 62u: goto tr1816;
+		case 63u: goto tr1817;
+		case 91u: goto tr1819;
+		case 93u: goto tr1820;
+		case 94u: goto tr1821;
+		case 95u: goto tr1818;
+		case 123u: goto tr1822;
+		case 124u: goto tr1823;
+		case 125u: goto tr1824;
+		case 126u: goto tr1825;
+	}
+	if ( (*p) < 65u ) {
+		if ( 49u <= (*p) && (*p) <= 57u )
+			goto tr1811;
+	} else if ( (*p) > 90u ) {
+		if ( 97u <= (*p) && (*p) <= 122u )
+			goto tr1818;
+	} else
+		goto tr1818;
+	goto tr1;
 tr102:
 #line 29 "xec_parser_ragel.rl"
 	{ newlines.push_back( (int)( offset + ( p - buffer ) - 1 ) ); }
@@ -14236,7 +14462,7 @@ st23:
 	if ( ++p == pe )
 		goto _test_eof23;
 case 23:
-#line 14240 "xec_parser_ragel.cpp"
+#line 14466 "xec_parser_ragel.cpp"
 	switch( (*p) ) {
 		case 42u: goto st3;
 		case 47u: goto st7;
@@ -14305,16 +14531,17 @@ case 23:
 	_test_eof9: cs = 9; goto _test_eof; 
 	_test_eof10: cs = 10; goto _test_eof; 
 	_test_eof75: cs = 75; goto _test_eof; 
-	_test_eof11: cs = 11; goto _test_eof; 
 	_test_eof76: cs = 76; goto _test_eof; 
-	_test_eof12: cs = 12; goto _test_eof; 
+	_test_eof11: cs = 11; goto _test_eof; 
 	_test_eof77: cs = 77; goto _test_eof; 
+	_test_eof12: cs = 12; goto _test_eof; 
 	_test_eof78: cs = 78; goto _test_eof; 
 	_test_eof79: cs = 79; goto _test_eof; 
 	_test_eof80: cs = 80; goto _test_eof; 
 	_test_eof81: cs = 81; goto _test_eof; 
 	_test_eof82: cs = 82; goto _test_eof; 
 	_test_eof83: cs = 83; goto _test_eof; 
+	_test_eof84: cs = 84; goto _test_eof; 
 	_test_eof13: cs = 13; goto _test_eof; 
 	_test_eof14: cs = 14; goto _test_eof; 
 	_test_eof15: cs = 15; goto _test_eof; 
@@ -14324,10 +14551,10 @@ case 23:
 	_test_eof19: cs = 19; goto _test_eof; 
 	_test_eof20: cs = 20; goto _test_eof; 
 	_test_eof21: cs = 21; goto _test_eof; 
-	_test_eof84: cs = 84; goto _test_eof; 
-	_test_eof22: cs = 22; goto _test_eof; 
 	_test_eof85: cs = 85; goto _test_eof; 
+	_test_eof22: cs = 22; goto _test_eof; 
 	_test_eof86: cs = 86; goto _test_eof; 
+	_test_eof87: cs = 87; goto _test_eof; 
 	_test_eof23: cs = 23; goto _test_eof; 
 
 	_test_eof: {}
@@ -14350,8 +14577,8 @@ case 23:
 	case 45: 
 	case 47: 
 	case 75: 
-	case 76: 
 	case 77: 
+	case 78: 
 #line 160 "xec_parser_ragel.rl"
 	{
                     size_t length = data.size();
@@ -14485,7 +14712,7 @@ case 23:
 #line 206 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_URSHIFT, sloc ); }
 	break;
-	case 84: 
+	case 85: 
 #line 208 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
 	break;
@@ -14501,35 +14728,35 @@ case 23:
 #line 211 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_GREATEREQUAL, sloc ); }
 	break;
-	case 85: 
+	case 86: 
 #line 212 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
 	break;
-	case 86: 
+	case 87: 
 #line 213 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
 	break;
-	case 83: 
+	case 84: 
 #line 215 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
 	break;
-	case 82: 
+	case 83: 
 #line 216 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
 	break;
-	case 81: 
+	case 82: 
 #line 217 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
 	break;
-	case 80: 
+	case 81: 
 #line 218 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
 	break;
-	case 79: 
+	case 80: 
 #line 219 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
 	break;
-	case 78: 
+	case 79: 
 #line 220 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
 	break;
@@ -14569,8 +14796,12 @@ case 23:
 #line 230 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_LOGICOR, sloc ); }
 	break;
-	case 42: 
+	case 76: 
 #line 232 "xec_parser_ragel.rl"
+	{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
+	break;
+	case 42: 
+#line 233 "xec_parser_ragel.rl"
 	{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
 	break;
 	case 1: 
@@ -14612,7 +14843,7 @@ case 23:
         if ( diagnostics.size() >= ERROR_LIMIT )
             goto error;
     }
-#line 238 "xec_parser_ragel.rl"
+#line 239 "xec_parser_ragel.rl"
 	{ {goto st24;} }
 	break;
 	case 4: 
@@ -14637,17 +14868,17 @@ case 23:
         if ( diagnostics.size() >= ERROR_LIMIT )
             goto error;
     }
-#line 238 "xec_parser_ragel.rl"
+#line 239 "xec_parser_ragel.rl"
 	{ {goto st24;} }
 	break;
-#line 14644 "xec_parser_ragel.cpp"
+#line 14875 "xec_parser_ragel.cpp"
 	}
 	}
 
 	_out: {}
 	}
 
-#line 394 "xec_parser_ragel.rl"
+#line 395 "xec_parser_ragel.rl"
         
         offset += read;
     }
