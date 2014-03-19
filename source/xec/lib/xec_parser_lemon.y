@@ -29,6 +29,13 @@
 // Conflicts if the first expression in the yeild statement is in parentheses.
 // Resolve in favour of the yield expression (can always add more parentheses).
 %nonassoc YIELD .
+
+// using statement: using x; vs using scope: using ( x ) {}
+// Conflicts if the expression in the using statement is in parentheses.
+// Resolve in favour of the using scope (can always add more parentheses).
+%nonassoc USING .
+
+// The (higher-precedence) token to shift in the previous two cases.
 %nonassoc LPN .
 
 
@@ -274,6 +281,8 @@ condition       ::= VAR name_list ASSIGN expr_list .
 
 stmt_yield      ::= YIELD .
 
+stmt_using      ::= USING .
+
 stmt            ::= stmt_brace .
 stmt            ::= sexpr_assign SEMICOLON .
 stmt            ::= IF LPN condition RPN stmt .
@@ -295,7 +304,8 @@ stmt            ::= RETURN SEMICOLON .
 stmt            ::= RETURN expr_list SEMICOLON .
 stmt            ::= stmt_yield SEMICOLON .
 stmt            ::= stmt_yield expr_list SEMICOLON .
-stmt            ::= USING condition SEMICOLON .
+stmt            ::= USING LPN condition RPN stmt .
+stmt            ::= stmt_using condition SEMICOLON .
 stmt            ::= TRY stmt catch_list .
 stmt            ::= TRY stmt FINALLY stmt .
 stmt            ::= TRY stmt catch_list FINALLY stmt .
@@ -322,6 +332,41 @@ stmt_list       ::= stmt_list SEMICOLON .
 
 
 /* you can only yield where we expect an expr_list, this is:
+
+
+
+green_sword : weapon
+{
+    x;
+    y;
+
+    .this()
+    {
+        x = 4;
+        y = 23;
+    }
+    
+    .dispose()
+    {
+    }
+
+
+    .damage()
+    {
+ 
+    }
+    
+    .damage() yield
+    {
+ 
+    }
+
+}
+
+
+
+
+
 
         yield a, b;
         a, b = yield a, b;
