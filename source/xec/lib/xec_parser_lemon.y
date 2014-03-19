@@ -13,15 +13,23 @@
 
 
 //
-// 'Dangling else' conflict.
+// Conflicts.
 //
 
+// Dangling 'else'.
 %nonassoc IF .
 %nonassoc ELSE .
 
+// Dangling 'catch'/'finally'.
 %nonassoc TRY .
 %nonassoc CATCH .
 %nonassoc FINALLY .
+
+// yield expression: yield( a, b ) vs yield statement: yield a, b
+// Conflicts if the first expression in the yeild statement is in parentheses.
+// Resolve in favour of the yield expression (can always add more parentheses).
+%nonassoc YIELD .
+%nonassoc LPN .
 
 
 
@@ -88,6 +96,7 @@ odecl_list(x)   ::= odecl_list odecl .
 // Expressions.
 //
 
+expr_call(x)    ::= YIELD expr_paren .
 expr_call(x)    ::= proto expr_paren .
 expr_call(x)    ::= expr_call expr_paren .
 expr_call(x)    ::= expr_postfix expr_paren .
@@ -201,7 +210,6 @@ expr_final(x)   ::= expr_postfix LSQ RSQ ELLIPSIS .
 expr_list(x)    ::= expr_final .
 expr_list(x)    ::= expr_lbody .
 expr_list(x)    ::= expr_lbody COMMA expr_final .
-expr_list(x)    ::= YIELD expr_list .
 
 expr_assign(x)  ::= expr_list .
 expr_assign(x)  ::= expr_lbody assign_op expr_list .
@@ -225,8 +233,6 @@ value_list(x)   ::= expr_final COMMA .
 value_list(x)   ::= expr_lbody .
 value_list(x)   ::= expr_lbody COMMA .
 value_list(x)   ::= expr_lbody COMMA expr_final .
-value_list(x)   ::= expr_lbody COMMA expr_final COMMA .
-value_list(x)   ::= YIELD expr_list .
 
 keyval_lbody(x) ::= expr_value COLON expr_value .
 keyval_lbody(x) ::= keyval_lbody COMMA expr_value COLON expr_value .
@@ -246,7 +252,6 @@ sexpr_lbody(x)  ::= sexpr_lbody COMMA expr_value .
 sexpr_list(x)   ::= expr_final .
 sexpr_list(x)   ::= sexpr_lbody .
 sexpr_list(x)   ::= sexpr_lbody COMMA expr_final .
-sexpr_list(x)   ::= YIELD expr_list .
 
 sexpr_assign(x) ::= sexpr_list .
 sexpr_assign(x) ::= sexpr_lbody assign_op expr_list .
@@ -260,6 +265,8 @@ sexpr_assign(x) ::= sexpr_lbody assign_op expr_list .
 
 condition       ::= expr_assign .
 condition       ::= VAR name_list ASSIGN expr_list .
+
+stmt_yield      ::= YIELD .
 
 stmt            ::= stmt_brace .
 stmt            ::= sexpr_assign SEMICOLON .
@@ -280,7 +287,8 @@ stmt            ::= CONTINUE SEMICOLON .
 stmt            ::= BREAK SEMICOLON .
 stmt            ::= RETURN SEMICOLON .
 stmt            ::= RETURN expr_list SEMICOLON .
-stmt            ::= YIELD SEMICOLON .
+stmt            ::= stmt_yield SEMICOLON .
+stmt            ::= stmt_yield expr_list SEMICOLON .
 stmt            ::= USING condition SEMICOLON .
 stmt            ::= TRY stmt catch_list .
 stmt            ::= TRY stmt FINALLY stmt .
@@ -302,6 +310,11 @@ stmt_list       ::= stmt_list SEMICOLON .
 
 
 
+
+
+
+
+
 /* you can only yield where we expect an expr_list, this is:
 
         yield a, b;
@@ -309,9 +322,50 @@ stmt_list       ::= stmt_list SEMICOLON .
         x = [ yield a, b ];
         f( yield a, b );
     
+        yield;
+        yield( a, b );
+        return a, b;
+        a, b = yield( a, b ) ...;
+        x = [ yield( a, b ) ... ];
+        f( yield( a, b ) ... );
+ 
+ 
+        select( 1, yield( a, b ) ... );
+        x, y = yield( a, b ) ...;
+        yield;
+        yield new blah( x );
+        
+        yield( a, b );
+ 
+        yield( ( new x() ).blah )
+        yield new x();
+        yield new x(), y() ...;
+ 
+ 
+ 
+        f( a, b, yield a, b )
+
+        hmmm.
+        
+        yield;
+        yield a, b;
+        x, y = yield( a, b );
+        
+        yield;
+        
+        x, y = 2, yield a, b, yield f, m;
+ 
+        x, y = yield() ...
+        x, y = yield( a, b ) ...
+ 
+        yield( a, b )
+        yield a, b;
+ 
+ 
  
 
-
+        yield        yield a, b;
+( a, b ) ... is nicer in some ways.
 
 
 
