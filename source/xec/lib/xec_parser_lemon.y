@@ -226,6 +226,7 @@ value_list(x)   ::= expr_lbody .
 value_list(x)   ::= expr_lbody COMMA .
 value_list(x)   ::= expr_lbody COMMA expr_final .
 value_list(x)   ::= expr_lbody COMMA expr_final COMMA .
+value_list(x)   ::= YIELD expr_list .
 
 keyval_lbody(x) ::= expr_value COLON expr_value .
 keyval_lbody(x) ::= keyval_lbody COMMA expr_value COLON expr_value .
@@ -279,6 +280,7 @@ stmt            ::= CONTINUE SEMICOLON .
 stmt            ::= BREAK SEMICOLON .
 stmt            ::= RETURN SEMICOLON .
 stmt            ::= RETURN expr_list SEMICOLON .
+stmt            ::= YIELD SEMICOLON .
 stmt            ::= USING condition SEMICOLON .
 stmt            ::= TRY stmt catch_list .
 stmt            ::= TRY stmt FINALLY stmt .
@@ -299,6 +301,15 @@ stmt_list       ::= stmt_list decl .
 stmt_list       ::= stmt_list SEMICOLON .
 
 
+
+/* you can only yield where we expect an expr_list, this is:
+
+        yield a, b;
+        a, b = yield a, b;
+        x = [ yield a, b ];
+        f( yield a, b );
+    
+ 
 
 
 
@@ -390,7 +401,7 @@ tokens ::=
  ELLIPSIS .
 
 
-
+*/
 
 
 
