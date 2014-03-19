@@ -138,9 +138,14 @@
             any - [\n\r\"\\]    
     ) $dc;
 
-    string =
+    string_quoted =
     (
             '"' string_char* ( string_escape string_char* )* '"'
+    );
+
+    string =
+    (
+            ( string_quoted whitespace? )+
     );
 
 

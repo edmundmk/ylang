@@ -140,6 +140,7 @@ struct xec_token_keywords
         keywords.emplace( symkey( "catch" ),    XEC_KEYWORD_CATCH );
         keywords.emplace( symkey( "continue" ), XEC_KEYWORD_CONTINUE );
         keywords.emplace( symkey( "default" ),  XEC_KEYWORD_DEFAULT );
+        keywords.emplace( symkey( "delete" ),   XEC_KEYWORD_DELETE );
         keywords.emplace( symkey( "do" ),       XEC_KEYWORD_DO );
         keywords.emplace( symkey( "else" ),     XEC_KEYWORD_ELSE );
         keywords.emplace( symkey( "false" ),    XEC_KEYWORD_FALSE );
@@ -227,6 +228,7 @@ void xec_token::debug_print()
     case XEC_KEYWORD_CATCH:         kind_name = "CATCH";            break;
     case XEC_KEYWORD_CONTINUE:      kind_name = "CONTINUE";         break;
     case XEC_KEYWORD_DEFAULT:       kind_name = "DEFAULT";          break;
+    case XEC_KEYWORD_DELETE:        kind_name = "DELETE";           break;
     case XEC_KEYWORD_DO:            kind_name = "DO";               break;
     case XEC_KEYWORD_ELSE:          kind_name = "ELSE";             break;
     case XEC_KEYWORD_FALSE:         kind_name = "FALSE";            break;

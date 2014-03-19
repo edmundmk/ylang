@@ -70,6 +70,7 @@ odecl_brace(x)  ::= LBR odecl_list RBR .
 
 name(x)         ::= IDENTIFIER .
 name(x)         ::= name PERIOD IDENTIFIER .
+name(x)         ::= name PERIOD TILDE IDENTIFIER .
 
 name_list(x)    ::= name .
 name_list(x)    ::= name_list COMMA name .
@@ -82,8 +83,6 @@ decl_common(x)  ::= proto stmt_brace .
 decl_common(x)  ::= proto YIELD stmt_brace .
 
 decl(x)         ::= decl_common .
-decl(x)         ::= PERIOD proto stmt_brace .
-decl(x)         ::= PERIOD proto YIELD stmt_brace .
 decl(x)         ::= VAR name_list SEMICOLON .
 decl(x)         ::= VAR name_list ASSIGN expr_list SEMICOLON .
 
@@ -91,6 +90,8 @@ odecl(x)        ::= SEMICOLON .
 odecl(x)        ::= decl_common .
 odecl(x)        ::= proto SEMICOLON .
 odecl(x)        ::= proto YIELD SEMICOLON .
+odecl(x)        ::= TILDE proto SEMICOLON .
+odecl(x)        ::= TILDE proto YIELD SEMICOLON .
 odecl(x)        ::= name_list SEMICOLON .
 odecl(x)        ::= name_list ASSIGN expr_list SEMICOLON .
 
@@ -112,12 +113,15 @@ expr_postfix(x) ::= LPN expr_assign RPN .
 expr_postfix(x) ::= name PERIOD LSQ expr_value RSQ .
 expr_postfix(x) ::= name LSQ expr_value RSQ .
 expr_postfix(x) ::= proto PERIOD IDENTIFIER .
+expr_postfix(x) ::= proto PERIOD TILDE IDENTIFIER .
 expr_postfix(x) ::= proto PERIOD LSQ expr_value RSQ .
 expr_postfix(x) ::= proto LSQ expr_value RSQ .
 expr_postfix(x) ::= expr_call PERIOD IDENTIFIER .
+expr_postfix(x) ::= expr_call PERIOD TILDE IDENTIFIER .
 expr_postfix(x) ::= expr_call PERIOD LSQ expr_value RSQ .
 expr_postfix(x) ::= expr_call LSQ expr_value RSQ .
 expr_postfix(x) ::= expr_postfix PERIOD IDENTIFIER .
+expr_postfix(x) ::= expr_postfix PERIOD TILDE IDENTIFIER .
 expr_postfix(x) ::= expr_postfix PERIOD LSQ expr_value RSQ .
 expr_postfix(x) ::= expr_postfix LSQ expr_value RSQ .
 
@@ -285,6 +289,7 @@ stmt_using      ::= USING .
 
 stmt            ::= stmt_brace .
 stmt            ::= sexpr_assign SEMICOLON .
+stmt            ::= DELETE expr_lbody SEMICOLON .
 stmt            ::= IF LPN condition RPN stmt .
 stmt            ::= IF LPN condition RPN stmt ELSE stmt .
 stmt            ::= SWITCH LPN condition RPN stmt_brace .
@@ -340,28 +345,40 @@ green_sword : weapon
     x;
     y;
 
-    .this()
+    this()
     {
         x = 4;
         y = 23;
     }
     
-    .dispose()
+    dispose()
     {
     }
 
 
-    .damage()
+    damage()
     {
  
     }
     
-    .damage() yield
+    damage() yield
     {
  
     }
 
 }
+
+
+
+    implicit this:
+    
+        functions declared inside an object scope.
+        functions declared inside an object scope (out-of-line).
+        functions declared with .name()
+        function literals with .?()
+        
+    otherwise no implicit this and this can be an upval.
+ 
 
 
 

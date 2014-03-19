@@ -27,6 +27,7 @@ enum xec_token_kind
     XEC_KEYWORD_CATCH       = LEMON_CATCH,
     XEC_KEYWORD_CONTINUE    = LEMON_CONTINUE,
     XEC_KEYWORD_DEFAULT     = LEMON_DEFAULT,
+    XEC_KEYWORD_DELETE      = LEMON_DELETE,
     XEC_KEYWORD_DO          = LEMON_DO,
     XEC_KEYWORD_ELSE        = LEMON_ELSE,
     XEC_KEYWORD_FALSE       = LEMON_FALSE,
@@ -115,6 +116,7 @@ enum xec_token_kind
 #undef LEMON_CATCH
 #undef LEMON_CONTINUE
 #undef LEMON_DEFAULT
+#undef LEMON_DELETE
 #undef LEMON_DO
 #undef LEMON_ELSE
 #undef LEMON_FALSE
