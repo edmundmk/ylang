@@ -128,11 +128,17 @@ expr_basic(x)   ::= TRUE .
 expr_basic(x)   ::= FALSE .
 expr_basic(x)   ::= NULL .
 
-expr_unary(x)   ::= expr_basic .
+expr_suffix(x)  ::= expr_basic .
+expr_suffix(x)  ::= expr_basic INCREMENT .
+expr_suffix(x)  ::= expr_basic DECREMENT .
+
+expr_unary(x)   ::= expr_suffix .
 expr_unary(x)   ::= PLUS expr_basic .
 expr_unary(x)   ::= MINUS expr_basic .
 expr_unary(x)   ::= XMARK expr_basic .
 expr_unary(x)   ::= TILDE expr_basic .
+expr_unary(x)   ::= INCREMENT expr_basic .
+expr_unary(x)   ::= DECREMENT expr_basic .
 
 expr_mul(x)     ::= expr_unary .
 expr_mul(x)     ::= expr_mul ASTERISK expr_unary .
