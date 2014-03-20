@@ -24,6 +24,7 @@ struct xec_token;
 struct xec_token_lookup;
 
 struct xec_ast_node;
+struct xec_ast_scope;
 struct xec_ast_block;
 struct xec_ast_values;
 
@@ -41,13 +42,14 @@ typedef std::unordered_map
             xec_ast_node*,
             std::hash< symkey >,
             std::equal_to< symkey >,
-            region_allocator< std::pair< symkey, xec_ast_node* > >
+            region_allocator< std::pair< const symkey, xec_ast_node* > >
         >
         xec_ast_node_map;
 
 
 enum xec_ast_kind
 {
+    XEC_AST_SCOPE,
     XEC_AST_BLOCK,
     XEC_AST_VALUES,
     XEC_AST_DECL,
@@ -62,6 +64,7 @@ enum xec_ast_kind
     XEC_AST_LOOKUP,
     XEC_AST_INDEXLOOKUP,
     XEC_AST_INDEX,
+    XEC_AST_YIELD,
     XEC_AST_CALL,
     XEC_AST_UNARYOP,
     XEC_AST_BINARYOP,
@@ -74,6 +77,21 @@ enum xec_ast_kind
     XEC_AST_NEWFUNC,
     XEC_AST_ASSIGN,
     XEC_AST_UNPACK,
+    XEC_AST_DELETE,
+    XEC_AST_IF,
+    XEC_AST_SWITCH,
+    XEC_AST_CASE,
+    XEC_AST_WHILE,
+    XEC_AST_DO,
+    XEC_AST_EACH,
+    XEC_AST_FOR,
+    XEC_AST_CONTINUE,
+    XEC_AST_BREAK,
+    XEC_AST_RETURN,
+    XEC_AST_USING,
+    XEC_AST_TRY,
+    XEC_AST_CATCH,
+    XEC_AST_THROW,
 };
 
 enum xec_ast_unaryop_kind
@@ -114,10 +132,17 @@ struct xec_ast_node
     int                     sloc;
 };
 
+struct xec_ast_scope : public xec_ast_node
+{
+    xec_ast_scope*          outer;
+    xec_ast_node*           node;
+    xec_ast_node_map        decls;
+    xec_ast_node_list       usings;
+};
+
 struct xec_ast_block : public xec_ast_node
 {
-    xec_ast_block*          outer;
-    xec_ast_node_map        decls;
+    xec_ast_scope*          scope;
     xec_ast_node_list       stmts;
 };
 
@@ -235,12 +260,14 @@ struct xec_ast_keyval : public xec_ast_node
 
 struct xec_ast_newobj : public xec_ast_node
 {
+    xec_ast_scope*          scope;
     xec_ast_node*           proto;
     xec_ast_block*          block;
 };
 
 struct xec_ast_newfunc : public xec_ast_node
 {
+    xec_ast_scope*          scope;
     xec_ast_values*         params;
     xec_ast_block*          block;
 };
@@ -255,6 +282,109 @@ struct xec_ast_unpack : public xec_ast_node
 {
     xec_ast_node*           array;
 };
+
+struct xec_ast_delete : public xec_ast_node
+{
+    xec_ast_values*         lvals;
+};
+
+struct xec_ast_if : public xec_ast_node
+{
+    xec_ast_scope*          scope;
+    xec_ast_node*           condition;
+    xec_ast_node*           iftrue;
+    xec_ast_node*           iffalse;
+};
+
+struct xec_ast_switch : public xec_ast_node
+{
+    xec_ast_scope*          scope;
+    xec_ast_node*           condition;
+    xec_ast_node_list       cases;
+    xec_ast_block*          block;
+};
+
+struct xec_ast_case : public xec_ast_node
+{
+    xec_ast_node*           value;
+};
+
+struct xec_ast_while : public xec_ast_node
+{
+    xec_ast_scope*          scope;
+    xec_ast_node*           condition;
+    xec_ast_node*           body;
+};
+
+struct xec_ast_do : public xec_ast_node
+{
+    xec_ast_scope*          scope;
+    xec_ast_node*           body;
+    xec_ast_node*           condition;
+};
+
+struct xec_ast_eachvalue : public xec_ast_node
+{
+    xec_ast_scope*          scope;
+    xec_ast_values*         lvals;
+    xec_ast_node*           value;
+    xec_ast_node*           body;
+};
+
+struct xec_ast_each : public xec_ast_node
+{
+    xec_ast_scope*          scope;
+    xec_ast_values*         lvals;
+    xec_ast_node*           value;
+    xec_ast_node*           body;
+    bool                    iskeys;
+};
+
+struct xec_ast_for : public xec_ast_node
+{
+    xec_ast_scope*          scope;
+    xec_ast_node*           initial;
+    xec_ast_node*           condition;
+    xec_ast_node*           update;
+    xec_ast_node*           body;
+};
+
+struct xec_ast_continue : public xec_ast_node
+{
+    xec_ast_node*           loop;
+};
+
+struct xec_ast_break : public xec_ast_node
+{
+    xec_ast_node*           loop;
+};
+
+struct xec_ast_return : public xec_ast_node
+{
+    xec_ast_values*         values;
+};
+
+struct xec_ast_try : public xec_ast_node
+{
+    xec_ast_node*           body;
+    xec_ast_node_list       catches;
+    xec_ast_node*           final;
+};
+
+struct xec_ast_catch : public xec_ast_node
+{
+    xec_ast_node*           lval;
+    xec_ast_node*           excepttype;
+    xec_ast_node*           body;
+};
+
+struct xec_ast_throw : public xec_ast_node
+{
+    xec_ast_node*           exceptval;
+};
+
+
+
 
 
 

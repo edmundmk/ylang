@@ -18,7 +18,6 @@
 
 
 
-
 %%{
 
     machine lexer;
@@ -417,6 +416,13 @@ error:
 
     return diagnostics.size() == 0;
 }
+
+
+
+#pragma unused( lexer_first_final )
+#pragma unused( lexer_error )
+#pragma unused( lexer_en_main )
+
 
 
 

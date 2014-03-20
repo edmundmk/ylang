@@ -318,6 +318,7 @@ stmt            ::= TRY stmt FINALLY stmt .
 stmt            ::= TRY stmt catch_list FINALLY stmt .
 stmt            ::= THROW expr_value SEMICOLON .
 
+catch(x)        ::= CATCH LPN COLON expr_simple RPN stmt .
 catch(x)        ::= CATCH LPN expr_value COLON expr_simple RPN stmt .
 catch(x)        ::= CATCH LPN VAR name COLON expr_simple RPN stmt .
 
