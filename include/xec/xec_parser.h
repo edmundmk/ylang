@@ -128,6 +128,9 @@ enum xec_ast_binaryop_kind
 
 struct xec_ast_node
 {
+    xec_ast_node() { /* TEMP */ };
+    xec_ast_node( xec_ast_kind kind, int sloc );
+
     xec_ast_kind            kind;
     int                     sloc;
 };
@@ -172,7 +175,7 @@ struct xec_ast_name : public xec_ast_node
 
 struct xec_ast_integer : public xec_ast_node
 {
-    intmax_t                number;
+    int64_t                 number;
 };
 
 struct xec_ast_float : public xec_ast_node
@@ -413,6 +416,13 @@ public:
 
 
 /* lemon private: */
+
+
+    template < typename value_t, typename ... arguments_t >
+        value_t* make_node( arguments_t ... arguments );
+
+    void destroy( xec_token* token );
+    void destroy( xec_ast_node* node );
 
 
 private:

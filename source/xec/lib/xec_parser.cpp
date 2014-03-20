@@ -9,9 +9,14 @@
 #include "xec_parser.h"
 
 
-void* XecParseAlloc( void* (*alloc)( size_t ) );
-void  XecParse( void* lemon, int kind, xec_token* token, xec_parser* parser );
-void  XecParseFree( void* lemon, void (*free)( void* ) );
+
+
+xec_ast_node::xec_ast_node( xec_ast_kind kind, int sloc )
+    :   kind( kind )
+    ,   sloc( sloc )
+{
+}
+
 
 
 

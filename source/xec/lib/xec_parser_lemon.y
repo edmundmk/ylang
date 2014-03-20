@@ -11,6 +11,49 @@
 }
 
 
+%extra_argument     { xec_parser* p }
+%default_type       { xec_ast_node* }
+%token_type         { xec_token* }
+
+
+%include
+{
+
+
+template < typename value_t, typename ... arguments_t >
+value_t* xec_parser::make_node( arguments_t ... arguments )
+{
+    return new ( alloc ) value_t( arguments ... );
+}
+
+void xec_parser::destroy( xec_token* token )
+{
+    token->~xec_token();
+    recycle_tokens.push_back( token );
+}
+
+void xec_parser::destroy( xec_ast_node* node )
+{
+    // do nothing.
+}
+
+
+}
+
+
+%default_destructor
+{
+    p->destroy( $$ );
+}
+
+%token_destructor
+{
+    p->destroy( $$ );
+}
+
+
+
+
 
 //
 // Conflicts.
@@ -44,8 +87,8 @@
 // Entire script.
 //
 
-script          ::= .
-script          ::= stmt_list .
+script(x)       ::= .
+script(x)       ::= stmt_list .
 
 
 
@@ -282,55 +325,55 @@ sexpr_assign(x) ::= sexpr_lbody assign_op expr_list .
 //
 
 
-condition       ::= expr_assign .
-condition       ::= VAR name_list ASSIGN expr_list .
+condition(x)    ::= expr_assign .
+condition(x)    ::= VAR name_list ASSIGN expr_list .
 
-stmt_yield      ::= YIELD .
+stmt_yield(x)   ::= YIELD .
 
-stmt_using      ::= USING .
+stmt_using(x)   ::= USING .
 
-stmt            ::= stmt_brace .
-stmt            ::= sexpr_assign SEMICOLON .
-stmt            ::= DELETE expr_lbody SEMICOLON .
-stmt            ::= IF LPN condition RPN stmt .
-stmt            ::= IF LPN condition RPN stmt ELSE stmt .
-stmt            ::= SWITCH LPN condition RPN stmt_brace .
-stmt            ::= CASE expr_value COLON .
-stmt            ::= DEFAULT COLON .
-stmt            ::= WHILE LPN condition RPN stmt .
-stmt            ::= DO stmt WHILE LPN expr_assign RPN SEMICOLON .
-stmt            ::= FOR LPN expr_lbody COLON expr_value RPN stmt .
-stmt            ::= FOR LPN expr_lbody EACHKEY expr_value RPN stmt .
-stmt            ::= FOR LPN VAR name_list COLON expr_value RPN stmt .
-stmt            ::= FOR LPN VAR name_list EACHKEY expr_value RPN stmt .
-stmt            ::= FOR LPN condition SEMICOLON
+stmt(x)         ::= stmt_brace .
+stmt(x)         ::= sexpr_assign SEMICOLON .
+stmt(x)         ::= DELETE expr_lbody SEMICOLON .
+stmt(x)         ::= IF LPN condition RPN stmt .
+stmt(x)         ::= IF LPN condition RPN stmt ELSE stmt .
+stmt(x)         ::= SWITCH LPN condition RPN stmt_brace .
+stmt(x)         ::= CASE expr_value COLON .
+stmt(x)         ::= DEFAULT COLON .
+stmt(x)         ::= WHILE LPN condition RPN stmt .
+stmt(x)         ::= DO stmt WHILE LPN expr_assign RPN SEMICOLON .
+stmt(x)         ::= FOR LPN expr_lbody COLON expr_value RPN stmt .
+stmt(x)         ::= FOR LPN expr_lbody EACHKEY expr_value RPN stmt .
+stmt(x)         ::= FOR LPN VAR name_list COLON expr_value RPN stmt .
+stmt(x)         ::= FOR LPN VAR name_list EACHKEY expr_value RPN stmt .
+stmt(x)         ::= FOR LPN condition SEMICOLON
                             expr_assign SEMICOLON expr_assign RPN stmt .
-stmt            ::= CONTINUE SEMICOLON .
-stmt            ::= BREAK SEMICOLON .
-stmt            ::= RETURN SEMICOLON .
-stmt            ::= RETURN expr_list SEMICOLON .
-stmt            ::= stmt_yield SEMICOLON .
-stmt            ::= stmt_yield expr_list SEMICOLON .
-stmt            ::= USING LPN condition RPN stmt .
-stmt            ::= stmt_using condition SEMICOLON .
-stmt            ::= TRY stmt catch_list .
-stmt            ::= TRY stmt FINALLY stmt .
-stmt            ::= TRY stmt catch_list FINALLY stmt .
-stmt            ::= THROW expr_value SEMICOLON .
+stmt(x)         ::= CONTINUE SEMICOLON .
+stmt(x)         ::= BREAK SEMICOLON .
+stmt(x)         ::= RETURN SEMICOLON .
+stmt(x)         ::= RETURN expr_list SEMICOLON .
+stmt(x)         ::= stmt_yield SEMICOLON .
+stmt(x)         ::= stmt_yield expr_list SEMICOLON .
+stmt(x)         ::= USING LPN condition RPN stmt .
+stmt(x)         ::= stmt_using condition SEMICOLON .
+stmt(x)         ::= TRY stmt catch_list .
+stmt(x)         ::= TRY stmt FINALLY stmt .
+stmt(x)         ::= TRY stmt catch_list FINALLY stmt .
+stmt(x)         ::= THROW expr_value SEMICOLON .
 
 catch(x)        ::= CATCH LPN COLON expr_simple RPN stmt .
 catch(x)        ::= CATCH LPN expr_value COLON expr_simple RPN stmt .
 catch(x)        ::= CATCH LPN VAR name COLON expr_simple RPN stmt .
 
-catch_list      ::= catch .
-catch_list      ::= catch_list catch .
+catch_list(x)   ::= catch .
+catch_list(x)   ::= catch_list catch .
 
-stmt_list       ::= stmt .
-stmt_list       ::= decl .
-stmt_list       ::= SEMICOLON .
-stmt_list       ::= stmt_list stmt .
-stmt_list       ::= stmt_list decl .
-stmt_list       ::= stmt_list SEMICOLON .
+stmt_list(x)    ::= stmt .
+stmt_list(x)    ::= decl .
+stmt_list(x)    ::= SEMICOLON .
+stmt_list(x)    ::= stmt_list stmt .
+stmt_list(x)    ::= stmt_list decl .
+stmt_list(x)    ::= stmt_list SEMICOLON .
 
 
 

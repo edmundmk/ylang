@@ -9,7 +9,29 @@
     #include <assert.h>
     #include "xec_parser.h"
     #include "xec_token.h"
-#line 13 "xec_parser_lemon.c"
+#line 20 "xec_parser_lemon.y"
+
+
+
+template < typename value_t, typename ... arguments_t >
+value_t* xec_parser::make_node( arguments_t ... arguments )
+{
+    return new ( alloc ) value_t( arguments ... );
+}
+
+void xec_parser::destroy( xec_token* token )
+{
+    token->~xec_token();
+    recycle_tokens.push_back( token );
+}
+
+void xec_parser::destroy( xec_ast_node* node )
+{
+    // do nothing.
+}
+
+
+#line 35 "xec_parser_lemon.c"
 /* Next is all token values, in a form suitable for use by makeheaders.
 ** This section will be null unless lemon is run with the -m switch.
 */
@@ -62,18 +84,19 @@
 #define YYCODETYPE unsigned char
 #define YYNOCODE 130
 #define YYACTIONTYPE unsigned short int
-#define XecParseTOKENTYPE void*
+#define XecParseTOKENTYPE  xec_token* 
 typedef union {
   int yyinit;
   XecParseTOKENTYPE yy0;
+  xec_ast_node* yy17;
 } YYMINORTYPE;
 #ifndef YYSTACKDEPTH
 #define YYSTACKDEPTH 100
 #endif
-#define XecParseARG_SDECL
-#define XecParseARG_PDECL
-#define XecParseARG_FETCH
-#define XecParseARG_STORE
+#define XecParseARG_SDECL  xec_parser* p ;
+#define XecParseARG_PDECL , xec_parser* p 
+#define XecParseARG_FETCH  xec_parser* p  = yypParser->p 
+#define XecParseARG_STORE yypParser->p  = p 
 #define YYNSTATE 419
 #define YYNRULE 209
 #define YY_NO_ACTION      (YYNSTATE+YYNRULE+2)
@@ -1349,6 +1372,152 @@ static void yy_destructor(
     ** which appear on the RHS of the rule, but which are not used
     ** inside the C code.
     */
+      /* TERMINAL Destructor */
+    case 1: /* IF */
+    case 2: /* ELSE */
+    case 3: /* TRY */
+    case 4: /* CATCH */
+    case 5: /* FINALLY */
+    case 6: /* YIELD */
+    case 7: /* USING */
+    case 8: /* LPN */
+    case 9: /* RPN */
+    case 10: /* LBR */
+    case 11: /* RBR */
+    case 12: /* IDENTIFIER */
+    case 13: /* PERIOD */
+    case 14: /* TILDE */
+    case 15: /* COMMA */
+    case 16: /* COLON */
+    case 17: /* VAR */
+    case 18: /* SEMICOLON */
+    case 19: /* ASSIGN */
+    case 20: /* LSQ */
+    case 21: /* RSQ */
+    case 22: /* NUMBER */
+    case 23: /* STRING */
+    case 24: /* TRUE */
+    case 25: /* FALSE */
+    case 26: /* NULL */
+    case 27: /* INCREMENT */
+    case 28: /* DECREMENT */
+    case 29: /* PLUS */
+    case 30: /* MINUS */
+    case 31: /* XMARK */
+    case 32: /* ASTERISK */
+    case 33: /* SOLIDUS */
+    case 34: /* PERCENT */
+    case 35: /* LSHIFT */
+    case 36: /* RSHIFT */
+    case 37: /* URSHIFT */
+    case 38: /* AMPERSAND */
+    case 39: /* CARET */
+    case 40: /* VBAR */
+    case 41: /* EQUAL */
+    case 42: /* NOTEQUAL */
+    case 43: /* LESS */
+    case 44: /* GREATER */
+    case 45: /* LESSEQUAL */
+    case 46: /* GREATEREQUAL */
+    case 47: /* IN */
+    case 48: /* NOTIN */
+    case 49: /* IS */
+    case 50: /* NOTIS */
+    case 51: /* LOGICAND */
+    case 52: /* LOGICXOR */
+    case 53: /* LOGICOR */
+    case 54: /* QMARK */
+    case 55: /* NEW */
+    case 56: /* ELLIPSIS */
+    case 57: /* MULASSIGN */
+    case 58: /* DIVASSIGN */
+    case 59: /* MODASSIGN */
+    case 60: /* INTDIVASSIGN */
+    case 61: /* ADDASSIGN */
+    case 62: /* SUBASSIGN */
+    case 63: /* LSHIFTASSIGN */
+    case 64: /* RSHIFTASSIGN */
+    case 65: /* URSHIFTASSIGN */
+    case 66: /* BITANDASSIGN */
+    case 67: /* BITXORASSIGN */
+    case 68: /* BITORASSIGN */
+    case 69: /* DELETE */
+    case 70: /* SWITCH */
+    case 71: /* CASE */
+    case 72: /* DEFAULT */
+    case 73: /* WHILE */
+    case 74: /* DO */
+    case 75: /* FOR */
+    case 76: /* EACHKEY */
+    case 77: /* CONTINUE */
+    case 78: /* BREAK */
+    case 79: /* RETURN */
+    case 80: /* THROW */
+{
+#line 50 "xec_parser_lemon.y"
+
+    p->destroy( (yypminor->yy0) );
+
+#line 1462 "xec_parser_lemon.c"
+}
+      break;
+      /* Default NON-TERMINAL Destructor */
+    case 81: /* error */
+    case 82: /* script */
+    case 83: /* stmt_list */
+    case 84: /* expr_paren */
+    case 85: /* expr_list */
+    case 86: /* stmt_brace */
+    case 87: /* odecl_brace */
+    case 88: /* odecl_list */
+    case 89: /* name */
+    case 90: /* name_list */
+    case 91: /* proto */
+    case 92: /* decl_common */
+    case 93: /* expr_simple */
+    case 94: /* decl */
+    case 95: /* odecl */
+    case 96: /* expr_call */
+    case 97: /* expr_postfix */
+    case 98: /* expr_assign */
+    case 99: /* expr_value */
+    case 100: /* expr_basic */
+    case 101: /* expr_suffix */
+    case 102: /* expr_unary */
+    case 103: /* expr_mul */
+    case 104: /* expr_add */
+    case 105: /* expr_shift */
+    case 106: /* expr_bitand */
+    case 107: /* expr_bitxor */
+    case 108: /* expr_bitor */
+    case 109: /* expr_compare */
+    case 110: /* expr_and */
+    case 111: /* expr_xor */
+    case 112: /* expr_or */
+    case 113: /* expr_nolbr */
+    case 114: /* value_list */
+    case 115: /* keyval_list */
+    case 116: /* expr_lbody */
+    case 117: /* expr_final */
+    case 118: /* assign_op */
+    case 119: /* keyval_lbody */
+    case 120: /* sexpr_lbody */
+    case 121: /* sexpr_list */
+    case 122: /* sexpr_assign */
+    case 123: /* condition */
+    case 124: /* stmt_yield */
+    case 125: /* stmt_using */
+    case 126: /* stmt */
+    case 127: /* catch_list */
+    case 128: /* catch */
+{
+#line 45 "xec_parser_lemon.y"
+
+    p->destroy( (yypminor->yy17) );
+
+#line 1519 "xec_parser_lemon.c"
+}
+      break;
     default:  break;   /* If no destructor action specified: do nothing */
   }
 }
@@ -1838,216 +2007,1734 @@ static void yy_reduce(
   **  #line <lineno> <thisfile>
   **     break;
   */
+      case 1: /* script ::= stmt_list */
+#line 91 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,83,&yymsp[0].minor);
+}
+#line 2016 "xec_parser_lemon.c"
+        break;
+      case 2: /* expr_paren ::= LPN RPN */
+#line 99 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,8,&yymsp[-1].minor);
+  yy_destructor(yypParser,9,&yymsp[0].minor);
+}
+#line 2024 "xec_parser_lemon.c"
+        break;
+      case 3: /* expr_paren ::= LPN expr_list RPN */
+#line 100 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,8,&yymsp[-2].minor);
+  yy_destructor(yypParser,85,&yymsp[-1].minor);
+  yy_destructor(yypParser,9,&yymsp[0].minor);
+}
+#line 2033 "xec_parser_lemon.c"
+        break;
+      case 4: /* stmt_brace ::= LBR RBR */
+      case 6: /* odecl_brace ::= LBR RBR */ yytestcase(yyruleno==6);
+      case 120: /* expr_value ::= LBR RBR */ yytestcase(yyruleno==120);
+#line 102 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,10,&yymsp[-1].minor);
+  yy_destructor(yypParser,11,&yymsp[0].minor);
+}
+#line 2043 "xec_parser_lemon.c"
+        break;
+      case 5: /* stmt_brace ::= LBR stmt_list RBR */
+#line 103 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,10,&yymsp[-2].minor);
+  yy_destructor(yypParser,83,&yymsp[-1].minor);
+  yy_destructor(yypParser,11,&yymsp[0].minor);
+}
+#line 2052 "xec_parser_lemon.c"
+        break;
+      case 7: /* odecl_brace ::= LBR odecl_list RBR */
+#line 106 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,10,&yymsp[-2].minor);
+  yy_destructor(yypParser,88,&yymsp[-1].minor);
+  yy_destructor(yypParser,11,&yymsp[0].minor);
+}
+#line 2061 "xec_parser_lemon.c"
+        break;
+      case 8: /* name ::= IDENTIFIER */
+#line 114 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,12,&yymsp[0].minor);
+}
+#line 2068 "xec_parser_lemon.c"
+        break;
+      case 9: /* name ::= name PERIOD IDENTIFIER */
+#line 115 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,89,&yymsp[-2].minor);
+  yy_destructor(yypParser,13,&yymsp[-1].minor);
+  yy_destructor(yypParser,12,&yymsp[0].minor);
+}
+#line 2077 "xec_parser_lemon.c"
+        break;
+      case 10: /* name ::= name PERIOD TILDE IDENTIFIER */
+#line 116 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,89,&yymsp[-3].minor);
+  yy_destructor(yypParser,13,&yymsp[-2].minor);
+  yy_destructor(yypParser,14,&yymsp[-1].minor);
+  yy_destructor(yypParser,12,&yymsp[0].minor);
+}
+#line 2087 "xec_parser_lemon.c"
+        break;
+      case 11: /* name_list ::= name */
+      case 52: /* expr_simple ::= name */ yytestcase(yyruleno==52);
+#line 118 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,89,&yymsp[0].minor);
+}
+#line 2095 "xec_parser_lemon.c"
+        break;
+      case 12: /* name_list ::= name_list COMMA name */
+#line 119 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,90,&yymsp[-2].minor);
+  yy_destructor(yypParser,15,&yymsp[-1].minor);
+  yy_destructor(yypParser,89,&yymsp[0].minor);
+}
+#line 2104 "xec_parser_lemon.c"
+        break;
+      case 13: /* proto ::= name expr_paren */
+#line 121 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,89,&yymsp[-1].minor);
+  yy_destructor(yypParser,84,&yymsp[0].minor);
+}
+#line 2112 "xec_parser_lemon.c"
+        break;
+      case 14: /* decl_common ::= name odecl_brace */
+#line 123 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,89,&yymsp[-1].minor);
+  yy_destructor(yypParser,87,&yymsp[0].minor);
+}
+#line 2120 "xec_parser_lemon.c"
+        break;
+      case 15: /* decl_common ::= name COLON expr_simple odecl_brace */
+#line 124 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,89,&yymsp[-3].minor);
+  yy_destructor(yypParser,16,&yymsp[-2].minor);
+  yy_destructor(yypParser,93,&yymsp[-1].minor);
+  yy_destructor(yypParser,87,&yymsp[0].minor);
+}
+#line 2130 "xec_parser_lemon.c"
+        break;
+      case 16: /* decl_common ::= proto stmt_brace */
+#line 125 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,91,&yymsp[-1].minor);
+  yy_destructor(yypParser,86,&yymsp[0].minor);
+}
+#line 2138 "xec_parser_lemon.c"
+        break;
+      case 17: /* decl_common ::= proto YIELD stmt_brace */
+#line 126 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,91,&yymsp[-2].minor);
+  yy_destructor(yypParser,6,&yymsp[-1].minor);
+  yy_destructor(yypParser,86,&yymsp[0].minor);
+}
+#line 2147 "xec_parser_lemon.c"
+        break;
+      case 18: /* decl ::= decl_common */
+      case 22: /* odecl ::= decl_common */ yytestcase(yyruleno==22);
+#line 128 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,92,&yymsp[0].minor);
+}
+#line 2155 "xec_parser_lemon.c"
+        break;
+      case 19: /* decl ::= VAR name_list SEMICOLON */
+#line 129 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,17,&yymsp[-2].minor);
+  yy_destructor(yypParser,90,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 2164 "xec_parser_lemon.c"
+        break;
+      case 20: /* decl ::= VAR name_list ASSIGN expr_list SEMICOLON */
+#line 130 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,17,&yymsp[-4].minor);
+  yy_destructor(yypParser,90,&yymsp[-3].minor);
+  yy_destructor(yypParser,19,&yymsp[-2].minor);
+  yy_destructor(yypParser,85,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 2175 "xec_parser_lemon.c"
+        break;
+      case 21: /* odecl ::= SEMICOLON */
+      case 205: /* stmt_list ::= SEMICOLON */ yytestcase(yyruleno==205);
+#line 132 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 2183 "xec_parser_lemon.c"
+        break;
+      case 23: /* odecl ::= proto SEMICOLON */
+#line 134 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,91,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 2191 "xec_parser_lemon.c"
+        break;
+      case 24: /* odecl ::= proto YIELD SEMICOLON */
+#line 135 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,91,&yymsp[-2].minor);
+  yy_destructor(yypParser,6,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 2200 "xec_parser_lemon.c"
+        break;
+      case 25: /* odecl ::= TILDE proto stmt_brace */
+#line 136 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,14,&yymsp[-2].minor);
+  yy_destructor(yypParser,91,&yymsp[-1].minor);
+  yy_destructor(yypParser,86,&yymsp[0].minor);
+}
+#line 2209 "xec_parser_lemon.c"
+        break;
+      case 26: /* odecl ::= TILDE proto YIELD stmt_brace */
+#line 137 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,14,&yymsp[-3].minor);
+  yy_destructor(yypParser,91,&yymsp[-2].minor);
+  yy_destructor(yypParser,6,&yymsp[-1].minor);
+  yy_destructor(yypParser,86,&yymsp[0].minor);
+}
+#line 2219 "xec_parser_lemon.c"
+        break;
+      case 27: /* odecl ::= TILDE proto SEMICOLON */
+#line 138 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,14,&yymsp[-2].minor);
+  yy_destructor(yypParser,91,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 2228 "xec_parser_lemon.c"
+        break;
+      case 28: /* odecl ::= TILDE proto YIELD SEMICOLON */
+#line 139 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,14,&yymsp[-3].minor);
+  yy_destructor(yypParser,91,&yymsp[-2].minor);
+  yy_destructor(yypParser,6,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 2238 "xec_parser_lemon.c"
+        break;
+      case 29: /* odecl ::= name_list SEMICOLON */
+#line 140 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,90,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 2246 "xec_parser_lemon.c"
+        break;
+      case 30: /* odecl ::= name_list ASSIGN expr_list SEMICOLON */
+#line 141 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,90,&yymsp[-3].minor);
+  yy_destructor(yypParser,19,&yymsp[-2].minor);
+  yy_destructor(yypParser,85,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 2256 "xec_parser_lemon.c"
+        break;
+      case 31: /* odecl_list ::= odecl */
+#line 143 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,95,&yymsp[0].minor);
+}
+#line 2263 "xec_parser_lemon.c"
+        break;
+      case 32: /* odecl_list ::= odecl_list odecl */
+#line 144 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,88,&yymsp[-1].minor);
+  yy_destructor(yypParser,95,&yymsp[0].minor);
+}
+#line 2271 "xec_parser_lemon.c"
+        break;
+      case 33: /* expr_call ::= YIELD expr_paren */
+#line 152 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,6,&yymsp[-1].minor);
+  yy_destructor(yypParser,84,&yymsp[0].minor);
+}
+#line 2279 "xec_parser_lemon.c"
+        break;
+      case 34: /* expr_call ::= proto expr_paren */
+#line 153 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,91,&yymsp[-1].minor);
+  yy_destructor(yypParser,84,&yymsp[0].minor);
+}
+#line 2287 "xec_parser_lemon.c"
+        break;
+      case 35: /* expr_call ::= expr_call expr_paren */
+#line 154 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,96,&yymsp[-1].minor);
+  yy_destructor(yypParser,84,&yymsp[0].minor);
+}
+#line 2295 "xec_parser_lemon.c"
+        break;
+      case 36: /* expr_call ::= expr_postfix expr_paren */
+#line 155 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,97,&yymsp[-1].minor);
+  yy_destructor(yypParser,84,&yymsp[0].minor);
+}
+#line 2303 "xec_parser_lemon.c"
+        break;
+      case 37: /* expr_postfix ::= LPN expr_assign RPN */
+#line 157 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,8,&yymsp[-2].minor);
+  yy_destructor(yypParser,98,&yymsp[-1].minor);
+  yy_destructor(yypParser,9,&yymsp[0].minor);
+}
+#line 2312 "xec_parser_lemon.c"
+        break;
+      case 38: /* expr_postfix ::= name PERIOD LSQ expr_value RSQ */
+#line 158 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,89,&yymsp[-4].minor);
+  yy_destructor(yypParser,13,&yymsp[-3].minor);
+  yy_destructor(yypParser,20,&yymsp[-2].minor);
+  yy_destructor(yypParser,99,&yymsp[-1].minor);
+  yy_destructor(yypParser,21,&yymsp[0].minor);
+}
+#line 2323 "xec_parser_lemon.c"
+        break;
+      case 39: /* expr_postfix ::= name LSQ expr_value RSQ */
+#line 159 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,89,&yymsp[-3].minor);
+  yy_destructor(yypParser,20,&yymsp[-2].minor);
+  yy_destructor(yypParser,99,&yymsp[-1].minor);
+  yy_destructor(yypParser,21,&yymsp[0].minor);
+}
+#line 2333 "xec_parser_lemon.c"
+        break;
+      case 40: /* expr_postfix ::= proto PERIOD IDENTIFIER */
+#line 160 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,91,&yymsp[-2].minor);
+  yy_destructor(yypParser,13,&yymsp[-1].minor);
+  yy_destructor(yypParser,12,&yymsp[0].minor);
+}
+#line 2342 "xec_parser_lemon.c"
+        break;
+      case 41: /* expr_postfix ::= proto PERIOD TILDE IDENTIFIER */
+#line 161 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,91,&yymsp[-3].minor);
+  yy_destructor(yypParser,13,&yymsp[-2].minor);
+  yy_destructor(yypParser,14,&yymsp[-1].minor);
+  yy_destructor(yypParser,12,&yymsp[0].minor);
+}
+#line 2352 "xec_parser_lemon.c"
+        break;
+      case 42: /* expr_postfix ::= proto PERIOD LSQ expr_value RSQ */
+#line 162 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,91,&yymsp[-4].minor);
+  yy_destructor(yypParser,13,&yymsp[-3].minor);
+  yy_destructor(yypParser,20,&yymsp[-2].minor);
+  yy_destructor(yypParser,99,&yymsp[-1].minor);
+  yy_destructor(yypParser,21,&yymsp[0].minor);
+}
+#line 2363 "xec_parser_lemon.c"
+        break;
+      case 43: /* expr_postfix ::= proto LSQ expr_value RSQ */
+#line 163 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,91,&yymsp[-3].minor);
+  yy_destructor(yypParser,20,&yymsp[-2].minor);
+  yy_destructor(yypParser,99,&yymsp[-1].minor);
+  yy_destructor(yypParser,21,&yymsp[0].minor);
+}
+#line 2373 "xec_parser_lemon.c"
+        break;
+      case 44: /* expr_postfix ::= expr_call PERIOD IDENTIFIER */
+#line 164 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,96,&yymsp[-2].minor);
+  yy_destructor(yypParser,13,&yymsp[-1].minor);
+  yy_destructor(yypParser,12,&yymsp[0].minor);
+}
+#line 2382 "xec_parser_lemon.c"
+        break;
+      case 45: /* expr_postfix ::= expr_call PERIOD TILDE IDENTIFIER */
+#line 165 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,96,&yymsp[-3].minor);
+  yy_destructor(yypParser,13,&yymsp[-2].minor);
+  yy_destructor(yypParser,14,&yymsp[-1].minor);
+  yy_destructor(yypParser,12,&yymsp[0].minor);
+}
+#line 2392 "xec_parser_lemon.c"
+        break;
+      case 46: /* expr_postfix ::= expr_call PERIOD LSQ expr_value RSQ */
+#line 166 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,96,&yymsp[-4].minor);
+  yy_destructor(yypParser,13,&yymsp[-3].minor);
+  yy_destructor(yypParser,20,&yymsp[-2].minor);
+  yy_destructor(yypParser,99,&yymsp[-1].minor);
+  yy_destructor(yypParser,21,&yymsp[0].minor);
+}
+#line 2403 "xec_parser_lemon.c"
+        break;
+      case 47: /* expr_postfix ::= expr_call LSQ expr_value RSQ */
+#line 167 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,96,&yymsp[-3].minor);
+  yy_destructor(yypParser,20,&yymsp[-2].minor);
+  yy_destructor(yypParser,99,&yymsp[-1].minor);
+  yy_destructor(yypParser,21,&yymsp[0].minor);
+}
+#line 2413 "xec_parser_lemon.c"
+        break;
+      case 48: /* expr_postfix ::= expr_postfix PERIOD IDENTIFIER */
+#line 168 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,97,&yymsp[-2].minor);
+  yy_destructor(yypParser,13,&yymsp[-1].minor);
+  yy_destructor(yypParser,12,&yymsp[0].minor);
+}
+#line 2422 "xec_parser_lemon.c"
+        break;
+      case 49: /* expr_postfix ::= expr_postfix PERIOD TILDE IDENTIFIER */
+#line 169 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,97,&yymsp[-3].minor);
+  yy_destructor(yypParser,13,&yymsp[-2].minor);
+  yy_destructor(yypParser,14,&yymsp[-1].minor);
+  yy_destructor(yypParser,12,&yymsp[0].minor);
+}
+#line 2432 "xec_parser_lemon.c"
+        break;
+      case 50: /* expr_postfix ::= expr_postfix PERIOD LSQ expr_value RSQ */
+#line 170 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,97,&yymsp[-4].minor);
+  yy_destructor(yypParser,13,&yymsp[-3].minor);
+  yy_destructor(yypParser,20,&yymsp[-2].minor);
+  yy_destructor(yypParser,99,&yymsp[-1].minor);
+  yy_destructor(yypParser,21,&yymsp[0].minor);
+}
+#line 2443 "xec_parser_lemon.c"
+        break;
+      case 51: /* expr_postfix ::= expr_postfix LSQ expr_value RSQ */
+#line 171 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,97,&yymsp[-3].minor);
+  yy_destructor(yypParser,20,&yymsp[-2].minor);
+  yy_destructor(yypParser,99,&yymsp[-1].minor);
+  yy_destructor(yypParser,21,&yymsp[0].minor);
+}
+#line 2453 "xec_parser_lemon.c"
+        break;
+      case 53: /* expr_simple ::= expr_postfix */
+#line 174 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,97,&yymsp[0].minor);
+}
+#line 2460 "xec_parser_lemon.c"
+        break;
+      case 54: /* expr_simple ::= proto */
+#line 175 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,91,&yymsp[0].minor);
+}
+#line 2467 "xec_parser_lemon.c"
+        break;
+      case 55: /* expr_simple ::= expr_call */
+#line 176 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,96,&yymsp[0].minor);
+}
+#line 2474 "xec_parser_lemon.c"
+        break;
+      case 56: /* expr_simple ::= proto YIELD */
+#line 177 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,91,&yymsp[-1].minor);
+  yy_destructor(yypParser,6,&yymsp[0].minor);
+}
+#line 2482 "xec_parser_lemon.c"
+        break;
+      case 57: /* expr_simple ::= expr_call YIELD */
+#line 178 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,96,&yymsp[-1].minor);
+  yy_destructor(yypParser,6,&yymsp[0].minor);
+}
+#line 2490 "xec_parser_lemon.c"
+        break;
+      case 58: /* expr_basic ::= expr_simple */
+#line 180 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,93,&yymsp[0].minor);
+}
+#line 2497 "xec_parser_lemon.c"
+        break;
+      case 59: /* expr_basic ::= NUMBER */
+#line 181 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,22,&yymsp[0].minor);
+}
+#line 2504 "xec_parser_lemon.c"
+        break;
+      case 60: /* expr_basic ::= STRING */
+#line 182 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,23,&yymsp[0].minor);
+}
+#line 2511 "xec_parser_lemon.c"
+        break;
+      case 61: /* expr_basic ::= TRUE */
+#line 183 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,24,&yymsp[0].minor);
+}
+#line 2518 "xec_parser_lemon.c"
+        break;
+      case 62: /* expr_basic ::= FALSE */
+#line 184 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,25,&yymsp[0].minor);
+}
+#line 2525 "xec_parser_lemon.c"
+        break;
+      case 63: /* expr_basic ::= NULL */
+#line 185 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,26,&yymsp[0].minor);
+}
+#line 2532 "xec_parser_lemon.c"
+        break;
+      case 64: /* expr_suffix ::= expr_basic */
+#line 187 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,100,&yymsp[0].minor);
+}
+#line 2539 "xec_parser_lemon.c"
+        break;
+      case 65: /* expr_suffix ::= expr_basic INCREMENT */
+#line 188 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,100,&yymsp[-1].minor);
+  yy_destructor(yypParser,27,&yymsp[0].minor);
+}
+#line 2547 "xec_parser_lemon.c"
+        break;
+      case 66: /* expr_suffix ::= expr_basic DECREMENT */
+#line 189 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,100,&yymsp[-1].minor);
+  yy_destructor(yypParser,28,&yymsp[0].minor);
+}
+#line 2555 "xec_parser_lemon.c"
+        break;
+      case 67: /* expr_unary ::= expr_suffix */
+#line 191 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,101,&yymsp[0].minor);
+}
+#line 2562 "xec_parser_lemon.c"
+        break;
+      case 68: /* expr_unary ::= PLUS expr_basic */
+#line 192 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,29,&yymsp[-1].minor);
+  yy_destructor(yypParser,100,&yymsp[0].minor);
+}
+#line 2570 "xec_parser_lemon.c"
+        break;
+      case 69: /* expr_unary ::= MINUS expr_basic */
+#line 193 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,30,&yymsp[-1].minor);
+  yy_destructor(yypParser,100,&yymsp[0].minor);
+}
+#line 2578 "xec_parser_lemon.c"
+        break;
+      case 70: /* expr_unary ::= XMARK expr_basic */
+#line 194 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,31,&yymsp[-1].minor);
+  yy_destructor(yypParser,100,&yymsp[0].minor);
+}
+#line 2586 "xec_parser_lemon.c"
+        break;
+      case 71: /* expr_unary ::= TILDE expr_basic */
+#line 195 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,14,&yymsp[-1].minor);
+  yy_destructor(yypParser,100,&yymsp[0].minor);
+}
+#line 2594 "xec_parser_lemon.c"
+        break;
+      case 72: /* expr_unary ::= INCREMENT expr_basic */
+#line 196 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,27,&yymsp[-1].minor);
+  yy_destructor(yypParser,100,&yymsp[0].minor);
+}
+#line 2602 "xec_parser_lemon.c"
+        break;
+      case 73: /* expr_unary ::= DECREMENT expr_basic */
+#line 197 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,28,&yymsp[-1].minor);
+  yy_destructor(yypParser,100,&yymsp[0].minor);
+}
+#line 2610 "xec_parser_lemon.c"
+        break;
+      case 74: /* expr_mul ::= expr_unary */
+#line 199 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,102,&yymsp[0].minor);
+}
+#line 2617 "xec_parser_lemon.c"
+        break;
+      case 75: /* expr_mul ::= expr_mul ASTERISK expr_unary */
+#line 200 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,103,&yymsp[-2].minor);
+  yy_destructor(yypParser,32,&yymsp[-1].minor);
+  yy_destructor(yypParser,102,&yymsp[0].minor);
+}
+#line 2626 "xec_parser_lemon.c"
+        break;
+      case 76: /* expr_mul ::= expr_mul SOLIDUS expr_unary */
+#line 201 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,103,&yymsp[-2].minor);
+  yy_destructor(yypParser,33,&yymsp[-1].minor);
+  yy_destructor(yypParser,102,&yymsp[0].minor);
+}
+#line 2635 "xec_parser_lemon.c"
+        break;
+      case 77: /* expr_mul ::= expr_mul PERCENT expr_unary */
+#line 202 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,103,&yymsp[-2].minor);
+  yy_destructor(yypParser,34,&yymsp[-1].minor);
+  yy_destructor(yypParser,102,&yymsp[0].minor);
+}
+#line 2644 "xec_parser_lemon.c"
+        break;
+      case 78: /* expr_mul ::= expr_mul TILDE expr_unary */
+#line 203 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,103,&yymsp[-2].minor);
+  yy_destructor(yypParser,14,&yymsp[-1].minor);
+  yy_destructor(yypParser,102,&yymsp[0].minor);
+}
+#line 2653 "xec_parser_lemon.c"
+        break;
+      case 79: /* expr_add ::= expr_mul */
+#line 205 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,103,&yymsp[0].minor);
+}
+#line 2660 "xec_parser_lemon.c"
+        break;
+      case 80: /* expr_add ::= expr_add PLUS expr_mul */
+#line 206 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,104,&yymsp[-2].minor);
+  yy_destructor(yypParser,29,&yymsp[-1].minor);
+  yy_destructor(yypParser,103,&yymsp[0].minor);
+}
+#line 2669 "xec_parser_lemon.c"
+        break;
+      case 81: /* expr_add ::= expr_add MINUS expr_mul */
+#line 207 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,104,&yymsp[-2].minor);
+  yy_destructor(yypParser,30,&yymsp[-1].minor);
+  yy_destructor(yypParser,103,&yymsp[0].minor);
+}
+#line 2678 "xec_parser_lemon.c"
+        break;
+      case 82: /* expr_shift ::= expr_add */
+#line 209 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,104,&yymsp[0].minor);
+}
+#line 2685 "xec_parser_lemon.c"
+        break;
+      case 83: /* expr_shift ::= expr_shift LSHIFT expr_add */
+#line 210 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,105,&yymsp[-2].minor);
+  yy_destructor(yypParser,35,&yymsp[-1].minor);
+  yy_destructor(yypParser,104,&yymsp[0].minor);
+}
+#line 2694 "xec_parser_lemon.c"
+        break;
+      case 84: /* expr_shift ::= expr_shift RSHIFT expr_add */
+#line 211 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,105,&yymsp[-2].minor);
+  yy_destructor(yypParser,36,&yymsp[-1].minor);
+  yy_destructor(yypParser,104,&yymsp[0].minor);
+}
+#line 2703 "xec_parser_lemon.c"
+        break;
+      case 85: /* expr_shift ::= expr_shift URSHIFT expr_add */
+#line 212 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,105,&yymsp[-2].minor);
+  yy_destructor(yypParser,37,&yymsp[-1].minor);
+  yy_destructor(yypParser,104,&yymsp[0].minor);
+}
+#line 2712 "xec_parser_lemon.c"
+        break;
+      case 86: /* expr_bitand ::= expr_shift */
+#line 214 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,105,&yymsp[0].minor);
+}
+#line 2719 "xec_parser_lemon.c"
+        break;
+      case 87: /* expr_bitand ::= expr_bitand AMPERSAND expr_shift */
+#line 215 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,106,&yymsp[-2].minor);
+  yy_destructor(yypParser,38,&yymsp[-1].minor);
+  yy_destructor(yypParser,105,&yymsp[0].minor);
+}
+#line 2728 "xec_parser_lemon.c"
+        break;
+      case 88: /* expr_bitxor ::= expr_bitand */
+#line 217 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,106,&yymsp[0].minor);
+}
+#line 2735 "xec_parser_lemon.c"
+        break;
+      case 89: /* expr_bitxor ::= expr_bitxor CARET expr_bitand */
+#line 218 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,107,&yymsp[-2].minor);
+  yy_destructor(yypParser,39,&yymsp[-1].minor);
+  yy_destructor(yypParser,106,&yymsp[0].minor);
+}
+#line 2744 "xec_parser_lemon.c"
+        break;
+      case 90: /* expr_bitor ::= expr_bitxor */
+#line 220 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,107,&yymsp[0].minor);
+}
+#line 2751 "xec_parser_lemon.c"
+        break;
+      case 91: /* expr_bitor ::= expr_bitor VBAR expr_bitxor */
+#line 221 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,108,&yymsp[-2].minor);
+  yy_destructor(yypParser,40,&yymsp[-1].minor);
+  yy_destructor(yypParser,107,&yymsp[0].minor);
+}
+#line 2760 "xec_parser_lemon.c"
+        break;
+      case 92: /* expr_compare ::= expr_bitor */
+#line 223 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,108,&yymsp[0].minor);
+}
+#line 2767 "xec_parser_lemon.c"
+        break;
+      case 93: /* expr_compare ::= expr_compare EQUAL expr_bitor */
+#line 224 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,109,&yymsp[-2].minor);
+  yy_destructor(yypParser,41,&yymsp[-1].minor);
+  yy_destructor(yypParser,108,&yymsp[0].minor);
+}
+#line 2776 "xec_parser_lemon.c"
+        break;
+      case 94: /* expr_compare ::= expr_compare NOTEQUAL expr_bitor */
+#line 225 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,109,&yymsp[-2].minor);
+  yy_destructor(yypParser,42,&yymsp[-1].minor);
+  yy_destructor(yypParser,108,&yymsp[0].minor);
+}
+#line 2785 "xec_parser_lemon.c"
+        break;
+      case 95: /* expr_compare ::= expr_compare LESS expr_bitor */
+#line 226 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,109,&yymsp[-2].minor);
+  yy_destructor(yypParser,43,&yymsp[-1].minor);
+  yy_destructor(yypParser,108,&yymsp[0].minor);
+}
+#line 2794 "xec_parser_lemon.c"
+        break;
+      case 96: /* expr_compare ::= expr_compare GREATER expr_bitor */
+#line 227 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,109,&yymsp[-2].minor);
+  yy_destructor(yypParser,44,&yymsp[-1].minor);
+  yy_destructor(yypParser,108,&yymsp[0].minor);
+}
+#line 2803 "xec_parser_lemon.c"
+        break;
+      case 97: /* expr_compare ::= expr_compare LESSEQUAL expr_bitor */
+#line 228 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,109,&yymsp[-2].minor);
+  yy_destructor(yypParser,45,&yymsp[-1].minor);
+  yy_destructor(yypParser,108,&yymsp[0].minor);
+}
+#line 2812 "xec_parser_lemon.c"
+        break;
+      case 98: /* expr_compare ::= expr_compare GREATEREQUAL expr_bitor */
+#line 229 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,109,&yymsp[-2].minor);
+  yy_destructor(yypParser,46,&yymsp[-1].minor);
+  yy_destructor(yypParser,108,&yymsp[0].minor);
+}
+#line 2821 "xec_parser_lemon.c"
+        break;
+      case 99: /* expr_compare ::= expr_compare IN expr_bitor */
+#line 230 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,109,&yymsp[-2].minor);
+  yy_destructor(yypParser,47,&yymsp[-1].minor);
+  yy_destructor(yypParser,108,&yymsp[0].minor);
+}
+#line 2830 "xec_parser_lemon.c"
+        break;
+      case 100: /* expr_compare ::= expr_compare NOTIN expr_bitor */
+#line 231 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,109,&yymsp[-2].minor);
+  yy_destructor(yypParser,48,&yymsp[-1].minor);
+  yy_destructor(yypParser,108,&yymsp[0].minor);
+}
+#line 2839 "xec_parser_lemon.c"
+        break;
+      case 101: /* expr_compare ::= expr_compare IS expr_bitor */
+#line 232 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,109,&yymsp[-2].minor);
+  yy_destructor(yypParser,49,&yymsp[-1].minor);
+  yy_destructor(yypParser,108,&yymsp[0].minor);
+}
+#line 2848 "xec_parser_lemon.c"
+        break;
+      case 102: /* expr_compare ::= expr_compare NOTIS expr_bitor */
+#line 233 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,109,&yymsp[-2].minor);
+  yy_destructor(yypParser,50,&yymsp[-1].minor);
+  yy_destructor(yypParser,108,&yymsp[0].minor);
+}
+#line 2857 "xec_parser_lemon.c"
+        break;
+      case 103: /* expr_and ::= expr_compare */
+#line 235 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,109,&yymsp[0].minor);
+}
+#line 2864 "xec_parser_lemon.c"
+        break;
+      case 104: /* expr_and ::= expr_and LOGICAND expr_compare */
+#line 236 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,110,&yymsp[-2].minor);
+  yy_destructor(yypParser,51,&yymsp[-1].minor);
+  yy_destructor(yypParser,109,&yymsp[0].minor);
+}
+#line 2873 "xec_parser_lemon.c"
+        break;
+      case 105: /* expr_xor ::= expr_and */
+#line 238 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,110,&yymsp[0].minor);
+}
+#line 2880 "xec_parser_lemon.c"
+        break;
+      case 106: /* expr_xor ::= expr_xor LOGICXOR expr_and */
+#line 239 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,111,&yymsp[-2].minor);
+  yy_destructor(yypParser,52,&yymsp[-1].minor);
+  yy_destructor(yypParser,110,&yymsp[0].minor);
+}
+#line 2889 "xec_parser_lemon.c"
+        break;
+      case 107: /* expr_or ::= expr_xor */
+#line 241 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,111,&yymsp[0].minor);
+}
+#line 2896 "xec_parser_lemon.c"
+        break;
+      case 108: /* expr_or ::= expr_or LOGICOR expr_xor */
+#line 242 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,112,&yymsp[-2].minor);
+  yy_destructor(yypParser,53,&yymsp[-1].minor);
+  yy_destructor(yypParser,111,&yymsp[0].minor);
+}
+#line 2905 "xec_parser_lemon.c"
+        break;
+      case 109: /* expr_nolbr ::= expr_or */
+#line 244 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,112,&yymsp[0].minor);
+}
+#line 2912 "xec_parser_lemon.c"
+        break;
+      case 110: /* expr_nolbr ::= expr_or QMARK expr_value COLON expr_value */
+#line 245 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,112,&yymsp[-4].minor);
+  yy_destructor(yypParser,54,&yymsp[-3].minor);
+  yy_destructor(yypParser,99,&yymsp[-2].minor);
+  yy_destructor(yypParser,16,&yymsp[-1].minor);
+  yy_destructor(yypParser,99,&yymsp[0].minor);
+}
+#line 2923 "xec_parser_lemon.c"
+        break;
+      case 111: /* expr_nolbr ::= NEW name expr_paren */
+#line 246 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,55,&yymsp[-2].minor);
+  yy_destructor(yypParser,89,&yymsp[-1].minor);
+  yy_destructor(yypParser,84,&yymsp[0].minor);
+}
+#line 2932 "xec_parser_lemon.c"
+        break;
+      case 112: /* expr_nolbr ::= NEW expr_postfix expr_paren */
+#line 247 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,55,&yymsp[-2].minor);
+  yy_destructor(yypParser,97,&yymsp[-1].minor);
+  yy_destructor(yypParser,84,&yymsp[0].minor);
+}
+#line 2941 "xec_parser_lemon.c"
+        break;
+      case 113: /* expr_nolbr ::= LSQ RSQ */
+#line 248 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,20,&yymsp[-1].minor);
+  yy_destructor(yypParser,21,&yymsp[0].minor);
+}
+#line 2949 "xec_parser_lemon.c"
+        break;
+      case 114: /* expr_nolbr ::= LSQ value_list RSQ */
+#line 249 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,20,&yymsp[-2].minor);
+  yy_destructor(yypParser,114,&yymsp[-1].minor);
+  yy_destructor(yypParser,21,&yymsp[0].minor);
+}
+#line 2958 "xec_parser_lemon.c"
+        break;
+      case 115: /* expr_nolbr ::= COLON odecl_brace */
+#line 250 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,16,&yymsp[-1].minor);
+  yy_destructor(yypParser,87,&yymsp[0].minor);
+}
+#line 2966 "xec_parser_lemon.c"
+        break;
+      case 116: /* expr_nolbr ::= COLON expr_simple odecl_brace */
+#line 251 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,16,&yymsp[-2].minor);
+  yy_destructor(yypParser,93,&yymsp[-1].minor);
+  yy_destructor(yypParser,87,&yymsp[0].minor);
+}
+#line 2975 "xec_parser_lemon.c"
+        break;
+      case 117: /* expr_nolbr ::= QMARK expr_paren stmt_brace */
+#line 252 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,54,&yymsp[-2].minor);
+  yy_destructor(yypParser,84,&yymsp[-1].minor);
+  yy_destructor(yypParser,86,&yymsp[0].minor);
+}
+#line 2984 "xec_parser_lemon.c"
+        break;
+      case 118: /* expr_nolbr ::= PERIOD QMARK expr_paren stmt_brace */
+#line 253 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,13,&yymsp[-3].minor);
+  yy_destructor(yypParser,54,&yymsp[-2].minor);
+  yy_destructor(yypParser,84,&yymsp[-1].minor);
+  yy_destructor(yypParser,86,&yymsp[0].minor);
+}
+#line 2994 "xec_parser_lemon.c"
+        break;
+      case 121: /* expr_value ::= LBR keyval_list RBR */
+#line 257 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,10,&yymsp[-2].minor);
+  yy_destructor(yypParser,115,&yymsp[-1].minor);
+  yy_destructor(yypParser,11,&yymsp[0].minor);
+}
+#line 3003 "xec_parser_lemon.c"
+        break;
+      case 122: /* expr_lbody ::= expr_value */
+#line 259 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,99,&yymsp[0].minor);
+}
+#line 3010 "xec_parser_lemon.c"
+        break;
+      case 123: /* expr_lbody ::= expr_lbody COMMA expr_value */
+#line 260 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,116,&yymsp[-2].minor);
+  yy_destructor(yypParser,15,&yymsp[-1].minor);
+  yy_destructor(yypParser,99,&yymsp[0].minor);
+}
+#line 3019 "xec_parser_lemon.c"
+        break;
+      case 124: /* expr_final ::= ELLIPSIS */
+#line 262 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,56,&yymsp[0].minor);
+}
+#line 3026 "xec_parser_lemon.c"
+        break;
+      case 125: /* expr_final ::= proto ELLIPSIS */
+#line 263 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,91,&yymsp[-1].minor);
+  yy_destructor(yypParser,56,&yymsp[0].minor);
+}
+#line 3034 "xec_parser_lemon.c"
+        break;
+      case 126: /* expr_final ::= expr_call ELLIPSIS */
+#line 264 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,96,&yymsp[-1].minor);
+  yy_destructor(yypParser,56,&yymsp[0].minor);
+}
+#line 3042 "xec_parser_lemon.c"
+        break;
+      case 127: /* expr_final ::= proto YIELD ELLIPSIS */
+#line 265 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,91,&yymsp[-2].minor);
+  yy_destructor(yypParser,6,&yymsp[-1].minor);
+  yy_destructor(yypParser,56,&yymsp[0].minor);
+}
+#line 3051 "xec_parser_lemon.c"
+        break;
+      case 128: /* expr_final ::= expr_call YIELD ELLIPSIS */
+#line 266 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,96,&yymsp[-2].minor);
+  yy_destructor(yypParser,6,&yymsp[-1].minor);
+  yy_destructor(yypParser,56,&yymsp[0].minor);
+}
+#line 3060 "xec_parser_lemon.c"
+        break;
+      case 129: /* expr_final ::= name LSQ RSQ ELLIPSIS */
+#line 267 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,89,&yymsp[-3].minor);
+  yy_destructor(yypParser,20,&yymsp[-2].minor);
+  yy_destructor(yypParser,21,&yymsp[-1].minor);
+  yy_destructor(yypParser,56,&yymsp[0].minor);
+}
+#line 3070 "xec_parser_lemon.c"
+        break;
+      case 130: /* expr_final ::= proto LSQ RSQ ELLIPSIS */
+#line 268 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,91,&yymsp[-3].minor);
+  yy_destructor(yypParser,20,&yymsp[-2].minor);
+  yy_destructor(yypParser,21,&yymsp[-1].minor);
+  yy_destructor(yypParser,56,&yymsp[0].minor);
+}
+#line 3080 "xec_parser_lemon.c"
+        break;
+      case 131: /* expr_final ::= expr_call LSQ RSQ ELLIPSIS */
+#line 269 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,96,&yymsp[-3].minor);
+  yy_destructor(yypParser,20,&yymsp[-2].minor);
+  yy_destructor(yypParser,21,&yymsp[-1].minor);
+  yy_destructor(yypParser,56,&yymsp[0].minor);
+}
+#line 3090 "xec_parser_lemon.c"
+        break;
+      case 132: /* expr_final ::= expr_postfix LSQ RSQ ELLIPSIS */
+#line 270 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,97,&yymsp[-3].minor);
+  yy_destructor(yypParser,20,&yymsp[-2].minor);
+  yy_destructor(yypParser,21,&yymsp[-1].minor);
+  yy_destructor(yypParser,56,&yymsp[0].minor);
+}
+#line 3100 "xec_parser_lemon.c"
+        break;
+      case 133: /* expr_list ::= expr_final */
+      case 151: /* value_list ::= expr_final */ yytestcase(yyruleno==151);
+      case 162: /* sexpr_list ::= expr_final */ yytestcase(yyruleno==162);
+#line 272 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,117,&yymsp[0].minor);
+}
+#line 3109 "xec_parser_lemon.c"
+        break;
+      case 134: /* expr_list ::= expr_lbody */
+      case 153: /* value_list ::= expr_lbody */ yytestcase(yyruleno==153);
+#line 273 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,116,&yymsp[0].minor);
+}
+#line 3117 "xec_parser_lemon.c"
+        break;
+      case 135: /* expr_list ::= expr_lbody COMMA expr_final */
+      case 155: /* value_list ::= expr_lbody COMMA expr_final */ yytestcase(yyruleno==155);
+#line 274 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,116,&yymsp[-2].minor);
+  yy_destructor(yypParser,15,&yymsp[-1].minor);
+  yy_destructor(yypParser,117,&yymsp[0].minor);
+}
+#line 3127 "xec_parser_lemon.c"
+        break;
+      case 136: /* expr_assign ::= expr_list */
+#line 276 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,85,&yymsp[0].minor);
+}
+#line 3134 "xec_parser_lemon.c"
+        break;
+      case 137: /* expr_assign ::= expr_lbody assign_op expr_list */
+#line 277 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,116,&yymsp[-2].minor);
+  yy_destructor(yypParser,118,&yymsp[-1].minor);
+  yy_destructor(yypParser,85,&yymsp[0].minor);
+}
+#line 3143 "xec_parser_lemon.c"
+        break;
+      case 138: /* assign_op ::= ASSIGN */
+#line 279 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,19,&yymsp[0].minor);
+}
+#line 3150 "xec_parser_lemon.c"
+        break;
+      case 139: /* assign_op ::= MULASSIGN */
+#line 280 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,57,&yymsp[0].minor);
+}
+#line 3157 "xec_parser_lemon.c"
+        break;
+      case 140: /* assign_op ::= DIVASSIGN */
+#line 281 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,58,&yymsp[0].minor);
+}
+#line 3164 "xec_parser_lemon.c"
+        break;
+      case 141: /* assign_op ::= MODASSIGN */
+#line 282 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,59,&yymsp[0].minor);
+}
+#line 3171 "xec_parser_lemon.c"
+        break;
+      case 142: /* assign_op ::= INTDIVASSIGN */
+#line 283 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,60,&yymsp[0].minor);
+}
+#line 3178 "xec_parser_lemon.c"
+        break;
+      case 143: /* assign_op ::= ADDASSIGN */
+#line 284 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,61,&yymsp[0].minor);
+}
+#line 3185 "xec_parser_lemon.c"
+        break;
+      case 144: /* assign_op ::= SUBASSIGN */
+#line 285 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,62,&yymsp[0].minor);
+}
+#line 3192 "xec_parser_lemon.c"
+        break;
+      case 145: /* assign_op ::= LSHIFTASSIGN */
+#line 286 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,63,&yymsp[0].minor);
+}
+#line 3199 "xec_parser_lemon.c"
+        break;
+      case 146: /* assign_op ::= RSHIFTASSIGN */
+#line 287 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,64,&yymsp[0].minor);
+}
+#line 3206 "xec_parser_lemon.c"
+        break;
+      case 147: /* assign_op ::= URSHIFTASSIGN */
+#line 288 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,65,&yymsp[0].minor);
+}
+#line 3213 "xec_parser_lemon.c"
+        break;
+      case 148: /* assign_op ::= BITANDASSIGN */
+#line 289 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,66,&yymsp[0].minor);
+}
+#line 3220 "xec_parser_lemon.c"
+        break;
+      case 149: /* assign_op ::= BITXORASSIGN */
+#line 290 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,67,&yymsp[0].minor);
+}
+#line 3227 "xec_parser_lemon.c"
+        break;
+      case 150: /* assign_op ::= BITORASSIGN */
+#line 291 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,68,&yymsp[0].minor);
+}
+#line 3234 "xec_parser_lemon.c"
+        break;
+      case 152: /* value_list ::= expr_final COMMA */
+#line 294 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,117,&yymsp[-1].minor);
+  yy_destructor(yypParser,15,&yymsp[0].minor);
+}
+#line 3242 "xec_parser_lemon.c"
+        break;
+      case 154: /* value_list ::= expr_lbody COMMA */
+#line 296 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,116,&yymsp[-1].minor);
+  yy_destructor(yypParser,15,&yymsp[0].minor);
+}
+#line 3250 "xec_parser_lemon.c"
+        break;
+      case 156: /* keyval_lbody ::= expr_value COLON expr_value */
+#line 299 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,99,&yymsp[-2].minor);
+  yy_destructor(yypParser,16,&yymsp[-1].minor);
+  yy_destructor(yypParser,99,&yymsp[0].minor);
+}
+#line 3259 "xec_parser_lemon.c"
+        break;
+      case 157: /* keyval_lbody ::= keyval_lbody COMMA expr_value COLON expr_value */
+#line 300 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,119,&yymsp[-4].minor);
+  yy_destructor(yypParser,15,&yymsp[-3].minor);
+  yy_destructor(yypParser,99,&yymsp[-2].minor);
+  yy_destructor(yypParser,16,&yymsp[-1].minor);
+  yy_destructor(yypParser,99,&yymsp[0].minor);
+}
+#line 3270 "xec_parser_lemon.c"
+        break;
+      case 158: /* keyval_list ::= keyval_lbody */
+#line 302 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,119,&yymsp[0].minor);
+}
+#line 3277 "xec_parser_lemon.c"
+        break;
+      case 159: /* keyval_list ::= keyval_lbody COMMA */
+#line 303 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,119,&yymsp[-1].minor);
+  yy_destructor(yypParser,15,&yymsp[0].minor);
+}
+#line 3285 "xec_parser_lemon.c"
+        break;
+      case 160: /* sexpr_lbody ::= expr_nolbr */
+#line 311 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,113,&yymsp[0].minor);
+}
+#line 3292 "xec_parser_lemon.c"
+        break;
+      case 161: /* sexpr_lbody ::= sexpr_lbody COMMA expr_value */
+#line 312 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,120,&yymsp[-2].minor);
+  yy_destructor(yypParser,15,&yymsp[-1].minor);
+  yy_destructor(yypParser,99,&yymsp[0].minor);
+}
+#line 3301 "xec_parser_lemon.c"
+        break;
+      case 163: /* sexpr_list ::= sexpr_lbody */
+#line 315 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,120,&yymsp[0].minor);
+}
+#line 3308 "xec_parser_lemon.c"
+        break;
+      case 164: /* sexpr_list ::= sexpr_lbody COMMA expr_final */
+#line 316 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,120,&yymsp[-2].minor);
+  yy_destructor(yypParser,15,&yymsp[-1].minor);
+  yy_destructor(yypParser,117,&yymsp[0].minor);
+}
+#line 3317 "xec_parser_lemon.c"
+        break;
+      case 165: /* sexpr_assign ::= sexpr_list */
+#line 318 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,121,&yymsp[0].minor);
+}
+#line 3324 "xec_parser_lemon.c"
+        break;
+      case 166: /* sexpr_assign ::= sexpr_lbody assign_op expr_list */
+#line 319 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,120,&yymsp[-2].minor);
+  yy_destructor(yypParser,118,&yymsp[-1].minor);
+  yy_destructor(yypParser,85,&yymsp[0].minor);
+}
+#line 3333 "xec_parser_lemon.c"
+        break;
+      case 167: /* condition ::= expr_assign */
+#line 328 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,98,&yymsp[0].minor);
+}
+#line 3340 "xec_parser_lemon.c"
+        break;
+      case 168: /* condition ::= VAR name_list ASSIGN expr_list */
+#line 329 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,17,&yymsp[-3].minor);
+  yy_destructor(yypParser,90,&yymsp[-2].minor);
+  yy_destructor(yypParser,19,&yymsp[-1].minor);
+  yy_destructor(yypParser,85,&yymsp[0].minor);
+}
+#line 3350 "xec_parser_lemon.c"
+        break;
+      case 169: /* stmt_yield ::= YIELD */
+#line 331 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,6,&yymsp[0].minor);
+}
+#line 3357 "xec_parser_lemon.c"
+        break;
+      case 170: /* stmt_using ::= USING */
+#line 333 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,7,&yymsp[0].minor);
+}
+#line 3364 "xec_parser_lemon.c"
+        break;
+      case 171: /* stmt ::= stmt_brace */
+#line 335 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,86,&yymsp[0].minor);
+}
+#line 3371 "xec_parser_lemon.c"
+        break;
+      case 172: /* stmt ::= sexpr_assign SEMICOLON */
+#line 336 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,122,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 3379 "xec_parser_lemon.c"
+        break;
+      case 173: /* stmt ::= DELETE expr_lbody SEMICOLON */
+#line 337 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,69,&yymsp[-2].minor);
+  yy_destructor(yypParser,116,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 3388 "xec_parser_lemon.c"
+        break;
+      case 174: /* stmt ::= IF LPN condition RPN stmt */
+#line 338 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,1,&yymsp[-4].minor);
+  yy_destructor(yypParser,8,&yymsp[-3].minor);
+  yy_destructor(yypParser,123,&yymsp[-2].minor);
+  yy_destructor(yypParser,9,&yymsp[-1].minor);
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3399 "xec_parser_lemon.c"
+        break;
+      case 175: /* stmt ::= IF LPN condition RPN stmt ELSE stmt */
+#line 339 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,1,&yymsp[-6].minor);
+  yy_destructor(yypParser,8,&yymsp[-5].minor);
+  yy_destructor(yypParser,123,&yymsp[-4].minor);
+  yy_destructor(yypParser,9,&yymsp[-3].minor);
+  yy_destructor(yypParser,126,&yymsp[-2].minor);
+  yy_destructor(yypParser,2,&yymsp[-1].minor);
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3412 "xec_parser_lemon.c"
+        break;
+      case 176: /* stmt ::= SWITCH LPN condition RPN stmt_brace */
+#line 340 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,70,&yymsp[-4].minor);
+  yy_destructor(yypParser,8,&yymsp[-3].minor);
+  yy_destructor(yypParser,123,&yymsp[-2].minor);
+  yy_destructor(yypParser,9,&yymsp[-1].minor);
+  yy_destructor(yypParser,86,&yymsp[0].minor);
+}
+#line 3423 "xec_parser_lemon.c"
+        break;
+      case 177: /* stmt ::= CASE expr_value COLON */
+#line 341 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,71,&yymsp[-2].minor);
+  yy_destructor(yypParser,99,&yymsp[-1].minor);
+  yy_destructor(yypParser,16,&yymsp[0].minor);
+}
+#line 3432 "xec_parser_lemon.c"
+        break;
+      case 178: /* stmt ::= DEFAULT COLON */
+#line 342 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,72,&yymsp[-1].minor);
+  yy_destructor(yypParser,16,&yymsp[0].minor);
+}
+#line 3440 "xec_parser_lemon.c"
+        break;
+      case 179: /* stmt ::= WHILE LPN condition RPN stmt */
+#line 343 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,73,&yymsp[-4].minor);
+  yy_destructor(yypParser,8,&yymsp[-3].minor);
+  yy_destructor(yypParser,123,&yymsp[-2].minor);
+  yy_destructor(yypParser,9,&yymsp[-1].minor);
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3451 "xec_parser_lemon.c"
+        break;
+      case 180: /* stmt ::= DO stmt WHILE LPN expr_assign RPN SEMICOLON */
+#line 344 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,74,&yymsp[-6].minor);
+  yy_destructor(yypParser,126,&yymsp[-5].minor);
+  yy_destructor(yypParser,73,&yymsp[-4].minor);
+  yy_destructor(yypParser,8,&yymsp[-3].minor);
+  yy_destructor(yypParser,98,&yymsp[-2].minor);
+  yy_destructor(yypParser,9,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 3464 "xec_parser_lemon.c"
+        break;
+      case 181: /* stmt ::= FOR LPN expr_lbody COLON expr_value RPN stmt */
+#line 345 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,75,&yymsp[-6].minor);
+  yy_destructor(yypParser,8,&yymsp[-5].minor);
+  yy_destructor(yypParser,116,&yymsp[-4].minor);
+  yy_destructor(yypParser,16,&yymsp[-3].minor);
+  yy_destructor(yypParser,99,&yymsp[-2].minor);
+  yy_destructor(yypParser,9,&yymsp[-1].minor);
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3477 "xec_parser_lemon.c"
+        break;
+      case 182: /* stmt ::= FOR LPN expr_lbody EACHKEY expr_value RPN stmt */
+#line 346 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,75,&yymsp[-6].minor);
+  yy_destructor(yypParser,8,&yymsp[-5].minor);
+  yy_destructor(yypParser,116,&yymsp[-4].minor);
+  yy_destructor(yypParser,76,&yymsp[-3].minor);
+  yy_destructor(yypParser,99,&yymsp[-2].minor);
+  yy_destructor(yypParser,9,&yymsp[-1].minor);
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3490 "xec_parser_lemon.c"
+        break;
+      case 183: /* stmt ::= FOR LPN VAR name_list COLON expr_value RPN stmt */
+#line 347 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,75,&yymsp[-7].minor);
+  yy_destructor(yypParser,8,&yymsp[-6].minor);
+  yy_destructor(yypParser,17,&yymsp[-5].minor);
+  yy_destructor(yypParser,90,&yymsp[-4].minor);
+  yy_destructor(yypParser,16,&yymsp[-3].minor);
+  yy_destructor(yypParser,99,&yymsp[-2].minor);
+  yy_destructor(yypParser,9,&yymsp[-1].minor);
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3504 "xec_parser_lemon.c"
+        break;
+      case 184: /* stmt ::= FOR LPN VAR name_list EACHKEY expr_value RPN stmt */
+#line 348 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,75,&yymsp[-7].minor);
+  yy_destructor(yypParser,8,&yymsp[-6].minor);
+  yy_destructor(yypParser,17,&yymsp[-5].minor);
+  yy_destructor(yypParser,90,&yymsp[-4].minor);
+  yy_destructor(yypParser,76,&yymsp[-3].minor);
+  yy_destructor(yypParser,99,&yymsp[-2].minor);
+  yy_destructor(yypParser,9,&yymsp[-1].minor);
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3518 "xec_parser_lemon.c"
+        break;
+      case 185: /* stmt ::= FOR LPN condition SEMICOLON expr_assign SEMICOLON expr_assign RPN stmt */
+#line 350 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,75,&yymsp[-8].minor);
+  yy_destructor(yypParser,8,&yymsp[-7].minor);
+  yy_destructor(yypParser,123,&yymsp[-6].minor);
+  yy_destructor(yypParser,18,&yymsp[-5].minor);
+  yy_destructor(yypParser,98,&yymsp[-4].minor);
+  yy_destructor(yypParser,18,&yymsp[-3].minor);
+  yy_destructor(yypParser,98,&yymsp[-2].minor);
+  yy_destructor(yypParser,9,&yymsp[-1].minor);
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3533 "xec_parser_lemon.c"
+        break;
+      case 186: /* stmt ::= CONTINUE SEMICOLON */
+#line 351 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,77,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 3541 "xec_parser_lemon.c"
+        break;
+      case 187: /* stmt ::= BREAK SEMICOLON */
+#line 352 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,78,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 3549 "xec_parser_lemon.c"
+        break;
+      case 188: /* stmt ::= RETURN SEMICOLON */
+#line 353 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,79,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 3557 "xec_parser_lemon.c"
+        break;
+      case 189: /* stmt ::= RETURN expr_list SEMICOLON */
+#line 354 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,79,&yymsp[-2].minor);
+  yy_destructor(yypParser,85,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 3566 "xec_parser_lemon.c"
+        break;
+      case 190: /* stmt ::= stmt_yield SEMICOLON */
+#line 355 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,124,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 3574 "xec_parser_lemon.c"
+        break;
+      case 191: /* stmt ::= stmt_yield expr_list SEMICOLON */
+#line 356 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,124,&yymsp[-2].minor);
+  yy_destructor(yypParser,85,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 3583 "xec_parser_lemon.c"
+        break;
+      case 192: /* stmt ::= USING LPN condition RPN stmt */
+#line 357 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,7,&yymsp[-4].minor);
+  yy_destructor(yypParser,8,&yymsp[-3].minor);
+  yy_destructor(yypParser,123,&yymsp[-2].minor);
+  yy_destructor(yypParser,9,&yymsp[-1].minor);
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3594 "xec_parser_lemon.c"
+        break;
+      case 193: /* stmt ::= stmt_using condition SEMICOLON */
+#line 358 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,125,&yymsp[-2].minor);
+  yy_destructor(yypParser,123,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 3603 "xec_parser_lemon.c"
+        break;
+      case 194: /* stmt ::= TRY stmt catch_list */
+#line 359 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,3,&yymsp[-2].minor);
+  yy_destructor(yypParser,126,&yymsp[-1].minor);
+  yy_destructor(yypParser,127,&yymsp[0].minor);
+}
+#line 3612 "xec_parser_lemon.c"
+        break;
+      case 195: /* stmt ::= TRY stmt FINALLY stmt */
+#line 360 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,3,&yymsp[-3].minor);
+  yy_destructor(yypParser,126,&yymsp[-2].minor);
+  yy_destructor(yypParser,5,&yymsp[-1].minor);
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3622 "xec_parser_lemon.c"
+        break;
+      case 196: /* stmt ::= TRY stmt catch_list FINALLY stmt */
+#line 361 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,3,&yymsp[-4].minor);
+  yy_destructor(yypParser,126,&yymsp[-3].minor);
+  yy_destructor(yypParser,127,&yymsp[-2].minor);
+  yy_destructor(yypParser,5,&yymsp[-1].minor);
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3633 "xec_parser_lemon.c"
+        break;
+      case 197: /* stmt ::= THROW expr_value SEMICOLON */
+#line 362 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,80,&yymsp[-2].minor);
+  yy_destructor(yypParser,99,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 3642 "xec_parser_lemon.c"
+        break;
+      case 198: /* catch ::= CATCH LPN COLON expr_simple RPN stmt */
+#line 364 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,4,&yymsp[-5].minor);
+  yy_destructor(yypParser,8,&yymsp[-4].minor);
+  yy_destructor(yypParser,16,&yymsp[-3].minor);
+  yy_destructor(yypParser,93,&yymsp[-2].minor);
+  yy_destructor(yypParser,9,&yymsp[-1].minor);
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3654 "xec_parser_lemon.c"
+        break;
+      case 199: /* catch ::= CATCH LPN expr_value COLON expr_simple RPN stmt */
+#line 365 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,4,&yymsp[-6].minor);
+  yy_destructor(yypParser,8,&yymsp[-5].minor);
+  yy_destructor(yypParser,99,&yymsp[-4].minor);
+  yy_destructor(yypParser,16,&yymsp[-3].minor);
+  yy_destructor(yypParser,93,&yymsp[-2].minor);
+  yy_destructor(yypParser,9,&yymsp[-1].minor);
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3667 "xec_parser_lemon.c"
+        break;
+      case 200: /* catch ::= CATCH LPN VAR name COLON expr_simple RPN stmt */
+#line 366 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,4,&yymsp[-7].minor);
+  yy_destructor(yypParser,8,&yymsp[-6].minor);
+  yy_destructor(yypParser,17,&yymsp[-5].minor);
+  yy_destructor(yypParser,89,&yymsp[-4].minor);
+  yy_destructor(yypParser,16,&yymsp[-3].minor);
+  yy_destructor(yypParser,93,&yymsp[-2].minor);
+  yy_destructor(yypParser,9,&yymsp[-1].minor);
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3681 "xec_parser_lemon.c"
+        break;
+      case 201: /* catch_list ::= catch */
+#line 368 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,128,&yymsp[0].minor);
+}
+#line 3688 "xec_parser_lemon.c"
+        break;
+      case 202: /* catch_list ::= catch_list catch */
+#line 369 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,127,&yymsp[-1].minor);
+  yy_destructor(yypParser,128,&yymsp[0].minor);
+}
+#line 3696 "xec_parser_lemon.c"
+        break;
+      case 203: /* stmt_list ::= stmt */
+#line 371 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3703 "xec_parser_lemon.c"
+        break;
+      case 204: /* stmt_list ::= decl */
+#line 372 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,94,&yymsp[0].minor);
+}
+#line 3710 "xec_parser_lemon.c"
+        break;
+      case 206: /* stmt_list ::= stmt_list stmt */
+#line 374 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,83,&yymsp[-1].minor);
+  yy_destructor(yypParser,126,&yymsp[0].minor);
+}
+#line 3718 "xec_parser_lemon.c"
+        break;
+      case 207: /* stmt_list ::= stmt_list decl */
+#line 375 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,83,&yymsp[-1].minor);
+  yy_destructor(yypParser,94,&yymsp[0].minor);
+}
+#line 3726 "xec_parser_lemon.c"
+        break;
+      case 208: /* stmt_list ::= stmt_list SEMICOLON */
+#line 376 "xec_parser_lemon.y"
+{
+  yy_destructor(yypParser,83,&yymsp[-1].minor);
+  yy_destructor(yypParser,18,&yymsp[0].minor);
+}
+#line 3734 "xec_parser_lemon.c"
+        break;
       default:
       /* (0) script ::= */ yytestcase(yyruleno==0);
-      /* (1) script ::= stmt_list */ yytestcase(yyruleno==1);
-      /* (2) expr_paren ::= LPN RPN */ yytestcase(yyruleno==2);
-      /* (3) expr_paren ::= LPN expr_list RPN */ yytestcase(yyruleno==3);
-      /* (4) stmt_brace ::= LBR RBR */ yytestcase(yyruleno==4);
-      /* (5) stmt_brace ::= LBR stmt_list RBR */ yytestcase(yyruleno==5);
-      /* (6) odecl_brace ::= LBR RBR */ yytestcase(yyruleno==6);
-      /* (7) odecl_brace ::= LBR odecl_list RBR */ yytestcase(yyruleno==7);
-      /* (8) name ::= IDENTIFIER */ yytestcase(yyruleno==8);
-      /* (9) name ::= name PERIOD IDENTIFIER */ yytestcase(yyruleno==9);
-      /* (10) name ::= name PERIOD TILDE IDENTIFIER */ yytestcase(yyruleno==10);
-      /* (11) name_list ::= name */ yytestcase(yyruleno==11);
-      /* (12) name_list ::= name_list COMMA name */ yytestcase(yyruleno==12);
-      /* (13) proto ::= name expr_paren */ yytestcase(yyruleno==13);
-      /* (14) decl_common ::= name odecl_brace */ yytestcase(yyruleno==14);
-      /* (15) decl_common ::= name COLON expr_simple odecl_brace */ yytestcase(yyruleno==15);
-      /* (16) decl_common ::= proto stmt_brace */ yytestcase(yyruleno==16);
-      /* (17) decl_common ::= proto YIELD stmt_brace */ yytestcase(yyruleno==17);
-      /* (18) decl ::= decl_common */ yytestcase(yyruleno==18);
-      /* (19) decl ::= VAR name_list SEMICOLON */ yytestcase(yyruleno==19);
-      /* (20) decl ::= VAR name_list ASSIGN expr_list SEMICOLON */ yytestcase(yyruleno==20);
-      /* (21) odecl ::= SEMICOLON */ yytestcase(yyruleno==21);
-      /* (22) odecl ::= decl_common */ yytestcase(yyruleno==22);
-      /* (23) odecl ::= proto SEMICOLON */ yytestcase(yyruleno==23);
-      /* (24) odecl ::= proto YIELD SEMICOLON */ yytestcase(yyruleno==24);
-      /* (25) odecl ::= TILDE proto stmt_brace */ yytestcase(yyruleno==25);
-      /* (26) odecl ::= TILDE proto YIELD stmt_brace */ yytestcase(yyruleno==26);
-      /* (27) odecl ::= TILDE proto SEMICOLON */ yytestcase(yyruleno==27);
-      /* (28) odecl ::= TILDE proto YIELD SEMICOLON */ yytestcase(yyruleno==28);
-      /* (29) odecl ::= name_list SEMICOLON */ yytestcase(yyruleno==29);
-      /* (30) odecl ::= name_list ASSIGN expr_list SEMICOLON */ yytestcase(yyruleno==30);
-      /* (31) odecl_list ::= odecl */ yytestcase(yyruleno==31);
-      /* (32) odecl_list ::= odecl_list odecl */ yytestcase(yyruleno==32);
-      /* (33) expr_call ::= YIELD expr_paren */ yytestcase(yyruleno==33);
-      /* (34) expr_call ::= proto expr_paren */ yytestcase(yyruleno==34);
-      /* (35) expr_call ::= expr_call expr_paren */ yytestcase(yyruleno==35);
-      /* (36) expr_call ::= expr_postfix expr_paren */ yytestcase(yyruleno==36);
-      /* (37) expr_postfix ::= LPN expr_assign RPN */ yytestcase(yyruleno==37);
-      /* (38) expr_postfix ::= name PERIOD LSQ expr_value RSQ */ yytestcase(yyruleno==38);
-      /* (39) expr_postfix ::= name LSQ expr_value RSQ */ yytestcase(yyruleno==39);
-      /* (40) expr_postfix ::= proto PERIOD IDENTIFIER */ yytestcase(yyruleno==40);
-      /* (41) expr_postfix ::= proto PERIOD TILDE IDENTIFIER */ yytestcase(yyruleno==41);
-      /* (42) expr_postfix ::= proto PERIOD LSQ expr_value RSQ */ yytestcase(yyruleno==42);
-      /* (43) expr_postfix ::= proto LSQ expr_value RSQ */ yytestcase(yyruleno==43);
-      /* (44) expr_postfix ::= expr_call PERIOD IDENTIFIER */ yytestcase(yyruleno==44);
-      /* (45) expr_postfix ::= expr_call PERIOD TILDE IDENTIFIER */ yytestcase(yyruleno==45);
-      /* (46) expr_postfix ::= expr_call PERIOD LSQ expr_value RSQ */ yytestcase(yyruleno==46);
-      /* (47) expr_postfix ::= expr_call LSQ expr_value RSQ */ yytestcase(yyruleno==47);
-      /* (48) expr_postfix ::= expr_postfix PERIOD IDENTIFIER */ yytestcase(yyruleno==48);
-      /* (49) expr_postfix ::= expr_postfix PERIOD TILDE IDENTIFIER */ yytestcase(yyruleno==49);
-      /* (50) expr_postfix ::= expr_postfix PERIOD LSQ expr_value RSQ */ yytestcase(yyruleno==50);
-      /* (51) expr_postfix ::= expr_postfix LSQ expr_value RSQ */ yytestcase(yyruleno==51);
-      /* (52) expr_simple ::= name */ yytestcase(yyruleno==52);
-      /* (53) expr_simple ::= expr_postfix */ yytestcase(yyruleno==53);
-      /* (54) expr_simple ::= proto */ yytestcase(yyruleno==54);
-      /* (55) expr_simple ::= expr_call */ yytestcase(yyruleno==55);
-      /* (56) expr_simple ::= proto YIELD */ yytestcase(yyruleno==56);
-      /* (57) expr_simple ::= expr_call YIELD */ yytestcase(yyruleno==57);
-      /* (58) expr_basic ::= expr_simple */ yytestcase(yyruleno==58);
-      /* (59) expr_basic ::= NUMBER */ yytestcase(yyruleno==59);
-      /* (60) expr_basic ::= STRING */ yytestcase(yyruleno==60);
-      /* (61) expr_basic ::= TRUE */ yytestcase(yyruleno==61);
-      /* (62) expr_basic ::= FALSE */ yytestcase(yyruleno==62);
-      /* (63) expr_basic ::= NULL */ yytestcase(yyruleno==63);
-      /* (64) expr_suffix ::= expr_basic */ yytestcase(yyruleno==64);
-      /* (65) expr_suffix ::= expr_basic INCREMENT */ yytestcase(yyruleno==65);
-      /* (66) expr_suffix ::= expr_basic DECREMENT */ yytestcase(yyruleno==66);
-      /* (67) expr_unary ::= expr_suffix */ yytestcase(yyruleno==67);
-      /* (68) expr_unary ::= PLUS expr_basic */ yytestcase(yyruleno==68);
-      /* (69) expr_unary ::= MINUS expr_basic */ yytestcase(yyruleno==69);
-      /* (70) expr_unary ::= XMARK expr_basic */ yytestcase(yyruleno==70);
-      /* (71) expr_unary ::= TILDE expr_basic */ yytestcase(yyruleno==71);
-      /* (72) expr_unary ::= INCREMENT expr_basic */ yytestcase(yyruleno==72);
-      /* (73) expr_unary ::= DECREMENT expr_basic */ yytestcase(yyruleno==73);
-      /* (74) expr_mul ::= expr_unary */ yytestcase(yyruleno==74);
-      /* (75) expr_mul ::= expr_mul ASTERISK expr_unary */ yytestcase(yyruleno==75);
-      /* (76) expr_mul ::= expr_mul SOLIDUS expr_unary */ yytestcase(yyruleno==76);
-      /* (77) expr_mul ::= expr_mul PERCENT expr_unary */ yytestcase(yyruleno==77);
-      /* (78) expr_mul ::= expr_mul TILDE expr_unary */ yytestcase(yyruleno==78);
-      /* (79) expr_add ::= expr_mul */ yytestcase(yyruleno==79);
-      /* (80) expr_add ::= expr_add PLUS expr_mul */ yytestcase(yyruleno==80);
-      /* (81) expr_add ::= expr_add MINUS expr_mul */ yytestcase(yyruleno==81);
-      /* (82) expr_shift ::= expr_add */ yytestcase(yyruleno==82);
-      /* (83) expr_shift ::= expr_shift LSHIFT expr_add */ yytestcase(yyruleno==83);
-      /* (84) expr_shift ::= expr_shift RSHIFT expr_add */ yytestcase(yyruleno==84);
-      /* (85) expr_shift ::= expr_shift URSHIFT expr_add */ yytestcase(yyruleno==85);
-      /* (86) expr_bitand ::= expr_shift */ yytestcase(yyruleno==86);
-      /* (87) expr_bitand ::= expr_bitand AMPERSAND expr_shift */ yytestcase(yyruleno==87);
-      /* (88) expr_bitxor ::= expr_bitand */ yytestcase(yyruleno==88);
-      /* (89) expr_bitxor ::= expr_bitxor CARET expr_bitand */ yytestcase(yyruleno==89);
-      /* (90) expr_bitor ::= expr_bitxor */ yytestcase(yyruleno==90);
-      /* (91) expr_bitor ::= expr_bitor VBAR expr_bitxor */ yytestcase(yyruleno==91);
-      /* (92) expr_compare ::= expr_bitor */ yytestcase(yyruleno==92);
-      /* (93) expr_compare ::= expr_compare EQUAL expr_bitor */ yytestcase(yyruleno==93);
-      /* (94) expr_compare ::= expr_compare NOTEQUAL expr_bitor */ yytestcase(yyruleno==94);
-      /* (95) expr_compare ::= expr_compare LESS expr_bitor */ yytestcase(yyruleno==95);
-      /* (96) expr_compare ::= expr_compare GREATER expr_bitor */ yytestcase(yyruleno==96);
-      /* (97) expr_compare ::= expr_compare LESSEQUAL expr_bitor */ yytestcase(yyruleno==97);
-      /* (98) expr_compare ::= expr_compare GREATEREQUAL expr_bitor */ yytestcase(yyruleno==98);
-      /* (99) expr_compare ::= expr_compare IN expr_bitor */ yytestcase(yyruleno==99);
-      /* (100) expr_compare ::= expr_compare NOTIN expr_bitor */ yytestcase(yyruleno==100);
-      /* (101) expr_compare ::= expr_compare IS expr_bitor */ yytestcase(yyruleno==101);
-      /* (102) expr_compare ::= expr_compare NOTIS expr_bitor */ yytestcase(yyruleno==102);
-      /* (103) expr_and ::= expr_compare */ yytestcase(yyruleno==103);
-      /* (104) expr_and ::= expr_and LOGICAND expr_compare */ yytestcase(yyruleno==104);
-      /* (105) expr_xor ::= expr_and */ yytestcase(yyruleno==105);
-      /* (106) expr_xor ::= expr_xor LOGICXOR expr_and */ yytestcase(yyruleno==106);
-      /* (107) expr_or ::= expr_xor */ yytestcase(yyruleno==107);
-      /* (108) expr_or ::= expr_or LOGICOR expr_xor */ yytestcase(yyruleno==108);
-      /* (109) expr_nolbr ::= expr_or */ yytestcase(yyruleno==109);
-      /* (110) expr_nolbr ::= expr_or QMARK expr_value COLON expr_value */ yytestcase(yyruleno==110);
-      /* (111) expr_nolbr ::= NEW name expr_paren */ yytestcase(yyruleno==111);
-      /* (112) expr_nolbr ::= NEW expr_postfix expr_paren */ yytestcase(yyruleno==112);
-      /* (113) expr_nolbr ::= LSQ RSQ */ yytestcase(yyruleno==113);
-      /* (114) expr_nolbr ::= LSQ value_list RSQ */ yytestcase(yyruleno==114);
-      /* (115) expr_nolbr ::= COLON odecl_brace */ yytestcase(yyruleno==115);
-      /* (116) expr_nolbr ::= COLON expr_simple odecl_brace */ yytestcase(yyruleno==116);
-      /* (117) expr_nolbr ::= QMARK expr_paren stmt_brace */ yytestcase(yyruleno==117);
-      /* (118) expr_nolbr ::= PERIOD QMARK expr_paren stmt_brace */ yytestcase(yyruleno==118);
       /* (119) expr_value ::= expr_nolbr */ yytestcase(yyruleno==119);
-      /* (120) expr_value ::= LBR RBR */ yytestcase(yyruleno==120);
-      /* (121) expr_value ::= LBR keyval_list RBR */ yytestcase(yyruleno==121);
-      /* (122) expr_lbody ::= expr_value */ yytestcase(yyruleno==122);
-      /* (123) expr_lbody ::= expr_lbody COMMA expr_value */ yytestcase(yyruleno==123);
-      /* (124) expr_final ::= ELLIPSIS */ yytestcase(yyruleno==124);
-      /* (125) expr_final ::= proto ELLIPSIS */ yytestcase(yyruleno==125);
-      /* (126) expr_final ::= expr_call ELLIPSIS */ yytestcase(yyruleno==126);
-      /* (127) expr_final ::= proto YIELD ELLIPSIS */ yytestcase(yyruleno==127);
-      /* (128) expr_final ::= expr_call YIELD ELLIPSIS */ yytestcase(yyruleno==128);
-      /* (129) expr_final ::= name LSQ RSQ ELLIPSIS */ yytestcase(yyruleno==129);
-      /* (130) expr_final ::= proto LSQ RSQ ELLIPSIS */ yytestcase(yyruleno==130);
-      /* (131) expr_final ::= expr_call LSQ RSQ ELLIPSIS */ yytestcase(yyruleno==131);
-      /* (132) expr_final ::= expr_postfix LSQ RSQ ELLIPSIS */ yytestcase(yyruleno==132);
-      /* (133) expr_list ::= expr_final */ yytestcase(yyruleno==133);
-      /* (134) expr_list ::= expr_lbody */ yytestcase(yyruleno==134);
-      /* (135) expr_list ::= expr_lbody COMMA expr_final */ yytestcase(yyruleno==135);
-      /* (136) expr_assign ::= expr_list */ yytestcase(yyruleno==136);
-      /* (137) expr_assign ::= expr_lbody assign_op expr_list */ yytestcase(yyruleno==137);
-      /* (138) assign_op ::= ASSIGN */ yytestcase(yyruleno==138);
-      /* (139) assign_op ::= MULASSIGN */ yytestcase(yyruleno==139);
-      /* (140) assign_op ::= DIVASSIGN */ yytestcase(yyruleno==140);
-      /* (141) assign_op ::= MODASSIGN */ yytestcase(yyruleno==141);
-      /* (142) assign_op ::= INTDIVASSIGN */ yytestcase(yyruleno==142);
-      /* (143) assign_op ::= ADDASSIGN */ yytestcase(yyruleno==143);
-      /* (144) assign_op ::= SUBASSIGN */ yytestcase(yyruleno==144);
-      /* (145) assign_op ::= LSHIFTASSIGN */ yytestcase(yyruleno==145);
-      /* (146) assign_op ::= RSHIFTASSIGN */ yytestcase(yyruleno==146);
-      /* (147) assign_op ::= URSHIFTASSIGN */ yytestcase(yyruleno==147);
-      /* (148) assign_op ::= BITANDASSIGN */ yytestcase(yyruleno==148);
-      /* (149) assign_op ::= BITXORASSIGN */ yytestcase(yyruleno==149);
-      /* (150) assign_op ::= BITORASSIGN */ yytestcase(yyruleno==150);
-      /* (151) value_list ::= expr_final */ yytestcase(yyruleno==151);
-      /* (152) value_list ::= expr_final COMMA */ yytestcase(yyruleno==152);
-      /* (153) value_list ::= expr_lbody */ yytestcase(yyruleno==153);
-      /* (154) value_list ::= expr_lbody COMMA */ yytestcase(yyruleno==154);
-      /* (155) value_list ::= expr_lbody COMMA expr_final */ yytestcase(yyruleno==155);
-      /* (156) keyval_lbody ::= expr_value COLON expr_value */ yytestcase(yyruleno==156);
-      /* (157) keyval_lbody ::= keyval_lbody COMMA expr_value COLON expr_value */ yytestcase(yyruleno==157);
-      /* (158) keyval_list ::= keyval_lbody */ yytestcase(yyruleno==158);
-      /* (159) keyval_list ::= keyval_lbody COMMA */ yytestcase(yyruleno==159);
-      /* (160) sexpr_lbody ::= expr_nolbr */ yytestcase(yyruleno==160);
-      /* (161) sexpr_lbody ::= sexpr_lbody COMMA expr_value */ yytestcase(yyruleno==161);
-      /* (162) sexpr_list ::= expr_final */ yytestcase(yyruleno==162);
-      /* (163) sexpr_list ::= sexpr_lbody */ yytestcase(yyruleno==163);
-      /* (164) sexpr_list ::= sexpr_lbody COMMA expr_final */ yytestcase(yyruleno==164);
-      /* (165) sexpr_assign ::= sexpr_list */ yytestcase(yyruleno==165);
-      /* (166) sexpr_assign ::= sexpr_lbody assign_op expr_list */ yytestcase(yyruleno==166);
-      /* (167) condition ::= expr_assign */ yytestcase(yyruleno==167);
-      /* (168) condition ::= VAR name_list ASSIGN expr_list */ yytestcase(yyruleno==168);
-      /* (169) stmt_yield ::= YIELD */ yytestcase(yyruleno==169);
-      /* (170) stmt_using ::= USING */ yytestcase(yyruleno==170);
-      /* (171) stmt ::= stmt_brace */ yytestcase(yyruleno==171);
-      /* (172) stmt ::= sexpr_assign SEMICOLON */ yytestcase(yyruleno==172);
-      /* (173) stmt ::= DELETE expr_lbody SEMICOLON */ yytestcase(yyruleno==173);
-      /* (174) stmt ::= IF LPN condition RPN stmt */ yytestcase(yyruleno==174);
-      /* (175) stmt ::= IF LPN condition RPN stmt ELSE stmt */ yytestcase(yyruleno==175);
-      /* (176) stmt ::= SWITCH LPN condition RPN stmt_brace */ yytestcase(yyruleno==176);
-      /* (177) stmt ::= CASE expr_value COLON */ yytestcase(yyruleno==177);
-      /* (178) stmt ::= DEFAULT COLON */ yytestcase(yyruleno==178);
-      /* (179) stmt ::= WHILE LPN condition RPN stmt */ yytestcase(yyruleno==179);
-      /* (180) stmt ::= DO stmt WHILE LPN expr_assign RPN SEMICOLON */ yytestcase(yyruleno==180);
-      /* (181) stmt ::= FOR LPN expr_lbody COLON expr_value RPN stmt */ yytestcase(yyruleno==181);
-      /* (182) stmt ::= FOR LPN expr_lbody EACHKEY expr_value RPN stmt */ yytestcase(yyruleno==182);
-      /* (183) stmt ::= FOR LPN VAR name_list COLON expr_value RPN stmt */ yytestcase(yyruleno==183);
-      /* (184) stmt ::= FOR LPN VAR name_list EACHKEY expr_value RPN stmt */ yytestcase(yyruleno==184);
-      /* (185) stmt ::= FOR LPN condition SEMICOLON expr_assign SEMICOLON expr_assign RPN stmt */ yytestcase(yyruleno==185);
-      /* (186) stmt ::= CONTINUE SEMICOLON */ yytestcase(yyruleno==186);
-      /* (187) stmt ::= BREAK SEMICOLON */ yytestcase(yyruleno==187);
-      /* (188) stmt ::= RETURN SEMICOLON */ yytestcase(yyruleno==188);
-      /* (189) stmt ::= RETURN expr_list SEMICOLON */ yytestcase(yyruleno==189);
-      /* (190) stmt ::= stmt_yield SEMICOLON */ yytestcase(yyruleno==190);
-      /* (191) stmt ::= stmt_yield expr_list SEMICOLON */ yytestcase(yyruleno==191);
-      /* (192) stmt ::= USING LPN condition RPN stmt */ yytestcase(yyruleno==192);
-      /* (193) stmt ::= stmt_using condition SEMICOLON */ yytestcase(yyruleno==193);
-      /* (194) stmt ::= TRY stmt catch_list */ yytestcase(yyruleno==194);
-      /* (195) stmt ::= TRY stmt FINALLY stmt */ yytestcase(yyruleno==195);
-      /* (196) stmt ::= TRY stmt catch_list FINALLY stmt */ yytestcase(yyruleno==196);
-      /* (197) stmt ::= THROW expr_value SEMICOLON */ yytestcase(yyruleno==197);
-      /* (198) catch ::= CATCH LPN COLON expr_simple RPN stmt */ yytestcase(yyruleno==198);
-      /* (199) catch ::= CATCH LPN expr_value COLON expr_simple RPN stmt */ yytestcase(yyruleno==199);
-      /* (200) catch ::= CATCH LPN VAR name COLON expr_simple RPN stmt */ yytestcase(yyruleno==200);
-      /* (201) catch_list ::= catch */ yytestcase(yyruleno==201);
-      /* (202) catch_list ::= catch_list catch */ yytestcase(yyruleno==202);
-      /* (203) stmt_list ::= stmt */ yytestcase(yyruleno==203);
-      /* (204) stmt_list ::= decl */ yytestcase(yyruleno==204);
-      /* (205) stmt_list ::= SEMICOLON */ yytestcase(yyruleno==205);
-      /* (206) stmt_list ::= stmt_list stmt */ yytestcase(yyruleno==206);
-      /* (207) stmt_list ::= stmt_list decl */ yytestcase(yyruleno==207);
-      /* (208) stmt_list ::= stmt_list SEMICOLON */ yytestcase(yyruleno==208);
         break;
   };
   yygoto = yyRuleInfo[yyruleno].lhs;
