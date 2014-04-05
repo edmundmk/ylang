@@ -119,7 +119,9 @@ class region_allocator
 {
 public:
 
-    typedef T value_type;
+    typedef T           value_type;
+    typedef ptrdiff_t   difference_type;
+    typedef size_t      size_type;
 
     T*      allocate( size_t n );
     void    deallocate( T* p, size_t n );

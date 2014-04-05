@@ -25,15 +25,12 @@ class SpookyHash;
 
 typedef uint32_t    hash32_t;
 typedef uint64_t    hash64_t;
-typedef __uint128_t hash128_t;
 
 
 hash32_t    hash32( const char* string );
 hash32_t    hash32( const void* data, size_t size );
 hash64_t    hash64( const char* string );
 hash64_t    hash64( const void* data, size_t size );
-hash128_t   hash128( const char* string );
-hash128_t   hash128( const void* data, size_t size );
 
 
 class hash_context
@@ -58,7 +55,6 @@ public:
     
     hash32_t    hash32();
     hash64_t    hash64();
-    hash128_t   hash128();
     
     
 private:

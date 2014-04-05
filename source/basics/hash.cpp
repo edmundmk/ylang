@@ -686,18 +686,6 @@ hash64_t hash64( const void* data, size_t size )
     return SpookyHash::Hash64( data, size, 0 );
 }
 
-hash128_t hash128( const char* string )
-{
-    return hash128( string, strlen( string ) );
-}
-
-hash128_t hash128( const void* data, size_t size )
-{
-    uint64 hash1 = 0;
-    uint64 hash2 = 0;
-    SpookyHash::Hash128( data, size, &hash1, &hash2 );
-    return (hash128_t)hash1 | (hash128_t)hash2 << 8;
-}
 
 
 hash_context::hash_context()
@@ -789,13 +777,6 @@ hash64_t hash_context::hash64()
     return hash1;
 }
 
-hash128_t hash_context::hash128()
-{
-    uint64 hash1;
-    uint64 hash2;
-    context->Final( &hash1, &hash2 );
-    return (hash128_t)hash1 | (hash128_t)hash2 << 8;
-}
 
 
 
