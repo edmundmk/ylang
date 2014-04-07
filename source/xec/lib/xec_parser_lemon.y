@@ -120,17 +120,15 @@ name_list(x)    ::= name_list COMMA name .
 
 proto(x)        ::= name expr_paren .
 
-decl_common(x)  ::= name odecl_brace .
-decl_common(x)  ::= name COLON expr_simple odecl_brace .
-decl_common(x)  ::= proto stmt_brace .
-decl_common(x)  ::= proto YIELD stmt_brace .
-
-decl(x)         ::= decl_common .
+decl(x)         ::= name odecl_brace .
+decl(x)         ::= name COLON expr_simple odecl_brace .
+decl(x)         ::= proto stmt_brace .
+decl(x)         ::= proto YIELD stmt_brace .
 decl(x)         ::= VAR name_list SEMICOLON .
 decl(x)         ::= VAR name_list ASSIGN expr_list SEMICOLON .
 
 odecl(x)        ::= SEMICOLON .
-odecl(x)        ::= decl_common .
+odecl(x)        ::= decl .
 odecl(x)        ::= proto SEMICOLON .
 odecl(x)        ::= proto YIELD SEMICOLON .
 odecl(x)        ::= TILDE proto stmt_brace .
@@ -385,11 +383,45 @@ stmt_list(x)    ::= stmt_list SEMICOLON .
 /* you can only yield where we expect an expr_list, this is:
 
 
+    each script is a function.  we don't know what the parameters to the function
+    are when we compile it.
+    
+    outside the function is the global scope.  The function can reference the
+    global scope with the identifier global.
+    
+    
+
+    m()
+    {
+    }
+    
+    
+    declares in current scope
+    
+    
+    a.m()
+    
+    looks up a.  if a does not exist, this is an error.
+    reopening scopes?
+    
+    
+
+
+
+    this()
+    {
+    }
+ 
+    ~this()
+    {
+    }
+
+
 
 green_sword : weapon
 {
-    x;
-    y;
+    var x;
+    var y;
 
     this()
     {
