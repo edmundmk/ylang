@@ -155,8 +155,8 @@
         |   identifier >ts
                 %
                 {
-                    xec_token_lookup lookup = lookup_identifier( &data );
-                    TOKEN( lookup.kind, lookup.hash, lookup.text, lookup.size );
+                    xec_token* token = make_identifier( sloc, &data );
+                    TOKEN( token );
                 }
 
         |   number >ts
@@ -165,7 +165,7 @@
                     size_t length = data.size();
                     data.append( '\0' );
                     const char* number = (const char*)data.tearoff();
-                    TOKEN( XEC_TOKEN_NUMBER, sloc, number, length );
+                    MTOKEN( XEC_TOKEN_NUMBER, sloc, number, length );
                 }
 
         |   string >ts
@@ -174,67 +174,67 @@
                     size_t length = data.size();
                     data.append( '\0' );
                     const char* string = (const char*)data.tearoff();
-                    TOKEN( XEC_TOKEN_STRING, sloc, string, length );
+                    MTOKEN( XEC_TOKEN_STRING, sloc, string, length );
                 }
 
-        |   '!'     >ts %{ TOKEN( XEC_TOKEN_XMARK, sloc ); }
-        |   '%'     >ts %{ TOKEN( XEC_TOKEN_PERCENT, sloc ); }
-        |   '&'     >ts %{ TOKEN( XEC_TOKEN_AMPERSAND, sloc ); }
-        |   '('     >ts %{ TOKEN( XEC_TOKEN_LPN, sloc ); }
-        |   ')'     >ts %{ TOKEN( XEC_TOKEN_RPN, sloc ); }
-        |   '*'     >ts %{ TOKEN( XEC_TOKEN_ASTERISK, sloc ); }
-        |   '+'     >ts %{ TOKEN( XEC_TOKEN_PLUS, sloc ); }
-        |   ','     >ts %{ TOKEN( XEC_TOKEN_COMMA, sloc ); }
-        |   '-'     >ts %{ TOKEN( XEC_TOKEN_MINUS, sloc ); }
-        |   '.'     >ts %{ TOKEN( XEC_TOKEN_PERIOD, sloc ); }
-        |   '/'     >ts %{ TOKEN( XEC_TOKEN_SOLIDUS, sloc ); }
-        |   ':'     >ts %{ TOKEN( XEC_TOKEN_COLON, sloc ); }
-        |   ';'     >ts %{ TOKEN( XEC_TOKEN_SEMICOLON, sloc ); }
-        |   '<'     >ts %{ TOKEN( XEC_TOKEN_LESS, sloc ); }
-        |   '='     >ts %{ TOKEN( XEC_TOKEN_ASSIGN, sloc ); }
-        |   '>'     >ts %{ TOKEN( XEC_TOKEN_GREATER, sloc ); }
-        |   '?'     >ts %{ TOKEN( XEC_TOKEN_QMARK, sloc ); }
-        |   '['     >ts %{ TOKEN( XEC_TOKEN_LSQ, sloc ); }
-        |   ']'     >ts %{ TOKEN( XEC_TOKEN_RSQ, sloc ); }
-        |   '^'     >ts %{ TOKEN( XEC_TOKEN_CARET, sloc ); }
-        |   '{'     >ts %{ TOKEN( XEC_TOKEN_LBR, sloc ); }
-        |   '|'     >ts %{ TOKEN( XEC_TOKEN_VBAR, sloc ); }
-        |   '}'     >ts %{ TOKEN( XEC_TOKEN_RBR, sloc ); }
-        |   '~'     >ts %{ TOKEN( XEC_TOKEN_TILDE, sloc ); }
+        |   '!'    >ts %{ MTOKEN( XEC_TOKEN_XMARK, sloc, "!", 1 ); }
+        |   '%'    >ts %{ MTOKEN( XEC_TOKEN_PERCENT, sloc, "%", 1 ); }
+        |   '&'    >ts %{ MTOKEN( XEC_TOKEN_AMPERSAND, sloc, "&", 1 ); }
+        |   '('    >ts %{ MTOKEN( XEC_TOKEN_LPN, sloc, "(", 1 ); }
+        |   ')'    >ts %{ MTOKEN( XEC_TOKEN_RPN, sloc, ")", 1 ); }
+        |   '*'    >ts %{ MTOKEN( XEC_TOKEN_ASTERISK, sloc, "*", 1 ); }
+        |   '+'    >ts %{ MTOKEN( XEC_TOKEN_PLUS, sloc, "+", 1 ); }
+        |   ','    >ts %{ MTOKEN( XEC_TOKEN_COMMA, sloc, ",", 1 ); }
+        |   '-'    >ts %{ MTOKEN( XEC_TOKEN_MINUS, sloc, "-", 1 ); }
+        |   '.'    >ts %{ MTOKEN( XEC_TOKEN_PERIOD, sloc, ".", 1 ); }
+        |   '/'    >ts %{ MTOKEN( XEC_TOKEN_SOLIDUS, sloc, "/", 1 ); }
+        |   ':'    >ts %{ MTOKEN( XEC_TOKEN_COLON, sloc, ":", 1 ); }
+        |   ';'    >ts %{ MTOKEN( XEC_TOKEN_SEMICOLON, sloc, ";", 1 ); }
+        |   '<'    >ts %{ MTOKEN( XEC_TOKEN_LESS, sloc, "<", 1 ); }
+        |   '='    >ts %{ MTOKEN( XEC_TOKEN_ASSIGN, sloc, "=", 1 ); }
+        |   '>'    >ts %{ MTOKEN( XEC_TOKEN_GREATER, sloc, ">", 1 ); }
+        |   '?'    >ts %{ MTOKEN( XEC_TOKEN_QMARK, sloc, "?", 1 ); }
+        |   '['    >ts %{ MTOKEN( XEC_TOKEN_LSQ, sloc, "[", 1 ); }
+        |   ']'    >ts %{ MTOKEN( XEC_TOKEN_RSQ, sloc, "]", 1 ); }
+        |   '^'    >ts %{ MTOKEN( XEC_TOKEN_CARET, sloc, "^", 1 ); }
+        |   '{'    >ts %{ MTOKEN( XEC_TOKEN_LBR, sloc, "{", 1 ); }
+        |   '|'    >ts %{ MTOKEN( XEC_TOKEN_VBAR, sloc, "|", 1 ); }
+        |   '}'    >ts %{ MTOKEN( XEC_TOKEN_RBR, sloc, "}", 1 ); }
+        |   '~'    >ts %{ MTOKEN( XEC_TOKEN_TILDE, sloc, "~", 1 ); }
 
-        |   '++'    >ts %{ TOKEN( XEC_TOKEN_INCREMENT, sloc ); }
-        |   '--'    >ts %{ TOKEN( XEC_TOKEN_DECREMENT, sloc ); }
+        |   '++'   >ts %{ MTOKEN( XEC_TOKEN_INCREMENT, sloc, "++", 2 ); }
+        |   '--'   >ts %{ MTOKEN( XEC_TOKEN_DECREMENT, sloc, "--", 2 ); }
 
-        |   '<<'    >ts %{ TOKEN( XEC_TOKEN_LSHIFT, sloc ); }
-        |   '>>'    >ts %{ TOKEN( XEC_TOKEN_RSHIFT, sloc ); }
-        |   '>>>'   >ts %{ TOKEN( XEC_TOKEN_URSHIFT, sloc ); }
+        |   '<<'   >ts %{ MTOKEN( XEC_TOKEN_LSHIFT, sloc, "<<", 2 ); }
+        |   '>>'   >ts %{ MTOKEN( XEC_TOKEN_RSHIFT, sloc, ">>", 2 ); }
+        |   '>>>'  >ts %{ MTOKEN( XEC_TOKEN_URSHIFT, sloc, ">>>", 3 ); }
 
-        |   '!='    >ts %{ TOKEN( XEC_TOKEN_NOTEQUAL, sloc ); }
-        |   '<='    >ts %{ TOKEN( XEC_TOKEN_LESSEQUAL, sloc ); }
-        |   '=='    >ts %{ TOKEN( XEC_TOKEN_EQUAL, sloc ); }
-        |   '>='    >ts %{ TOKEN( XEC_TOKEN_GREATEREQUAL, sloc ); }
-        |   '!in'   >ts %{ TOKEN( XEC_TOKEN_NOTIN, sloc ); }
-        |   '!is'   >ts %{ TOKEN( XEC_TOKEN_NOTIS, sloc ); }
+        |   '!='   >ts %{ MTOKEN( XEC_TOKEN_NOTEQUAL, sloc, "!=", 2 ); }
+        |   '<='   >ts %{ MTOKEN( XEC_TOKEN_LESSEQUAL, sloc, "<=", 2 ); }
+        |   '=='   >ts %{ MTOKEN( XEC_TOKEN_EQUAL, sloc, "==", 2 ); }
+        |   '>='   >ts %{ MTOKEN( XEC_TOKEN_GREATEREQUAL, sloc, ">=", 2 ); }
+        |   '!in'  >ts %{ MTOKEN( XEC_TOKEN_NOTIN, sloc, "!in", 3 ); }
+        |   '!is'  >ts %{ MTOKEN( XEC_TOKEN_NOTIS, sloc, "!is", 3 ); }
 
-        |   '%='    >ts %{ TOKEN( XEC_TOKEN_MODASSIGN, sloc ); }
-        |   '&='    >ts %{ TOKEN( XEC_TOKEN_BITANDASSIGN, sloc ); }
-        |   '*='    >ts %{ TOKEN( XEC_TOKEN_MULASSIGN, sloc ); }
-        |   '+='    >ts %{ TOKEN( XEC_TOKEN_ADDASSIGN, sloc ); }
-        |   '-='    >ts %{ TOKEN( XEC_TOKEN_SUBASSIGN, sloc ); }
-        |   '/='    >ts %{ TOKEN( XEC_TOKEN_DIVASSIGN, sloc ); }
-        |   '^='    >ts %{ TOKEN( XEC_TOKEN_BITXORASSIGN, sloc ); }
-        |   '|='    >ts %{ TOKEN( XEC_TOKEN_BITORASSIGN, sloc ); }
-        |   '~='    >ts %{ TOKEN( XEC_TOKEN_INTDIVASSIGN, sloc ); }
-        |   '<<='   >ts %{ TOKEN( XEC_TOKEN_LSHIFTASSIGN, sloc ); }
-        |   '>>='   >ts %{ TOKEN( XEC_TOKEN_RSHIFTASSIGN, sloc ); }
-        |   '>>>='  >ts %{ TOKEN( XEC_TOKEN_URSHIFTASSIGN, sloc ); }
+        |   '%='   >ts %{ MTOKEN( XEC_TOKEN_MODASSIGN, sloc, "%=", 2 ); }
+        |   '&='   >ts %{ MTOKEN( XEC_TOKEN_BITANDASSIGN, sloc, "&=", 2 ); }
+        |   '*='   >ts %{ MTOKEN( XEC_TOKEN_MULASSIGN, sloc, "*=", 2 ); }
+        |   '+='   >ts %{ MTOKEN( XEC_TOKEN_ADDASSIGN, sloc, "+=", 2 ); }
+        |   '-='   >ts %{ MTOKEN( XEC_TOKEN_SUBASSIGN, sloc, "-=", 2 ); }
+        |   '/='   >ts %{ MTOKEN( XEC_TOKEN_DIVASSIGN, sloc, "/=", 2 ); }
+        |   '^='   >ts %{ MTOKEN( XEC_TOKEN_BITXORASSIGN, sloc, "^=", 2 ); }
+        |   '|='   >ts %{ MTOKEN( XEC_TOKEN_BITORASSIGN, sloc, "|=", 2 ); }
+        |   '~='   >ts %{ MTOKEN( XEC_TOKEN_INTDIVASSIGN, sloc, "~=", 2 ); }
+        |   '<<='  >ts %{ MTOKEN( XEC_TOKEN_LSHIFTASSIGN, sloc, "<<=", 3 ); }
+        |   '>>='  >ts %{ MTOKEN( XEC_TOKEN_RSHIFTASSIGN, sloc, ">>=", 3 ); }
+        |   '>>>=' >ts %{ MTOKEN( XEC_TOKEN_URSHIFTASSIGN, sloc, ">>>=", 4 ); }
 
-        |   '&&'    >ts %{ TOKEN( XEC_TOKEN_LOGICAND, sloc ); }
-        |   '^^'    >ts %{ TOKEN( XEC_TOKEN_LOGICXOR, sloc ); }
-        |   '||'    >ts %{ TOKEN( XEC_TOKEN_LOGICOR, sloc ); }
+        |   '&&'   >ts %{ MTOKEN( XEC_TOKEN_LOGICAND, sloc, "&&", 2 ); }
+        |   '^^'   >ts %{ MTOKEN( XEC_TOKEN_LOGICXOR, sloc, "^^", 2 ); }
+        |   '||'   >ts %{ MTOKEN( XEC_TOKEN_LOGICOR, sloc, "||", 2 ); }
         
-        |   '::'    >ts %{ TOKEN( XEC_TOKEN_EACHKEY, sloc ); }
-        |   '...'   >ts %{ TOKEN( XEC_TOKEN_ELLIPSIS, sloc ); }
+        |   '::'   >ts %{ MTOKEN( XEC_TOKEN_EACHKEY, sloc, "::", 2 ); }
+        |   '...'  >ts %{ MTOKEN( XEC_TOKEN_ELLIPSIS, sloc, "...", 3 ); }
 
     )**
 
@@ -246,6 +246,8 @@
 
 
 %% write data;
+
+
 
 
 
@@ -265,44 +267,77 @@ xec_token* xec_parser::make_token( arguments_t ... arguments )
 }
 
 
-xec_token_lookup xec_parser::lookup_identifier( region_buffer* data )
+
+struct xec_keywords
+    :   public std::unordered_map< symkey, xec_token_kind >
 {
-    xec_token_lookup lookup;
-
-    size_t size = data->size();
-    data->append( '\0' );
-    const char* text = (const char*)data->get();
-
-    symkey key( text, size );
-    if ( xec_lookup_keyword( key.hash(), key.c_str(), key.size(), &lookup ) )
+    
+    xec_keywords()
     {
-        return lookup;
-    }
-
-    auto i = identifiers.find( key );
-    if ( i != identifiers.end() )
-    {
-        key = *i;
-    }
-    else
-    {
-        text = (const char*)data->tearoff();
-        key = symkey( key.hash(), text, size );
-        identifiers.insert( key );
+        emplace( symkey( "break" ),    XEC_KEYWORD_BREAK );
+        emplace( symkey( "case" ),     XEC_KEYWORD_CASE );
+        emplace( symkey( "catch" ),    XEC_KEYWORD_CATCH );
+        emplace( symkey( "continue" ), XEC_KEYWORD_CONTINUE );
+        emplace( symkey( "default" ),  XEC_KEYWORD_DEFAULT );
+        emplace( symkey( "delete" ),   XEC_KEYWORD_DELETE );
+        emplace( symkey( "do" ),       XEC_KEYWORD_DO );
+        emplace( symkey( "else" ),     XEC_KEYWORD_ELSE );
+        emplace( symkey( "false" ),    XEC_KEYWORD_FALSE );
+        emplace( symkey( "finally" ),  XEC_KEYWORD_FINALLY );
+        emplace( symkey( "for" ),      XEC_KEYWORD_FOR );
+        emplace( symkey( "if" ),       XEC_KEYWORD_IF );
+        emplace( symkey( "new" ),      XEC_KEYWORD_NEW );
+        emplace( symkey( "null" ),     XEC_KEYWORD_NULL );
+        emplace( symkey( "return" ),   XEC_KEYWORD_RETURN );
+        emplace( symkey( "switch" ),   XEC_KEYWORD_SWITCH );
+        emplace( symkey( "throw" ),    XEC_KEYWORD_THROW );
+        emplace( symkey( "true" ),     XEC_KEYWORD_TRUE );
+        emplace( symkey( "try" ),      XEC_KEYWORD_TRY );
+        emplace( symkey( "using" ),    XEC_KEYWORD_USING );
+        emplace( symkey( "var" ),      XEC_KEYWORD_VAR );
+        emplace( symkey( "while" ),    XEC_KEYWORD_WHILE );
+        emplace( symkey( "yield" ),    XEC_KEYWORD_YIELD );
+        emplace( symkey( "in" ),       XEC_TOKEN_IN );
+        emplace( symkey( "is" ),       XEC_TOKEN_IS );
     }
     
-    lookup = xec_token_lookup
-    (
-        XEC_TOKEN_IDENTIFIER,
-        key.hash(),
-        key.c_str(),
-        key.size()
-    );
-    return lookup;
+};
+
+
+
+xec_token* xec_parser::make_identifier( int sloc, region_buffer* data )
+{
+    static xec_keywords keywords;
+
+    size_t length = data->size();
+    const char* identifier = (const char*)data->get();
+    symkey key( identifier, length );
+    
+    // Check for keyword.
+    auto i = keywords.find( key );
+    if ( i != keywords.end() )
+    {
+        return make_token( i->second, sloc, i->first.c_str(), i->first.size() );
+    }
+    
+    // Check for existing identifier.
+    auto j = identifiers.find( key );
+    if ( j != identifiers.end() )
+    {
+        return make_token( XEC_TOKEN_IDENTIFIER, sloc, j->c_str(), j->size() );
+    }
+
+    // New identifier.
+    data->append( '\0' );
+    identifier = (const char*)data->tearoff();
+    identifiers.emplace( key.hash(), identifier, length );
+    return make_token( XEC_TOKEN_IDENTIFIER, sloc, identifier, length );
+
 }
 
 
-bool xec_parser::encode_utf8( region_buffer* data, uint32_t cp )
+
+static bool encode_utf8( region_buffer* data, uint32_t cp )
 {
     if ( cp <= 0x7F )
     {
@@ -340,7 +375,7 @@ bool xec_parser::encode_utf8( region_buffer* data, uint32_t cp )
 
 bool xec_parser::parse( const char* path )
 {
-    region_scope rscope( &alloc );
+    region_scope rscope( alloc );
     
     
     // Open file.
@@ -372,11 +407,10 @@ bool xec_parser::parse( const char* path )
     
     
     // Perform lexing.
-#define TOKEN( ... ) \
-    { \
-        xec_token* token = make_token( __VA_ARGS__ ); \
-        token->debug_print(); \
-    }
+#define TOKEN( token ) \
+    token->debug_print();
+#define MTOKEN( ... ) \
+    TOKEN( make_token( __VA_ARGS__ ) );
 
     bool iseof = false;
     while ( ! iseof )
@@ -402,9 +436,10 @@ bool xec_parser::parse( const char* path )
 
     if ( ! ferror( file ) )
     {
-        TOKEN( XEC_TOKEN_EOF, offset );
+        MTOKEN( XEC_TOKEN_EOF, offset, "", 0 );
     }
 
+#undef MTOKEN
 #undef TOKEN
 
 error:

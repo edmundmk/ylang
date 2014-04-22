@@ -206,111 +206,27 @@ enum xec_token_kind
 
 struct xec_token
 {
-    xec_token();
-    xec_token( xec_token_kind kind, int sloc );
     xec_token( xec_token_kind kind, int sloc, const char* text, size_t size );
-    xec_token( xec_token_kind kind, int sloc,
-                    hash32_t hash, const char* text, size_t size );
 
     std::string     get_spelling();
     void            debug_print();
 
     xec_token_kind  kind;
     int             sloc;
-    hash32_t        hash;
     const char*     text;
     size_t          size;
 };
 
-
-
-struct xec_token_lookup
-{
-    xec_token_lookup();
-    xec_token_lookup(
-        xec_token_kind kind, hash32_t hash, const char* text, size_t size );
-
-    xec_token_kind  kind;
-    hash32_t        hash;
-    const char*     text;
-    size_t          size;
-};
-
-
-bool xec_lookup_operator( xec_token_kind kind, xec_token_lookup* out_lookup );
-bool xec_lookup_keyword( hash32_t hash,
-            const char* text, size_t size, xec_token_lookup* out_lookup );
-
-
-
-
-inline xec_token::xec_token()
-    :   kind( XEC_TOKEN_EOF )
-    ,   sloc( 0 )
-    ,   hash( 0 )
-    ,   text( NULL )
-    ,   size( 0 )
-{
-}
-
-inline xec_token::xec_token( xec_token_kind kind, int sloc )
-    :   kind( kind )
-    ,   sloc( sloc )
-    ,   hash( 0 )
-    ,   text( NULL )
-    ,   size( 0 )
-{
-    xec_token_lookup op;
-    if ( xec_lookup_operator( kind, &op ) )
-    {
-        hash = op.hash;
-        text = op.text;
-        size = op.size;
-    }
-}
 
 
 inline xec_token::xec_token(
             xec_token_kind kind, int sloc, const char* text, size_t size )
     :   kind( kind )
     ,   sloc( sloc )
-    ,   hash( 0 )
     ,   text( text )
     ,   size( size )
 {
 }
-
-inline xec_token::xec_token( xec_token_kind kind,
-                int sloc, hash32_t hash, const char* text, size_t size )
-    :   kind( kind )
-    ,   sloc( sloc )
-    ,   hash( hash )
-    ,   text( text )
-    ,   size( size )
-{
-}
-
-
-
-inline xec_token_lookup::xec_token_lookup()
-    :   kind( XEC_TOKEN_EOF )
-    ,   hash( 0 )
-    ,   text( NULL )
-    ,   size( 0 )
-{
-}
-
-inline xec_token_lookup::xec_token_lookup(
-            xec_token_kind kind, hash32_t hash, const char* text, size_t size )
-    :   kind( kind )
-    ,   hash( hash )
-    ,   text( text )
-    ,   size( size )
-{
-}
-
-
-
 
 
 

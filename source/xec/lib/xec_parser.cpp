@@ -11,15 +11,6 @@
 
 
 
-xec_ast_node::xec_ast_node( xec_ast_kind kind, int sloc )
-    :   kind( kind )
-    ,   sloc( sloc )
-{
-}
-
-
-
-
 xec_parser::xec_parser()
 {
 }

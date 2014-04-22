@@ -1,0 +1,28 @@
+#!/bin/bash
+
+
+cd source/xob/lib
+
+ragel -G2 -o xob_parser_ragel.cpp xob_parser_ragel.rl
+sed -i '' 's|xob_parser_ragel\.rl|../../toolbox/source/xob/lib/xob_parser_ragel.rl|g' xob_parser_ragel.cpp
+
+lemon xob_parser_lemon.y
+mv xob_parser_lemon.c xob_parser_lemon.cpp
+sed -i '' 's|xob_parser_lemon\.y|../../toolbox/source/xob/lib/xob_parser_lemon.y|g' xob_parser_lemon.cpp
+sed -i '' 's|xob_parser_lemon\.c|../../toolbox/source/xob/lib/xob_parser_lemon.cpp|g' xob_parser_lemon.cpp
+
+cd ../../..
+
+cd source/xec/lib
+
+ragel -o xec_parser_ragel.cpp xec_parser_ragel.rl
+sed -i '' 's|xec_parser_ragel\.rl|../../toolbox/source/xec/lib/xec_parser_ragel.rl|g' xec_parser_ragel.cpp
+
+lemon xec_parser_lemon.y
+mv xec_parser_lemon.c xec_parser_lemon.cpp
+sed -i '' 's|xec_parser_lemon\.y|../../toolbox/source/xec/lib/xec_parser_lemon.y|g' xec_parser_lemon.cpp
+sed -i '' 's|xec_parser_lemon\.c|../../toolbox/source/xec/lib/xec_parser_lemon.cpp|g' xec_parser_lemon.cpp
+
+cd ../../..
+
+

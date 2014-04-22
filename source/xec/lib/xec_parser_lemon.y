@@ -1,3 +1,15 @@
+//
+//  xec_parser.lemon.y
+//
+//  Created by Edmund Kapusniak on 22/04/2014.
+//  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
+//
+
+
+/*
+    lemon xec_parser.lemon.y
+*/
+
 
 
 %name               XecParse
@@ -12,7 +24,6 @@
 
 
 %extra_argument     { xec_parser* p }
-%default_type       { xec_ast_node* }
 %token_type         { xec_token* }
 
 
@@ -20,31 +31,15 @@
 {
 
 
-template < typename value_t, typename ... arguments_t >
-value_t* xec_parser::make_node( arguments_t ... arguments )
-{
-    return new ( alloc ) value_t( arguments ... );
-}
-
 void xec_parser::destroy( xec_token* token )
 {
     token->~xec_token();
     recycle_tokens.push_back( token );
 }
 
-void xec_parser::destroy( xec_ast_node* node )
-{
-    // do nothing.
-}
-
 
 }
 
-
-%default_destructor
-{
-    p->destroy( $$ );
-}
 
 %token_destructor
 {
@@ -135,8 +130,6 @@ odecl(x)        ::= TILDE proto stmt_brace .
 odecl(x)        ::= TILDE proto YIELD stmt_brace .
 odecl(x)        ::= TILDE proto SEMICOLON .
 odecl(x)        ::= TILDE proto YIELD SEMICOLON .
-odecl(x)        ::= name_list SEMICOLON .
-odecl(x)        ::= name_list ASSIGN expr_list SEMICOLON .
 
 odecl_list(x)   ::= odecl .
 odecl_list(x)   ::= odecl_list odecl .
@@ -247,7 +240,9 @@ expr_nolbr(x)   ::= LSQ RSQ .
 expr_nolbr(x)   ::= LSQ value_list RSQ .
 expr_nolbr(x)   ::= COLON odecl_brace .
 expr_nolbr(x)   ::= COLON expr_simple odecl_brace .
+expr_nolbr(x)   ::= QMARK expr_paren sexpr_assign SEMICOLON .
 expr_nolbr(x)   ::= QMARK expr_paren stmt_brace .
+expr_nolbr(x)   ::= PERIOD QMARK expr_paren sexpr_assign SEMICOLON .
 expr_nolbr(x)   ::= PERIOD QMARK expr_paren stmt_brace .
 
 expr_value(x)   ::= expr_nolbr(x) .

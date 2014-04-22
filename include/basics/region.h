@@ -74,7 +74,7 @@ class region_scope
 {
 public:
 
-    region_scope( region* region );
+    region_scope( region& region );
     ~region_scope();
 
 private:
@@ -132,8 +132,8 @@ public:
 void* region_malloc( size_t size );
 void  region_free( void* p );
 
-void* operator new ( size_t size, region* region );
-void  operator delete ( void* p, region* region );
+void* operator new ( size_t size, region& region );
+void  operator delete ( void* p, region& region );
 
 
 
@@ -202,10 +202,10 @@ inline void region::free( void* p, size_t old_size )
 
 
 
-inline region_scope::region_scope( region* region )
+inline region_scope::region_scope( region& region )
     :   previous( region_current )
 {
-    region_current = region;
+    region_current = &region;
 }
 
 inline region_scope::~region_scope()
