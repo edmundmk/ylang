@@ -10,6 +10,12 @@
 #define XEC_DECLARATION_H
 
 
+class xec_expression;
+class xec_expression_call;
+class xec_expression_list;
+class xec_statement_compound;
+
+
 class xec_declaration
 {
 };
@@ -21,8 +27,13 @@ class xec_declaration
     var name, name = expr, exrp;
 */
 
-class xec_declaration_variable : public xec_declaration
+class xec_declaration_var : public xec_declaration
 {
+public:
+
+    xec_declaration_var(
+            xec_expression_list* name_list, xec_expression_list* expr_list );
+
 };
 
 
@@ -33,25 +44,46 @@ class xec_declaration_variable : public xec_declaration
 
 class xec_declaration_object : public xec_declaration
 {
+public:
+
+    void set_name( xec_expression* name );
+    void set_prototype( xec_expression* prototype );
+    void add_declaration( xec_declaration* declaration );
+    
 };
 
 
 
 /*
-    name( paren, paren ) { decl, decl }
-*/
-
-class xec_declaration_function : public xec_declaration
-{
-};
-
-
-/*
-    name( paren, paren );
+    name( param, param )
 */
 
 class xec_declaration_prototype : public xec_declaration
 {
+public:
+
+    xec_declaration_prototype(
+            xec_expression* name, xec_expression_list* params );
+
+    void set_coroutine( bool coroutine );
+    
+
+};
+
+
+/*
+    name( param, param ) { decl, decl }
+*/
+
+class xec_declaration_function : public xec_declaration_prototype
+{
+public:
+
+    xec_declaration_function(
+            xec_expression* name, xec_expression_list* params );
+
+    void set_body( xec_statement_compound* body );
+
 };
 
 

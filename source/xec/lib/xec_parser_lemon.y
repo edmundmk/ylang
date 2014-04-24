@@ -20,6 +20,10 @@
     #include <assert.h>
     #include "xec_parser.h"
     #include "xec_token.h"
+    #include <xec/ast/xec_expression.h>
+    #include <xec/ast/xec_constructor.h>
+    #include <xec/ast/xec_declaration.h>
+    #include <xec/ast/xec_statement.h>
 }
 
 
@@ -40,6 +44,11 @@ void xec_parser::destroy( xec_token* token )
 
 }
 
+
+%default_destructor
+{
+    delete $$;
+}
 
 %token_destructor
 {
@@ -64,13 +73,13 @@ void xec_parser::destroy( xec_token* token )
 %nonassoc FINALLY .
 
 // yield expression: yield( a, b ) vs yield statement: yield a, b
-// Conflicts if the first expression in the yeild statement is in parentheses.
+// Conflicts if the first expression in the yield statement is in parentheses.
 // Resolve in favour of the yield expression (can always add more parentheses).
 %nonassoc YIELD .
 
 // using statement: using x; vs using scope: using ( x ) {}
 // Conflicts if the expression in the using statement is in parentheses.
-// Resolve in favour of the using scope (can always add more parentheses).
+// Resolve in favour of the using scope (can always add another variable).
 %nonassoc USING .
 
 // The (higher-precedence) token to shift in the previous two cases.
@@ -91,14 +100,37 @@ script(x)       ::= stmt_list .
 // Braces with optional contents.
 //
 
+%type expr_paren    { xec_expression_list* }
+%type stmt_brace    { xec_statement_compound* }
+%type odecl_brace   { xec_declaration_object* }
+
+
 expr_paren(x)   ::= LPN RPN .
-expr_paren(x)   ::= LPN expr_list RPN .
+                {
+                    x = new xec_expression_list();
+                }
+expr_paren(x)   ::= LPN expr_list(expr_list) RPN .
+                {
+                    x = expr_list->as_list();
+                }
 
 stmt_brace(x)   ::= LBR RBR .
-stmt_brace(x)   ::= LBR stmt_list RBR .
+                {
+                    x = new xec_statement_compound();
+                }
+stmt_brace(x)   ::= LBR stmt_list(stmt_list) RBR .
+                {
+                    x = stmt_list;
+                }
 
 odecl_brace(x)  ::= LBR RBR .
-odecl_brace(x)  ::= LBR odecl_list RBR .
+                {
+                    x = new xec_declaration_object();
+                }
+odecl_brace(x)  ::= LBR odecl_list(object) RBR .
+                {
+                    x = object;
+                }
 
 
 
@@ -106,33 +138,118 @@ odecl_brace(x)  ::= LBR odecl_list RBR .
 // Names and declarations.
 //
 
-name(x)         ::= IDENTIFIER .
-name(x)         ::= name PERIOD IDENTIFIER .
-name(x)         ::= name PERIOD TILDE IDENTIFIER .
+%type name          { xec_expression* }
+%type name_list     { xec_expression* }
+%type proto         { xec_expression_call* }
+%type decl          { xec_declaration* }
+%type odecl         { xec_declaration* }
+%type odecl_list    { xec_declaration_object* }
 
-name_list(x)    ::= name .
-name_list(x)    ::= name_list COMMA name .
 
-proto(x)        ::= name expr_paren .
+name(x)         ::= IDENTIFIER(token) .
+                {
+                    x = new xec_expression_identifier( token );
+                    p->destroy( token );
+                }
+name(x)         ::= name(expr) PERIOD IDENTIFIER(token) .
+                {
+                    x = new xec_expression_lookup( expr, token );
+                    p->destroy( token );
+                }
 
-decl(x)         ::= name odecl_brace .
-decl(x)         ::= name COLON expr_simple odecl_brace .
-decl(x)         ::= proto stmt_brace .
-decl(x)         ::= proto YIELD stmt_brace .
-decl(x)         ::= VAR name_list SEMICOLON .
-decl(x)         ::= VAR name_list ASSIGN expr_list SEMICOLON .
 
-odecl(x)        ::= SEMICOLON .
-odecl(x)        ::= decl .
-odecl(x)        ::= proto SEMICOLON .
-odecl(x)        ::= proto YIELD SEMICOLON .
-odecl(x)        ::= TILDE proto stmt_brace .
-odecl(x)        ::= TILDE proto YIELD stmt_brace .
-odecl(x)        ::= TILDE proto SEMICOLON .
-odecl(x)        ::= TILDE proto YIELD SEMICOLON .
+name_list(x)    ::= name(expr) .
+                {
+                    x = expr;
+                }
+name_list(x)    ::= name_list(expr_list) COMMA name(expr) .
+                {
+                    x = expr_list;
+                    x->as_list()->append_expression( expr );
+                }
 
-odecl_list(x)   ::= odecl .
-odecl_list(x)   ::= odecl_list odecl .
+
+proto(x)        ::= name(expr) expr_paren(args) .
+                {
+                    x = new xec_expression_call( expr, args );
+                }
+
+
+decl(x)         ::= name(name) odecl_brace(object) .
+                {
+                    object->set_name( name );
+                    x = object;
+                }
+decl(x)         ::= name(name) COLON expr_simple(proto) odecl_brace(object) .
+                {
+                    object->set_name( name );
+                    object->set_prototype( proto );
+                    x = object;
+                }
+decl(x)         ::= proto(header) stmt_brace(body) .
+                {
+                    xec_declaration_function* value;
+                    x = value = header->as_function();
+                    value->set_body( body );
+                    delete header;
+                }
+decl(x)         ::= proto(header) YIELD stmt_brace(body) .
+                {
+                    xec_declaration_function* value;
+                    x = value = header->as_function();
+                    value->set_coroutine( true );
+                    value->set_body( body );
+                    delete header;
+                }
+decl(x)         ::= VAR name_list(name_list) SEMICOLON .
+                {
+                    x = new xec_declaration_var(
+                                name_list->as_list(), NULL );
+                }
+decl(x)         ::= VAR name_list(name_list)
+                            ASSIGN expr_list(expr_list) SEMICOLON .
+                {
+                    x = new xec_declaration_var(
+                                name_list->as_list(), expr_list->as_list() );
+                }
+
+
+odecl(x)        ::= decl(decl) .
+                {
+                    x = decl;
+                }
+odecl(x)        ::= proto(header) SEMICOLON .
+                {
+                    x = header->as_prototype();
+                    delete header;
+                }
+odecl(x)        ::= proto(header) YIELD SEMICOLON .
+                {
+                    xec_declaration_prototype* decl;
+                    x = decl = header->as_prototype();
+                    decl->set_coroutine( true );
+                    delete header;
+                }
+
+
+odecl_list(x)   ::= SEMICOLON .
+                {
+                    x = new xec_declaration_object();
+                }
+odecl_list(x)   ::= odecl(decl) .
+                {
+                    x = new xec_declaration_object();
+                    x->add_declaration( decl );
+                }
+odecl_list(x)   ::= odecl_list(object) SEMICOLON .
+                {
+                    x = object;
+                }
+odecl_list(x)   ::= odecl_list(object) odecl(decl) .
+                {
+                    x = object;
+                    x->add_declaration( decl );
+                }
 
 
 
@@ -140,52 +257,104 @@ odecl_list(x)   ::= odecl_list odecl .
 // Expressions.
 //
 
-expr_call(x)    ::= YIELD expr_paren .
-expr_call(x)    ::= proto expr_paren .
-expr_call(x)    ::= expr_call expr_paren .
-expr_call(x)    ::= expr_postfix expr_paren .
+%type expr_index    { xec_expression* }
+%type expr_yield    { xec_expression* }
+%type expr_new      { xec_expression* }
+%type expr_call     { xec_expression_call* }
+%type expr_postfix  { xec_expression* }
+%type expr_simple   { xec_expression* }
+%type expr_literal  { xec_expression* }
+%type expr_suffix   { xec_expression* }
+%type expr_unary    { xec_expression* }
+%type expr_mul      { xec_expression* }
+%type expr_add      { xec_expression* }
+%type expr_shift    { xec_expression* }
+%type expr_bitand   { xec_expression* }
+%type expr_bitxor   { xec_expression* }
+%type expr_bitor    { xec_expression* }
+%type expr_compare  { xec_expression* }
+%type expr_and      { xec_expression* }
+%type expr_xor      { xec_expression* }
+%type expr_or       { xec_expression* }
+%type expr_nolbr    { xec_expression* }
+%type expr_value    { xec_expression* }
+%type expr_lbody    { xec_expression_list* }
+%type expr_final    { xec_expression* }
+%type expr_list     { xec_expression* }
+%type expr_assign   { xec_expression* }
+%type assign_op     { xec_token* }
+%type value_list    { xec_expression_list* }
 
-expr_postfix(x) ::= LPN expr_assign RPN .
-expr_postfix(x) ::= name PERIOD LSQ expr_value RSQ .
-expr_postfix(x) ::= name LSQ expr_value RSQ .
-expr_postfix(x) ::= proto PERIOD IDENTIFIER .
-expr_postfix(x) ::= proto PERIOD TILDE IDENTIFIER .
-expr_postfix(x) ::= proto PERIOD LSQ expr_value RSQ .
-expr_postfix(x) ::= proto LSQ expr_value RSQ .
-expr_postfix(x) ::= expr_call PERIOD IDENTIFIER .
-expr_postfix(x) ::= expr_call PERIOD TILDE IDENTIFIER .
-expr_postfix(x) ::= expr_call PERIOD LSQ expr_value RSQ .
-expr_postfix(x) ::= expr_call LSQ expr_value RSQ .
-expr_postfix(x) ::= expr_postfix PERIOD IDENTIFIER .
-expr_postfix(x) ::= expr_postfix PERIOD TILDE IDENTIFIER .
-expr_postfix(x) ::= expr_postfix PERIOD LSQ expr_value RSQ .
-expr_postfix(x) ::= expr_postfix LSQ expr_value RSQ .
 
-expr_simple(x)  ::= name .
-expr_simple(x)  ::= expr_postfix .
-expr_simple(x)  ::= proto .
-expr_simple(x)  ::= expr_call .
-expr_simple(x)  ::= proto YIELD .
-expr_simple(x)  ::= expr_call YIELD .
+// All lookups which aren't bare names, up to the first call parenthesis.
+expr_index(x)   ::= LPN expr_assign(expr) RPN .
+expr_index(x)   ::= name(expr) PERIOD LSQ expr_value(value) RSQ .
+expr_index(x)   ::= name(expr) LSQ expr_value(index) RSQ .
+expr_index(x)   ::= expr_index(expr) PERIOD IDENTIFIER .
+expr_index(x)   ::= expr_index(expr) PERIOD LSQ expr_value(value) RSQ .
+expr_index(x)   ::= expr_index(expr) LSQ expr_value(index) RSQ .
 
-expr_basic(x)   ::= expr_simple .
-expr_basic(x)   ::= NUMBER .
-expr_basic(x)   ::= STRING .
-expr_basic(x)   ::= TRUE .
-expr_basic(x)   ::= FALSE .
-expr_basic(x)   ::= NULL .
+// 'yield' expression - looks like a call but isn't.
+expr_yield(x)   ::= YIELD expr_paren(args) .
 
-expr_suffix(x)  ::= expr_basic .
-expr_suffix(x)  ::= expr_basic INCREMENT .
-expr_suffix(x)  ::= expr_basic DECREMENT .
+// 'new' constructor - looks like a call but isn't.
+expr_new(x)     ::= NEW name(type) expr_paren(args) .
+expr_new(x)     ::= NEW expr_index(type) expr_paren(args) .
+
+// All call expressions that aren't bare prototypes.
+expr_call(x)    ::= proto(expr) expr_paren(args) .
+expr_call(x)    ::= expr_index(expr) expr_paren(args) .
+expr_call(x)    ::= expr_yield(expr) expr_paren(args) .
+expr_call(x)    ::= expr_new(expr) expr_paren(args) .
+expr_call(x)    ::= expr_call(expr) expr_paren(args) .
+expr_call(x)    ::= expr_postfix(expr) expr_paren(args) .
+
+// All lookups after the first call parenthesis.
+expr_postfix(x) ::= proto(expr) PERIOD IDENTIFIER(token) .
+expr_postfix(x) ::= proto(expr) PERIOD LSQ expr_value(value) RSQ .
+expr_postfix(x) ::= proto(expr) LSQ expr_value(index) RSQ .
+expr_postfix(x) ::= expr_yield(expr) PERIOD IDENTIFIER(token) .
+expr_postfix(x) ::= expr_yield(expr) PERIOD LSQ expr_value(value) RSQ .
+expr_postfix(x) ::= expr_yield(expr) LSQ expr_value(index) RSQ .
+expr_postfix(x) ::= expr_new(expr) PERIOD IDENTIFIER(token) .
+expr_postfix(x) ::= expr_new(expr) PERIOD LSQ expr_value(value) RSQ .
+expr_postfix(x) ::= expr_new(expr) LSQ expr_value(index) RSQ .
+expr_postfix(x) ::= expr_call(expr) PERIOD IDENTIFIER(token) .
+expr_postfix(x) ::= expr_call(expr) PERIOD LSQ expr_value(value) RSQ .
+expr_postfix(x) ::= expr_call(expr) LSQ expr_value(index) RSQ .
+expr_postfix(x) ::= expr_postfix(expr) PERIOD IDENTIFIER(token) .
+expr_postfix(x) ::= expr_postfix(expr) PERIOD LSQ expr_value(value) RSQ .
+expr_postfix(x) ::= expr_postfix(expr) LSQ expr_value(index) RSQ .
+
+// All lookup, call, and call-like expressions, including yield calls.
+expr_simple(x)  ::= name(expr) .
+expr_simple(x)  ::= proto(expr) .
+expr_simple(x)  ::= expr_index(expr) .
+expr_simple(x)  ::= expr_yield(expr) .
+expr_simple(x)  ::= expr_new(x) .
+expr_simple(x)  ::= expr_call(expr) .
+expr_simple(x)  ::= expr_postfix(expr) .
+expr_simple(x)  ::= proto(expr) YIELD .
+expr_simple(x)  ::= expr_call(expr) YIELD .
+
+expr_literal(x) ::= expr_simple .
+expr_literal(x) ::= NUMBER .
+expr_literal(x) ::= STRING .
+expr_literal(x) ::= TRUE .
+expr_literal(x) ::= FALSE .
+expr_literal(x) ::= NULL .
+
+expr_suffix(x)  ::= expr_literal .
+expr_suffix(x)  ::= expr_suffix INCREMENT .
+expr_suffix(x)  ::= expr_suffix DECREMENT .
 
 expr_unary(x)   ::= expr_suffix .
-expr_unary(x)   ::= PLUS expr_basic .
-expr_unary(x)   ::= MINUS expr_basic .
-expr_unary(x)   ::= XMARK expr_basic .
-expr_unary(x)   ::= TILDE expr_basic .
-expr_unary(x)   ::= INCREMENT expr_basic .
-expr_unary(x)   ::= DECREMENT expr_basic .
+expr_unary(x)   ::= PLUS expr_unary .
+expr_unary(x)   ::= MINUS expr_unary .
+expr_unary(x)   ::= XMARK expr_unary .
+expr_unary(x)   ::= TILDE expr_unary .
+expr_unary(x)   ::= INCREMENT expr_unary .
+expr_unary(x)   ::= DECREMENT expr_unary .
 
 expr_mul(x)     ::= expr_unary .
 expr_mul(x)     ::= expr_mul ASTERISK expr_unary .
@@ -232,10 +401,9 @@ expr_xor(x)     ::= expr_xor LOGICXOR expr_and .
 expr_or(x)      ::= expr_xor .
 expr_or(x)      ::= expr_or LOGICOR expr_xor .
 
+// Must exclude an open brace to avoid conflict with compound statement.
 expr_nolbr(x)   ::= expr_or .
 expr_nolbr(x)   ::= expr_or QMARK expr_value COLON expr_value .
-expr_nolbr(x)   ::= NEW name expr_paren .
-expr_nolbr(x)   ::= NEW expr_postfix expr_paren .
 expr_nolbr(x)   ::= LSQ RSQ .
 expr_nolbr(x)   ::= LSQ value_list RSQ .
 expr_nolbr(x)   ::= COLON odecl_brace .
@@ -245,6 +413,7 @@ expr_nolbr(x)   ::= QMARK expr_paren stmt_brace .
 expr_nolbr(x)   ::= PERIOD QMARK expr_paren sexpr_assign SEMICOLON .
 expr_nolbr(x)   ::= PERIOD QMARK expr_paren stmt_brace .
 
+// All single-valued expressions, including those starting with an open brace.
 expr_value(x)   ::= expr_nolbr(x) .
 expr_value(x)   ::= LBR RBR .
 expr_value(x)   ::= LBR keyval_list RBR .
@@ -452,6 +621,33 @@ green_sword : weapon
         
     otherwise no implicit this and this can be an upval.
  
+
+
+    swords
+    {
+    
+        glitchy
+        {
+        }
+        
+        
+        glitchy.blah()
+        {
+        }
+        
+        glitchy.blah()
+ 
+        glitchy.new()
+        {
+        }
+ 
+        glitchy.delete()
+        {
+ 
+        }
+ 
+    }
+
 
 
 

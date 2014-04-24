@@ -68,4 +68,8 @@ private:
 
 
 
+void xec_parser_diagnostic( int sloc, const char* format, ... );
+
+
+
 #endif

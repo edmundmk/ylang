@@ -159,6 +159,13 @@
                     TOKEN( token );
                 }
 
+        |   '~this' >ts
+                %
+                {
+                    MTOKEN( XEC_TOKEN_IDENTIFIER, sloc, "~this", 5 );
+                }
+
+
         |   number >ts
                 %
                 {
@@ -176,7 +183,7 @@
                     const char* string = (const char*)data.tearoff();
                     MTOKEN( XEC_TOKEN_STRING, sloc, string, length );
                 }
-
+        
         |   '!'    >ts %{ MTOKEN( XEC_TOKEN_XMARK, sloc, "!", 1 ); }
         |   '%'    >ts %{ MTOKEN( XEC_TOKEN_PERCENT, sloc, "%", 1 ); }
         |   '&'    >ts %{ MTOKEN( XEC_TOKEN_AMPERSAND, sloc, "&", 1 ); }
