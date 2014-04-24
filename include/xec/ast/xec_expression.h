@@ -189,6 +189,7 @@ public:
     xec_expression_call( xec_expression* expr, xec_expression_list* args );
 
     bool set_yield_call( bool yield_call );
+    bool set_unpack( bool unpack );
 
     xec_declaration_prototype*  as_prototype();
     xec_declaration_function*   as_function();

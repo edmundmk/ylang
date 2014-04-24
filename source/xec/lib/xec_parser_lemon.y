@@ -326,7 +326,9 @@ expr_postfix(x) ::= expr_postfix(expr) PERIOD IDENTIFIER(token) .
 expr_postfix(x) ::= expr_postfix(expr) PERIOD LSQ expr_value(value) RSQ .
 expr_postfix(x) ::= expr_postfix(expr) LSQ expr_value(index) RSQ .
 
-// All lookup, call, and call-like expressions, including yield calls.
+// All lookup, call, and call-like expressions, including yield calls.  Used
+// to specify prototypes, as it makes little sense to inherit from the result
+// of an arithmetic expression, or from a literal.
 expr_simple(x)  ::= name(expr) .
 expr_simple(x)  ::= proto(expr) .
 expr_simple(x)  ::= expr_index(expr) .
@@ -413,7 +415,7 @@ expr_nolbr(x)   ::= QMARK expr_paren stmt_brace .
 expr_nolbr(x)   ::= PERIOD QMARK expr_paren sexpr_assign SEMICOLON .
 expr_nolbr(x)   ::= PERIOD QMARK expr_paren stmt_brace .
 
-// All single-valued expressions, including those starting with an open brace.
+// All single-value expressions, including those starting with an open brace.
 expr_value(x)   ::= expr_nolbr(x) .
 expr_value(x)   ::= LBR RBR .
 expr_value(x)   ::= LBR keyval_list RBR .
@@ -421,13 +423,18 @@ expr_value(x)   ::= LBR keyval_list RBR .
 expr_lbody(x)   ::= expr_value .
 expr_lbody(x)   ::= expr_lbody COMMA expr_value .
 
+// Unpack expressions are valid only as the last expression in a list.
 expr_final(x)   ::= ELLIPSIS .
 expr_final(x)   ::= proto ELLIPSIS .
 expr_final(x)   ::= expr_call ELLIPSIS .
+expr_final(x)   ::= expr_yield ELLIPSIS .
 expr_final(x)   ::= proto YIELD ELLIPSIS .
 expr_final(x)   ::= expr_call YIELD ELLIPSIS .
 expr_final(x)   ::= name LSQ RSQ ELLIPSIS .
 expr_final(x)   ::= proto LSQ RSQ ELLIPSIS .
+expr_final(x)   ::= expr_index LSQ RSQ ELLIPSIS .
+expr_final(x)   ::= expr_yield LSQ RSQ ELLIPSIS .
+expr_final(x)   ::= expr_new LSQ RSQ ELLIPSIS .
 expr_final(x)   ::= expr_call LSQ RSQ ELLIPSIS .
 expr_final(x)   ::= expr_postfix LSQ RSQ ELLIPSIS .
 
