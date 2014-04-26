@@ -49,6 +49,8 @@ public:
     void set_name( xec_expression* name );
     void set_prototype( xec_expression* prototype );
     void add_declaration( xec_declaration* declaration );
+  
+    xec_constructor_object* as_constructor();
     
 };
 

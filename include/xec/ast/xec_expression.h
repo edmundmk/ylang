@@ -12,47 +12,9 @@
 
 
 class xec_expression_list;
+class xec_expression_comparison;
 class xec_declaration_function;
 class xec_declaration_prototype;
-
-
-
-enum xec_operator
-{
-    XEC_UNARY_PLUS,
-    XEC_UNARY_MINUS,
-    XEC_LOGICAL_NOT,
-    XEC_BITWISE_NOT,
-    XEC_PRE_INCREMENT,
-    XEC_PRE_DECREMENT,
-    XEC_POST_INCREMENT,
-    XEC_POST_DECREMENT,
-    XEC_MULTIPLY,
-    XEC_DIVIDE,
-    XEC_MODULUS,
-    XEC_INTEGER_DIVIDE,
-    XEC_ADD,
-    XEC_SUBTRACT,
-    XEC_LEFT_SHIFT,
-    XEC_SIGNED_RIGHT_SHIFT,
-    XEC_UNSIGNED_RIGHT_SHIFT,
-    XEC_BITWISE_AND,
-    XEC_BITWISE_XOR,
-    XEC_BITWISE_OR,
-    XEC_LOGICAL_AND,
-    XEC_LOGICAL_XOR,
-    XEC_LOGICAL_OR,
-    XEC_EQUAL,
-    XEC_NOT_EQUAL,
-    XEC_LESS,
-    XEC_GREATER,
-    XEC_LESS_EQUAL,
-    XEC_GREATER_EQUAL,
-    XEC_IN,
-    XEC_NOT_IN,
-    XEC_IS,
-    XEC_NOT_IS,
-};
 
 
 
@@ -62,8 +24,9 @@ public:
 
     virtual ~xec_expression();
     
-    virtual xec_expression_list*    as_list();
-    virtual xec_expression*         in_parentheses();
+    virtual xec_expression_list*        as_list();
+    virtual xec_expression*             as_mono();
+    virtual xec_expression_comparison*  as_comparison();
     
 };
 
@@ -76,6 +39,10 @@ public:
 
 class xec_expression_null : public xec_expression
 {
+public:
+
+    xec_expression_null( xec_token* token );
+
 };
 
 
@@ -86,6 +53,10 @@ class xec_expression_null : public xec_expression
 
 class xec_expression_bool : public xec_expression
 {
+public:
+
+    xec_expression_bool( xec_token* token );
+
 };
 
 
@@ -95,6 +66,10 @@ class xec_expression_bool : public xec_expression
 
 class xec_expression_number : public xec_expression
 {
+public:
+
+    xec_expression_number( xec_token* token );
+
 };
 
 
@@ -104,6 +79,11 @@ class xec_expression_number : public xec_expression
 
 class xec_expression_string : public xec_expression
 {
+public:
+
+    xec_expression_string( xec_token* token );
+
+
 };
 
 
@@ -137,11 +117,11 @@ public:
     expr.[ expr ]
 */
 
-class xec_expression_lookup_value : public xec_expression
+class xec_expression_indexkey : public xec_expression
 {
 public:
 
-    xec_expression_lookup_value( xec_expression* expr, xec_expression* value );
+    xec_expression_indexkey( xec_expression* expr, xec_expression* index );
 
 };
 
@@ -171,6 +151,8 @@ public:
 
     xec_expression_yield( xec_expression_list* args );
     
+    void set_unpack( bool unpack );
+    
 };
 
 
@@ -188,7 +170,7 @@ public:
 
     xec_expression_call( xec_expression* expr, xec_expression_list* args );
 
-    bool set_yield_call( bool yield_call );
+    bool set_yieldcall( bool yieldcall );
     bool set_unpack( bool unpack );
 
     xec_declaration_prototype*  as_prototype();
@@ -210,6 +192,10 @@ public:
 
 class xec_expression_unary : public xec_expression
 {
+public:
+
+    xec_expression_unary( xec_expression* expr, xec_token* token );
+
 };
 
 
@@ -230,6 +216,11 @@ class xec_expression_unary : public xec_expression
 
 class xec_expression_binary : public xec_expression
 {
+public:
+
+    xec_expression_binary(
+        xec_expression* expr_a, xec_token* token, xec_expression* expr_b );
+
 };
 
 
@@ -240,6 +231,12 @@ class xec_expression_binary : public xec_expression
 
 class xec_expression_comparison : public xec_expression
 {
+public:
+
+    xec_expression_comparison( xec_expression* expr );
+    
+    void add_comparison( xec_token* token, xec_expression* expr );
+
 };
 
 
@@ -251,6 +248,11 @@ class xec_expression_comparison : public xec_expression
 
 class xec_expression_logical : public xec_expression
 {
+public:
+
+    xec_expression_logical(
+        xec_expression* expr_a, xec_token* token, xec_expression* expr_b );
+
 };
 
 
@@ -260,6 +262,11 @@ class xec_expression_logical : public xec_expression
 
 class xec_expression_conditional : public xec_expression
 {
+public:
+
+    xec_expression_conditional( xec_expression* condition,
+                    xec_expression* iftrue, xec_expression* iffalse );
+
 };
 
 
@@ -269,6 +276,10 @@ class xec_expression_conditional : public xec_expression
 
 class xec_expression_varargs : public xec_expression
 {
+public:
+
+    xec_expression_varargs( xec_token* token );
+    
 };
 
 
@@ -278,6 +289,10 @@ class xec_expression_varargs : public xec_expression
 
 class xec_expression_unpack : public xec_expression
 {
+public:
+
+    xec_expression_unpack( xec_expression* expr );
+
 };
 
 
@@ -319,10 +334,10 @@ class xec_expression_assign : public xec_expression
 
 
 /*
-    ( expr ... )
+    ( expr, ... )
 */
 
-class xec_expression_monovalue : public xec_expression
+class xec_expression_mono : public xec_expression
 {
 };
 

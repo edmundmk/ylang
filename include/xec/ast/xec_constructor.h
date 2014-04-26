@@ -19,6 +19,10 @@
 
 class xec_constructor_new : public xec_expression
 {
+public:
+
+    xec_constructor_new( xec_expression* type, xec_expression_list* args );
+
 };
 
 
@@ -28,6 +32,10 @@ class xec_constructor_new : public xec_expression
 
 class xec_constructor_list : public xec_expression
 {
+public:
+
+    xec_constructor_list();
+
 };
 
 
@@ -37,6 +45,10 @@ class xec_constructor_list : public xec_expression
 
 class xec_constructor_table : public xec_expression
 {
+public:
+
+    xec_constructor_table();
+    
 };
 
 
