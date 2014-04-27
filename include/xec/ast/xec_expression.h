@@ -149,7 +149,7 @@ class xec_expression_yield : public xec_expression
 {
 public:
 
-    xec_expression_yield( xec_expression_list* args );
+    xec_expression_yield( xec_token* token, xec_expression_list* args );
     
     void set_unpack( bool unpack );
     
@@ -278,7 +278,7 @@ class xec_expression_varargs : public xec_expression
 {
 public:
 
-    xec_expression_varargs( xec_token* token );
+    explicit xec_expression_varargs( xec_token* token );
     
 };
 
@@ -291,7 +291,7 @@ class xec_expression_unpack : public xec_expression
 {
 public:
 
-    xec_expression_unpack( xec_expression* expr );
+    explicit xec_expression_unpack( xec_expression* expr );
 
 };
 
@@ -329,6 +329,11 @@ public:
 
 class xec_expression_assign : public xec_expression
 {
+public:
+
+    xec_expression_assign(
+            xec_expression* lvalue, xec_token* op, xec_expression* rvalue );
+
 };
 
 
@@ -349,6 +354,12 @@ class xec_expression_mono : public xec_expression
 
 class xec_expression_condition : public xec_expression
 {
+public:
+
+    xec_expression_condition(
+            xec_token* token,
+            xec_expression_list* name_list,
+            xec_expression_list* expr_list );
 };
 
 

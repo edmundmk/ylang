@@ -91,8 +91,14 @@ void xec_parser::destroy( xec_token* token )
 // Entire script.
 //
 
-script(x)       ::= .
-script(x)       ::= stmt_list .
+script          ::= .
+                {
+                    p->set_root( NULL );
+                }
+script          ::= stmt_list(stmt_list) .
+                {
+                    p->set_root( stmt_list );
+                }
 
 
 
@@ -164,8 +170,9 @@ name_list(x)    ::= name(expr) .
                 }
 name_list(x)    ::= name_list(expr_list) COMMA name(expr) .
                 {
-                    x = expr_list;
-                    x->as_list()->append_expression( expr );
+                    xec_expression_list* list;
+                    x = list = expr_list->as_list();
+                    list->append_expression( expr );
                 }
 
 
@@ -247,6 +254,7 @@ odecl_list(x)   ::= SEMICOLON .
 odecl_list(x)   ::= odecl(decl) .
                 {
                     x = new xec_declaration_object();
+                    decl->set_thiscall( true );
                     x->add_declaration( decl );
                 }
 odecl_list(x)   ::= odecl_list(object) SEMICOLON .
@@ -256,6 +264,7 @@ odecl_list(x)   ::= odecl_list(object) SEMICOLON .
 odecl_list(x)   ::= odecl_list(object) odecl(decl) .
                 {
                     x = object;
+                    decl->set_thiscall( true );
                     x->add_declaration( decl );
                 }
 
@@ -291,7 +300,10 @@ odecl_list(x)   ::= odecl_list(object) odecl(decl) .
 %type expr_list     { xec_expression* }
 %type expr_assign   { xec_expression* }
 %type assign_op     { xec_token* }
-%type value_list    { xec_expression_list* }
+%type value_lbody   { xec_constructor_list* }
+%type value_list    { xec_constructor_list* }
+%type keyval_lbody  { xec_constructor_table* }
+%type keyval_list   { xec_constructor_table* }
 
 
 // All lookups which aren't bare names, up to the first call parenthesis.
@@ -322,19 +334,19 @@ expr_index(x)   ::= expr_index(expr) LSQ expr_value(index) RSQ .
                 }
 
 // 'yield' expression - looks like a call but isn't.
-expr_yield(x)   ::= YIELD expr_paren(args) .
+expr_yield(x)   ::= YIELD(token) expr_paren(args) .
                 {
-                    x = new xec_expression_yield( args );
+                    x = new xec_expression_yield( token, args );
                 }
 
 // 'new' constructor - looks like a call but isn't.
-expr_new(x)     ::= NEW name(type) expr_paren(args) .
+expr_new(x)     ::= NEW(token) name(type) expr_paren(args) .
                 {
-                    x = new xec_constructor_new( type, args );
+                    x = new xec_constructor_new( token, type, args );
                 }
-expr_new(x)     ::= NEW expr_index(type) expr_paren(args) .
+expr_new(x)     ::= NEW(token) expr_index(type) expr_paren(args) .
                 {
-                    x = new xec_constructor_new( type, args );
+                    x = new xec_constructor_new( token, type, args );
                 }
 
 // All call expressions that aren't bare prototypes.
@@ -584,7 +596,7 @@ expr_shift(x)   ::= expr_shift(expr_a) RSHIFT(token) expr_add(expr_b) .
                 }
 expr_shift(x)   ::= expr_shift(expr_a) URSHIFT(token) expr_add(expr_b) .
                 {
-                    x = new xec_expression_binary( expr_b, token, expr_b );
+                    x = new xec_expression_binary( expr_a, token, expr_b );
                 }
 
 expr_bitand(x)  ::= expr_shift(expr) .
@@ -726,26 +738,41 @@ expr_nolbr(x)   ::= LSQ value_list(expr) RSQ .
                 {
                     x = expr;
                 }
-expr_nolbr(x)   ::= COLON odecl_brace(object) .
+expr_nolbr(x)   ::= COLON(token) odecl_brace(object) .
                 {
-                    x = object->as_constructor();
+                    x = object->as_constructor( token );
                 }
-expr_nolbr(x)   ::= COLON expr_simple(proto) odecl_brace(object) .
+expr_nolbr(x)   ::= COLON(token) expr_simple(proto) odecl_brace(object) .
                 {
                     object->set_prototype( proto );
-                    x = object->as_constructor();
+                    x = object->as_constructor( token );
                 }
-expr_nolbr(x)   ::= QMARK expr_paren(args) sexpr_assign(expr) SEMICOLON .
+expr_nolbr(x)   ::= QMARK(token) expr_paren(params) stmt_brace(body) .
                 {
+                    x = new xec_constructor_function( token, params, body );
                 }
-expr_nolbr(x)   ::= QMARK expr_paren stmt_brace .
+expr_nolbr(x)   ::= PERIOD(token) QMARK expr_paren(params) stmt_brace(body) .
                 {
+                    xec_constructor_function* func;
+                    x = func = new xec_constructor_function(
+                                    token, params, body );
+                    func->set_thiscall( true );
                 }
-expr_nolbr(x)   ::= PERIOD QMARK expr_paren sexpr_assign SEMICOLON .
+expr_nolbr(x)   ::= QMARK(token) expr_paren(params) YIELD stmt_brace(body) .
                 {
+                    xec_constructor_function* func;
+                    x = func = new xec_constructor_function(
+                                    token, params, body );
+                    func->set_coroutine( true );
                 }
-expr_nolbr(x)   ::= PERIOD QMARK expr_paren stmt_brace .
+expr_nolbr(x)   ::= PERIOD(token) QMARK
+                                expr_paren(params) YIELD stmt_brace(body) .
                 {
+                    xec_constructor_function* func;
+                    x = func = new xec_constructor_function(
+                                    token, params, body );
+                    func->set_thiscall( true );
+                    func->set_coroutine( true );
                 }
 
 // All single-value expressions, including those starting with an open brace.
@@ -833,44 +860,141 @@ expr_final(x)   ::= expr_postfix(expr) LSQ RSQ ELLIPSIS .
                     x = new xec_expression_unpack( expr );
                 }
 
-expr_list(x)    ::= expr_final .
+expr_list(x)    ::= expr_final(expr) .
                 {
+                    x = expr;
                 }
-expr_list(x)    ::= expr_lbody .
+expr_list(x)    ::= expr_lbody(expr) .
                 {
+                    x = expr;
                 }
-expr_list(x)    ::= expr_lbody COMMA expr_final .
+expr_list(x)    ::= expr_lbody(expr_list) COMMA expr_final(expr) .
                 {
+                    xec_expression_list* list;
+                    x = list = expr_list->as_list();
+                    list->append_final( expr );
                 }
 
-expr_assign(x)  ::= expr_list .
-expr_assign(x)  ::= expr_lbody assign_op expr_list .
+expr_assign(x)  ::= expr_list(expr) .
+                {
+                    x = expr;
+                }
+expr_assign(x)  ::= expr_lbody(lvalue) assign_op(op) expr_list(rvalue) .
+                {
+                    x = new xec_expression_assign( lvalue, op, rvalue );
+                }
 
-assign_op(x)    ::= ASSIGN .
-assign_op(x)    ::= MULASSIGN .
-assign_op(x)    ::= DIVASSIGN .
-assign_op(x)    ::= MODASSIGN .
-assign_op(x)    ::= INTDIVASSIGN .
-assign_op(x)    ::= ADDASSIGN .
-assign_op(x)    ::= SUBASSIGN .
-assign_op(x)    ::= LSHIFTASSIGN .
-assign_op(x)    ::= RSHIFTASSIGN .
-assign_op(x)    ::= URSHIFTASSIGN .
-assign_op(x)    ::= BITANDASSIGN .
-assign_op(x)    ::= BITXORASSIGN .
-assign_op(x)    ::= BITORASSIGN .
+// Assignment operators.
+assign_op(x)    ::= ASSIGN(token) .
+                {
+                    x = token;
+                }
+assign_op(x)    ::= MULASSIGN(token) .
+                {
+                    x = token;
+                }
+assign_op(x)    ::= DIVASSIGN(token) .
+                {
+                    x = token;
+                }
+assign_op(x)    ::= MODASSIGN(token) .
+                {
+                    x = token;
+                }
+assign_op(x)    ::= INTDIVASSIGN(token) .
+                {
+                    x = token;
+                }
+assign_op(x)    ::= ADDASSIGN(token) .
+                {
+                    x = token;
+                }
+assign_op(x)    ::= SUBASSIGN(token) .
+                {
+                    x = token;
+                }
+assign_op(x)    ::= LSHIFTASSIGN(token) .
+                {
+                    x = token;
+                }
+assign_op(x)    ::= RSHIFTASSIGN(token) .
+                {
+                    x = token;
+                }
+assign_op(x)    ::= URSHIFTASSIGN(token) .
+                {
+                    x = token;
+                }
+assign_op(x)    ::= BITANDASSIGN(token) .
+                {
+                    x = token;
+                }
+assign_op(x)    ::= BITXORASSIGN(token) .
+                {
+                    x = token;
+                }
+assign_op(x)    ::= BITORASSIGN(token) .
+                {
+                    x = token;
+                }
 
-value_list(x)   ::= expr_final .
-value_list(x)   ::= expr_final COMMA .
-value_list(x)   ::= expr_lbody .
-value_list(x)   ::= expr_lbody COMMA .
-value_list(x)   ::= expr_lbody COMMA expr_final .
+// Non-empty lists for list [ ... ] constructors.
+value_lbody(x)  ::= expr_value(expr) .
+                {
+                    x = new xec_constructor_list();
+                    x->append_value( expr );
+                }
+value_lbody(x)  ::= value_lbody(list) COMMA expr_value(expr) .
+                {
+                    x = list;
+                    x->append_value( expr );
+                }
 
-keyval_lbody(x) ::= expr_value COLON expr_value .
-keyval_lbody(x) ::= keyval_lbody COMMA expr_value COLON expr_value .
+value_list(x)   ::= expr_final(expr) .
+                {
+                    x = new xec_constructor_list();
+                    x->append_final( expr );
+                }
+value_list(x)   ::= expr_final(expr) COMMA .
+                {
+                    x = new xec_constructor_list();
+                    x->append_final( expr );
+                }
+value_list(x)   ::= value_lbody(list) .
+                {
+                    x = list;
+                }
+value_list(x)   ::= value_lbody(list) COMMA .
+                {
+                    x = list;
+                }
+value_list(x)   ::= value_lbody(list) COMMA expr_final(expr) .
+                {
+                    x = list;
+                    x->append_final( expr );
+                }
 
-keyval_list(x)  ::= keyval_lbody .
-keyval_list(x)  ::= keyval_lbody COMMA .
+// Non-empty key -> value lists for { ... } constructors.
+keyval_lbody(x) ::= expr_value(key) COLON expr_value(value) .
+                {
+                    x = new xec_constructor_table();
+                    x->append_keyval( key, value );
+                }
+keyval_lbody(x) ::= keyval_lbody(table) COMMA
+                                expr_value(key) COLON expr_value(value) .
+                {
+                    x = table;
+                    x->append_keyval( key, value );
+                }
+
+keyval_list(x)  ::= keyval_lbody(table) .
+                {
+                    x = table;
+                }
+keyval_list(x)  ::= keyval_lbody(table) COMMA .
+                {
+                    x = table;
+                }
 
 
 
@@ -878,15 +1002,44 @@ keyval_list(x)  ::= keyval_lbody COMMA .
 // Expression statements must exclude { in the initial position.
 //
 
-sexpr_lbody(x)  ::= expr_nolbr .
-sexpr_lbody(x)  ::= sexpr_lbody COMMA expr_value .
+%type sexpr_lbody   { xec_expression* }
+%type sexpr_list    { xec_expression* }
+%type sexpr_assign  { xec_expression* }
 
-sexpr_list(x)   ::= expr_final .
-sexpr_list(x)   ::= sexpr_lbody .
-sexpr_list(x)   ::= sexpr_lbody COMMA expr_final .
+sexpr_lbody(x)  ::= expr_nolbr(expr) .
+                {
+                    x = expr;
+                }
+sexpr_lbody(x)  ::= sexpr_lbody(expr_list) COMMA expr_value(expr) .
+                {
+                    xec_expression_list* list;
+                    x = list = expr_list->as_list();
+                    list->append_expression( expr );
+                }
 
-sexpr_assign(x) ::= sexpr_list .
-sexpr_assign(x) ::= sexpr_lbody assign_op expr_list .
+sexpr_list(x)   ::= expr_final(expr) .
+                {
+                    x = expr;
+                }
+sexpr_list(x)   ::= sexpr_lbody(expr) .
+                {
+                    x = expr;
+                }
+sexpr_list(x)   ::= sexpr_lbody(expr_list) COMMA expr_final(expr) .
+                {
+                    xec_expression_list* list;
+                    x = list = expr_list->as_list();
+                    list->append_final( expr );
+                }
+
+sexpr_assign(x) ::= sexpr_list(expr) .
+                {
+                    x = expr;
+                }
+sexpr_assign(x) ::= sexpr_lbody(lvalue) assign_op(op) expr_list(rvalue) .
+                {
+                    x = new xec_expression_assign( lvalue, op, rvalue );
+                }
 
 
 
@@ -894,313 +1047,241 @@ sexpr_assign(x) ::= sexpr_lbody assign_op expr_list .
 // Statements
 //
 
+%type condition     { xec_expression* }
+%type stmt_yield    { xec_token* }
+%type stmt_using    { xec_token* }
+%type stmt          { xec_statement* }
+%type catch         { xec_statement_catch* }
+%type catch_list    { xec_statement_try* }
+%type stmt_list     { xec_statement_compound* }
 
-condition(x)    ::= expr_assign .
-condition(x)    ::= VAR name_list ASSIGN expr_list .
 
-stmt_yield(x)   ::= YIELD .
+// Conditions are expressions, or var declarations.
+condition(x)    ::= expr_assign(expr) .
+                {
+                    x = expr;
+                }
+condition(x)    ::= VAR(token) name_list(name_list)
+                                ASSIGN expr_list(expr_list) .
+                {
+                    x = new xec_expression_condition( token,
+                                name_list->as_list(), expr_list->as_list() );
+                }
 
-stmt_using(x)   ::= USING .
 
-stmt(x)         ::= stmt_brace .
-stmt(x)         ::= sexpr_assign SEMICOLON .
-stmt(x)         ::= DELETE expr_lbody SEMICOLON .
-stmt(x)         ::= IF LPN condition RPN stmt .
-stmt(x)         ::= IF LPN condition RPN stmt ELSE stmt .
-stmt(x)         ::= SWITCH LPN condition RPN stmt_brace .
-stmt(x)         ::= CASE expr_value COLON .
-stmt(x)         ::= DEFAULT COLON .
-stmt(x)         ::= WHILE LPN condition RPN stmt .
-stmt(x)         ::= DO stmt WHILE LPN expr_assign RPN SEMICOLON .
-stmt(x)         ::= FOR LPN expr_lbody COLON expr_value RPN stmt .
-stmt(x)         ::= FOR LPN expr_lbody EACHKEY expr_value RPN stmt .
-stmt(x)         ::= FOR LPN VAR name_list COLON expr_value RPN stmt .
-stmt(x)         ::= FOR LPN VAR name_list EACHKEY expr_value RPN stmt .
-stmt(x)         ::= FOR LPN condition SEMICOLON
-                            expr_assign SEMICOLON expr_assign RPN stmt .
-stmt(x)         ::= CONTINUE SEMICOLON .
-stmt(x)         ::= BREAK SEMICOLON .
-stmt(x)         ::= RETURN SEMICOLON .
-stmt(x)         ::= RETURN expr_list SEMICOLON .
-stmt(x)         ::= stmt_yield SEMICOLON .
-stmt(x)         ::= stmt_yield expr_list SEMICOLON .
-stmt(x)         ::= USING LPN condition RPN stmt .
-stmt(x)         ::= stmt_using condition SEMICOLON .
-stmt(x)         ::= TRY stmt catch_list .
-stmt(x)         ::= TRY stmt FINALLY stmt .
-stmt(x)         ::= TRY stmt catch_list FINALLY stmt .
-stmt(x)         ::= THROW expr_value SEMICOLON .
+// Productions used for conflict resolution.
+stmt_yield(x)   ::= YIELD(token) .
+                {
+                    x = token;
+                }
 
-catch(x)        ::= CATCH LPN COLON expr_simple RPN stmt .
-catch(x)        ::= CATCH LPN expr_value COLON expr_simple RPN stmt .
-catch(x)        ::= CATCH LPN VAR name COLON expr_simple RPN stmt .
+stmt_using(x)   ::= USING(token) .
+                {
+                    x = token;
+                }
 
-catch_list(x)   ::= catch .
-catch_list(x)   ::= catch_list catch .
+// Statements.
+stmt(x)         ::= stmt_brace(stmt) .
+                {
+                    x = stmt;
+                }
+stmt(x)         ::= sexpr_assign(expr) SEMICOLON .
+                {
+                    x = new xec_statement_expression( expr );
+                }
+stmt(x)         ::= DELETE(token) expr_lbody(expr) SEMICOLON .
+                {
+                    x = new xec_statement_delete( token, expr->as_list() );
+                }
+stmt(x)         ::= IF(token) LPN condition(expr) RPN stmt(iftrue) .
+                {
+                    x = new xec_statement_if( token, expr, iftrue, NULL );
+                }
+stmt(x)         ::= IF(token) LPN condition(expr) RPN stmt(iftrue)
+                                ELSE stmt(iffalse) .
+                {
+                    x = new xec_statement_if( token, expr, iftrue, iffalse );
+                }
+stmt(x)         ::= SWITCH(token) LPN condition(expr) RPN stmt_brace(body) .
+                {
+                    x = new xec_statement_switch( token, expr, body );
+                }
+stmt(x)         ::= CASE(token) expr_value(expr) COLON .
+                {
+                    x = new xec_statement_case( token, expr );
+                }
+stmt(x)         ::= DEFAULT(token) COLON .
+                {
+                    x = new xec_statement_case( token, NULL );
+                }
+stmt(x)         ::= WHILE(token) LPN condition(expr) RPN stmt(body) .
+                {
+                    x = new xec_statement_while( token, expr, body );
+                }
+stmt(x)         ::= DO(token) stmt(body) WHILE
+                                LPN expr_assign(expr) RPN SEMICOLON .
+                {
+                    x = new xec_statement_do( token, expr, body );
+                }
+stmt(x)         ::= FOR(token) LPN expr_lbody(lvalue)
+                                COLON expr_value(expr) RPN stmt(body) .
+                {
+                    x = new xec_statement_foreach( token,
+                                    lvalue->as_list(), expr, body );
+                }
+stmt(x)         ::= FOR(token) LPN expr_lbody(lvalue)
+                                EACHKEY expr_value(expr) RPN stmt(body) .
+                {
+                    xec_statement_foreach* stmt;
+                    x = stmt = new xec_statement_foreach( token,
+                                    lvalue->as_list(), expr, body );
+                    stmt->set_eachkey( true );
+                }
+stmt(x)         ::= FOR(token) LPN VAR name_list(name_list)
+                                COLON expr_value(expr) RPN stmt(body) .
+                {
+                    xec_statement_foreach* stmt;
+                    x = stmt = new xec_statement_foreach( token,
+                                        name_list->as_list(), expr, body );
+                    stmt->set_condition( true );
+                }
+stmt(x)         ::= FOR(token) LPN VAR name_list(name_list)
+                                EACHKEY expr_value(expr) RPN stmt(body) .
+                {
+                    xec_statement_foreach* stmt;
+                    x = stmt = new xec_statement_foreach( token,
+                                        name_list->as_list(), expr, body );
+                    stmt->set_condition( true );
+                    stmt->set_eachkey( true );
+                }
+stmt(x)         ::= FOR(token) LPN condition(init) SEMICOLON expr_assign(expr)
+                                SEMICOLON expr_assign(update) RPN stmt(body) .
+                {
+                    x = new xec_statement_for(
+                                        token, init, expr, update, body );
+                }
+stmt(x)         ::= CONTINUE(token) SEMICOLON .
+                {
+                    x = new xec_statement_continue( token );
+                }
+stmt(x)         ::= BREAK(token) SEMICOLON .
+                {
+                    x = new xec_statement_break( token );
+                }
+stmt(x)         ::= RETURN(token) SEMICOLON .
+                {
+                    x = new xec_statement_return( token, NULL );
+                }
+stmt(x)         ::= RETURN(token) expr_list(expr) SEMICOLON .
+                {
+                    x = new xec_statement_return( token, expr->as_list() );
+                }
+stmt(x)         ::= stmt_yield(token) SEMICOLON .
+                {
+                    x = new xec_statement_yield( token, NULL );
+                }
+stmt(x)         ::= stmt_yield(token) expr_list(expr) SEMICOLON .
+                {
+                    x = new xec_statement_yield( token, expr->as_list() );
+                }
+stmt(x)         ::= USING(token) LPN condition(expr) RPN stmt(body) .
+                {
+                    x = new xec_statement_using_scope( token, expr, body );
+                }
+stmt(x)         ::= stmt_using(token) condition(expr) SEMICOLON .
+                {
+                    x = new xec_statement_using( token, expr );
+                }
+stmt(x)         ::= TRY(token) stmt(body) catch_list(stmt) .
+                {
+                    x = stmt;
+                    stmt->set_body( token, body );
+                }
+stmt(x)         ::= TRY(token) stmt(body) FINALLY(ftoken) stmt(fbody) .
+                {
+                    xec_statement_try* stmt;
+                    x = stmt = new xec_statement_try();
+                    stmt->set_body( token, body );
+                    stmt->set_finally( ftoken, fbody );
+                }
+stmt(x)         ::= TRY(token) stmt(body) catch_list(stmt)
+                                FINALLY(ftoken) stmt(fbody) .
+                {
+                    x = stmt;
+                    stmt->set_body( token, body );
+                    stmt->set_finally( ftoken, fbody );
+                }
+stmt(x)         ::= THROW expr_value(expr) SEMICOLON .
+                {
+                    x = new xec_statement_throw( expr );
+                }
 
-stmt_list(x)    ::= stmt .
-stmt_list(x)    ::= decl .
+// Catch clauses.
+catch(x)        ::= CATCH(token) LPN COLON expr_simple(proto) RPN stmt(body) .
+                {
+                    x = new xec_statement_catch( token, NULL, proto, body );
+                }
+catch(x)        ::= CATCH(token) LPN expr_value(lvalue)
+                                COLON expr_simple(proto) RPN stmt(body) .
+                {
+                    x = new xec_statement_catch( token, lvalue, proto, body );
+                }
+catch(x)        ::= CATCH(token) LPN VAR name(lvalue)
+                                COLON expr_simple(proto) RPN stmt(body) .
+                {
+                    x = new xec_statement_catch( token, lvalue, proto, body );
+                    x->set_condition( true );
+                }
+
+catch_list(x)   ::= catch(cstmt) .
+                {
+                    x = new xec_statement_try();
+                    x->append_catch( cstmt );
+                }
+catch_list(x)   ::= catch_list(stmt) catch(cstmt) .
+                {
+                    x = stmt;
+                    x->append_catch( cstmt );
+                }
+
+// Statement lists.
+stmt_list(x)    ::= stmt(stmt) .
+                {
+                    x = new xec_statement_compound();
+                    x->append_statement( stmt );
+                }
+stmt_list(x)    ::= decl(decl) .
+                {
+                    x = new xec_statement_compound();
+                    xec_statement_declaration* stmt =
+                                    new xec_statement_declaration( decl );
+                    x->append_statement( stmt );
+                }
 stmt_list(x)    ::= SEMICOLON .
-stmt_list(x)    ::= stmt_list stmt .
-stmt_list(x)    ::= stmt_list decl .
-stmt_list(x)    ::= stmt_list SEMICOLON .
+                {
+                    x = new xec_statement_compound();
+                }
+stmt_list(x)    ::= stmt_list(stmt_list) stmt(stmt) .
+                {
+                    x = stmt_list;
+                    x->append_statement( stmt );
+                }
+stmt_list(x)    ::= stmt_list(stmt_list) decl(decl) .
+                {
+                    x = stmt_list;
+                    xec_statement_declaration* stmt =
+                                    new xec_statement_declaration( decl );
+                    x->append_statement( stmt );
+                }
+stmt_list(x)    ::= stmt_list(stmt_list) SEMICOLON .
+                {
+                    x = stmt_list;
+                }
 
 
 
 
 
-
-
-
-/* you can only yield where we expect an expr_list, this is:
-
-
-    each script is a function.  we don't know what the parameters to the function
-    are when we compile it.
-    
-    outside the function is the global scope.  The function can reference the
-    global scope with the identifier global.
-    
-    
-
-    m()
-    {
-    }
-    
-    
-    declares in current scope
-    
-    
-    a.m()
-    
-    looks up a.  if a does not exist, this is an error.
-    reopening scopes?
-    
-    
-
-
-
-    this()
-    {
-    }
- 
-    ~this()
-    {
-    }
-
-
-
-green_sword : weapon
-{
-    var x;
-    var y;
-
-    this()
-    {
-        x = 4;
-        y = 23;
-    }
-    
-    dispose()
-    {
-    }
-
-
-    damage()
-    {
- 
-    }
-    
-    damage() yield
-    {
- 
-    }
-
-}
-
-
-
-    implicit this:
-    
-        functions declared inside an object scope.
-        functions declared inside an object scope (out-of-line).
-        functions declared with .name()
-        function literals with .?()
-        
-    otherwise no implicit this and this can be an upval.
- 
-
-
-    swords
-    {
-    
-        glitchy
-        {
-        }
-        
-        
-        glitchy.blah()
-        {
-        }
-        
-        glitchy.blah()
- 
-        glitchy.new()
-        {
-        }
- 
-        glitchy.delete()
-        {
- 
-        }
- 
-    }
-
-
-
-
-
-
-
-        yield a, b;
-        a, b = yield a, b;
-        x = [ yield a, b ];
-        f( yield a, b );
-    
-        yield;
-        yield( a, b );
-        return a, b;
-        a, b = yield( a, b ) ...;
-        x = [ yield( a, b ) ... ];
-        f( yield( a, b ) ... );
- 
- 
-        select( 1, yield( a, b ) ... );
-        x, y = yield( a, b ) ...;
-        yield;
-        yield new blah( x );
-        
-        yield( a, b );
- 
-        yield( ( new x() ).blah )
-        yield new x();
-        yield new x(), y() ...;
- 
- 
- 
-        f( a, b, yield a, b )
-
-        hmmm.
-        
-        yield;
-        yield a, b;
-        x, y = yield( a, b );
-        
-        yield;
-        
-        x, y = 2, yield a, b, yield f, m;
- 
-        x, y = yield() ...
-        x, y = yield( a, b ) ...
- 
-        yield( a, b )
-        yield a, b;
- 
- 
- 
-
-        yield        yield a, b;
-( a, b ) ... is nicer in some ways.
-
-
-
-tokens ::=
- BREAK
- CASE
- CATCH
- CONTINUE
- DEFAULT
- DO
- ELSE
- FALSE
- FINALLY
- FOR
- IF
- NEW
- NULL
- RETURN
- SWITCH
- THROW
- TRUE
- TRY
- USING
- VAR
- WHILE
- YIELD
-
- IDENTIFIER
- NUMBER
- STRING
-    
- XMARK
- PERCENT
- AMPERSAND
- LPN
- RPN
- ASTERISK
- PLUS
- COMMA
- MINUS
- PERIOD
- SOLIDUS
- COLON
- SEMICOLON
- LESS
- ASSIGN
- GREATER
- QMARK
- LSQ
- RSQ
- CARET
- LBR
- VBAR
- RBR
- TILDE
-    
- INCREMENT
- DECREMENT
-
- LSHIFT
- RSHIFT
- URSHIFT
-    
- NOTEQUAL
- LESSEQUAL
- EQUAL
- GREATEREQUAL
-    
- MODASSIGN
- BITANDASSIGN
- MULASSIGN
- ADDASSIGN
- SUBASSIGN
- DIVASSIGN
- BITXORASSIGN
- BITORASSIGN
- INTDIVASSIGN
- LSHIFTASSIGN
- RSHIFTASSIGN
- URSHIFTASSIGN
-    
- LOGICAND
- LOGICXOR
- LOGICOR
-
- EACHKEY
- ELLIPSIS .
-
-
-*/
 
 
 

@@ -13,6 +13,9 @@
 #include "xec_expression.h"
 
 
+class xec_statement_compound;
+
+
 /*
     new expr( expr, expr )
 */
@@ -21,7 +24,8 @@ class xec_constructor_new : public xec_expression
 {
 public:
 
-    xec_constructor_new( xec_expression* type, xec_expression_list* args );
+    xec_constructor_new(
+        xec_token* token, xec_expression* type, xec_expression_list* args );
 
 };
 
@@ -36,6 +40,9 @@ public:
 
     xec_constructor_list();
 
+    void append_value( xec_expression* value );
+    void append_final( xec_expression* final );
+
 };
 
 
@@ -49,6 +56,8 @@ public:
 
     xec_constructor_table();
     
+    void append_keyval( xec_expression* key, xec_expression* value );
+    
 };
 
 
@@ -59,18 +68,30 @@ public:
 
 class xec_constructor_object : public xec_expression
 {
+
+
 };
 
 
 /*
-    ?( param, param ) expr;
     ?( param, param ) { stmt; stmt; }
-    .?( param, param ) expr;
+    ?( param, param ) yield { stmt; stmt; }
     .?( param, param ) { stmt; stmt; }
+    .?( param, param ) yield { stmt; stmt; }
 */
 
 class xec_constructor_function : public xec_expression
 {
+public:
+
+    xec_constructor_function(
+            xec_token* token,
+            xec_expression_list* params,
+            xec_statement_compound* body );
+    
+    bool set_thiscall( bool thiscall );
+    bool set_coroutine( bool coroutine );
+
 };
 
 

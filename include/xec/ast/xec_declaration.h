@@ -18,6 +18,12 @@ class xec_statement_compound;
 
 class xec_declaration
 {
+public:
+
+    virtual ~xec_declaration();
+
+    virtual void set_thiscall( bool thiscall );
+
 };
 
 
@@ -46,11 +52,13 @@ class xec_declaration_object : public xec_declaration
 {
 public:
 
+    xec_declaration_object();
+
     void set_name( xec_expression* name );
     void set_prototype( xec_expression* prototype );
     void add_declaration( xec_declaration* declaration );
   
-    xec_constructor_object* as_constructor();
+    xec_constructor_object* as_constructor( xec_token* token );
     
 };
 
@@ -67,6 +75,7 @@ public:
     xec_declaration_prototype(
             xec_expression* name, xec_expression_list* params );
 
+    void set_thiscall( bool thiscall );
     void set_coroutine( bool coroutine );
     
 

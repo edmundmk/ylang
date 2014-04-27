@@ -21,6 +21,7 @@
 
 
 struct xec_token;
+class xec_statement_compound;
 
 
 class xec_parser
@@ -41,10 +42,13 @@ public:
     size_t              diagnostic_count();
     const char*         diagnostic( size_t index );
 
+    xec_statement_compound* get_root();
+
+
 
 /* lemon private: */
 
-
+    void set_root( xec_statement_compound* stmt );
     void destroy( xec_token* token );
 
 
