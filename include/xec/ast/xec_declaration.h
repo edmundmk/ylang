@@ -10,10 +10,12 @@
 #define XEC_DECLARATION_H
 
 
+struct xec_token;
 class xec_expression;
 class xec_expression_call;
 class xec_expression_list;
 class xec_statement_compound;
+class xec_constructor_object;
 
 
 class xec_declaration

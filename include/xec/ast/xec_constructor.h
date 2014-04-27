@@ -89,8 +89,8 @@ public:
             xec_expression_list* params,
             xec_statement_compound* body );
     
-    bool set_thiscall( bool thiscall );
-    bool set_coroutine( bool coroutine );
+    void set_thiscall( bool thiscall );
+    void set_coroutine( bool coroutine );
 
 };
 

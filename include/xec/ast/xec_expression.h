@@ -10,7 +10,7 @@
 #define XEC_EXPRESSION_H
 
 
-
+struct xec_token;
 class xec_expression_list;
 class xec_expression_comparison;
 class xec_declaration_function;
