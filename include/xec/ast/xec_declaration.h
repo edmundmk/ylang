@@ -10,6 +10,10 @@
 #define XEC_DECLARATION_H
 
 
+#include <memory>
+#include <deque>
+
+
 struct xec_token;
 class xec_expression;
 class xec_expression_call;
@@ -18,12 +22,14 @@ class xec_statement_compound;
 class xec_constructor_object;
 
 
+
 class xec_declaration
 {
 public:
 
     virtual ~xec_declaration();
 
+    virtual int get_location();
     virtual void set_thiscall( bool thiscall );
 
 };
@@ -39,8 +45,16 @@ class xec_declaration_var : public xec_declaration
 {
 public:
 
-    xec_declaration_var(
+    xec_declaration_var( xec_token* token,
             xec_expression_list* name_list, xec_expression_list* expr_list );
+
+    virtual int get_location();
+
+private:
+
+    xec_token*                              token;
+    std::unique_ptr< xec_expression_list >  name_list;
+    std::unique_ptr< xec_expression_list >  expr_list;
 
 };
 
@@ -56,11 +70,20 @@ public:
 
     xec_declaration_object();
 
+    virtual int get_location();
+
     void set_name( xec_expression* name );
-    void set_prototype( xec_expression* prototype );
-    void add_declaration( xec_declaration* declaration );
+    void set_proto( xec_expression* proto );
+    void add_member( xec_declaration* decl );
   
     xec_constructor_object* as_constructor( xec_token* token );
+
+
+private:
+
+    std::unique_ptr< xec_expression >                   name;
+    std::unique_ptr< xec_expression >                   proto;
+    std::deque< std::unique_ptr< xec_declaration > >    members;
     
 };
 
@@ -77,10 +100,19 @@ public:
     xec_declaration_prototype(
             xec_expression* name, xec_expression_list* params );
 
+    virtual int get_location();
+    
     void set_thiscall( bool thiscall );
     void set_coroutine( bool coroutine );
-    
 
+
+protected:
+
+    std::unique_ptr< xec_expression >       name;
+    std::unique_ptr< xec_expression_list >  params;
+    bool                                    thiscall;
+    bool                                    coroutine;
+    
 };
 
 
@@ -96,6 +128,11 @@ public:
             xec_expression* name, xec_expression_list* params );
 
     void set_body( xec_statement_compound* body );
+
+
+protected:
+
+    std::unique_ptr< xec_statement_compound > body;
 
 };
 

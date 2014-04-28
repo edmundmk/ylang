@@ -14,6 +14,7 @@
 
 
 class xec_statement_compound;
+class xec_declaration;
 
 
 /*
@@ -101,7 +102,22 @@ private:
 
 class xec_constructor_object : public xec_expression
 {
+public:
 
+    xec_constructor_object();
+
+    virtual int get_location();
+
+    void set_token( xec_token* token );
+    void set_proto( xec_expression* proto );
+    void add_member( xec_declaration* decl );
+
+
+private:
+
+    xec_token*                                          token;
+    std::unique_ptr< xec_expression >                   proto;
+    std::deque< std::unique_ptr< xec_declaration > >    members;
 
 };
 

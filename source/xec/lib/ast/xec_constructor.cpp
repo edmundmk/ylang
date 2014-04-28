@@ -8,6 +8,7 @@
 
 #include "xec_constructor.h"
 #include "xec_statement.h"
+#include "xec_declaration.h"
 #include "xec_token.h"
 
 
@@ -85,7 +86,31 @@ void xec_constructor_table::append_keyval(
 
 
 
-//xec_constructor_object
+xec_constructor_object::xec_constructor_object()
+{
+}
+
+int xec_constructor_object::get_location()
+{
+    return token->sloc;
+}
+
+void xec_constructor_object::set_token( xec_token* token )
+{
+    this->token = token;
+}
+
+void xec_constructor_object::set_proto( xec_expression* proto )
+{
+    this->proto = std::unique_ptr< xec_expression >( proto );
+}
+
+void xec_constructor_object::add_member( xec_declaration* decl )
+{
+    members.push_back( std::unique_ptr< xec_declaration >( decl ) );
+}
+
+
 
 
 

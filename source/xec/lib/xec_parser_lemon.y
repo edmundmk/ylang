@@ -193,7 +193,7 @@ decl(x)         ::= name(name) COLON expr_simple(proto) odecl_brace(object) .
                 {
                     // object already constructed by odecl_brace.
                     object->set_name( name );
-                    object->set_prototype( proto );
+                    object->set_proto( proto );
                     x = object;
                 }
 decl(x)         ::= proto(header) stmt_brace(body) .
@@ -213,16 +213,16 @@ decl(x)         ::= proto(header) YIELD stmt_brace(body) .
                     value->set_body( body );
                     delete header;
                 }
-decl(x)         ::= VAR name_list(name_list) SEMICOLON .
+decl(x)         ::= VAR(token) name_list(name_list) SEMICOLON .
                 {
                     x = new xec_declaration_var(
-                                name_list->as_list(), NULL );
+                        token, name_list->as_list(), NULL );
                 }
-decl(x)         ::= VAR name_list(name_list)
+decl(x)         ::= VAR(token) name_list(name_list)
                             ASSIGN expr_list(expr_list) SEMICOLON .
                 {
                     x = new xec_declaration_var(
-                                name_list->as_list(), expr_list->as_list() );
+                        token, name_list->as_list(), expr_list->as_list() );
                 }
 
 
@@ -255,7 +255,7 @@ odecl_list(x)   ::= odecl(decl) .
                 {
                     x = new xec_declaration_object();
                     decl->set_thiscall( true );
-                    x->add_declaration( decl );
+                    x->add_member( decl );
                 }
 odecl_list(x)   ::= odecl_list(object) SEMICOLON .
                 {
@@ -265,7 +265,7 @@ odecl_list(x)   ::= odecl_list(object) odecl(decl) .
                 {
                     x = object;
                     decl->set_thiscall( true );
-                    x->add_declaration( decl );
+                    x->add_member( decl );
                 }
 
 
@@ -747,7 +747,7 @@ expr_nolbr(x)   ::= COLON(token) odecl_brace(object) .
                 }
 expr_nolbr(x)   ::= COLON(token) expr_simple(proto) odecl_brace(object) .
                 {
-                    object->set_prototype( proto );
+                    object->set_proto( proto );
                     x = object->as_constructor( token );
                 }
 expr_nolbr(x)   ::= QMARK(token) expr_paren(params) stmt_brace(body) .
