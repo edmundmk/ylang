@@ -340,13 +340,13 @@ expr_yield(x)   ::= YIELD(token) expr_paren(args) .
                 }
 
 // 'new' constructor - looks like a call but isn't.
-expr_new(x)     ::= NEW(token) name(type) expr_paren(args) .
+expr_new(x)     ::= NEW(token) name(proto) expr_paren(args) .
                 {
-                    x = new xec_constructor_new( token, type, args );
+                    x = new xec_constructor_new( token, proto, args );
                 }
-expr_new(x)     ::= NEW(token) expr_index(type) expr_paren(args) .
+expr_new(x)     ::= NEW(token) expr_index(proto) expr_paren(args) .
                 {
-                    x = new xec_constructor_new( token, type, args );
+                    x = new xec_constructor_new( token, proto, args );
                 }
 
 // All call expressions that aren't bare prototypes.
@@ -730,13 +730,16 @@ expr_nolbr(x)   ::= expr_or(comparison) QMARK
                     x = new xec_expression_conditional(
                                     comparison, iftrue, iffalse );
                 }
-expr_nolbr(x)   ::= LSQ RSQ .
+expr_nolbr(x)   ::= LSQ(token) RSQ .
                 {
-                    x = new xec_constructor_list();
+                    xec_constructor_list* list;
+                    x = list = new xec_constructor_list();
+                    list->set_token( token );
                 }
-expr_nolbr(x)   ::= LSQ value_list(expr) RSQ .
+expr_nolbr(x)   ::= LSQ(token) value_list(expr) RSQ .
                 {
                     x = expr;
+                    expr->set_token( token );
                 }
 expr_nolbr(x)   ::= COLON(token) odecl_brace(object) .
                 {
@@ -780,13 +783,16 @@ expr_value(x)   ::= expr_nolbr(expr) .
                 {
                     x = expr;
                 }
-expr_value(x)   ::= LBR RBR .
+expr_value(x)   ::= LBR(token) RBR .
                 {
-                    x = new xec_constructor_table();
+                    xec_constructor_table* table;
+                    x = table = new xec_constructor_table();
+                    table->set_token( token );
                 }
-expr_value(x)   ::= LBR keyval_list(table) RBR .
+expr_value(x)   ::= LBR(token) keyval_list(table) RBR .
                 {
                     x = table;
+                    table->set_token( token );
                 }
 
 expr_lbody(x)   ::= expr_value(expr) .

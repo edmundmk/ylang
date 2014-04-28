@@ -10,6 +10,10 @@
 #define XEC_EXPRESSION_H
 
 
+#include <memory>
+#include <deque>
+
+
 struct xec_token;
 class xec_expression_list;
 class xec_expression_comparison;
@@ -24,6 +28,7 @@ public:
 
     virtual ~xec_expression();
     
+    virtual int                         get_location();
     virtual xec_expression_list*        as_list();
     virtual xec_expression*             as_mono();
     virtual xec_expression_comparison*  as_comparison();

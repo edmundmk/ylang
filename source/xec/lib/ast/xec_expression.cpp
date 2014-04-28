@@ -14,20 +14,29 @@
 xec_expression::~xec_expression()
 {
 }
+
+int xec_expression::get_location()
+{
+    return -1;
+}
     
 xec_expression_list* xec_expression::as_list()
 {
-    return NULL;
+    xec_expression_list* list = new xec_expression_list();
+    list->append_expression( this );
+    return list;
 }
 
 xec_expression* xec_expression::as_mono()
 {
-    return NULL;
+    return this;
 }
 
 xec_expression_comparison* xec_expression::as_comparison()
 {
-    return NULL;
+    xec_expression_comparison* comparison =
+                    new xec_expression_comparison( this );
+    return comparison;
 }
 
 

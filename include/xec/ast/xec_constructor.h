@@ -24,8 +24,17 @@ class xec_constructor_new : public xec_expression
 {
 public:
 
-    xec_constructor_new(
-        xec_token* token, xec_expression* type, xec_expression_list* args );
+    xec_constructor_new( xec_token* token,
+                    xec_expression* proto, xec_expression_list* args );
+
+    virtual int get_location();
+
+private:
+
+    xec_token*                              token;
+    std::unique_ptr< xec_expression >       proto;
+    std::unique_ptr< xec_expression_list >  args;
+
 
 };
 
@@ -40,8 +49,18 @@ public:
 
     xec_constructor_list();
 
+    virtual int get_location();
+
+    void set_token( xec_token* token );
     void append_value( xec_expression* value );
     void append_final( xec_expression* final );
+    
+    
+private:
+
+    xec_token*                                      token;
+    std::deque< std::unique_ptr< xec_expression > > values;
+    std::unique_ptr< xec_expression >               final;
 
 };
 
@@ -56,7 +75,21 @@ public:
 
     xec_constructor_table();
     
+    virtual int get_location();
+    
+    void set_token( xec_token* token );
     void append_keyval( xec_expression* key, xec_expression* value );
+    
+private:
+
+    struct keyval
+    {
+        std::unique_ptr< xec_expression > key;
+        std::unique_ptr< xec_expression > value;
+    };
+
+    xec_token*              token;
+    std::deque< keyval >    keyvals;
     
 };
 
@@ -84,13 +117,21 @@ class xec_constructor_function : public xec_expression
 {
 public:
 
-    xec_constructor_function(
-            xec_token* token,
-            xec_expression_list* params,
-            xec_statement_compound* body );
+    xec_constructor_function( xec_token* token,
+            xec_expression_list* params, xec_statement_compound* body );
+    
+    virtual int get_location();
     
     void set_thiscall( bool thiscall );
     void set_coroutine( bool coroutine );
+
+private:
+
+    xec_token*                                  token;
+    std::unique_ptr< xec_expression_list >      params;
+    std::unique_ptr< xec_statement_compound >   body;
+    bool                                        thiscall;
+    bool                                        coroutine;
 
 };
 
