@@ -67,6 +67,7 @@ private:
     std::deque< const char* >       diagnostics;
     std::deque< void* >             recycle_tokens;
     std::unordered_set< symkey >    identifiers;
+    xec_statement_compound*         root;
     
 };
 

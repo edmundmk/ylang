@@ -7,21 +7,25 @@
 
 
 #include "xec_parser.h"
+#include "xec_statement.h"
 
 
 
 
 xec_parser::xec_parser()
+    :   root( NULL )
 {
 }
 
 xec_parser::xec_parser( const char* filename )
+    :   root( NULL )
 {
     parse( filename );
 }
 
 xec_parser::~xec_parser()
 {
+    delete root;
 }
 
 
@@ -79,6 +83,20 @@ const char* xec_parser::diagnostic( size_t index )
 {
     return diagnostics[ index ];
 }
+
+
+
+
+xec_statement_compound* xec_parser::get_root()
+{
+    return root;
+}
+
+void xec_parser::set_root( xec_statement_compound* stmt )
+{
+    root = stmt;
+}
+
 
 
 
