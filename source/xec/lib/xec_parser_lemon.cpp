@@ -3026,7 +3026,7 @@ static void yy_reduce(
                     xec_statement_foreach* stmt;
                     yygotominor.yy67 = stmt = new xec_statement_foreach( yymsp[-7].minor.yy0,
                                         yymsp[-4].minor.yy218->as_list(), yymsp[-2].minor.yy218, yymsp[0].minor.yy67 );
-                    stmt->set_condition( true );
+                    stmt->set_declare( true );
                   yy_destructor(yypParser,8,&yymsp[-6].minor);
   yy_destructor(yypParser,16,&yymsp[-5].minor);
   yy_destructor(yypParser,15,&yymsp[-3].minor);
@@ -3040,7 +3040,7 @@ static void yy_reduce(
                     xec_statement_foreach* stmt;
                     yygotominor.yy67 = stmt = new xec_statement_foreach( yymsp[-7].minor.yy0,
                                         yymsp[-4].minor.yy218->as_list(), yymsp[-2].minor.yy218, yymsp[0].minor.yy67 );
-                    stmt->set_condition( true );
+                    stmt->set_declare( true );
                     stmt->set_eachkey( true );
                   yy_destructor(yypParser,8,&yymsp[-6].minor);
   yy_destructor(yypParser,16,&yymsp[-5].minor);
@@ -3186,7 +3186,7 @@ static void yy_reduce(
 #line 1231 "../../toolbox/source/xec/lib/xec_parser_lemon.y"
 {
                     yygotominor.yy97 = new xec_statement_catch( yymsp[-7].minor.yy0, yymsp[-4].minor.yy218, yymsp[-2].minor.yy218, yymsp[0].minor.yy67 );
-                    yygotominor.yy97->set_condition( true );
+                    yygotominor.yy97->set_declare( true );
                   yy_destructor(yypParser,8,&yymsp[-6].minor);
   yy_destructor(yypParser,16,&yymsp[-5].minor);
   yy_destructor(yypParser,15,&yymsp[-3].minor);

@@ -172,7 +172,7 @@ public:
             xec_statement* body );
 
     void set_eachkey( bool eachkey );
-    void set_condition( bool condition );
+    void set_declare( bool declare );
 
 };
 
@@ -306,7 +306,7 @@ public:
     xec_statement_catch( xec_token* token,
         xec_expression* lvalue, xec_expression* proto, xec_statement* body );
 
-    void set_condition( bool condition );
+    void set_declare( bool declare );
 
 };
 

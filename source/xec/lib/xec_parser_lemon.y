@@ -1143,7 +1143,7 @@ stmt(x)         ::= FOR(token) LPN VAR name_list(name_list)
                     xec_statement_foreach* stmt;
                     x = stmt = new xec_statement_foreach( token,
                                         name_list->as_list(), expr, body );
-                    stmt->set_condition( true );
+                    stmt->set_declare( true );
                 }
 stmt(x)         ::= FOR(token) LPN VAR name_list(name_list)
                                 EACHKEY expr_value(expr) RPN stmt(body) .
@@ -1151,7 +1151,7 @@ stmt(x)         ::= FOR(token) LPN VAR name_list(name_list)
                     xec_statement_foreach* stmt;
                     x = stmt = new xec_statement_foreach( token,
                                         name_list->as_list(), expr, body );
-                    stmt->set_condition( true );
+                    stmt->set_declare( true );
                     stmt->set_eachkey( true );
                 }
 stmt(x)         ::= FOR(token) LPN condition(init) SEMICOLON expr_assign(expr)
@@ -1230,7 +1230,7 @@ catch(x)        ::= CATCH(token) LPN VAR name(lvalue)
                                 COLON expr_simple(proto) RPN stmt(body) .
                 {
                     x = new xec_statement_catch( token, lvalue, proto, body );
-                    x->set_condition( true );
+                    x->set_declare( true );
                 }
 
 catch_list(x)   ::= catch(cstmt) .

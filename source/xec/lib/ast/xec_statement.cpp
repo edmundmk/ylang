@@ -103,7 +103,7 @@ void xec_statement_foreach::set_eachkey( bool eachkey )
 {
 }
 
-void xec_statement_foreach::set_condition( bool condition )
+void xec_statement_foreach::set_declare( bool declare )
 {
 }
 
@@ -189,7 +189,7 @@ xec_statement_catch::xec_statement_catch( xec_token* token,
 {
 }
 
-void xec_statement_catch::set_condition( bool condition )
+void xec_statement_catch::set_declare( bool declare )
 {
 }
 
