@@ -48,6 +48,12 @@ public:
 
     xec_expression_null( xec_token* token );
 
+    virtual int get_location();
+
+private:
+
+    xec_token* token;
+
 };
 
 
@@ -62,6 +68,12 @@ public:
 
     xec_expression_bool( xec_token* token );
 
+    virtual int get_location();
+
+private:
+
+    xec_token* token;
+
 };
 
 
@@ -74,6 +86,12 @@ class xec_expression_number : public xec_expression
 public:
 
     xec_expression_number( xec_token* token );
+
+    virtual int get_location();
+    
+private:
+
+    xec_token* token;
 
 };
 
@@ -88,6 +106,11 @@ public:
 
     xec_expression_string( xec_token* token );
 
+    virtual int get_location();
+
+private:
+
+    xec_token* token;
 
 };
 
@@ -102,6 +125,12 @@ public:
 
     xec_expression_identifier( xec_token* token );
 
+    virtual int get_location();
+
+private:
+
+    xec_token* token;
+
 };
 
 
@@ -114,7 +143,15 @@ class xec_expression_lookup : public xec_expression
 public:
 
     xec_expression_lookup( xec_expression* expr, xec_token* token );
-    
+
+    virtual int get_location();
+
+
+private:
+
+    std::unique_ptr< xec_expression >   expr;
+    xec_token*                          token;
+
 };
 
 
@@ -127,6 +164,13 @@ class xec_expression_indexkey : public xec_expression
 public:
 
     xec_expression_indexkey( xec_expression* expr, xec_expression* index );
+
+    virtual int get_location();
+
+private:
+
+    std::unique_ptr< xec_expression >   expr;
+    std::unique_ptr< xec_expression >   index;
 
 };
 
@@ -141,6 +185,13 @@ public:
 
     xec_expression_index( xec_expression* expr, xec_expression* index );
     
+    virtual int get_location();
+
+private:
+
+    std::unique_ptr< xec_expression >   expr;
+    std::unique_ptr< xec_expression >   index;
+
 
 };
 
@@ -156,7 +207,16 @@ public:
 
     xec_expression_yield( xec_token* token, xec_expression_list* args );
     
+    virtual int get_location();
+    virtual xec_expression* as_mono();
+    
     void set_unpack( bool unpack );
+    
+private:
+
+    xec_token*                              token;
+    std::unique_ptr< xec_expression_list >  args;
+    bool                                    unpack;
     
 };
 
@@ -175,11 +235,22 @@ public:
 
     xec_expression_call( xec_expression* expr, xec_expression_list* args );
 
+    virtual int get_location();
+    virtual xec_expression* as_mono();
+
     void set_yieldcall( bool yieldcall );
     void set_unpack( bool unpack );
 
     xec_declaration_prototype*  as_prototype();
     xec_declaration_function*   as_function();
+
+private:
+
+    std::unique_ptr< xec_expression >       expr;
+    std::unique_ptr< xec_expression_list >  args;
+    bool                                    yieldcall;
+    bool                                    unpack;
+    
 
 };
 
@@ -200,6 +271,13 @@ class xec_expression_unary : public xec_expression
 public:
 
     xec_expression_unary( xec_expression* expr, xec_token* token );
+
+    virtual int get_location();
+
+private:
+
+    std::unique_ptr< xec_expression >   expr;
+    xec_token*                          token;
 
 };
 
@@ -226,6 +304,14 @@ public:
     xec_expression_binary(
         xec_expression* expr_a, xec_token* token, xec_expression* expr_b );
 
+    virtual int get_location();
+
+private:
+
+    std::unique_ptr< xec_expression >   expr_a;
+    xec_token*                          token;
+    std::unique_ptr< xec_expression >   expr_b;
+
 };
 
 
@@ -240,7 +326,21 @@ public:
 
     xec_expression_comparison( xec_expression* expr );
     
+    virtual int get_location();
+    virtual xec_expression_comparison* as_comparison();
+    
     void add_comparison( xec_token* token, xec_expression* expr );
+
+private:
+
+    struct comparison
+    {
+        xec_token*                          token;
+        std::unique_ptr< xec_expression >   expr;
+    };
+
+    std::unique_ptr< xec_expression >   expr;
+    std::deque< comparison >            comparisons;
 
 };
 
@@ -258,6 +358,14 @@ public:
     xec_expression_logical(
         xec_expression* expr_a, xec_token* token, xec_expression* expr_b );
 
+    virtual int get_location();
+    
+private:
+
+    std::unique_ptr< xec_expression >   expr_a;
+    xec_token*                          token;
+    std::unique_ptr< xec_expression >   expr_b;
+
 };
 
 
@@ -272,6 +380,14 @@ public:
     xec_expression_conditional( xec_expression* condition,
                     xec_expression* iftrue, xec_expression* iffalse );
 
+    virtual int get_location();
+
+private:
+
+    std::unique_ptr< xec_expression >   condition;
+    std::unique_ptr< xec_expression >   iftrue;
+    std::unique_ptr< xec_expression >   iffalse;
+
 };
 
 
@@ -284,6 +400,13 @@ class xec_expression_varargs : public xec_expression
 public:
 
     explicit xec_expression_varargs( xec_token* token );
+
+    virtual int get_location();
+    virtual xec_expression* as_mono();
+    
+private:
+
+    xec_token* token;
     
 };
 
@@ -298,6 +421,13 @@ public:
 
     explicit xec_expression_unpack( xec_expression* expr );
 
+    virtual int get_location();
+    virtual xec_expression* as_mono();
+
+private:
+
+    std::unique_ptr< xec_expression > expr;
+
 };
 
 
@@ -310,8 +440,18 @@ class xec_expression_list : public xec_expression
 public:
 
     xec_expression_list();
+    
+    virtual int get_location();
+    virtual xec_expression* as_mono();
+    virtual xec_expression_list* as_list();
+    
     void append_expression( xec_expression* expression );
-    void append_final( xec_expression* expression );
+    void append_final( xec_expression* final );
+
+private:
+
+    std::deque< std::unique_ptr< xec_expression > > expressions;
+    std::unique_ptr< xec_expression >               final;
 
 };
 
@@ -339,6 +479,15 @@ public:
     xec_expression_assign(
             xec_expression* lvalue, xec_token* op, xec_expression* rvalue );
 
+    virtual int get_location();
+    virtual xec_expression* as_mono();
+
+private:
+
+    std::unique_ptr< xec_expression >   lvalue;
+    xec_token*                          op;
+    std::unique_ptr< xec_expression >   rvalue;
+
 };
 
 
@@ -349,6 +498,16 @@ public:
 
 class xec_expression_mono : public xec_expression
 {
+public:
+
+    explicit xec_expression_mono( xec_expression* expr );
+
+    virtual int get_location();
+
+private:
+
+    std::unique_ptr< xec_expression > expr;
+
 };
 
 
@@ -361,10 +520,18 @@ class xec_expression_condition : public xec_expression
 {
 public:
 
-    xec_expression_condition(
-            xec_token* token,
-            xec_expression_list* name_list,
-            xec_expression_list* expr_list );
+    xec_expression_condition( xec_token* token,
+            xec_expression_list* name_list, xec_expression_list* expr_list );
+    
+    virtual int get_location();
+    virtual xec_expression* as_mono();
+
+private:
+
+    xec_token*                              token;
+    std::unique_ptr< xec_expression_list >  name_list;
+    std::unique_ptr< xec_expression_list >  expr_list;
+
 };
 
 

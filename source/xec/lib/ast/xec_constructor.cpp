@@ -51,7 +51,7 @@ void xec_constructor_list::append_value( xec_expression* value )
 
 void xec_constructor_list::append_final( xec_expression* final )
 {
-    this->final = std::unique_ptr< xec_expression >( final );
+    this->final.reset( final );
 }
 
 
@@ -78,8 +78,8 @@ void xec_constructor_table::append_keyval(
                 xec_expression* key, xec_expression* value )
 {
     keyval kv;
-    kv.key   = std::unique_ptr< xec_expression >( key );
-    kv.value = std::unique_ptr< xec_expression >( value );
+    kv.key.reset( key );
+    kv.value.reset( value );
     keyvals.push_back( std::move( kv ) );
 }
 
@@ -102,7 +102,7 @@ void xec_constructor_object::set_token( xec_token* token )
 
 void xec_constructor_object::set_proto( xec_expression* proto )
 {
-    this->proto = std::unique_ptr< xec_expression >( proto );
+    this->proto.reset( proto );
 }
 
 void xec_constructor_object::add_member( xec_declaration* decl )

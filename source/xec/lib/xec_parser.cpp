@@ -13,19 +13,16 @@
 
 
 xec_parser::xec_parser()
-    :   root( NULL )
 {
 }
 
 xec_parser::xec_parser( const char* filename )
-    :   root( NULL )
 {
     parse( filename );
 }
 
 xec_parser::~xec_parser()
 {
-    delete root;
 }
 
 
@@ -89,12 +86,12 @@ const char* xec_parser::diagnostic( size_t index )
 
 xec_statement_compound* xec_parser::get_root()
 {
-    return root;
+    return root.get();
 }
 
 void xec_parser::set_root( xec_statement_compound* stmt )
 {
-    root = stmt;
+    root.reset( stmt );
 }
 
 

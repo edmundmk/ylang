@@ -885,7 +885,7 @@ expr_assign(x)  ::= expr_list(expr) .
                 {
                     x = expr;
                 }
-expr_assign(x)  ::= expr_lbody(lvalue) assign_op(op) expr_list(rvalue) .
+expr_assign(x)  ::= expr_lbody(lvalue) assign_op(op) expr_assign(rvalue) .
                 {
                     x = new xec_expression_assign( lvalue, op, rvalue );
                 }
@@ -1042,7 +1042,7 @@ sexpr_assign(x) ::= sexpr_list(expr) .
                 {
                     x = expr;
                 }
-sexpr_assign(x) ::= sexpr_lbody(lvalue) assign_op(op) expr_list(rvalue) .
+sexpr_assign(x) ::= sexpr_lbody(lvalue) assign_op(op) expr_assign(rvalue) .
                 {
                     x = new xec_expression_assign( lvalue, op, rvalue );
                 }

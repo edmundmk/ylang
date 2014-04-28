@@ -12,6 +12,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <memory>
 #include <deque>
 #include <unordered_map>
 #include <unordered_set>
@@ -67,7 +68,7 @@ private:
     std::deque< const char* >       diagnostics;
     std::deque< void* >             recycle_tokens;
     std::unordered_set< symkey >    identifiers;
-    xec_statement_compound*         root;
+    std::unique_ptr< xec_statement_compound > root;
     
 };
 

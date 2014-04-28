@@ -60,12 +60,12 @@ int xec_declaration_object::get_location()
 
 void xec_declaration_object::set_name( xec_expression* name )
 {
-    this->name = std::unique_ptr< xec_expression >( name );
+    this->name.reset( name );
 }
 
 void xec_declaration_object::set_proto( xec_expression* proto )
 {
-    this->proto = std::unique_ptr< xec_expression >( proto );
+    this->proto.reset( proto );
 }
 
 void xec_declaration_object::add_member( xec_declaration* decl )
@@ -123,7 +123,7 @@ xec_declaration_function::xec_declaration_function(
 
 void xec_declaration_function::set_body( xec_statement_compound* body )
 {
-    this->body = std::unique_ptr< xec_statement_compound >( body );
+    this->body.reset( body );
 }
 
 
