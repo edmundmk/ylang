@@ -10,6 +10,10 @@
 #define XEC_STATEMENT_H
 
 
+#include <memory>
+#include <deque>
+
+
 struct xec_token;
 class xec_declaration;
 class xec_expression;
@@ -23,6 +27,9 @@ class xec_statement
 public:
 
     virtual ~xec_statement();
+    
+    virtual int get_location();
+    
 };
 
 
@@ -38,6 +45,12 @@ public:
 
     explicit xec_statement_declaration( xec_declaration* decl );
 
+    virtual int get_location();
+    
+private:
+
+    std::unique_ptr< xec_declaration > decl;
+
 };
 
 
@@ -52,6 +65,12 @@ public:
 
     explicit xec_statement_expression( xec_expression* expr );
 
+    virtual int get_location();
+    
+private:
+
+    std::unique_ptr< xec_expression > expr;
+
 };
 
 
@@ -65,7 +84,15 @@ public:
 
     xec_statement_compound();
     
+    virtual int get_location();
+    
+    void set_token( xec_token* token );
     void append_statement( xec_statement* stmt );
+
+private:
+
+    xec_token*                                      token;
+    std::deque< std::unique_ptr< xec_statement > >  statements;
 
 };
 
@@ -79,6 +106,13 @@ class xec_statement_delete : public xec_statement
 public:
 
     xec_statement_delete( xec_token* token, xec_expression_list* expr_list );
+    
+    virtual int get_location();
+    
+private:
+
+    xec_token*                              token;
+    std::unique_ptr< xec_expression_list >  expr_list;
 
 };
 
@@ -95,6 +129,15 @@ public:
     xec_statement_if( xec_token* token, xec_expression* expr,
                     xec_statement* iftrue, xec_statement* iffalse );
 
+    virtual int get_location();
+    
+private:
+
+    xec_token*                          token;
+    std::unique_ptr< xec_expression >   expr;
+    std::unique_ptr< xec_statement >    iftrue;
+    std::unique_ptr< xec_statement >    iffalse;
+
 };
 
 
@@ -109,6 +152,15 @@ public:
 
     xec_statement_switch( xec_token* token,
                     xec_expression* expr, xec_statement_compound* body );
+
+    virtual int get_location();
+    
+private:
+
+    xec_token*                                  token;
+    std::unique_ptr< xec_expression >           expr;
+    std::unique_ptr< xec_statement_compound >   body;
+
 };
 
 
@@ -122,6 +174,13 @@ class xec_statement_case : public xec_statement
 public:
 
     xec_statement_case( xec_token* token, xec_expression* expr );
+
+    virtual int get_location();
+    
+private:
+
+    xec_token*                          token;
+    std::unique_ptr< xec_expression >   expr;
 
 };
 
@@ -138,6 +197,14 @@ public:
     xec_statement_while(
             xec_token* token, xec_expression* expr, xec_statement* body );
     
+    virtual int get_location();
+    
+private:
+
+    xec_token*                          token;
+    std::unique_ptr< xec_expression >   expr;
+    std::unique_ptr< xec_statement >    body;
+    
 };
 
 
@@ -150,7 +217,16 @@ class xec_statement_do : public xec_statement
 public:
 
     xec_statement_do(
-            xec_token* token, xec_expression* expr, xec_statement* body );
+            xec_token* token, xec_statement* body, xec_expression* expr );
+
+    virtual int get_location();
+    
+private:
+
+    xec_token*                          token;
+    std::unique_ptr< xec_statement >    body;
+    std::unique_ptr< xec_expression >   expr;
+
 };
 
 
@@ -165,14 +241,22 @@ class xec_statement_foreach : public xec_statement
 {
 public:
 
-    xec_statement_foreach(
-            xec_token* token,
-            xec_expression_list* expr_list,
-            xec_expression* expr,
-            xec_statement* body );
+    xec_statement_foreach( xec_token* token, xec_expression_list* expr_list,
+            xec_expression* expr, xec_statement* body );
+
+    virtual int get_location();
 
     void set_eachkey( bool eachkey );
     void set_declare( bool declare );
+
+private:
+
+    xec_token*                              token;
+    std::unique_ptr< xec_expression_list >  expr_list;
+    std::unique_ptr< xec_expression >       expr;
+    std::unique_ptr< xec_statement >        body;
+    bool                                    eachkey;
+    bool                                    declare;
 
 };
 
@@ -189,6 +273,16 @@ public:
     xec_statement_for( xec_token* token, xec_expression* init,
         xec_expression* expr, xec_expression* update, xec_statement* body );
 
+    virtual int get_location();
+
+private:
+
+    xec_token*                          token;
+    std::unique_ptr< xec_expression >   init;
+    std::unique_ptr< xec_expression >   expr;
+    std::unique_ptr< xec_expression >   update;
+    std::unique_ptr< xec_statement >    body;
+
 };
 
 
@@ -201,6 +295,12 @@ class xec_statement_continue : public xec_statement
 public:
 
     explicit xec_statement_continue( xec_token* token );
+
+    virtual int get_location();
+    
+private:
+
+    xec_token* token;
 
 };
 
@@ -215,6 +315,12 @@ public:
 
     explicit xec_statement_break( xec_token* token );
 
+    virtual int get_location();
+    
+private:
+
+    xec_token* token;
+
 };
 
 
@@ -228,6 +334,13 @@ class xec_statement_return : public xec_statement
 public:
 
     xec_statement_return( xec_token* token, xec_expression_list* expr_list );
+
+    virtual int get_location();
+    
+private:
+
+    xec_token*                              token;
+    std::unique_ptr< xec_expression_list >  expr_list;
     
 };
 
@@ -243,6 +356,13 @@ public:
 
     xec_statement_yield( xec_token* token, xec_expression_list* expr_list );
 
+    virtual int get_location();
+    
+private:
+
+    xec_token*                              token;
+    std::unique_ptr< xec_expression_list >  expr_list;
+    
 };
 
 

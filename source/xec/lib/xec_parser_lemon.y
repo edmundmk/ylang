@@ -120,13 +120,15 @@ expr_paren(x)   ::= LPN expr_list(expr_list) RPN .
                     x = expr_list->as_list();
                 }
 
-stmt_brace(x)   ::= LBR RBR .
+stmt_brace(x)   ::= LBR(token) RBR .
                 {
                     x = new xec_statement_compound();
+                    x->set_token( token );
                 }
-stmt_brace(x)   ::= LBR stmt_list(stmt_list) RBR .
+stmt_brace(x)   ::= LBR(token) stmt_list(stmt_list) RBR .
                 {
                     x = stmt_list;
+                    x->set_token( token );
                 }
 
 odecl_brace(x)  ::= LBR RBR .
@@ -1127,7 +1129,7 @@ stmt(x)         ::= WHILE(token) LPN condition(expr) RPN stmt(body) .
 stmt(x)         ::= DO(token) stmt(body) WHILE
                                 LPN expr_assign(expr) RPN SEMICOLON .
                 {
-                    x = new xec_statement_do( token, expr, body );
+                    x = new xec_statement_do( token, body, expr );
                 }
 stmt(x)         ::= FOR(token) LPN expr_lbody(lvalue)
                                 COLON expr_value(expr) RPN stmt(body) .
