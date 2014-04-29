@@ -377,6 +377,13 @@ public:
 
     xec_statement_using( xec_token* token, xec_expression* expr );
 
+    virtual int get_location();
+    
+private:
+
+    xec_token*                          token;
+    std::unique_ptr< xec_expression >   expr;
+
 };
 
 
@@ -391,6 +398,15 @@ public:
 
     xec_statement_using_scope(
             xec_token* token, xec_expression* expr, xec_statement* body );
+    
+    virtual int get_location();
+    
+private:
+
+    xec_token*                          token;
+    std::unique_ptr< xec_expression >   expr;
+    std::unique_ptr< xec_statement >    body;
+
 };
 
 
@@ -405,10 +421,20 @@ class xec_statement_try : public xec_statement
 public:
 
     xec_statement_try();
+
+    virtual int get_location();
     
     void set_body( xec_token* token, xec_statement* body );
     void append_catch( xec_statement_catch* cstmt );
     void set_finally( xec_token* token, xec_statement* final );
+    
+private:
+
+    xec_token*                                              token;
+    std::unique_ptr< xec_statement >                        body;
+    std::deque< std::unique_ptr< xec_statement_catch > >    catches;
+    xec_token*                                              ftoken;
+    std::unique_ptr< xec_statement >                        final;
     
 };
 
@@ -426,7 +452,17 @@ public:
     xec_statement_catch( xec_token* token,
         xec_expression* lvalue, xec_expression* proto, xec_statement* body );
 
+    virtual int get_location();
+
     void set_declare( bool declare );
+
+private:
+
+    xec_token*                          token;
+    std::unique_ptr< xec_expression >   lvalue;
+    std::unique_ptr< xec_expression >   proto;
+    std::unique_ptr< xec_statement >    body;
+    bool                                declare;
 
 };
 
@@ -439,7 +475,14 @@ class xec_statement_throw : public xec_statement
 {
 public:
 
-    explicit xec_statement_throw( xec_expression* expr );
+    explicit xec_statement_throw( xec_token* token, xec_expression* expr );
+    
+    virtual int get_location();
+    
+private:
+
+    xec_token*                          token;
+    std::unique_ptr< xec_expression >   expr;
     
 };
 

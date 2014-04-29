@@ -1219,9 +1219,9 @@ stmt(x)         ::= TRY(token) stmt(body) catch_list(stmt)
                     stmt->set_body( token, body );
                     stmt->set_finally( ftoken, fbody );
                 }
-stmt(x)         ::= THROW expr_value(expr) SEMICOLON .
+stmt(x)         ::= THROW(token) expr_value(expr) SEMICOLON .
                 {
-                    x = new xec_statement_throw( expr );
+                    x = new xec_statement_throw( token, expr );
                 }
 
 // Catch clauses.

@@ -280,51 +280,96 @@ int xec_statement_yield::get_location()
 
 xec_statement_using::xec_statement_using(
                     xec_token* token, xec_expression* expr )
+    :   token( token )
+    ,   expr( expr )
 {
+}
+
+int xec_statement_using::get_location()
+{
+    return token->sloc;
 }
 
 
 
 xec_statement_using_scope::xec_statement_using_scope(
             xec_token* token, xec_expression* expr, xec_statement* body )
+    :   token( token )
+    ,   expr( expr )
+    ,   body( body )
 {
 }
 
+int xec_statement_using_scope::get_location()
+{
+    return token->sloc;
+}
 
 
 
 xec_statement_try::xec_statement_try()
-{
-}
-    
-void xec_statement_try::set_body( xec_token* token, xec_statement* body )
+    :   token( NULL )
+    ,   ftoken( NULL )
 {
 }
 
+int xec_statement_try::get_location()
+{
+    return token->sloc;
+}
+
+void xec_statement_try::set_body( xec_token* token, xec_statement* body )
+{
+    this->token = token;
+    this->body.reset( body );
+}
 
 void xec_statement_try::append_catch( xec_statement_catch* cstmt )
 {
+    catches.push_back( std::unique_ptr< xec_statement_catch >( cstmt ) );
 }
 
 void xec_statement_try::set_finally( xec_token* token, xec_statement* final )
 {
+    this->ftoken = token;
+    this->final.reset( final );
 }
 
 
 
 xec_statement_catch::xec_statement_catch( xec_token* token,
-        xec_expression* lvalue, xec_expression* proto, xec_statement* body )
+          xec_expression* lvalue, xec_expression* proto, xec_statement* body )
+    :   token( token )
+    ,   lvalue( lvalue )
+    ,   proto( proto )
+    ,   body( body )
 {
+}
+
+int xec_statement_catch::get_location()
+{
+    return token->sloc;
 }
 
 void xec_statement_catch::set_declare( bool declare )
 {
+    this->declare = declare;
 }
 
 
 
 
-xec_statement_throw::xec_statement_throw( xec_expression* expr )
+xec_statement_throw::xec_statement_throw(
+                xec_token* token, xec_expression* expr )
+    :   token( token )
+    ,   expr( expr )
 {
 }
+
+int xec_statement_throw::get_location()
+{
+    return token->sloc;
+}
+
+
 
