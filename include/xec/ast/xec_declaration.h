@@ -14,6 +14,7 @@
 #include <deque>
 
 
+
 struct xec_token;
 class xec_expression;
 class xec_expression_call;
@@ -23,12 +24,22 @@ class xec_constructor_object;
 
 
 
+enum xec_declaration_dispatch
+{
+    XEC_DECLARATION_VAR,
+    XEC_DECLARATION_OBJECT,
+    XEC_DECLARATION_PROTOTYPE,
+    XEC_DECLARATION_FUNCTION,
+};
+
+
 class xec_declaration
 {
 public:
 
     virtual ~xec_declaration();
 
+    virtual xec_declaration_dispatch visitor_dispatch();
     virtual int get_location();
     virtual void set_thiscall( bool thiscall );
 

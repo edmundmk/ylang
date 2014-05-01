@@ -21,6 +21,31 @@ class xec_expression_list;
 class xec_statement_catch;
 
 
+enum xec_statement_dispatch
+{
+    XEC_STATEMENT_DECLARATION,
+    XEC_STATEMENT_EXPRESSION,
+    XEC_STATEMENT_COMPOUND,
+    XEC_STATEMENT_DELETE,
+    XEC_STATEMENT_IF,
+    XEC_STATEMENT_SWITCH,
+    XEC_STATEMENT_CASE,
+    XEC_STATEMENT_WHILE,
+    XEC_STATEMENT_DO,
+    XEC_STATEMENT_FOREACH,
+    XEC_STATEMENT_FOR,
+    XEC_STATEMENT_CONTINUE,
+    XEC_STATEMENT_BREAK,
+    XEC_STATEMENT_RETURN,
+    XEC_STATEMENT_YIELD,
+    XEC_STATEMENT_USING,
+    XEC_STATEMENT_USINGSCOPE,
+    XEC_STATEMENT_TRY,
+    XEC_STATEMENT_CATCH,
+    XEC_STATEMENT_THROW,
+};
+
+
 
 class xec_statement
 {
@@ -28,6 +53,7 @@ public:
 
     virtual ~xec_statement();
     
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 };

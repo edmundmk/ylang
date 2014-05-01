@@ -10,124 +10,10 @@
 #define XEC_ASTVISITOR_H
 
 
-class xec_declaration;
-class xec_declaration_var;
-class xec_declaration_object;
-class xec_declaration_prototype;
-class xec_declaration_function;
-
-class xec_expression;
-class xec_expression_null;
-class xec_expression_number;
-class xec_expression_string;
-class xec_expression_identifier;
-class xec_expression_lookup;
-class xec_expression_indexkey;
-class xec_expression_index;
-class xec_expression_yield;
-class xec_expression_call;
-class xec_expression_unary;
-class xec_expression_binary;
-class xec_expression_comparison;
-class xec_expression_logical;
-class xec_expression_conditional;
-class xec_expression_varargs;
-class xec_expression_unpack;
-class xec_expression_list;
-class xec_expression_assign;
-class xec_expression_mono;
-class xec_expression_declare;
-class xec_constructor_new;
-class xec_constructor_list;
-class xec_constructor_table;
-class xec_constructor_function;
-class xec_constructor_object;
-
-class xec_statement;
-class xec_statement_declaration;
-class xec_statement_expression;
-class xec_statement_compound;
-class xec_statement_delete;
-class xec_statement_if;
-class xec_statement_switch;
-class xec_statement_case;
-class xec_statement_while;
-class xec_statement_do;
-class xec_statement_foreach;
-class xec_statement_for;
-class xec_statement_continue;
-class xec_statement_break;
-class xec_statement_return;
-class xec_statement_yield;
-class xec_statement_using;
-class xec_statement_usingscope;
-class xec_statement_try;
-class xec_statement_catch;
-class xec_statement_throw;
-
-
-enum xec_declaration_dispatch
-{
-    XEC_DECLARATION_VAR,
-    XEC_DECLARATION_OBJECT,
-    XEC_DECLARATION_PROTOTYPE,
-    XEC_DECLARATION_FUNCTION,
-};
-
-
-enum xec_expression_dispatch
-{
-    XEC_EXPRESSION_NULL,
-    XEC_EXPRESSION_NUMBER,
-    XEC_EXPRESSION_STRING,
-    XEC_EXPRESSION_IDENTIFIER,
-    XEC_EXPRESSION_LOOKUP,
-    XEC_EXPRESSION_INDEXKEY,
-    XEC_EXPRESSION_INDEX,
-    XEC_EXPRESSION_YIELD,
-    XEC_EXPRESSION_CALL,
-    XEC_EXPRESSION_UNARY,
-    XEC_EXPRESSION_BINARY,
-    XEC_EXPRESSION_COMPARISON,
-    XEC_EXPRESSION_LOGICAL,
-    XEC_EXPRESSION_CONDITIONAL,
-    XEC_EXPRESSION_VARARGS,
-    XEC_EXPRESSION_UNPACK,
-    XEC_EXPRESSION_LIST,
-    XEC_EXPRESSION_ASSIGN,
-    XEC_EXPRESSION_MONO,
-    XEC_EXPRESSION_DECLARE,
-    XEC_CONSTRUCTOR_NEW,
-    XEC_CONSTRUCTOR_LIST,
-    XEC_CONSTRUCTOR_TABLE,
-    XEC_CONSTRUCTOR_OBJECT,
-    XEC_CONSTRUCTOR_FUNCTION,
-};
-
-
-enum xec_statement_dispatch
-{
-    XEC_STATEMENT_DECLARATION,
-    XEC_STATEMENT_EXPRESSION,
-    XEC_STATEMENT_COMPOUND,
-    XEC_STATEMENT_DELETE,
-    XEC_STATEMENT_IF,
-    XEC_STATEMENT_SWITCH,
-    XEC_STATEMENT_CASE,
-    XEC_STATEMENT_WHILE,
-    XEC_STATEMENT_DO,
-    XEC_STATEMENT_FOREACH,
-    XEC_STATEMENT_FOR,
-    XEC_STATEMENT_CONTINUE,
-    XEC_STATEMENT_BREAK,
-    XEC_STATEMENT_RETURN,
-    XEC_STATEMENT_YIELD,
-    XEC_STATEMENT_USING,
-    XEC_STATEMENT_USINGSCOPE,
-    XEC_STATEMENT_TRY,
-    XEC_STATEMENT_CATCH,
-    XEC_STATEMENT_THROW,
-};
+#include "xec_declaration.h"
+#include "xec_expression.h"
+#include "xec_constructor.h"
+#include "xec_statement.h"
 
 
 
@@ -212,7 +98,8 @@ return_t xec_astvisitor< visitor_t, return_t, arguments_t ... >::visit( xec_decl
 
     };
     
-    return ( this->*( dispatch[ 0 ] ) )( decl, arguments ... );
+    xec_declaration_dispatch index = decl->visitor_dispatch();
+    return ( this->*( dispatch[ index ] ) )( decl, arguments ... );
 }
 
 
@@ -251,7 +138,8 @@ return_t xec_astvisitor< visitor_t, return_t, arguments_t ... >::visit( xec_expr
         &visitor_t::template dispatch_expr< xec_expression_declare >,
     };
     
-    return ( this->*( dispatch[ 0 ] ) )( expr, arguments ... );
+    xec_expression_dispatch index = expr->visitor_dispatch();
+    return ( this->*( dispatch[ index ] ) )( expr, arguments ... );
 }
 
 
@@ -291,7 +179,8 @@ return_t xec_astvisitor< visitor_t, return_t, arguments_t ... >::visit( xec_stat
         &visitor_t::template dispatch_stmt< xec_statement_throw >,
     };
     
-    return ( this->*( dispatch[ 0 ] ) )( stmt, arguments ... );
+    xec_statement_dispatch index = stmt->visitor_dispatch();
+    return ( this->*( dispatch[ index ] ) )( stmt, arguments ... );
 }
 
 

@@ -22,12 +22,45 @@ class xec_declaration_prototype;
 
 
 
+enum xec_expression_dispatch
+{
+    XEC_EXPRESSION_NULL,
+    XEC_EXPRESSION_NUMBER,
+    XEC_EXPRESSION_STRING,
+    XEC_EXPRESSION_IDENTIFIER,
+    XEC_EXPRESSION_LOOKUP,
+    XEC_EXPRESSION_INDEXKEY,
+    XEC_EXPRESSION_INDEX,
+    XEC_EXPRESSION_YIELD,
+    XEC_EXPRESSION_CALL,
+    XEC_EXPRESSION_UNARY,
+    XEC_EXPRESSION_BINARY,
+    XEC_EXPRESSION_COMPARISON,
+    XEC_EXPRESSION_LOGICAL,
+    XEC_EXPRESSION_CONDITIONAL,
+    XEC_EXPRESSION_VARARGS,
+    XEC_EXPRESSION_UNPACK,
+    XEC_EXPRESSION_LIST,
+    XEC_EXPRESSION_ASSIGN,
+    XEC_EXPRESSION_MONO,
+    XEC_EXPRESSION_DECLARE,
+    XEC_CONSTRUCTOR_NEW,
+    XEC_CONSTRUCTOR_LIST,
+    XEC_CONSTRUCTOR_TABLE,
+    XEC_CONSTRUCTOR_OBJECT,
+    XEC_CONSTRUCTOR_FUNCTION,
+};
+
+
+
+
 class xec_expression
 {
 public:
 
     virtual ~xec_expression();
-    
+
+    virtual xec_expression_dispatch     visitor_dispatch();
     virtual int                         get_location();
     virtual xec_expression_list*        as_list();
     virtual xec_expression*             as_mono();
