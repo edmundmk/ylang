@@ -516,11 +516,11 @@ private:
     var name, name = expr, expr;
 */
 
-class xec_expression_condition : public xec_expression
+class xec_expression_declare : public xec_expression
 {
 public:
 
-    xec_expression_condition( xec_token* token,
+    xec_expression_declare( xec_token* token,
             xec_expression_list* name_list, xec_expression_list* expr_list );
     
     virtual int get_location();

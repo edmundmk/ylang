@@ -392,11 +392,11 @@ private:
     using ( condition ) stmt;
 */
 
-class xec_statement_using_scope : public xec_statement
+class xec_statement_usingscope : public xec_statement
 {
 public:
 
-    xec_statement_using_scope(
+    xec_statement_usingscope(
             xec_token* token, xec_expression* expr, xec_statement* body );
     
     virtual int get_location();

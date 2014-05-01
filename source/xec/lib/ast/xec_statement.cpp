@@ -292,7 +292,7 @@ int xec_statement_using::get_location()
 
 
 
-xec_statement_using_scope::xec_statement_using_scope(
+xec_statement_usingscope::xec_statement_usingscope(
             xec_token* token, xec_expression* expr, xec_statement* body )
     :   token( token )
     ,   expr( expr )
@@ -300,7 +300,7 @@ xec_statement_using_scope::xec_statement_using_scope(
 {
 }
 
-int xec_statement_using_scope::get_location()
+int xec_statement_usingscope::get_location()
 {
     return token->sloc;
 }

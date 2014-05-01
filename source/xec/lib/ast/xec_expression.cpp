@@ -466,7 +466,7 @@ int xec_expression_mono::get_location()
 
 
 
-xec_expression_condition::xec_expression_condition( xec_token* token,
+xec_expression_declare::xec_expression_declare( xec_token* token,
             xec_expression_list* name_list, xec_expression_list* expr_list )
     :   token( token )
     ,   name_list( name_list )
@@ -474,12 +474,12 @@ xec_expression_condition::xec_expression_condition( xec_token* token,
 {
 }
 
-int xec_expression_condition::get_location()
+int xec_expression_declare::get_location()
 {
     return token->sloc;
 }
 
-xec_expression* xec_expression_condition::as_mono()
+xec_expression* xec_expression_declare::as_mono()
 {
     // Conditions can declare more than one value.
     return new xec_expression_mono( this );

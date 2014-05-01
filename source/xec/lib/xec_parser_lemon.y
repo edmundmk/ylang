@@ -1072,7 +1072,7 @@ condition(x)    ::= expr_assign(expr) .
 condition(x)    ::= VAR(token) name_list(name_list)
                                 ASSIGN expr_list(expr_list) .
                 {
-                    x = new xec_expression_condition( token,
+                    x = new xec_expression_declare( token,
                                 name_list->as_list(), expr_list->as_list() );
                 }
 
@@ -1194,7 +1194,7 @@ stmt(x)         ::= stmt_yield(token) expr_list(expr) SEMICOLON .
                 }
 stmt(x)         ::= USING(token) LPN condition(expr) RPN stmt(body) .
                 {
-                    x = new xec_statement_using_scope( token, expr, body );
+                    x = new xec_statement_usingscope( token, expr, body );
                 }
 stmt(x)         ::= stmt_using(token) condition(expr) SEMICOLON .
                 {

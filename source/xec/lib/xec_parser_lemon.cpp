@@ -2903,7 +2903,7 @@ static void yy_reduce(
       case 181: /* condition ::= VAR name_list ASSIGN expr_list */
 #line 1074 "../../toolbox/source/xec/lib/xec_parser_lemon.y"
 {
-                    yygotominor.yy218 = new xec_expression_condition( yymsp[-3].minor.yy0,
+                    yygotominor.yy218 = new xec_expression_declare( yymsp[-3].minor.yy0,
                                 yymsp[-2].minor.yy218->as_list(), yymsp[0].minor.yy218->as_list() );
                   yy_destructor(yypParser,18,&yymsp[-1].minor);
 }
@@ -3112,7 +3112,7 @@ static void yy_reduce(
       case 205: /* stmt ::= USING LPN condition RPN stmt */
 #line 1196 "../../toolbox/source/xec/lib/xec_parser_lemon.y"
 {
-                    yygotominor.yy67 = new xec_statement_using_scope( yymsp[-4].minor.yy0, yymsp[-2].minor.yy218, yymsp[0].minor.yy67 );
+                    yygotominor.yy67 = new xec_statement_usingscope( yymsp[-4].minor.yy0, yymsp[-2].minor.yy218, yymsp[0].minor.yy67 );
                   yy_destructor(yypParser,8,&yymsp[-3].minor);
   yy_destructor(yypParser,9,&yymsp[-1].minor);
 }
