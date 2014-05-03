@@ -53,8 +53,8 @@ public:
 
     virtual ~xec_statement();
     
-    virtual xec_statement_dispatch visitor_dispatch();
-    virtual int get_location();
+    virtual xec_statement_dispatch  visitor_dispatch()  = 0;
+    virtual int                     get_location()      = 0;
     
 };
 
@@ -71,6 +71,7 @@ public:
 
     explicit xec_statement_declaration( xec_declaration* decl );
 
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 private:
@@ -91,6 +92,7 @@ public:
 
     explicit xec_statement_expression( xec_expression* expr );
 
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 private:
@@ -110,6 +112,7 @@ public:
 
     xec_statement_compound();
     
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
     void set_token( xec_token* token );
@@ -133,6 +136,7 @@ public:
 
     xec_statement_delete( xec_token* token, xec_expression_list* expr_list );
     
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 private:
@@ -155,6 +159,7 @@ public:
     xec_statement_if( xec_token* token, xec_expression* expr,
                     xec_statement* iftrue, xec_statement* iffalse );
 
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 private:
@@ -179,6 +184,7 @@ public:
     xec_statement_switch( xec_token* token,
                     xec_expression* expr, xec_statement_compound* body );
 
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 private:
@@ -201,6 +207,7 @@ public:
 
     xec_statement_case( xec_token* token, xec_expression* expr );
 
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 private:
@@ -223,6 +230,7 @@ public:
     xec_statement_while(
             xec_token* token, xec_expression* expr, xec_statement* body );
     
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 private:
@@ -245,6 +253,7 @@ public:
     xec_statement_do(
             xec_token* token, xec_statement* body, xec_expression* expr );
 
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 private:
@@ -270,6 +279,7 @@ public:
     xec_statement_foreach( xec_token* token, xec_expression_list* expr_list,
             xec_expression* expr, xec_statement* body );
 
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
 
     void set_eachkey( bool eachkey );
@@ -299,6 +309,7 @@ public:
     xec_statement_for( xec_token* token, xec_expression* init,
         xec_expression* expr, xec_expression* update, xec_statement* body );
 
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
 
 private:
@@ -322,6 +333,7 @@ public:
 
     explicit xec_statement_continue( xec_token* token );
 
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 private:
@@ -341,6 +353,7 @@ public:
 
     explicit xec_statement_break( xec_token* token );
 
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 private:
@@ -361,6 +374,7 @@ public:
 
     xec_statement_return( xec_token* token, xec_expression_list* expr_list );
 
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 private:
@@ -382,6 +396,7 @@ public:
 
     xec_statement_yield( xec_token* token, xec_expression_list* expr_list );
 
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 private:
@@ -403,6 +418,7 @@ public:
 
     xec_statement_using( xec_token* token, xec_expression* expr );
 
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 private:
@@ -425,6 +441,7 @@ public:
     xec_statement_usingscope(
             xec_token* token, xec_expression* expr, xec_statement* body );
     
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 private:
@@ -448,6 +465,7 @@ public:
 
     xec_statement_try();
 
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
     void set_body( xec_token* token, xec_statement* body );
@@ -478,6 +496,7 @@ public:
     xec_statement_catch( xec_token* token,
         xec_expression* lvalue, xec_expression* proto, xec_statement* body );
 
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
 
     void set_declare( bool declare );
@@ -503,6 +522,7 @@ public:
 
     explicit xec_statement_throw( xec_token* token, xec_expression* expr );
     
+    virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
 private:

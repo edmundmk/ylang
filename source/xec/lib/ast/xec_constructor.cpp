@@ -22,6 +22,11 @@ xec_constructor_new::xec_constructor_new(
 {
 }
 
+xec_expression_dispatch xec_constructor_new::visitor_dispatch()
+{
+    return XEC_CONSTRUCTOR_NEW;
+}
+
 int xec_constructor_new::get_location()
 {
     return token->sloc;
@@ -32,6 +37,11 @@ int xec_constructor_new::get_location()
 xec_constructor_list::xec_constructor_list()
     :   token( NULL )
 {
+}
+
+xec_expression_dispatch xec_constructor_list::visitor_dispatch()
+{
+    return XEC_CONSTRUCTOR_LIST;
 }
 
 int xec_constructor_list::get_location()
@@ -64,6 +74,11 @@ xec_constructor_table::xec_constructor_table()
 {
 }
 
+xec_expression_dispatch xec_constructor_table::visitor_dispatch()
+{
+    return XEC_CONSTRUCTOR_TABLE;
+}
+
 int xec_constructor_table::get_location()
 {
     return token->sloc;
@@ -88,6 +103,11 @@ void xec_constructor_table::append_keyval(
 
 xec_constructor_object::xec_constructor_object()
 {
+}
+
+xec_expression_dispatch xec_constructor_object::visitor_dispatch()
+{
+    return XEC_CONSTRUCTOR_OBJECT;
 }
 
 int xec_constructor_object::get_location()
@@ -122,6 +142,11 @@ xec_constructor_function::xec_constructor_function( xec_token* token,
     ,   thiscall( false )
     ,   coroutine( false )
 {
+}
+
+xec_expression_dispatch xec_constructor_function::visitor_dispatch()
+{
+    return XEC_CONSTRUCTOR_FUNCTION;
 }
 
 int xec_constructor_function::get_location()

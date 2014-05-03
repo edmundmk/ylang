@@ -20,11 +20,6 @@ xec_declaration::~xec_declaration()
 {
 }
 
-int xec_declaration::get_location()
-{
-    return -1;
-}
-
 void xec_declaration::set_thiscall( bool thiscall )
 {
 }
@@ -40,6 +35,11 @@ xec_declaration_var::xec_declaration_var( xec_token* token,
 {
 }
 
+xec_declaration_dispatch xec_declaration_var::visitor_dispatch()
+{
+    return XEC_DECLARATION_VAR;
+}
+
 int xec_declaration_var::get_location()
 {
     return token->sloc;
@@ -51,6 +51,11 @@ int xec_declaration_var::get_location()
 
 xec_declaration_object::xec_declaration_object()
 {
+}
+
+xec_declaration_dispatch xec_declaration_object::visitor_dispatch()
+{
+    return XEC_DECLARATION_OBJECT;
 }
 
 int xec_declaration_object::get_location()
@@ -97,6 +102,11 @@ xec_declaration_prototype::xec_declaration_prototype(
 {
 }
 
+xec_declaration_dispatch xec_declaration_prototype::visitor_dispatch()
+{
+    return XEC_DECLARATION_PROTOTYPE;
+}
+
 int xec_declaration_prototype::get_location()
 {
     return name->get_location();
@@ -119,6 +129,11 @@ xec_declaration_function::xec_declaration_function(
                     xec_expression* name, xec_expression_list* params )
     :   xec_declaration_prototype( name, params )
 {
+}
+
+xec_declaration_dispatch xec_declaration_function::visitor_dispatch()
+{
+    return XEC_DECLARATION_FUNCTION;
 }
 
 void xec_declaration_function::set_body( xec_statement_compound* body )

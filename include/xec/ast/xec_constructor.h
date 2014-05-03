@@ -28,6 +28,7 @@ public:
     xec_constructor_new( xec_token* token,
                     xec_expression* proto, xec_expression_list* args );
 
+    virtual xec_expression_dispatch visitor_dispatch();
     virtual int get_location();
 
 private:
@@ -50,6 +51,7 @@ public:
 
     xec_constructor_list();
 
+    virtual xec_expression_dispatch visitor_dispatch();
     virtual int get_location();
 
     void set_token( xec_token* token );
@@ -76,6 +78,7 @@ public:
 
     xec_constructor_table();
     
+    virtual xec_expression_dispatch visitor_dispatch();
     virtual int get_location();
     
     void set_token( xec_token* token );
@@ -106,6 +109,7 @@ public:
 
     xec_constructor_object();
 
+    virtual xec_expression_dispatch visitor_dispatch();
     virtual int get_location();
 
     void set_token( xec_token* token );
@@ -136,6 +140,7 @@ public:
     xec_constructor_function( xec_token* token,
             xec_expression_list* params, xec_statement_compound* body );
     
+    virtual xec_expression_dispatch visitor_dispatch();
     virtual int get_location();
     
     void set_thiscall( bool thiscall );

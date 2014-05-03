@@ -19,11 +19,6 @@ xec_expression::~xec_expression()
 {
 }
 
-int xec_expression::get_location()
-{
-    return -1;
-}
-    
 xec_expression_list* xec_expression::as_list()
 {
     // Most expressions are not lists.
@@ -54,6 +49,11 @@ xec_expression_null::xec_expression_null( xec_token* token )
 {
 }
 
+xec_expression_dispatch xec_expression_null::visitor_dispatch()
+{
+    return XEC_EXPRESSION_NULL;
+}
+
 int xec_expression_null::get_location()
 {
     return token->sloc;
@@ -66,6 +66,11 @@ xec_expression_bool::xec_expression_bool( xec_token* token )
 {
 }
 
+xec_expression_dispatch xec_expression_bool::visitor_dispatch()
+{
+    return XEC_EXPRESSION_BOOL;
+}
+
 int xec_expression_bool::get_location()
 {
     return token->sloc;
@@ -76,6 +81,11 @@ int xec_expression_bool::get_location()
 xec_expression_number::xec_expression_number( xec_token* token )
     :   token( token )
 {
+}
+
+xec_expression_dispatch xec_expression_number::visitor_dispatch()
+{
+    return XEC_EXPRESSION_NUMBER;
 }
 
 int xec_expression_number::get_location()
@@ -91,6 +101,11 @@ xec_expression_string::xec_expression_string( xec_token* token )
 {
 }
 
+xec_expression_dispatch xec_expression_string::visitor_dispatch()
+{
+    return XEC_EXPRESSION_STRING;
+}
+
 int xec_expression_string::get_location()
 {
     return token->sloc;
@@ -102,7 +117,11 @@ int xec_expression_string::get_location()
 xec_expression_identifier::xec_expression_identifier( xec_token* token )
     :   token( token )
 {
-    
+}
+
+xec_expression_dispatch xec_expression_identifier::visitor_dispatch()
+{
+    return XEC_EXPRESSION_IDENTIFIER;
 }
 
 int xec_expression_identifier::get_location()
@@ -117,6 +136,11 @@ xec_expression_lookup::xec_expression_lookup(
     :   expr( expr )
     ,   token( token )
 {
+}
+
+xec_expression_dispatch xec_expression_lookup::visitor_dispatch()
+{
+    return XEC_EXPRESSION_LOOKUP;
 }
 
 int xec_expression_lookup::get_location()
@@ -135,6 +159,11 @@ xec_expression_indexkey::xec_expression_indexkey(
 {
 }
 
+xec_expression_dispatch xec_expression_indexkey::visitor_dispatch()
+{
+    return XEC_EXPRESSION_INDEXKEY;
+}
+
 int xec_expression_indexkey::get_location()
 {
     return expr->get_location();
@@ -149,6 +178,11 @@ xec_expression_index::xec_expression_index(
     :   expr( expr )
     ,   index( index )
 {
+}
+
+xec_expression_dispatch xec_expression_index::visitor_dispatch()
+{
+    return XEC_EXPRESSION_INDEX;
 }
 
 int xec_expression_index::get_location()
@@ -167,6 +201,11 @@ xec_expression_yield::xec_expression_yield(
     ,   args( args )
     ,   unpack( false )
 {
+}
+
+xec_expression_dispatch xec_expression_yield::visitor_dispatch()
+{
+    return XEC_EXPRESSION_YIELD;
 }
 
 int xec_expression_yield::get_location()
@@ -199,6 +238,11 @@ xec_expression_call::xec_expression_call(
     ,   yieldcall( false )
     ,   unpack( false )
 {
+}
+
+xec_expression_dispatch xec_expression_call::visitor_dispatch()
+{
+    return XEC_EXPRESSION_CALL;
 }
 
 int xec_expression_call::get_location()
@@ -255,6 +299,11 @@ xec_expression_unary::xec_expression_unary(
 {
 }
 
+xec_expression_dispatch xec_expression_unary::visitor_dispatch()
+{
+    return XEC_EXPRESSION_UNARY;
+}
+
 int xec_expression_unary::get_location()
 {
     return token->sloc;
@@ -272,6 +321,11 @@ xec_expression_binary::xec_expression_binary(
 {
 }
 
+xec_expression_dispatch xec_expression_binary::visitor_dispatch()
+{
+    return XEC_EXPRESSION_BINARY;
+}
+
 int xec_expression_binary::get_location()
 {
     return token->sloc;
@@ -283,6 +337,11 @@ int xec_expression_binary::get_location()
 xec_expression_comparison::xec_expression_comparison( xec_expression* expr )
     :   expr( expr )
 {
+}
+
+xec_expression_dispatch xec_expression_comparison::visitor_dispatch()
+{
+    return XEC_EXPRESSION_COMPARISON;
 }
 
 int xec_expression_comparison::get_location()
@@ -315,6 +374,11 @@ xec_expression_logical::xec_expression_logical(
 {
 }
 
+xec_expression_dispatch xec_expression_logical::visitor_dispatch()
+{
+    return XEC_EXPRESSION_LOGICAL;
+}
+
 int xec_expression_logical::get_location()
 {
     return token->sloc;
@@ -332,6 +396,11 @@ xec_expression_conditional::xec_expression_conditional(
 {
 }
 
+xec_expression_dispatch xec_expression_conditional::visitor_dispatch()
+{
+    return XEC_EXPRESSION_CONDITIONAL;
+}
+
 int xec_expression_conditional::get_location()
 {
     return condition->get_location();
@@ -343,6 +412,11 @@ int xec_expression_conditional::get_location()
 xec_expression_varargs::xec_expression_varargs( xec_token* token )
     :   token( token )
 {
+}
+
+xec_expression_dispatch xec_expression_varargs::visitor_dispatch()
+{
+    return XEC_EXPRESSION_VARARGS;
 }
 
 int xec_expression_varargs::get_location()
@@ -364,6 +438,11 @@ xec_expression_unpack::xec_expression_unpack( xec_expression* expr )
 {
 }
 
+xec_expression_dispatch xec_expression_unpack::visitor_dispatch()
+{
+    return XEC_EXPRESSION_UNPACK;
+}
+
 int xec_expression_unpack::get_location()
 {
     return expr->get_location();
@@ -379,6 +458,11 @@ xec_expression* xec_expression_unpack::as_mono()
 
 xec_expression_list::xec_expression_list()
 {
+}
+
+xec_expression_dispatch xec_expression_list::visitor_dispatch()
+{
+    return XEC_EXPRESSION_LIST;
 }
 
 int xec_expression_list::get_location()
@@ -440,6 +524,11 @@ xec_expression_assign::xec_expression_assign(
 {
 }
 
+xec_expression_dispatch xec_expression_assign::visitor_dispatch()
+{
+    return XEC_EXPRESSION_ASSIGN;
+}
+
 int xec_expression_assign::get_location()
 {
     return op->sloc;
@@ -458,6 +547,11 @@ xec_expression_mono::xec_expression_mono( xec_expression* expr )
 {
 }
 
+xec_expression_dispatch xec_expression_mono::visitor_dispatch()
+{
+    return XEC_EXPRESSION_MONO;
+}
+
 int xec_expression_mono::get_location()
 {
     return expr->get_location();
@@ -472,6 +566,11 @@ xec_expression_declare::xec_expression_declare( xec_token* token,
     ,   name_list( name_list )
     ,   expr_list( expr_list )
 {
+}
+
+xec_expression_dispatch xec_expression_declare::visitor_dispatch()
+{
+    return XEC_EXPRESSION_DECLARE;
 }
 
 int xec_expression_declare::get_location()

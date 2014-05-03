@@ -39,8 +39,9 @@ public:
 
     virtual ~xec_declaration();
 
-    virtual xec_declaration_dispatch visitor_dispatch();
-    virtual int get_location();
+    virtual xec_declaration_dispatch    visitor_dispatch()  = 0;
+    virtual int                         get_location()      = 0;
+    
     virtual void set_thiscall( bool thiscall );
 
 };
@@ -59,6 +60,7 @@ public:
     xec_declaration_var( xec_token* token,
             xec_expression_list* name_list, xec_expression_list* expr_list );
 
+    virtual xec_declaration_dispatch visitor_dispatch();
     virtual int get_location();
 
 private:
@@ -81,6 +83,7 @@ public:
 
     xec_declaration_object();
 
+    virtual xec_declaration_dispatch visitor_dispatch();
     virtual int get_location();
 
     void set_name( xec_expression* name );
@@ -111,6 +114,7 @@ public:
     xec_declaration_prototype(
             xec_expression* name, xec_expression_list* params );
 
+    virtual xec_declaration_dispatch visitor_dispatch();
     virtual int get_location();
     
     void set_thiscall( bool thiscall );
@@ -137,6 +141,8 @@ public:
 
     xec_declaration_function(
             xec_expression* name, xec_expression_list* params );
+
+    virtual xec_declaration_dispatch visitor_dispatch();
 
     void set_body( xec_statement_compound* body );
 

@@ -34,6 +34,7 @@ public:
     template < typename expression_t > return_t dispatch_expr( xec_expression* expr, arguments_t ... arguments );
 
     return_t visit( xec_expression_null* expr, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_expression_bool* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_expression_number* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_expression_string* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_expression_identifier* expr, arguments_t ... arguments ) { return return_t(); }
@@ -118,6 +119,7 @@ return_t xec_astvisitor< visitor_t, return_t, arguments_t ... >::visit( xec_expr
     static visit_t dispatch[] =
     {
         &visitor_t::template dispatch_expr< xec_expression_null >,
+        &visitor_t::template dispatch_expr< xec_expression_bool >,
         &visitor_t::template dispatch_expr< xec_expression_number >,
         &visitor_t::template dispatch_expr< xec_expression_string >,
         &visitor_t::template dispatch_expr< xec_expression_identifier >,
