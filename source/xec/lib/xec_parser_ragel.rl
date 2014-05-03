@@ -212,6 +212,8 @@
         |   '++'   >ts %{ MTOKEN( XEC_TOKEN_INCREMENT, sloc, "++", 2 ); }
         |   '--'   >ts %{ MTOKEN( XEC_TOKEN_DECREMENT, sloc, "--", 2 ); }
 
+        |   '..'   >ts %{ MTOKEN( XEC_TOKEN_CONCATENATE, sloc, "..", 2 ); }
+
         |   '<<'   >ts %{ MTOKEN( XEC_TOKEN_LSHIFT, sloc, "<<", 2 ); }
         |   '>>'   >ts %{ MTOKEN( XEC_TOKEN_RSHIFT, sloc, ">>", 2 ); }
         |   '>>>'  >ts %{ MTOKEN( XEC_TOKEN_URSHIFT, sloc, ">>>", 3 ); }

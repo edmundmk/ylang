@@ -291,6 +291,7 @@ odecl_list(x)   ::= odecl_list(object) odecl(decl) .
 %type expr_bitand   { xec_expression* }
 %type expr_bitxor   { xec_expression* }
 %type expr_bitor    { xec_expression* }
+%type expr_concat   { xec_expression* }
 %type expr_compare  { xec_expression* }
 %type expr_and      { xec_expression* }
 %type expr_xor      { xec_expression* }
@@ -628,66 +629,75 @@ expr_bitor(x)   ::= expr_bitor(expr_a) VBAR(token) expr_bitxor(expr_b) .
                     x = new xec_expression_binary( expr_a, token, expr_b );
                 }
 
-expr_compare(x) ::= expr_bitor(expr) .
+expr_concat(x)  ::= expr_bitor(expr) .
                 {
                     x = expr;
                 }
-expr_compare(x) ::= expr_compare(expr_a) EQUAL(token) expr_bitor(expr_b) .
+expr_concat(x)  ::= expr_concat(expr_a) CONCATENATE(token) expr_bitor(expr_b) .
+                {
+                    x = new xec_expression_binary( expr_a, token, expr_b );
+                }
+
+expr_compare(x) ::= expr_concat(expr) .
+                {
+                    x = expr;
+                }
+expr_compare(x) ::= expr_compare(expr_a) EQUAL(token) expr_concat(expr_b) .
                 {
                     xec_expression_comparison* comparison;
                     x = comparison = expr_a->as_comparison();
                     comparison->add_comparison( token, expr_b );
                 }
-expr_compare(x) ::= expr_compare(expr_a) NOTEQUAL(token) expr_bitor(expr_b) .
+expr_compare(x) ::= expr_compare(expr_a) NOTEQUAL(token) expr_concat(expr_b) .
                 {
                     xec_expression_comparison* comparison;
                     x = comparison = expr_a->as_comparison();
                     comparison->add_comparison( token, expr_b );
                 }
-expr_compare(x) ::= expr_compare(expr_a) LESS(token) expr_bitor(expr_b) .
+expr_compare(x) ::= expr_compare(expr_a) LESS(token) expr_concat(expr_b) .
                 {
                     xec_expression_comparison* comparison;
                     x = comparison = expr_a->as_comparison();
                     comparison->add_comparison( token, expr_b );
                 }
-expr_compare(x) ::= expr_compare(expr_a) GREATER(token) expr_bitor(expr_b) .
+expr_compare(x) ::= expr_compare(expr_a) GREATER(token) expr_concat(expr_b) .
                 {
                     xec_expression_comparison* comparison;
                     x = comparison = expr_a->as_comparison();
                     comparison->add_comparison( token, expr_b );
                 }
-expr_compare(x) ::= expr_compare(expr_a) LESSEQUAL(token) expr_bitor(expr_b) .
+expr_compare(x) ::= expr_compare(expr_a) LESSEQUAL(token) expr_concat(expr_b) .
                 {
                     xec_expression_comparison* comparison;
                     x = comparison = expr_a->as_comparison();
                     comparison->add_comparison( token, expr_b );
                 }
 expr_compare(x) ::= expr_compare(expr_a)
-                                GREATEREQUAL(token) expr_bitor(expr_b) .
+                                GREATEREQUAL(token) expr_concat(expr_b) .
                 {
                     xec_expression_comparison* comparison;
                     x = comparison = expr_a->as_comparison();
                     comparison->add_comparison( token, expr_b );
                 }
-expr_compare(x) ::= expr_compare(expr_a) IN(token) expr_bitor(expr_b) .
+expr_compare(x) ::= expr_compare(expr_a) IN(token) expr_concat(expr_b) .
                 {
                     xec_expression_comparison* comparison;
                     x = comparison = expr_a->as_comparison();
                     comparison->add_comparison( token, expr_b );
                 }
-expr_compare(x) ::= expr_compare(expr_a) NOTIN(token) expr_bitor(expr_b) .
+expr_compare(x) ::= expr_compare(expr_a) NOTIN(token) expr_concat(expr_b) .
                 {
                     xec_expression_comparison* comparison;
                     x = comparison = expr_a->as_comparison();
                     comparison->add_comparison( token, expr_b );
                 }
-expr_compare(x) ::= expr_compare(expr_a) IS(token) expr_bitor(expr_b) .
+expr_compare(x) ::= expr_compare(expr_a) IS(token) expr_concat(expr_b) .
                 {
                     xec_expression_comparison* comparison;
                     x = comparison = expr_a->as_comparison();
                     comparison->add_comparison( token, expr_b );
                 }
-expr_compare(x) ::= expr_compare(expr_a) NOTIS(token) expr_bitor(expr_b) .
+expr_compare(x) ::= expr_compare(expr_a) NOTIS(token) expr_concat(expr_b) .
                 {
                     xec_expression_comparison* comparison;
                     x = comparison = expr_a->as_comparison();

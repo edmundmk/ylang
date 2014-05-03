@@ -100,6 +100,8 @@ void xec_token::debug_print()
     case XEC_TOKEN_INCREMENT:       kind_name = "INCREMENT";        break;
     case XEC_TOKEN_DECREMENT:       kind_name = "DECREMENT";        break;
     
+    case XEC_TOKEN_CONCATENATE:     kind_name = "CONCATENATE";      break;
+    
     case XEC_TOKEN_LSHIFT:          kind_name = "LSHIFT";           break;
     case XEC_TOKEN_RSHIFT:          kind_name = "RSHIFT";           break;
     case XEC_TOKEN_URSHIFT:         kind_name = "URSHIFT";          break;

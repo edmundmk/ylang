@@ -26,6 +26,10 @@ void xec_declaration::set_thiscall( bool thiscall )
 
 
 
+/*
+    var name, name;
+    var name, name = expr, exrp;
+*/
 
 xec_declaration_var::xec_declaration_var( xec_token* token,
             xec_expression_list* name_list, xec_expression_list* expr_list )
@@ -48,6 +52,10 @@ int xec_declaration_var::get_location()
 
 
 
+/*
+    name { decl; decl; }
+    name : expr { decl; decl; }
+*/
 
 xec_declaration_object::xec_declaration_object()
 {
@@ -92,6 +100,9 @@ xec_constructor_object*
 
 
 
+/*
+    name( param, param )
+*/
 
 xec_declaration_prototype::xec_declaration_prototype(
                     xec_expression* name, xec_expression_list* params )
@@ -124,6 +135,9 @@ void xec_declaration_prototype::set_coroutine( bool coroutine )
 
 
 
+/*
+    name( param, param ) { decl, decl }
+*/
 
 xec_declaration_function::xec_declaration_function(
                     xec_expression* name, xec_expression_list* params )

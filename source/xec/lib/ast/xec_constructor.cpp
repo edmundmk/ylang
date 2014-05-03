@@ -13,6 +13,9 @@
 
 
 
+/*
+    new expr( expr, expr )
+*/
 
 xec_constructor_new::xec_constructor_new(
         xec_token* token, xec_expression* proto, xec_expression_list* args )
@@ -33,6 +36,10 @@ int xec_constructor_new::get_location()
 }
 
 
+
+/*
+    [ expr, expr, ... ]
+*/
 
 xec_constructor_list::xec_constructor_list()
     :   token( NULL )
@@ -67,7 +74,9 @@ void xec_constructor_list::append_final( xec_expression* final )
 
 
 
-
+/*
+    { expr : expr, expr : expr }
+*/
 
 xec_constructor_table::xec_constructor_table()
     :   token( NULL )
@@ -100,6 +109,10 @@ void xec_constructor_table::append_keyval(
 
 
 
+/*
+    :{ decl; decl; }
+    : expr { decl; decl; }
+*/
 
 xec_constructor_object::xec_constructor_object()
 {
@@ -133,6 +146,12 @@ void xec_constructor_object::add_member( xec_declaration* decl )
 
 
 
+/*
+    ?( param, param ) { stmt; stmt; }
+    ?( param, param ) yield { stmt; stmt; }
+    .?( param, param ) { stmt; stmt; }
+    .?( param, param ) yield { stmt; stmt; }
+*/
 
 xec_constructor_function::xec_constructor_function( xec_token* token,
                 xec_expression_list* params, xec_statement_compound* body )

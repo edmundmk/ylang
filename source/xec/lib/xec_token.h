@@ -78,6 +78,8 @@ enum xec_token_kind
     XEC_TOKEN_INCREMENT     = LEMON_INCREMENT,
     XEC_TOKEN_DECREMENT     = LEMON_DECREMENT,
     
+    XEC_TOKEN_CONCATENATE   = LEMON_CONCATENATE,
+    
     XEC_TOKEN_LSHIFT        = LEMON_LSHIFT,
     XEC_TOKEN_RSHIFT        = LEMON_RSHIFT,
     XEC_TOKEN_URSHIFT       = LEMON_URSHIFT,
@@ -163,7 +165,9 @@ enum xec_token_kind
 #undef LEMON_VBAR
 #undef LEMON_RBR
 #undef LEMON_TILDE
-    
+
+#undef LEMON_CONCATENATE
+
 #undef LEMON_INCREMENT
 #undef LEMON_DECREMENT
     

@@ -43,6 +43,9 @@ xec_expression_comparison* xec_expression::as_comparison()
 
 
 
+/*
+    null
+*/
 
 xec_expression_null::xec_expression_null( xec_token* token )
     :   token( token )
@@ -61,6 +64,11 @@ int xec_expression_null::get_location()
 
 
 
+/*
+    true
+    false
+*/
+
 xec_expression_bool::xec_expression_bool( xec_token* token )
     :   token( token )
 {
@@ -77,6 +85,9 @@ int xec_expression_bool::get_location()
 }
 
 
+/*
+    1337
+*/
 
 xec_expression_number::xec_expression_number( xec_token* token )
     :   token( token )
@@ -95,6 +106,9 @@ int xec_expression_number::get_location()
 
 
 
+/*
+    "hello, world!"
+*/
 
 xec_expression_string::xec_expression_string( xec_token* token )
     :   token( token )
@@ -113,6 +127,9 @@ int xec_expression_string::get_location()
 
 
 
+/*
+    identifier
+*/
 
 xec_expression_identifier::xec_expression_identifier( xec_token* token )
     :   token( token )
@@ -130,6 +147,10 @@ int xec_expression_identifier::get_location()
 }
 
 
+
+/*
+    expr . lookup
+*/
 
 xec_expression_lookup::xec_expression_lookup(
                                 xec_expression* expr, xec_token* token )
@@ -151,6 +172,9 @@ int xec_expression_lookup::get_location()
 
 
 
+/*
+    expr.[ expr ]
+*/
 
 xec_expression_indexkey::xec_expression_indexkey(
                                 xec_expression* expr, xec_expression* index )
@@ -172,6 +196,9 @@ int xec_expression_indexkey::get_location()
 
 
 
+/*
+    expr[ expr ]
+*/
 
 xec_expression_index::xec_expression_index(
                                 xec_expression* expr, xec_expression* index )
@@ -194,6 +221,10 @@ int xec_expression_index::get_location()
 
 
 
+/*
+    yield( expr, expr )
+    yield( expr, expr ) ...
+*/
 
 xec_expression_yield::xec_expression_yield(
                                 xec_token* token, xec_expression_list* args )
@@ -230,6 +261,12 @@ void xec_expression_yield::set_unpack( bool unpack )
 
 
 
+/*
+    expr( expr, expr )
+    expr( expr, expr ) yield
+    expr( expr, expr ) ...
+    expr( expr, expr ) yield ...
+*/
 
 xec_expression_call::xec_expression_call(
                         xec_expression* expr, xec_expression_list* args )
@@ -291,6 +328,16 @@ xec_declaration_function* xec_expression_call::as_function()
 
 
 
+/*
+    +expr
+    -expr
+    !expr
+    ~expr
+    ++expr
+    ++expr
+    expr++
+    expr++
+*/
 
 xec_expression_unary::xec_expression_unary(
                     xec_expression* expr, xec_token* token )
@@ -312,6 +359,20 @@ int xec_expression_unary::get_location()
 
 
 
+/*
+    expr * expr
+    expr / expr
+    expr % expr
+    expr ~ expr
+    expr + expr
+    expr - expr
+    expr << expr
+    expr >> expr
+    expr >>> expr
+    expr & expr
+    expr ^ expr
+    expr | expr
+*/
 
 xec_expression_binary::xec_expression_binary(
             xec_expression* expr_a, xec_token* token, xec_expression* expr_b )
@@ -333,6 +394,10 @@ int xec_expression_binary::get_location()
 
 
 
+/*
+    expr == expr != expr < expr > expr <=
+        expr >= expr in expr !in expr is expr !is expr
+*/
 
 xec_expression_comparison::xec_expression_comparison( xec_expression* expr )
     :   expr( expr )
@@ -365,6 +430,11 @@ void xec_expression_comparison::add_comparison(
 
 
 
+/*
+    expr && expr
+    expr ^^ expr
+    expr || expr
+*/
 
 xec_expression_logical::xec_expression_logical(
             xec_expression* expr_a, xec_token* token, xec_expression* expr_b )
@@ -386,6 +456,9 @@ int xec_expression_logical::get_location()
 
 
 
+/*
+    expr ? expr : expr
+*/
 
 xec_expression_conditional::xec_expression_conditional(
             xec_expression* condition, xec_expression* iftrue,
@@ -408,6 +481,9 @@ int xec_expression_conditional::get_location()
 
 
 
+/*
+    ...
+*/
 
 xec_expression_varargs::xec_expression_varargs( xec_token* token )
     :   token( token )
@@ -432,6 +508,9 @@ xec_expression* xec_expression_varargs::as_mono()
 
 
 
+/*
+    expr[] ...
+*/
 
 xec_expression_unpack::xec_expression_unpack( xec_expression* expr )
     :   expr( expr )
@@ -455,6 +534,9 @@ xec_expression* xec_expression_unpack::as_mono()
 
 
 
+/*
+    expr, expr, expr
+*/
 
 xec_expression_list::xec_expression_list()
 {
@@ -515,6 +597,21 @@ void xec_expression_list::append_final( xec_expression* final )
 
 
 
+/*
+    expr = expr
+    expr *= expr
+    expr /= expr
+    expr %= expr
+    expr ~= expr
+    expr += expr
+    expr -= expr
+    expr <<= expr
+    expr >>= expr
+    expr >>>= expr
+    expr &= expr
+    expr |= expr
+    expr ^= expr
+*/
 
 xec_expression_assign::xec_expression_assign(
             xec_expression* lvalue, xec_token* op, xec_expression* rvalue )
@@ -542,6 +639,10 @@ xec_expression* xec_expression_assign::as_mono()
 
 
 
+/*
+    ( expr, ... )
+*/
+
 xec_expression_mono::xec_expression_mono( xec_expression* expr )
     :   expr( expr )
 {
@@ -559,6 +660,9 @@ int xec_expression_mono::get_location()
 
 
 
+/*
+    var name, name = expr, expr;
+*/
 
 xec_expression_declare::xec_expression_declare( xec_token* token,
             xec_expression_list* name_list, xec_expression_list* expr_list )
