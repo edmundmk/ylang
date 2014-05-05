@@ -196,7 +196,7 @@ void xec_astprinter::visit( xec_expression_logical* expr, int indent )
 
 void xec_astprinter::visit( xec_expression_conditional* expr, int indent )
 {
-    printf( "%*sconditional", indent, "" );
+    printf( "%*sconditional\n", indent, "" );
     visit( expr->get_condition(), indent + INDENT );
     printf( "%*s?\n", indent, "" );
     visit( expr->get_iftrue(), indent + INDENT );
