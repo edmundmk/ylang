@@ -60,8 +60,8 @@ public:
     return_t visit( xec_constructor_new* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_constructor_list* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_constructor_table* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_constructor_function* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_constructor_object* expr, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_constructor_function* expr, arguments_t ... arguments ) { return return_t(); }
     
     return_t visit( xec_statement* stmt, arguments_t ... arguments );
     template < typename statement_t > return_t dispatch_stmt( xec_statement* stmt, arguments_t ... arguments );
@@ -145,6 +145,11 @@ return_t xec_astvisitor< visitor_t, return_t, arguments_t ... >::visit( xec_expr
         &visitor_t::template dispatch_expr< xec_expression_assign >,
         &visitor_t::template dispatch_expr< xec_expression_mono >,
         &visitor_t::template dispatch_expr< xec_expression_declare >,
+        &visitor_t::template dispatch_expr< xec_constructor_new >,
+        &visitor_t::template dispatch_expr< xec_constructor_list >,
+        &visitor_t::template dispatch_expr< xec_constructor_table >,
+        &visitor_t::template dispatch_expr< xec_constructor_object >,
+        &visitor_t::template dispatch_expr< xec_constructor_function >,
     };
     
     xec_expression_dispatch index = expr->visitor_dispatch();

@@ -59,8 +59,8 @@ private:
     void visit( xec_constructor_new* expr, int indent );
     void visit( xec_constructor_list* expr, int indent );
     void visit( xec_constructor_table* expr, int indent );
-    void visit( xec_constructor_function* expr, int indent );
     void visit( xec_constructor_object* expr, int indent );
+    void visit( xec_constructor_function* expr, int indent );
     
     void visit( xec_statement_declaration* decl, int indent );
     void visit( xec_statement_expression* decl, int indent );

@@ -35,6 +35,16 @@ int xec_constructor_new::get_location()
     return token->sloc;
 }
 
+xec_expression* xec_constructor_new::get_proto()
+{
+    return proto.get();
+}
+
+xec_expression_list* xec_constructor_new::get_arguments()
+{
+    return args.get();
+}
+
 
 
 /*
@@ -71,6 +81,20 @@ void xec_constructor_list::append_final( xec_expression* final )
     this->final.reset( final );
 }
 
+size_t xec_constructor_list::get_count()
+{
+    return values.size();
+}
+
+xec_expression* xec_constructor_list::get_expr( size_t index )
+{
+    return values.at( index ).get();
+}
+
+xec_expression* xec_constructor_list::get_final()
+{
+    return final.get();
+}
 
 
 
@@ -107,6 +131,20 @@ void xec_constructor_table::append_keyval(
     keyvals.push_back( std::move( kv ) );
 }
 
+size_t xec_constructor_table::get_count()
+{
+    return keyvals.size();
+}
+
+xec_expression* xec_constructor_table::get_key( size_t index )
+{
+    return keyvals.at( index ).key.get();
+}
+
+xec_expression* xec_constructor_table::get_value( size_t index )
+{
+    return keyvals.at( index ).value.get();
+}
 
 
 /*
@@ -141,6 +179,21 @@ void xec_constructor_object::set_proto( xec_expression* proto )
 void xec_constructor_object::add_member( xec_declaration* decl )
 {
     members.push_back( std::unique_ptr< xec_declaration >( decl ) );
+}
+
+xec_expression* xec_constructor_object::get_proto()
+{
+    return proto.get();
+}
+
+size_t xec_constructor_object::get_member_count()
+{
+    return members.size();
+}
+
+xec_declaration* xec_constructor_object::get_member( size_t index )
+{
+    return members.at( index ).get();
 }
 
 
@@ -182,6 +235,27 @@ void xec_constructor_function::set_coroutine( bool coroutine )
 {
     this->coroutine = coroutine;
 }
+
+bool xec_constructor_function::get_thiscall()
+{
+    return thiscall;
+}
+
+bool xec_constructor_function::get_coroutine()
+{
+    return coroutine;
+}
+
+xec_expression_list* xec_constructor_function::get_parameters()
+{
+    return params.get();
+}
+
+xec_statement_compound* xec_constructor_function::get_body()
+{
+    return body.get();
+}
+
 
 
 

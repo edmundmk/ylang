@@ -30,6 +30,9 @@ public:
 
     virtual xec_expression_dispatch visitor_dispatch();
     virtual int get_location();
+    
+    xec_expression* get_proto();
+    xec_expression_list* get_arguments();
 
 private:
 
@@ -58,6 +61,10 @@ public:
     void append_value( xec_expression* value );
     void append_final( xec_expression* final );
     
+    size_t get_count();
+    xec_expression* get_expr( size_t index );
+    xec_expression* get_final();
+    
     
 private:
 
@@ -83,6 +90,10 @@ public:
     
     void set_token( xec_token* token );
     void append_keyval( xec_expression* key, xec_expression* value );
+    
+    size_t get_count();
+    xec_expression* get_key( size_t index );
+    xec_expression* get_value( size_t index );
     
 private:
 
@@ -116,6 +127,9 @@ public:
     void set_proto( xec_expression* proto );
     void add_member( xec_declaration* decl );
 
+    xec_expression* get_proto();
+    size_t get_member_count();
+    xec_declaration* get_member( size_t index );
 
 private:
 
@@ -145,6 +159,12 @@ public:
     
     void set_thiscall( bool thiscall );
     void set_coroutine( bool coroutine );
+    
+    bool get_thiscall();
+    bool get_coroutine();
+    xec_expression_list* get_parameters();
+    xec_statement_compound* get_body();
+    
 
 private:
 

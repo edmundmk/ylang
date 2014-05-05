@@ -32,7 +32,7 @@ void xec_astprinter::print( xec_statement* stmt )
 
 void xec_astprinter::visit( xec_declaration_var* decl, int indent )
 {
-    printf( "%*svar\n", indent, "" );
+    printf( "%*sdeclare-var\n", indent, "" );
     visit( decl->get_name_list(), indent + INDENT );
     if ( decl->get_expr_list() )
     {
@@ -43,21 +43,19 @@ void xec_astprinter::visit( xec_declaration_var* decl, int indent )
 
 void xec_astprinter::visit( xec_declaration_object* decl, int indent )
 {
-    printf( "%*sobject\n", indent, "" );
+    printf( "%*sdeclare-object\n", indent, "" );
     visit( decl->get_name(), indent + INDENT );
     if ( decl->get_proto() )
-    {
-        printf( "%*sproto\n", indent, "" );
         visit( decl->get_proto(), indent + INDENT );
-    }
-    printf( "%*smembers\n", indent, "" );
+    else
+        printf( "%*s[object]\n", indent + INDENT, "" );
     for ( size_t i = 0; i < decl->get_member_count(); ++i )
         visit( decl->get_member( i ), indent + INDENT );
 }
 
 void xec_astprinter::visit( xec_declaration_prototype* decl, int indent )
 {
-    printf( "%*sdecl-proto", indent, "" );
+    printf( "%*sdeclare-function-prototype", indent, "" );
     if ( decl->get_thiscall() )
         printf( " [thiscall]" );
     if ( decl->get_coroutine() )
@@ -69,7 +67,14 @@ void xec_astprinter::visit( xec_declaration_prototype* decl, int indent )
 
 void xec_astprinter::visit( xec_declaration_function* decl, int indent )
 {
-    visit( (xec_declaration_prototype*)decl, indent );
+    printf( "%*sdeclare-function", indent, "" );
+    if ( decl->get_thiscall() )
+        printf( " [thiscall]" );
+    if ( decl->get_coroutine() )
+        printf( " [coroutine]" );
+    printf( "\n" );
+    visit( decl->get_name(), indent + INDENT );
+    visit( decl->get_parameters(), indent + INDENT );
     visit( decl->get_body(), indent );
 }
 
@@ -235,7 +240,7 @@ void xec_astprinter::visit( xec_expression_mono* expr, int indent )
 
 void xec_astprinter::visit( xec_expression_declare* expr, int indent )
 {
-    printf( "%*svar-expression\n", indent, "" );
+    printf( "%*svar\n", indent, "" );
     visit( expr->get_name_list(), indent + INDENT );
     printf( "%*s=\n", indent, "" );
     visit( expr->get_expr_list(), indent + INDENT );
@@ -243,22 +248,53 @@ void xec_astprinter::visit( xec_expression_declare* expr, int indent )
 
 void xec_astprinter::visit( xec_constructor_new* expr, int indent )
 {
+    printf( "%*snew\n", indent, "" );
+    visit( expr->get_proto(), indent + INDENT );
+    visit( expr->get_arguments(), indent + INDENT );
 }
 
 void xec_astprinter::visit( xec_constructor_list* expr, int indent )
 {
+    printf( "%*slist\n", indent, "" );
+    for ( size_t i = 0; i < expr->get_count(); ++i )
+        visit( expr->get_expr( i ), indent + INDENT );
+    if ( expr->get_final() )
+        visit( expr->get_final(), indent + INDENT );
 }
 
 void xec_astprinter::visit( xec_constructor_table* expr, int indent )
 {
-}
-
-void xec_astprinter::visit( xec_constructor_function* expr, int indent )
-{
+    printf( "%*stable\n", indent, "" );
+    for ( size_t i = 0; i < expr->get_count(); ++i )
+    {
+        printf( "%*skey\n", indent + INDENT, "" );
+        visit( expr->get_key( i ), indent + INDENT + INDENT );
+        printf( "%*svalue\n", indent + INDENT, "" );
+        visit( expr->get_value( i ), indent + INDENT + INDENT );
+    }
 }
 
 void xec_astprinter::visit( xec_constructor_object* expr, int indent )
 {
+    printf( "%*sobject", indent, "" );
+    if ( expr->get_proto() )
+        visit( expr->get_proto(), indent + INDENT );
+    else
+        printf( "%*s[object]\n", indent + INDENT, "" );
+    for ( size_t i = 0; i < expr->get_member_count(); ++i )
+        visit( expr->get_member( i ), indent + INDENT );
+}
+
+void xec_astprinter::visit( xec_constructor_function* expr, int indent )
+{
+    printf( "%*sfunction", indent, "" );
+    if ( expr->get_thiscall() )
+        printf( " [thiscall]" );
+    if ( expr->get_coroutine() )
+        printf( " [coroutine]" );
+    printf( "\n" );
+    visit( expr->get_parameters(), indent + INDENT );
+    visit( expr->get_body(), indent + INDENT );
 }
 
 
