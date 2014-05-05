@@ -298,84 +298,154 @@ void xec_astprinter::visit( xec_constructor_function* expr, int indent )
 }
 
 
-void xec_astprinter::visit( xec_statement_declaration* decl, int indent )
+void xec_astprinter::visit( xec_statement_declaration* stmt, int indent )
 {
+    visit( stmt->get_decl(), indent );
 }
 
-void xec_astprinter::visit( xec_statement_expression* decl, int indent )
+void xec_astprinter::visit( xec_statement_expression* stmt, int indent )
 {
+    visit( stmt->get_expr(), indent );
 }
 
-void xec_astprinter::visit( xec_statement_compound* decl, int indent )
+void xec_astprinter::visit( xec_statement_compound* stmt, int indent )
 {
+    printf( "%*sblock\n", indent, "" );
+    for ( size_t i = 0; i < stmt->get_count(); ++i )
+        visit( stmt->get_stmt( i ), indent + INDENT );
 }
 
-void xec_astprinter::visit( xec_statement_delete* decl, int indent )
+void xec_astprinter::visit( xec_statement_delete* stmt, int indent )
 {
+    printf( "%*sdelete\n", indent, "" );
+    visit( stmt->get_expr_list(), indent + INDENT );
 }
 
-void xec_astprinter::visit( xec_statement_if* decl, int indent )
+void xec_astprinter::visit( xec_statement_if* stmt, int indent )
 {
+    printf( "%*sif\n", indent, "" );
+    visit( stmt->get_expr(), indent + INDENT );
+    visit( stmt->get_iftrue(), indent + INDENT );
+    if ( stmt->get_iffalse() )
+        visit( stmt->get_iffalse(), indent + INDENT );
 }
 
-void xec_astprinter::visit( xec_statement_switch* decl, int indent )
+void xec_astprinter::visit( xec_statement_switch* stmt, int indent )
 {
+    printf( "%*sswitch\n", indent, "" );
+    visit( stmt->get_expr(), indent + INDENT );
+    visit( stmt->get_body(), indent + INDENT );
 }
 
-void xec_astprinter::visit( xec_statement_case* decl, int indent )
+void xec_astprinter::visit( xec_statement_case* stmt, int indent )
 {
+    if ( stmt->get_expr() )
+    {
+        printf( "%*scase\n", indent, "" );
+        visit( stmt->get_expr(), indent + INDENT );
+    }
+    else
+    {
+        printf( "%*sdefault\n", indent, "" );
+    }
 }
 
-void xec_astprinter::visit( xec_statement_while* decl, int indent )
+void xec_astprinter::visit( xec_statement_while* stmt, int indent )
 {
+    printf( "%*swhile\n", indent, "" );
+    visit( stmt->get_expr(), indent + INDENT );
+    visit( stmt->get_body(), indent + INDENT );
 }
 
-void xec_astprinter::visit( xec_statement_do* decl, int indent )
+void xec_astprinter::visit( xec_statement_do* stmt, int indent )
 {
+    printf( "%*sdo\n", indent, "" );
+    visit( stmt->get_body(), indent + INDENT );
+    visit( stmt->get_expr(), indent + INDENT );
 }
 
-void xec_astprinter::visit( xec_statement_foreach* decl, int indent )
+void xec_astprinter::visit( xec_statement_foreach* stmt, int indent )
 {
+    printf( "%*sforeach", indent, "" );
+    if ( stmt->get_eachkey() )
+        printf( " [eachkey]" );
+    if ( stmt->get_declare() )
+        printf( " [declare]" );
+    printf( "\n" );
+    visit( stmt->get_expr_list(), indent + INDENT );
+    visit( stmt->get_expr(), indent + INDENT );
+    visit( stmt->get_body(), indent + INDENT );
 }
 
-void xec_astprinter::visit( xec_statement_for* decl, int indent )
+void xec_astprinter::visit( xec_statement_for* stmt, int indent )
 {
+    printf( "%*sfor\n", indent, "" );
+    visit( stmt->get_init(), indent + INDENT );
+    visit( stmt->get_expr(), indent + INDENT );
+    visit( stmt->get_update(), indent + INDENT );
+    visit( stmt->get_body(), indent + INDENT );
 }
 
-void xec_astprinter::visit( xec_statement_continue* decl, int indent )
+void xec_astprinter::visit( xec_statement_continue* stmt, int indent )
 {
+    printf( "%*scontinue\n", indent, "" );
 }
 
-void xec_astprinter::visit( xec_statement_break* decl, int indent )
+void xec_astprinter::visit( xec_statement_break* stmt, int indent )
 {
+    printf( "%*sbreak\n", indent, "" );
 }
 
-void xec_astprinter::visit( xec_statement_return* decl, int indent )
+void xec_astprinter::visit( xec_statement_return* stmt, int indent )
 {
+    printf( "%*sreturn\n", indent, "" );
+    visit( stmt->get_expr_list(), indent + INDENT );
 }
 
-void xec_astprinter::visit( xec_statement_yield* decl, int indent )
+void xec_astprinter::visit( xec_statement_yield* stmt, int indent )
 {
+    printf( "%*syield\n", indent, "" );
+    visit( stmt->get_expr_list(), indent + INDENT );
 }
 
-void xec_astprinter::visit( xec_statement_using* decl, int indent )
+void xec_astprinter::visit( xec_statement_using* stmt, int indent )
 {
+    printf( "%*susing\n", indent, "" );
+    visit( stmt->get_expr(), indent + INDENT );
 }
 
-void xec_astprinter::visit( xec_statement_usingscope* decl, int indent )
+void xec_astprinter::visit( xec_statement_usingscope* stmt, int indent )
 {
+    printf( "%*susingscope\n", indent, "" );
+    visit( stmt->get_expr(), indent + INDENT );
+    visit( stmt->get_body(), indent + INDENT );
 }
 
-void xec_astprinter::visit( xec_statement_try* decl, int indent )
+void xec_astprinter::visit( xec_statement_try* stmt, int indent )
 {
+    printf( "%*stry\n", indent, "" );
+    visit( stmt->get_body(), indent + INDENT );
+    for ( size_t i = 0; i < stmt->get_catch_count(); ++i )
+        visit( stmt->get_catch( i ), indent + INDENT );
+    if ( stmt->get_final() )
+        visit( stmt->get_final(), indent + INDENT );
 }
 
-void xec_astprinter::visit( xec_statement_catch* decl, int indent )
+void xec_astprinter::visit( xec_statement_catch* stmt, int indent )
 {
+    printf( "%*scatch\n", indent, "" );
+    if ( stmt->get_lvalue() )
+        visit( stmt->get_lvalue(), indent + INDENT );
+    else
+        printf( "%*s[anonymous]\n", indent + INDENT, "" );
+    visit( stmt->get_proto(), indent + INDENT );
+    visit( stmt->get_body(), indent + INDENT );
 }
 
-void xec_astprinter::visit( xec_statement_throw* decl, int indent )
+void xec_astprinter::visit( xec_statement_throw* stmt, int indent )
 {
+    printf( "%*sthrow\n", indent, "" );
+    visit( stmt->get_expr(), indent + INDENT );
 }
 
 

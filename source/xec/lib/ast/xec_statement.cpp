@@ -20,6 +20,9 @@ xec_statement::~xec_statement()
 
 
 
+/*
+    decl;
+*/
 
 xec_statement_declaration::xec_statement_declaration( xec_declaration* decl )
     :   decl( decl )
@@ -36,7 +39,16 @@ int xec_statement_declaration::get_location()
     return decl->get_location();
 }
 
+xec_declaration* xec_statement_declaration::get_decl()
+{
+    return decl.get();
+}
 
+
+
+/*
+    expr, expr;
+*/
 
 xec_statement_expression::xec_statement_expression( xec_expression* expr )
     :   expr( expr )
@@ -53,8 +65,16 @@ int xec_statement_expression::get_location()
     return expr->get_location();
 }
 
+xec_expression* xec_statement_expression::get_expr()
+{
+    return expr.get();
+}
 
 
+
+/*
+    { stmt; stmt; }
+*/
 
 xec_statement_compound::xec_statement_compound()
     :   token( NULL )
@@ -86,9 +106,22 @@ void xec_statement_compound::append_statement( xec_statement* stmt )
     statements.push_back( std::unique_ptr< xec_statement >( stmt ) );
 }
 
+size_t xec_statement_compound::get_count()
+{
+    return statements.size();
+}
+
+xec_statement* xec_statement_compound::get_stmt( size_t index )
+{
+    return statements.at( index ).get();
+}
 
 
 
+
+/*
+    delete expr;
+*/
 
 xec_statement_delete::xec_statement_delete(
                 xec_token* token, xec_expression_list* expr_list )
@@ -107,8 +140,17 @@ int xec_statement_delete::get_location()
     return token->sloc;
 }
 
+xec_expression_list* xec_statement_delete::get_expr_list()
+{
+    return expr_list.get();
+}
 
 
+
+/*
+    if ( expr ) stmt; else stmt;
+    if ( condition ) stmt; else stmt;
+*/
 
 xec_statement_if::xec_statement_if( xec_token* token, xec_expression* expr,
                     xec_statement* iftrue, xec_statement* iffalse )
@@ -129,8 +171,27 @@ int xec_statement_if::get_location()
     return token->sloc;
 }
 
+xec_expression* xec_statement_if::get_expr()
+{
+    return expr.get();
+}
+
+xec_statement* xec_statement_if::get_iftrue()
+{
+    return iftrue.get();
+}
+
+xec_statement* xec_statement_if::get_iffalse()
+{
+    return iffalse.get();
+}
 
 
+
+/*
+    switch ( expr ) { stmt; stmt; }
+    switch ( condition ) { stmt; stmt; }
+*/
 
 xec_statement_switch::xec_statement_switch( xec_token* token,
                     xec_expression* expr, xec_statement_compound* body )
@@ -150,8 +211,22 @@ int xec_statement_switch::get_location()
     return token->sloc;
 }
 
+xec_expression* xec_statement_switch::get_expr()
+{
+    return expr.get();
+}
+
+xec_statement_compound* xec_statement_switch::get_body()
+{
+    return body.get();
+}
 
 
+
+/*
+    case expr:
+    default:
+*/
 
 xec_statement_case::xec_statement_case(
                             xec_token* token, xec_expression* expr )
@@ -170,8 +245,17 @@ int xec_statement_case::get_location()
     return token->sloc;
 }
 
+xec_expression* xec_statement_case::get_expr()
+{
+    return expr.get();
+}
 
 
+
+/*
+    while ( expr ) stmt;
+    while ( condition ) stmt;
+*/
 
 xec_statement_while::xec_statement_while(
             xec_token* token, xec_expression* expr, xec_statement* body )
@@ -191,8 +275,21 @@ int xec_statement_while::get_location()
     return token->sloc;
 }
 
+xec_expression* xec_statement_while::get_expr()
+{
+    return expr.get();
+}
+
+xec_statement* xec_statement_while::get_body()
+{
+    return body.get();
+}
 
 
+
+/*
+    do stmt; while ( expr );
+*/
 
 xec_statement_do::xec_statement_do(
             xec_token* token, xec_statement* body, xec_expression* expr )
@@ -212,9 +309,25 @@ int xec_statement_do::get_location()
     return token->sloc;
 }
 
+xec_statement* xec_statement_do::get_body()
+{
+    return body.get();
+}
+
+xec_expression* xec_statement_do::get_expr()
+{
+    return expr.get();
+}
 
 
 
+
+/*
+    for ( expr, expr : expr ) stmt;
+    for ( expr, expr :: expr ) stmt;
+    for ( condition : expr ) stmt;
+    for ( condition :: expr ) stmt;
+*/
 
 xec_statement_foreach::xec_statement_foreach( xec_token* token,
             xec_expression_list* expr_list, xec_expression* expr,
@@ -248,9 +361,38 @@ void xec_statement_foreach::set_declare( bool declare )
     this->declare = declare;
 }
 
+bool xec_statement_foreach::get_eachkey()
+{
+    return eachkey;
+}
+
+bool xec_statement_foreach::get_declare()
+{
+    return declare;
+}
+
+xec_expression_list* xec_statement_foreach::get_expr_list()
+{
+    return expr_list.get();
+}
+
+xec_expression* xec_statement_foreach::get_expr()
+{
+    return expr.get();
+}
+
+xec_statement* xec_statement_foreach::get_body()
+{
+    return body.get();
+}
 
 
 
+
+/*
+    for ( expr; expr; expr ) stmt;
+    for ( condition; expr; expr ) stmt;
+*/
 
 xec_statement_for::xec_statement_for( xec_token* token, xec_expression* init,
             xec_expression* expr, xec_expression* update, xec_statement* body )
@@ -272,7 +414,31 @@ int xec_statement_for::get_location()
     return token->sloc;
 }
 
+xec_expression* xec_statement_for::get_init()
+{
+    return init.get();
+}
 
+xec_expression* xec_statement_for::get_expr()
+{
+    return expr.get();
+}
+
+xec_expression* xec_statement_for::get_update()
+{
+    return update.get();
+}
+
+xec_statement* xec_statement_for::get_body()
+{
+    return body.get();
+}
+
+
+
+/*
+    continue;
+*/
 
 xec_statement_continue::xec_statement_continue( xec_token* token )
     :   token( token )
@@ -291,6 +457,9 @@ int xec_statement_continue::get_location()
 
 
 
+/*
+    break;
+*/
 
 xec_statement_break::xec_statement_break( xec_token* token )
     :   token( token )
@@ -309,6 +478,11 @@ int xec_statement_break::get_location()
 
 
 
+/*
+    return;
+    return expr, expr;
+*/
+
 xec_statement_return::xec_statement_return(
                 xec_token* token, xec_expression_list* expr_list )
     :   token( token )
@@ -326,8 +500,17 @@ int xec_statement_return::get_location()
     return token->sloc;
 }
 
+xec_expression_list* xec_statement_return::get_expr_list()
+{
+    return expr_list.get();
+}
 
 
+
+/*
+    yield;
+    yield expr, expr;
+*/
 
 xec_statement_yield::xec_statement_yield(
                 xec_token* token, xec_expression_list* expr_list )
@@ -346,7 +529,17 @@ int xec_statement_yield::get_location()
     return token->sloc;
 }
 
+xec_expression_list* xec_statement_yield::get_expr_list()
+{
+    return expr_list.get();
+}
 
+
+
+/*
+    using expr, expr;
+    using condition;
+*/
 
 xec_statement_using::xec_statement_using(
                     xec_token* token, xec_expression* expr )
@@ -365,7 +558,17 @@ int xec_statement_using::get_location()
     return token->sloc;
 }
 
+xec_expression* xec_statement_using::get_expr()
+{
+    return expr.get();
+}
 
+
+
+/*
+    using ( expr, expr ) stmt;
+    using ( condition ) stmt;
+*/
 
 xec_statement_usingscope::xec_statement_usingscope(
             xec_token* token, xec_expression* expr, xec_statement* body )
@@ -385,7 +588,23 @@ int xec_statement_usingscope::get_location()
     return token->sloc;
 }
 
+xec_expression* xec_statement_usingscope::get_expr()
+{
+    return expr.get();
+}
 
+xec_statement* xec_statement_usingscope::get_body()
+{
+    return body.get();
+}
+
+
+
+/*
+    try stmt; catch ( : expr ) stmt; finally stmt;
+    try stmt; catch ( expr : expr ) stmt; finally stmt;
+    try stmt; catch ( var name : expr ) stmt; finally stmt;
+*/
 
 xec_statement_try::xec_statement_try()
     :   token( NULL )
@@ -420,7 +639,34 @@ void xec_statement_try::set_finally( xec_token* token, xec_statement* final )
     this->final.reset( final );
 }
 
+xec_statement* xec_statement_try::get_body()
+{
+    return body.get();
+}
 
+size_t xec_statement_try::get_catch_count()
+{
+    return catches.size();
+}
+
+xec_statement_catch* xec_statement_try::get_catch( size_t index )
+{
+    return catches.at( index ).get();
+}
+
+xec_statement* xec_statement_try::get_final()
+{
+    return final.get();
+}
+
+
+
+
+/*
+    catch ( : expr ) stmt;
+    catch ( name : expr ) stmt;
+    catch ( var name : expr ) stmt;
+*/
 
 xec_statement_catch::xec_statement_catch( xec_token* token,
           xec_expression* lvalue, xec_expression* proto, xec_statement* body )
@@ -446,8 +692,31 @@ void xec_statement_catch::set_declare( bool declare )
     this->declare = declare;
 }
 
+bool xec_statement_catch::get_declare()
+{
+    return declare;
+}
+
+xec_expression* xec_statement_catch::get_lvalue()
+{
+    return lvalue.get();
+}
+
+xec_expression* xec_statement_catch::get_proto()
+{
+    return proto.get();
+}
+
+xec_statement* xec_statement_catch::get_body()
+{
+    return body.get();
+}
 
 
+
+/*
+    throw expr;
+*/
 
 xec_statement_throw::xec_statement_throw(
                 xec_token* token, xec_expression* expr )
@@ -465,6 +734,12 @@ int xec_statement_throw::get_location()
 {
     return token->sloc;
 }
+
+xec_expression* xec_statement_throw::get_expr()
+{
+    return expr.get();
+}
+
 
 
 
