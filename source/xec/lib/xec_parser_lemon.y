@@ -204,7 +204,6 @@ decl(x)         ::= proto(header) stmt_brace(body) .
                     xec_declaration_function* value;
                     x = value = header->as_function();
                     value->set_body( body );
-                    delete header;
                 }
 decl(x)         ::= proto(header) YIELD stmt_brace(body) .
                 {
@@ -213,7 +212,6 @@ decl(x)         ::= proto(header) YIELD stmt_brace(body) .
                     x = value = header->as_function();
                     value->set_coroutine( true );
                     value->set_body( body );
-                    delete header;
                 }
 decl(x)         ::= VAR(token) name_list(name_list) SEMICOLON .
                 {
@@ -237,7 +235,6 @@ odecl(x)        ::= proto(header) SEMICOLON .
                 {
                     // Convert call expression to prototype declaration.
                     x = header->as_prototype();
-                    delete header;
                 }
 odecl(x)        ::= proto(header) YIELD SEMICOLON .
                 {
@@ -245,7 +242,6 @@ odecl(x)        ::= proto(header) YIELD SEMICOLON .
                     xec_declaration_prototype* decl;
                     x = decl = header->as_prototype();
                     decl->set_coroutine( true );
-                    delete header;
                 }
 
 
@@ -515,11 +511,11 @@ expr_suffix(x)  ::= expr_literal(expr) .
                 }
 expr_suffix(x)  ::= expr_suffix(expr) INCREMENT(token) .
                 {
-                    x = new xec_expression_unary( expr, token );
+                    x = new xec_expression_postop( expr, token );
                 }
 expr_suffix(x)  ::= expr_suffix(expr) DECREMENT(token) .
                 {
-                    x = new xec_expression_unary( expr, token );
+                    x = new xec_expression_postop( expr, token );
                 }
 
 expr_unary(x)   ::= expr_suffix(expr) .
@@ -544,11 +540,11 @@ expr_unary(x)   ::= TILDE(token) expr_unary(expr) .
                 }
 expr_unary(x)   ::= INCREMENT(token) expr_unary(expr) .
                 {
-                    x = new xec_expression_unary( expr, token );
+                    x = new xec_expression_preop( expr, token );
                 }
 expr_unary(x)   ::= DECREMENT(token) expr_unary(expr) .
                 {
-                    x = new xec_expression_unary( expr, token );
+                    x = new xec_expression_preop( expr, token );
                 }
 
 expr_mul(x)     ::= expr_unary(expr) .
@@ -1296,6 +1292,13 @@ stmt_list(x)    ::= stmt_list(stmt_list) SEMICOLON .
                     x = stmt_list;
                 }
 
+
+
+%syntax_error
+{
+    p->diagnostic( TOKEN->sloc,
+            "unexpected %s", TOKEN->get_spelling().c_str() );
+}
 
 
 

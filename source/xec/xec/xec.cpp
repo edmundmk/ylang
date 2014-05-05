@@ -9,13 +9,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <xec/xec_parser.h>
-#include <xec/ast/xec_astvisitor.h>
+#include <xec/ast/xec_astprinter.h>
 
 
-
-class xec_astprint : public xec_astvisitor< xec_astprint, void >
-{
-};
 
 
 
@@ -28,6 +24,9 @@ int main( int argc, char* argv[] )
     {
         fprintf( stderr, "%s\n", parser.diagnostic( i ) );
     }
+    
+    xec_astprinter printer;
+    printer.print( parser.get_root() );
     
     return EXIT_SUCCESS;
 }

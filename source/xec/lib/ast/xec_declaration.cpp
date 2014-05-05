@@ -49,6 +49,16 @@ int xec_declaration_var::get_location()
     return token->sloc;
 }
 
+xec_expression_list* xec_declaration_var::get_name_list()
+{
+    return name_list.get();
+}
+
+xec_expression_list* xec_declaration_var::get_expr_list()
+{
+    return expr_list.get();
+}
+
 
 
 
@@ -98,6 +108,27 @@ xec_constructor_object*
     return object;
 }
 
+xec_expression* xec_declaration_object::get_name()
+{
+    return name.get();
+}
+
+xec_expression* xec_declaration_object::get_proto()
+{
+    return proto.get();
+}
+
+size_t xec_declaration_object::get_member_count()
+{
+    return members.size();
+}
+
+xec_declaration* xec_declaration_object::get_member( size_t index )
+{
+    return members.at( index ).get();
+}
+
+
 
 
 /*
@@ -133,6 +164,26 @@ void xec_declaration_prototype::set_coroutine( bool coroutine )
     this->coroutine = coroutine;
 }
 
+bool xec_declaration_prototype::get_thiscall()
+{
+    return thiscall;
+}
+
+bool xec_declaration_prototype::get_coroutine()
+{
+    return coroutine;
+}
+
+xec_expression* xec_declaration_prototype::get_name()
+{
+    return name.get();
+}
+
+xec_expression_list* xec_declaration_prototype::get_parameters()
+{
+    return params.get();
+}
+
 
 
 /*
@@ -155,6 +206,10 @@ void xec_declaration_function::set_body( xec_statement_compound* body )
     this->body.reset( body );
 }
 
+xec_statement_compound* xec_declaration_function::get_body()
+{
+    return body.get();
+}
 
 
 

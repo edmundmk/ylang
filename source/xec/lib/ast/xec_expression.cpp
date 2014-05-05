@@ -84,6 +84,11 @@ int xec_expression_bool::get_location()
     return token->sloc;
 }
 
+bool xec_expression_bool::get_value()
+{
+    return token->kind == XEC_KEYWORD_TRUE;
+}
+
 
 /*
     1337
@@ -102,6 +107,11 @@ xec_expression_dispatch xec_expression_number::visitor_dispatch()
 int xec_expression_number::get_location()
 {
     return token->sloc;
+}
+
+double xec_expression_number::get_value()
+{
+    return strtod( token->text, NULL );
 }
 
 
@@ -125,6 +135,11 @@ int xec_expression_string::get_location()
     return token->sloc;
 }
 
+const char* xec_expression_string::get_value()
+{
+    return token->text;
+}
+
 
 
 /*
@@ -144,6 +159,11 @@ xec_expression_dispatch xec_expression_identifier::visitor_dispatch()
 int xec_expression_identifier::get_location()
 {
     return token->sloc;
+}
+
+const char* xec_expression_identifier::get_identifier()
+{
+    return token->text;
 }
 
 
@@ -167,6 +187,16 @@ xec_expression_dispatch xec_expression_lookup::visitor_dispatch()
 int xec_expression_lookup::get_location()
 {
     return expr->get_location();
+}
+
+xec_expression* xec_expression_lookup::get_expr()
+{
+    return expr.get();
+}
+
+const char* xec_expression_lookup::get_identifier()
+{
+    return token->text;
 }
 
 
@@ -193,6 +223,16 @@ int xec_expression_indexkey::get_location()
     return expr->get_location();
 }
 
+xec_expression* xec_expression_indexkey::get_expr()
+{
+    return expr.get();
+}
+
+xec_expression* xec_expression_indexkey::get_index()
+{
+    return index.get();
+}
+
 
 
 
@@ -216,7 +256,16 @@ int xec_expression_index::get_location()
 {
     return expr->get_location();
 }
-    
+
+xec_expression* xec_expression_index::get_expr()
+{
+    return expr.get();
+}
+
+xec_expression* xec_expression_index::get_index()
+{
+    return index.get();
+}
 
 
 
@@ -255,6 +304,16 @@ xec_expression* xec_expression_yield::as_mono()
 void xec_expression_yield::set_unpack( bool unpack )
 {
     this->unpack = unpack;
+}
+
+bool xec_expression_yield::get_unpack()
+{
+    return unpack;
+}
+
+xec_expression_list* xec_expression_yield::get_arguments()
+{
+    return args.get();
 }
 
 
@@ -325,7 +384,103 @@ xec_declaration_function* xec_expression_call::as_function()
     return function;
 }
 
+bool xec_expression_call::get_yieldcall()
+{
+    return yieldcall;
+}
 
+bool xec_expression_call::get_unpack()
+{
+    return unpack;
+}
+
+xec_expression* xec_expression_call::get_expr()
+{
+    return expr.get();
+}
+
+xec_expression_list* xec_expression_call::get_arguments()
+{
+    return args.get();
+}
+
+
+
+/*
+    expr++
+    expr--
+*/
+
+xec_expression_postop::xec_expression_postop(
+                xec_expression* expr, xec_token* token )
+    :   expr( expr )
+    ,   token( token )
+{
+}
+
+xec_expression_dispatch xec_expression_postop::visitor_dispatch()
+{
+    return XEC_EXPRESSION_POSTOP;
+}
+
+int xec_expression_postop::get_location()
+{
+    return token->sloc;
+}
+
+xec_operator_kind xec_expression_postop::get_operator()
+{
+    switch ( token->kind )
+    {
+    case XEC_TOKEN_INCREMENT:   return XEC_OPERATOR_INCREMENT;
+    case XEC_TOKEN_DECREMENT:   return XEC_OPERATOR_DECREMENT;
+    default:                    return XEC_OPERATOR_NONE;
+    }
+}
+
+xec_expression* xec_expression_postop::get_expr()
+{
+    return expr.get();
+}
+
+
+
+/*
+    ++expr
+    --expr
+*/
+
+xec_expression_preop::xec_expression_preop(
+                xec_expression* expr, xec_token* token )
+    :   expr( expr )
+    ,   token( token )
+{
+}
+
+xec_expression_dispatch xec_expression_preop::visitor_dispatch()
+{
+    return XEC_EXPRESSION_PREOP;
+}
+
+int xec_expression_preop::get_location()
+{
+    return token->sloc;
+}
+
+xec_operator_kind xec_expression_preop::get_operator()
+{
+    switch ( token->kind )
+    {
+    case XEC_TOKEN_INCREMENT:   return XEC_OPERATOR_INCREMENT;
+    case XEC_TOKEN_DECREMENT:   return XEC_OPERATOR_DECREMENT;
+    default:                    return XEC_OPERATOR_NONE;
+    }
+}
+
+xec_expression* xec_expression_preop::get_expr()
+{
+    return expr.get();
+}
 
 
 /*
@@ -333,10 +488,6 @@ xec_declaration_function* xec_expression_call::as_function()
     -expr
     !expr
     ~expr
-    ++expr
-    ++expr
-    expr++
-    expr++
 */
 
 xec_expression_unary::xec_expression_unary(
@@ -356,6 +507,23 @@ int xec_expression_unary::get_location()
     return token->sloc;
 }
 
+xec_operator_kind xec_expression_unary::get_operator()
+{
+    switch ( token->kind )
+    {
+    case XEC_TOKEN_PLUS:    return XEC_OPERATOR_POSITIVE;
+    case XEC_TOKEN_MINUS:   return XEC_OPERATOR_NEGATIVE;
+    case XEC_TOKEN_XMARK:   return XEC_OPERATOR_LOGICNOT;
+    case XEC_TOKEN_TILDE:   return XEC_OPERATOR_BITNOT;
+    default:                return XEC_OPERATOR_NONE;
+    }
+}
+
+xec_expression* xec_expression_unary::get_expr()
+{
+    return expr.get();
+}
+
 
 
 
@@ -372,6 +540,7 @@ int xec_expression_unary::get_location()
     expr & expr
     expr ^ expr
     expr | expr
+    expr .. expr
 */
 
 xec_expression_binary::xec_expression_binary(
@@ -390,6 +559,37 @@ xec_expression_dispatch xec_expression_binary::visitor_dispatch()
 int xec_expression_binary::get_location()
 {
     return token->sloc;
+}
+
+xec_operator_kind xec_expression_binary::get_operator()
+{
+    switch ( token->kind )
+    {
+    case XEC_TOKEN_ASTERISK:    return XEC_OPERATOR_MULTIPLY;
+    case XEC_TOKEN_SOLIDUS:     return XEC_OPERATOR_DIVIDE;
+    case XEC_TOKEN_PERCENT:     return XEC_OPERATOR_MODULUS;
+    case XEC_TOKEN_TILDE:       return XEC_OPERATOR_INTDIV;
+    case XEC_TOKEN_PLUS:        return XEC_OPERATOR_ADD;
+    case XEC_TOKEN_MINUS:       return XEC_OPERATOR_SUBTRACT;
+    case XEC_TOKEN_LSHIFT:      return XEC_OPERATOR_LSHIFT;
+    case XEC_TOKEN_RSHIFT:      return XEC_OPERATOR_RSHIFT;
+    case XEC_TOKEN_URSHIFT:     return XEC_OPERATOR_URSHIFT;
+    case XEC_TOKEN_AMPERSAND:   return XEC_OPERATOR_BITAND;
+    case XEC_TOKEN_CARET:       return XEC_OPERATOR_BITXOR;
+    case XEC_TOKEN_VBAR:        return XEC_OPERATOR_BITOR;
+    case XEC_TOKEN_CONCATENATE: return XEC_OPERATOR_CONCATENATE;
+    default:                    return XEC_OPERATOR_NONE;
+    }
+}
+
+xec_expression* xec_expression_binary::get_lhs()
+{
+    return expr_a.get();
+}
+
+xec_expression* xec_expression_binary::get_rhs()
+{
+    return expr_b.get();
 }
 
 
@@ -428,6 +628,39 @@ void xec_expression_comparison::add_comparison(
     comparisons.push_back( std::move( cmp ) );
 }
 
+size_t xec_expression_comparison::get_count()
+{
+    return comparisons.size();
+}
+
+xec_expression* xec_expression_comparison::get_first_expr()
+{
+    return expr.get();
+}
+
+xec_operator_kind xec_expression_comparison::get_operator( size_t index )
+{
+    switch ( comparisons.at( index ).token->kind )
+    {
+    case XEC_TOKEN_EQUAL:           return XEC_OPERATOR_EQUAL;
+    case XEC_TOKEN_NOTEQUAL:        return XEC_OPERATOR_NOTEQUAL;
+    case XEC_TOKEN_LESS:            return XEC_OPERATOR_LESS;
+    case XEC_TOKEN_GREATER:         return XEC_OPERATOR_GREATER;
+    case XEC_TOKEN_LESSEQUAL:       return XEC_OPERATOR_LEQUAL;
+    case XEC_TOKEN_GREATEREQUAL:    return XEC_OPERATOR_GEQUAL;
+    case XEC_TOKEN_IN:              return XEC_OPERATOR_IN;
+    case XEC_TOKEN_NOTIN:           return XEC_OPERATOR_NOTIN;
+    case XEC_TOKEN_IS:              return XEC_OPERATOR_IS;
+    case XEC_TOKEN_NOTIS:           return XEC_OPERATOR_NOTIS;
+    default:                        return XEC_OPERATOR_NONE;
+    }
+}
+
+xec_expression* xec_expression_comparison::get_expr( size_t index )
+{
+    return comparisons.at( index ).expr.get();
+}
+
 
 
 /*
@@ -454,6 +687,27 @@ int xec_expression_logical::get_location()
     return token->sloc;
 }
 
+xec_operator_kind xec_expression_logical::get_operator()
+{
+    switch ( token->kind )
+    {
+    case XEC_TOKEN_LOGICAND:    return XEC_OPERATOR_LOGICAND;
+    case XEC_TOKEN_LOGICXOR:    return XEC_OPERATOR_LOGICXOR;
+    case XEC_TOKEN_LOGICOR:     return XEC_OPERATOR_LOGICOR;
+    default:                    return XEC_OPERATOR_NONE;
+    }
+}
+
+xec_expression* xec_expression_logical::get_lhs()
+{
+    return expr_a.get();
+}
+
+xec_expression* xec_expression_logical::get_rhs()
+{
+    return expr_b.get();
+}
+
 
 
 /*
@@ -477,6 +731,21 @@ xec_expression_dispatch xec_expression_conditional::visitor_dispatch()
 int xec_expression_conditional::get_location()
 {
     return condition->get_location();
+}
+
+xec_expression* xec_expression_conditional::get_condition()
+{
+    return condition.get();
+}
+
+xec_expression* xec_expression_conditional::get_iftrue()
+{
+    return iftrue.get();
+}
+
+xec_expression* xec_expression_conditional::get_iffalse()
+{
+    return iffalse.get();
 }
 
 
@@ -530,6 +799,11 @@ int xec_expression_unpack::get_location()
 xec_expression* xec_expression_unpack::as_mono()
 {
     return new xec_expression_mono( this );
+}
+
+xec_expression* xec_expression_unpack::get_expr()
+{
+    return expr.get();
 }
 
 
@@ -594,6 +868,20 @@ void xec_expression_list::append_final( xec_expression* final )
     this->final.reset( final );
 }
 
+size_t xec_expression_list::get_count()
+{
+    return expressions.size();
+}
+
+xec_expression* xec_expression_list::get_expr( size_t index )
+{
+    return expressions.at( index ).get();
+}
+
+xec_expression* xec_expression_list::get_final()
+{
+    return final.get();
+}
 
 
 
@@ -637,6 +925,38 @@ xec_expression* xec_expression_assign::as_mono()
     return new xec_expression_mono( this );
 }
 
+xec_operator_kind xec_expression_assign::get_operator()
+{
+    switch ( op->kind )
+    {
+    case XEC_TOKEN_ASSIGN:          return XEC_OPERATOR_NONE;
+    case XEC_TOKEN_MULASSIGN:       return XEC_OPERATOR_MULTIPLY;
+    case XEC_TOKEN_DIVASSIGN:       return XEC_OPERATOR_DIVIDE;
+    case XEC_TOKEN_MODASSIGN:       return XEC_OPERATOR_MODULUS;
+    case XEC_TOKEN_INTDIVASSIGN:    return XEC_OPERATOR_INTDIV;
+    case XEC_TOKEN_ADDASSIGN:       return XEC_OPERATOR_ADD;
+    case XEC_TOKEN_SUBASSIGN:       return XEC_OPERATOR_SUBTRACT;
+    case XEC_TOKEN_LSHIFTASSIGN:    return XEC_OPERATOR_LSHIFT;
+    case XEC_TOKEN_RSHIFTASSIGN:    return XEC_OPERATOR_RSHIFT;
+    case XEC_TOKEN_URSHIFTASSIGN:   return XEC_OPERATOR_URSHIFT;
+    case XEC_TOKEN_BITANDASSIGN:    return XEC_OPERATOR_BITAND;
+    case XEC_TOKEN_BITXORASSIGN:    return XEC_OPERATOR_BITXOR;
+    case XEC_TOKEN_BITORASSIGN:     return XEC_OPERATOR_BITOR;
+    default:                        return XEC_OPERATOR_NONE;
+    }
+}
+
+xec_expression* xec_expression_assign::get_lhs()
+{
+    return lvalue.get();
+}
+
+xec_expression* xec_expression_assign::get_rhs()
+{
+    return rvalue.get();
+}
+
+
 
 
 /*
@@ -656,6 +976,11 @@ xec_expression_dispatch xec_expression_mono::visitor_dispatch()
 int xec_expression_mono::get_location()
 {
     return expr->get_location();
+}
+
+xec_expression* xec_expression_mono::get_expr()
+{
+    return expr.get();
 }
 
 
@@ -686,6 +1011,16 @@ xec_expression* xec_expression_declare::as_mono()
 {
     // Conditions can declare more than one value.
     return new xec_expression_mono( this );
+}
+
+xec_expression_list* xec_expression_declare::get_name_list()
+{
+    return name_list.get();
+}
+
+xec_expression_list* xec_expression_declare::get_expr_list()
+{
+    return expr_list.get();
 }
 
 

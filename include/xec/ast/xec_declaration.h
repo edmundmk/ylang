@@ -62,6 +62,9 @@ public:
 
     virtual xec_declaration_dispatch visitor_dispatch();
     virtual int get_location();
+    
+    xec_expression_list* get_name_list();
+    xec_expression_list* get_expr_list();
 
 private:
 
@@ -92,6 +95,10 @@ public:
   
     xec_constructor_object* as_constructor( xec_token* token );
 
+    xec_expression* get_name();
+    xec_expression* get_proto();
+    size_t get_member_count();
+    xec_declaration* get_member( size_t index );
 
 private:
 
@@ -120,6 +127,11 @@ public:
     void set_thiscall( bool thiscall );
     void set_coroutine( bool coroutine );
 
+    bool get_thiscall();
+    bool get_coroutine();
+    xec_expression* get_name();
+    xec_expression_list* get_parameters();
+
 
 protected:
 
@@ -146,6 +158,7 @@ public:
 
     void set_body( xec_statement_compound* body );
 
+    xec_statement_compound* get_body();
 
 protected:
 

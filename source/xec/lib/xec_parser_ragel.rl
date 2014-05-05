@@ -17,6 +17,11 @@
 #include "xec_token.h"
 
 
+void* XecParseAlloc( void* (*malloc)( size_t ) );
+void  XecParse( void* yyp, int yymajor, xec_token* yyminor, xec_parser* p );
+void  XecParseFree( void* p, void (*free)( void* ) );
+
+
 
 %%{
 
@@ -409,6 +414,10 @@ bool xec_parser::parse( const char* path )
     uint32_t temp;
 
 
+    // Parser state.
+    void* parser = XecParseAlloc( malloc );
+
+
     // Initialize state machine.
     int cs;
     
@@ -417,9 +426,18 @@ bool xec_parser::parse( const char* path )
     
     // Perform lexing.
 #define TOKEN( token ) \
-    token->debug_print();
+    { \
+        XecParse( parser, token->kind, token, this ); \
+        if ( diagnostics.size() >= ERROR_LIMIT ) \
+            goto error; \
+    }
 #define MTOKEN( ... ) \
-    TOKEN( make_token( __VA_ARGS__ ) );
+    { \
+        xec_token* token = make_token( __VA_ARGS__ ); \
+        XecParse( parser, token->kind, token, this ); \
+        if ( diagnostics.size() >= ERROR_LIMIT ) \
+            goto error; \
+    }
 
     bool iseof = false;
     while ( ! iseof )
@@ -453,6 +471,10 @@ bool xec_parser::parse( const char* path )
 
 error:
 
+    // Free parser.
+    XecParseFree( parser, free );
+
+        
     // Close file.
     free( buffer );
     fclose( file );

@@ -25,10 +25,10 @@ public:
     return_t visit( xec_declaration* expr, arguments_t ... arguments );
     template < typename declaration_t > return_t dispatch_decl( xec_declaration* decl, arguments_t ... arguments );
 
-    return_t visit( xec_declaration_var* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_declaration_object* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_declaration_prototype* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_declaration_function* expr, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_declaration_var* decl, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_declaration_object* decl, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_declaration_prototype* decl, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_declaration_function* decl, arguments_t ... arguments ) { return return_t(); }
 
     return_t visit( xec_expression* expr, arguments_t ... arguments );
     template < typename expression_t > return_t dispatch_expr( xec_expression* expr, arguments_t ... arguments );
@@ -43,7 +43,11 @@ public:
     return_t visit( xec_expression_index* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_expression_yield* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_expression_call* expr, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_expression_preop* expr, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_expression_postop* expr, arguments_t ... arguments ) {
+        return return_t(); }
     return_t visit( xec_expression_unary* expr, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_expression_binary* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_expression_comparison* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_expression_logical* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_expression_conditional* expr, arguments_t ... arguments ) { return return_t(); }
@@ -62,26 +66,26 @@ public:
     return_t visit( xec_statement* stmt, arguments_t ... arguments );
     template < typename statement_t > return_t dispatch_stmt( xec_statement* stmt, arguments_t ... arguments );
     
-    return_t visit( xec_statement_declaration* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_expression* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_compound* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_delete* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_if* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_switch* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_case* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_while* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_do* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_foreach* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_for* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_continue* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_break* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_return* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_yield* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_using* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_usingscope* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_try* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_catch* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_throw* decl, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_declaration* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_expression* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_compound* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_delete* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_if* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_switch* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_case* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_while* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_do* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_foreach* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_for* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_continue* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_break* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_return* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_yield* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_using* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_usingscope* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_try* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_catch* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t visit( xec_statement_throw* stmt, arguments_t ... arguments ) { return return_t(); }
 
 };
 
@@ -108,7 +112,7 @@ template < typename visitor_t, typename return_t, typename ... arguments_t >
 template < typename declaration_t >
 return_t xec_astvisitor< visitor_t, return_t, arguments_t ... >::dispatch_decl( xec_declaration* decl, arguments_t ... arguments )
 {
-    return visitor_t::visit( (declaration_t*)decl, arguments ... );
+    return ( (visitor_t*)this )->visit( (declaration_t*)decl, arguments ... );
 }
 
 
@@ -128,7 +132,10 @@ return_t xec_astvisitor< visitor_t, return_t, arguments_t ... >::visit( xec_expr
         &visitor_t::template dispatch_expr< xec_expression_index >,
         &visitor_t::template dispatch_expr< xec_expression_yield >,
         &visitor_t::template dispatch_expr< xec_expression_call >,
+        &visitor_t::template dispatch_expr< xec_expression_preop >,
+        &visitor_t::template dispatch_expr< xec_expression_postop >,
         &visitor_t::template dispatch_expr< xec_expression_unary >,
+        &visitor_t::template dispatch_expr< xec_expression_binary >,
         &visitor_t::template dispatch_expr< xec_expression_comparison >,
         &visitor_t::template dispatch_expr< xec_expression_logical >,
         &visitor_t::template dispatch_expr< xec_expression_conditional >,
@@ -149,7 +156,7 @@ template < typename visitor_t, typename return_t, typename ... arguments_t >
 template < typename expression_t >
 return_t xec_astvisitor< visitor_t, return_t, arguments_t ... >::dispatch_expr( xec_expression* expr, arguments_t ... arguments )
 {
-    return visitor_t::visit( (expression_t*)expr, arguments ... );
+    return ( (visitor_t*)this )->visit( (expression_t*)expr, arguments ... );
 }
 
 
@@ -190,7 +197,7 @@ template < typename visitor_t, typename return_t, typename ... arguments_t >
 template < typename statement_t >
 return_t xec_astvisitor< visitor_t, return_t, arguments_t ... >::dispatch_stmt( xec_statement* stmt, arguments_t ... arguments )
 {
-    return visitor_t::visit( (statement_t*)stmt, arguments ... );
+    return ( (visitor_t*)this )->visit( (statement_t*)stmt, arguments ... );
 }
 
 
