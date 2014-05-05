@@ -135,7 +135,12 @@ int xec_expression_string::get_location()
     return token->sloc;
 }
 
-const char* xec_expression_string::get_value()
+size_t xec_expression_string::get_length()
+{
+    return token->size;
+}
+
+const char* xec_expression_string::get_string()
 {
     return token->text;
 }

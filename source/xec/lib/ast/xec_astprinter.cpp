@@ -96,7 +96,18 @@ void xec_astprinter::visit( xec_expression_number* expr, int indent )
 
 void xec_astprinter::visit( xec_expression_string* expr, int indent )
 {
-    printf( "%*s\"%s\"\n", indent, "", expr->get_value() );
+    printf( "%*s\"", indent, "" );
+    const char* s = expr->get_string();
+    for ( size_t i = 0; i < expr->get_length(); ++i )
+    {
+        if ( s[ i ] >= 32 && s[ i ] <= 126 )
+            printf( "%c", s[ i ] );
+        else
+            printf( "\\x%02X", (int)s[ i ] );
+    }
+    printf( "\"\n" );
+
+//    printf( "%*s\"%s\"\n", indent, "", expr->get_value() );
 }
 
 void xec_astprinter::visit( xec_expression_identifier* expr, int indent )

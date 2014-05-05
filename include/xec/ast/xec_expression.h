@@ -191,7 +191,8 @@ public:
     virtual xec_expression_dispatch visitor_dispatch();
     virtual int get_location();
 
-    const char* get_value();
+    size_t get_length();
+    const char* get_string();
 
 private:
 
