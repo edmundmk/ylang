@@ -56,7 +56,7 @@
     newline         = ( '\n' | '\r' | '\r\n' ) $1 %0 %nl %!nl ;
     block_comment   = '/*' ( any | newline )* :>> '*/' ;
     line_comment    = '//' any* :>> newline ;
-    whitespace      = ( [ \t] | newline | block_comment | line_comment )+ ;
+    whitespace      = [ \t] | newline | block_comment | line_comment ;
 
 
     identifier =
@@ -144,7 +144,7 @@
 
     string =
     (
-            ( string_quoted whitespace? )+
+            ( string_quoted whitespace* )+
     );
 
 

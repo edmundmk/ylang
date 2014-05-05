@@ -24,11 +24,6 @@ int main( int argc, char* argv[] )
     xec_parser parser;
     parser.parse( argv[ 1 ] );
     
-    xec_astprint x;
-    x.visit( (xec_declaration*)nullptr );
-    x.visit( (xec_expression*)nullptr );
-    x.visit( (xec_statement*)nullptr );
-    
     for ( size_t i = 0; i < parser.diagnostic_count(); ++i )
     {
         fprintf( stderr, "%s\n", parser.diagnostic( i ) );
