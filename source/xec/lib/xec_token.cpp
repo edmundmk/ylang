@@ -23,13 +23,13 @@ std::string xec_token::get_spelling()
 {
     switch ( kind )
     {
-    case XEC_TOKEN_IDENTIFIER:
+    case XEC_TOKEN_STRING:
         return "string";
         
     case XEC_TOKEN_NUMBER:
         return "number";
         
-    case XEC_TOKEN_STRING:
+    case XEC_TOKEN_IDENTIFIER:
         return stringf( "identifier '%.*s'", (int)size, text );
         
     default:
