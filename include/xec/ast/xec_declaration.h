@@ -21,6 +21,7 @@ class xec_expression_call;
 class xec_expression_list;
 class xec_statement_compound;
 class xec_constructor_object;
+class xec_constructor_function;
 
 
 
@@ -84,27 +85,19 @@ class xec_declaration_object : public xec_declaration
 {
 public:
 
-    xec_declaration_object();
+    xec_declaration_object(
+            xec_expression* name, xec_constructor_object* object );
 
     virtual xec_declaration_dispatch visitor_dispatch();
     virtual int get_location();
 
-    void set_name( xec_expression* name );
-    void set_proto( xec_expression* proto );
-    void add_member( xec_declaration* decl );
-  
-    xec_constructor_object* as_constructor( xec_token* token );
-
     xec_expression* get_name();
-    xec_expression* get_proto();
-    size_t get_member_count();
-    xec_declaration* get_member( size_t index );
+    xec_constructor_object* get_object();
 
 private:
 
-    std::unique_ptr< xec_expression >                   name;
-    std::unique_ptr< xec_expression >                   proto;
-    std::deque< std::unique_ptr< xec_declaration > >    members;
+    std::unique_ptr< xec_expression >           name;
+    std::unique_ptr< xec_constructor_object >   object;
     
 };
 
@@ -147,22 +140,23 @@ protected:
     name( param, param ) { decl, decl }
 */
 
-class xec_declaration_function : public xec_declaration_prototype
+class xec_declaration_function : public xec_declaration
 {
 public:
 
     xec_declaration_function(
-            xec_expression* name, xec_expression_list* params );
+            xec_expression* name, xec_constructor_function* function );
 
     virtual xec_declaration_dispatch visitor_dispatch();
+    virtual int get_location();
 
-    void set_body( xec_statement_compound* body );
-
-    xec_statement_compound* get_body();
+    xec_expression* get_name();
+    xec_constructor_function* get_function();
 
 protected:
 
-    std::unique_ptr< xec_statement_compound > body;
+    std::unique_ptr< xec_expression >           name;
+    std::unique_ptr< xec_constructor_function > function;
 
 };
 

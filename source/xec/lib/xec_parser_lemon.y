@@ -93,11 +93,10 @@ void xec_parser::destroy( xec_token* token )
 
 script          ::= .
                 {
-                    p->set_root( NULL );
                 }
 script          ::= stmt_list(stmt_list) .
                 {
-                    p->set_root( stmt_list );
+                    p->get_script()->set_body( stmt_list );
                 }
 
 
@@ -108,7 +107,7 @@ script          ::= stmt_list(stmt_list) .
 
 %type expr_paren    { xec_expression_list* }
 %type stmt_brace    { xec_statement_compound* }
-%type odecl_brace   { xec_declaration_object* }
+%type odecl_brace   { xec_constructor_object* }
 
 
 expr_paren(x)   ::= LPN RPN .
@@ -133,7 +132,7 @@ stmt_brace(x)   ::= LBR(token) stmt_list(stmt_list) RBR .
 
 odecl_brace(x)  ::= LBR RBR .
                 {
-                    x = new xec_declaration_object();
+                    x = new xec_constructor_object();
                 }
 odecl_brace(x)  ::= LBR odecl_list(object) RBR .
                 {
@@ -151,7 +150,7 @@ odecl_brace(x)  ::= LBR odecl_list(object) RBR .
 %type proto         { xec_expression_call* }
 %type decl          { xec_declaration* }
 %type odecl         { xec_declaration* }
-%type odecl_list    { xec_declaration_object* }
+%type odecl_list    { xec_constructor_object* }
 
 
 // Names as used in declarations.
@@ -188,30 +187,24 @@ proto(x)        ::= name(expr) expr_paren(args) .
 // Declarations valid as statements.
 decl(x)         ::= name(name) odecl_brace(object) .
                 {
-                    object->set_name( name );
-                    x = object;
+                    x = new xec_declaration_object( name, object );
                 }
 decl(x)         ::= name(name) COLON expr_simple(proto) odecl_brace(object) .
                 {
-                    // object already constructed by odecl_brace.
-                    object->set_name( name );
                     object->set_proto( proto );
-                    x = object;
+                    x = new xec_declaration_object( name, object );
                 }
 decl(x)         ::= proto(header) stmt_brace(body) .
                 {
                     // Convert call expression to function declaration.
-                    xec_declaration_function* value;
-                    x = value = header->as_function();
-                    value->set_body( body );
+                    x = header->as_function( body );
                 }
 decl(x)         ::= proto(header) YIELD stmt_brace(body) .
                 {
                     // Convert call expression to coroutine declaration.
                     xec_declaration_function* value;
-                    x = value = header->as_function();
-                    value->set_coroutine( true );
-                    value->set_body( body );
+                    x = value = header->as_function( body );
+                    value->get_function()->set_coroutine( true );
                 }
 decl(x)         ::= VAR(token) name_list(name_list) SEMICOLON .
                 {
@@ -247,11 +240,11 @@ odecl(x)        ::= proto(header) YIELD SEMICOLON .
 
 odecl_list(x)   ::= SEMICOLON .
                 {
-                    x = new xec_declaration_object();
+                    x = new xec_constructor_object();
                 }
 odecl_list(x)   ::= odecl(decl) .
                 {
-                    x = new xec_declaration_object();
+                    x = new xec_constructor_object();
                     decl->set_thiscall( true );
                     x->add_member( decl );
                 }
@@ -751,39 +744,47 @@ expr_nolbr(x)   ::= LSQ(token) value_list(expr) RSQ .
                 }
 expr_nolbr(x)   ::= COLON(token) odecl_brace(object) .
                 {
-                    x = object->as_constructor( token );
+                    object->set_token( token );
+                    x = object;
                 }
 expr_nolbr(x)   ::= COLON(token) expr_simple(proto) odecl_brace(object) .
                 {
+                    object->set_token( token );
                     object->set_proto( proto );
-                    x = object->as_constructor( token );
+                    x = object;
                 }
 expr_nolbr(x)   ::= QMARK(token) expr_paren(params) stmt_brace(body) .
                 {
-                    x = new xec_constructor_function( token, params, body );
+                    xec_constructor_function* func;
+                    x = func = new xec_constructor_function( params );
+                    func->set_token( token );
+                    func->set_body( body );
                 }
 expr_nolbr(x)   ::= PERIOD(token) QMARK expr_paren(params) stmt_brace(body) .
                 {
                     xec_constructor_function* func;
-                    x = func = new xec_constructor_function(
-                                    token, params, body );
+                    x = func = new xec_constructor_function( params );
+                    func->set_token( token );
                     func->set_thiscall( true );
+                    func->set_body( body );
                 }
 expr_nolbr(x)   ::= QMARK(token) expr_paren(params) YIELD stmt_brace(body) .
                 {
                     xec_constructor_function* func;
-                    x = func = new xec_constructor_function(
-                                    token, params, body );
+                    x = func = new xec_constructor_function( params );
+                    func->set_token( token );
                     func->set_coroutine( true );
+                    func->set_body( body );
                 }
 expr_nolbr(x)   ::= PERIOD(token) QMARK
                                 expr_paren(params) YIELD stmt_brace(body) .
                 {
                     xec_constructor_function* func;
-                    x = func = new xec_constructor_function(
-                                    token, params, body );
+                    x = func = new xec_constructor_function( params );
+                    func->set_token( token );
                     func->set_thiscall( true );
                     func->set_coroutine( true );
+                    func->set_body( body );
                 }
 
 // All single-value expressions, including those starting with an open brace.

@@ -151,14 +151,15 @@ class xec_constructor_function : public xec_expression
 {
 public:
 
-    xec_constructor_function( xec_token* token,
-            xec_expression_list* params, xec_statement_compound* body );
+    xec_constructor_function( xec_expression_list* params );
     
     virtual xec_expression_dispatch visitor_dispatch();
     virtual int get_location();
     
+    void set_token( xec_token* token );
     void set_thiscall( bool thiscall );
     void set_coroutine( bool coroutine );
+    void set_body( xec_statement_compound* body );
     
     bool get_thiscall();
     bool get_coroutine();

@@ -22,7 +22,8 @@
 
 
 struct xec_token;
-class xec_statement_compound;
+class xec_constructor_function;
+class xec_scope;
 
 
 class xec_parser
@@ -33,6 +34,7 @@ public:
     explicit xec_parser( const char* filename );
     ~xec_parser();
 
+    void                set_arguments( size_t argc, const char* argv[] );
     bool                parse( const char* filename );
 
     const char*         get_filename();
@@ -43,13 +45,15 @@ public:
     size_t              diagnostic_count();
     const char*         diagnostic( size_t index );
 
-    xec_statement_compound* get_root();
+    xec_scope*          get_global_scope();
+    xec_constructor_function* get_script();
 
 
 
 /* lemon private: */
 
-    void set_root( xec_statement_compound* stmt );
+    void set_global_scope( xec_scope* scope );
+    void set_script_scope( xec_scope* scope );
     void destroy( xec_token* token );
 
 
@@ -68,13 +72,10 @@ private:
     std::deque< const char* >       diagnostics;
     std::deque< void* >             recycle_tokens;
     std::unordered_set< symkey >    identifiers;
-    std::unique_ptr< xec_statement_compound > root;
+    std::unique_ptr< xec_scope >    global_scope;
+    std::unique_ptr< xec_constructor_function > script;
     
 };
-
-
-
-void xec_parser_diagnostic( int sloc, const char* format, ... );
 
 
 

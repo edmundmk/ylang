@@ -44,8 +44,7 @@ public:
     return_t visit( xec_expression_yield* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_expression_call* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_expression_preop* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_postop* expr, arguments_t ... arguments ) {
-        return return_t(); }
+    return_t visit( xec_expression_postop* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_expression_unary* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_expression_binary* expr, arguments_t ... arguments ) { return return_t(); }
     return_t visit( xec_expression_comparison* expr, arguments_t ... arguments ) { return return_t(); }

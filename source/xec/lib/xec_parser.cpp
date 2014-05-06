@@ -7,8 +7,10 @@
 
 
 #include "xec_parser.h"
+#include "xec_constructor.h"
 #include "xec_statement.h"
-
+#include "xec_scope.h"
+#include "xec_token.h"
 
 
 
@@ -23,6 +25,29 @@ xec_parser::xec_parser( const char* filename )
 
 xec_parser::~xec_parser()
 {
+}
+
+
+void xec_parser::set_arguments( size_t argc, const char* argv[] )
+{
+    xec_expression_list* params = new xec_expression_list();
+    for ( size_t i = 0; i < argc; ++i )
+    {
+        if ( strcmp( argv[ i ], "..." ) == 0 )
+        {
+            assert( i == argc - 1 );
+            xec_token* token = make_token( XEC_TOKEN_ELLIPSIS, -1, "...", 3 );
+            params->append_final( new xec_expression_varargs( token ) );
+        }
+        else
+        {
+            xec_token* token = make_token(
+                XEC_TOKEN_IDENTIFIER, -1, argv[ i ], strlen( argv[ i ] ) );
+            params->append_expression(
+                    new xec_expression_identifier( token ) );
+        }
+    }
+    script.reset( new xec_constructor_function( params ) );
 }
 
 
@@ -84,14 +109,9 @@ const char* xec_parser::diagnostic( size_t index )
 
 
 
-xec_statement_compound* xec_parser::get_root()
+xec_constructor_function* xec_parser::get_script()
 {
-    return root.get();
-}
-
-void xec_parser::set_root( xec_statement_compound* stmt )
-{
-    root.reset( stmt );
+    return script.get();
 }
 
 

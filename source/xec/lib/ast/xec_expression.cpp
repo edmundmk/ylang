@@ -7,6 +7,7 @@
 
 
 #include "xec_expression.h"
+#include "xec_constructor.h"
 #include "xec_declaration.h"
 #include "xec_statement.h"
 #include <assert.h>
@@ -379,14 +380,18 @@ xec_declaration_prototype* xec_expression_call::as_prototype()
     return prototype;
 }
 
-xec_declaration_function* xec_expression_call::as_function()
+xec_declaration_function* xec_expression_call::as_function(
+                                    xec_statement_compound* body )
 {
-    xec_declaration_function* function =
-            new xec_declaration_function( expr.release(), args.release() );
+    xec_constructor_function* function =
+            new xec_constructor_function( args.release() );
     function->set_coroutine( yieldcall );
     assert( ! unpack );
+    function->set_body( body );
+    xec_declaration_function* decl =
+            new xec_declaration_function( expr.release(), function );
     delete this;
-    return function;
+    return decl;
 }
 
 bool xec_expression_call::get_yieldcall()

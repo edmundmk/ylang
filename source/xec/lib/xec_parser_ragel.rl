@@ -390,7 +390,15 @@ static bool encode_utf8( region_buffer* data, uint32_t cp )
 bool xec_parser::parse( const char* path )
 {
     region_scope rscope( alloc );
-    
+
+
+    // Default arguments.
+    if ( ! script )
+    {
+        const char* argv[] = { "scriptname", "..." };
+        set_arguments( 2, argv );
+    }
+
     
     // Open file.
     this->filename = path;

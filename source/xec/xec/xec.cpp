@@ -26,7 +26,7 @@ int main( int argc, char* argv[] )
     }
     
     xec_astprinter printer;
-    printer.print( parser.get_root() );
+    printer.print( parser.get_script() );
     
     return EXIT_SUCCESS;
 }

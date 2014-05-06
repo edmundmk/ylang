@@ -67,7 +67,10 @@ xec_expression_list* xec_declaration_var::get_expr_list()
     name : expr { decl; decl; }
 */
 
-xec_declaration_object::xec_declaration_object()
+xec_declaration_object::xec_declaration_object(
+                xec_expression* name, xec_constructor_object* object )
+    :   name( name )
+    ,   object( object )
 {
 }
 
@@ -81,52 +84,16 @@ int xec_declaration_object::get_location()
     return name->get_location();
 }
 
-void xec_declaration_object::set_name( xec_expression* name )
-{
-    this->name.reset( name );
-}
-
-void xec_declaration_object::set_proto( xec_expression* proto )
-{
-    this->proto.reset( proto );
-}
-
-void xec_declaration_object::add_member( xec_declaration* decl )
-{
-    members.push_back( std::unique_ptr< xec_declaration >( decl ) );
-}
-  
-xec_constructor_object*
-        xec_declaration_object::as_constructor( xec_token* token )
-{
-    xec_constructor_object* object = new xec_constructor_object();
-    object->set_token( token );
-    object->set_proto( proto.release() );
-    for ( auto i = members.begin(); i != members.end(); ++i )
-        object->add_member( i->release() );
-    delete this;
-    return object;
-}
-
 xec_expression* xec_declaration_object::get_name()
 {
     return name.get();
 }
 
-xec_expression* xec_declaration_object::get_proto()
+xec_constructor_object* xec_declaration_object::get_object()
 {
-    return proto.get();
+    return object.get();
 }
 
-size_t xec_declaration_object::get_member_count()
-{
-    return members.size();
-}
-
-xec_declaration* xec_declaration_object::get_member( size_t index )
-{
-    return members.at( index ).get();
-}
 
 
 
@@ -191,8 +158,9 @@ xec_expression_list* xec_declaration_prototype::get_parameters()
 */
 
 xec_declaration_function::xec_declaration_function(
-                    xec_expression* name, xec_expression_list* params )
-    :   xec_declaration_prototype( name, params )
+                    xec_expression* name, xec_constructor_function* function )
+    :   name( name )
+    ,   function( function )
 {
 }
 
@@ -201,16 +169,20 @@ xec_declaration_dispatch xec_declaration_function::visitor_dispatch()
     return XEC_DECLARATION_FUNCTION;
 }
 
-void xec_declaration_function::set_body( xec_statement_compound* body )
+int xec_declaration_function::get_location()
 {
-    this->body.reset( body );
+    return name->get_location();
 }
 
-xec_statement_compound* xec_declaration_function::get_body()
+xec_expression* xec_declaration_function::get_name()
 {
-    return body.get();
+    return name.get();
 }
 
+xec_constructor_function* xec_declaration_function::get_function()
+{
+    return function.get();
+}
 
 
 

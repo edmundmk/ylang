@@ -45,12 +45,7 @@ void xec_astprinter::visit( xec_declaration_object* decl, int indent )
 {
     printf( "%*sdeclare-object\n", indent, "" );
     visit( decl->get_name(), indent + INDENT );
-    if ( decl->get_proto() )
-        visit( decl->get_proto(), indent + INDENT );
-    else
-        printf( "%*s[object]\n", indent + INDENT, "" );
-    for ( size_t i = 0; i < decl->get_member_count(); ++i )
-        visit( decl->get_member( i ), indent + INDENT );
+    visit( decl->get_object(), indent + INDENT );
 }
 
 void xec_astprinter::visit( xec_declaration_prototype* decl, int indent )
@@ -67,15 +62,9 @@ void xec_astprinter::visit( xec_declaration_prototype* decl, int indent )
 
 void xec_astprinter::visit( xec_declaration_function* decl, int indent )
 {
-    printf( "%*sdeclare-function", indent, "" );
-    if ( decl->get_thiscall() )
-        printf( " [thiscall]" );
-    if ( decl->get_coroutine() )
-        printf( " [coroutine]" );
-    printf( "\n" );
+    printf( "%*sdeclare-function\n", indent, "" );
     visit( decl->get_name(), indent + INDENT );
-    visit( decl->get_parameters(), indent + INDENT );
-    visit( decl->get_body(), indent );
+    visit( decl->get_function(), indent + INDENT );
 }
 
 

@@ -1287,7 +1287,15 @@ static bool encode_utf8( region_buffer* data, uint32_t cp )
 bool xec_parser::parse( const char* path )
 {
     region_scope rscope( alloc );
-    
+
+
+    // Default arguments.
+    if ( ! script )
+    {
+        const char* argv[] = { "scriptname", "..." };
+        set_arguments( 2, argv );
+    }
+
     
     // Open file.
     this->filename = path;
@@ -1319,12 +1327,12 @@ bool xec_parser::parse( const char* path )
     int cs;
     
     
-#line 1323 "xec_parser_ragel.cpp"
+#line 1331 "xec_parser_ragel.cpp"
 	{
 	cs = lexer_start;
 	}
 
-#line 425 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 433 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
     
     
     // Perform lexing.
@@ -1360,7 +1368,7 @@ bool xec_parser::parse( const char* path )
         const unsigned char* eof    = iseof ? pe : NULL;
 
         
-#line 1364 "xec_parser_ragel.cpp"
+#line 1372 "xec_parser_ragel.cpp"
 	{
 	int _klen;
 	unsigned int _trans;
@@ -1851,7 +1859,7 @@ _match:
 #line 257 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ {cs = 31; goto _again;} }
 	break;
-#line 1855 "xec_parser_ragel.cpp"
+#line 1863 "xec_parser_ragel.cpp"
 		}
 	}
 
@@ -2140,7 +2148,7 @@ _again:
 #line 257 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ {cs = 31; goto _again;} }
 	break;
-#line 2144 "xec_parser_ragel.cpp"
+#line 2152 "xec_parser_ragel.cpp"
 		}
 	}
 	}
@@ -2148,7 +2156,7 @@ _again:
 	_out: {}
 	}
 
-#line 460 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 468 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
         
         offset += read;
     }

@@ -153,6 +153,7 @@ xec_expression* xec_constructor_table::get_value( size_t index )
 */
 
 xec_constructor_object::xec_constructor_object()
+    :   token( NULL )
 {
 }
 
@@ -163,7 +164,10 @@ xec_expression_dispatch xec_constructor_object::visitor_dispatch()
 
 int xec_constructor_object::get_location()
 {
-    return token->sloc;
+    if ( token )
+        return token->sloc;
+    else
+        return -1;
 }
 
 void xec_constructor_object::set_token( xec_token* token )
@@ -206,11 +210,10 @@ xec_declaration* xec_constructor_object::get_member( size_t index )
     .?( param, param ) yield { stmt; stmt; }
 */
 
-xec_constructor_function::xec_constructor_function( xec_token* token,
-                xec_expression_list* params, xec_statement_compound* body )
-    :   token( token )
+xec_constructor_function::xec_constructor_function(
+                                xec_expression_list* params )
+    :   token( NULL )
     ,   params( params )
-    ,   body( body )
     ,   thiscall( false )
     ,   coroutine( false )
 {
@@ -223,7 +226,15 @@ xec_expression_dispatch xec_constructor_function::visitor_dispatch()
 
 int xec_constructor_function::get_location()
 {
-    return token->sloc;
+    if ( token )
+        return token->sloc;
+    else
+        return -1;
+}
+
+void xec_constructor_function::set_token( xec_token* token )
+{
+    this->token = token;
 }
 
 void xec_constructor_function::set_thiscall( bool thiscall )
@@ -234,6 +245,11 @@ void xec_constructor_function::set_thiscall( bool thiscall )
 void xec_constructor_function::set_coroutine( bool coroutine )
 {
     this->coroutine = coroutine;
+}
+
+void xec_constructor_function::set_body( xec_statement_compound* body )
+{
+    this->body.reset( body );
 }
 
 bool xec_constructor_function::get_thiscall()

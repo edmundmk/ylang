@@ -19,6 +19,7 @@ class xec_expression_list;
 class xec_expression_comparison;
 class xec_declaration_function;
 class xec_declaration_prototype;
+class xec_statement_compound;
 
 
 
@@ -347,7 +348,7 @@ public:
     void set_unpack( bool unpack );
 
     xec_declaration_prototype*  as_prototype();
-    xec_declaration_function*   as_function();
+    xec_declaration_function*   as_function( xec_statement_compound* body );
 
     bool get_yieldcall();
     bool get_unpack();
