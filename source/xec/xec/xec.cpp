@@ -18,6 +18,8 @@
 int main( int argc, char* argv[] )
 {
     xec_parser parser;
+    const char* script_arguments[] = { "scriptname", "..." };
+    parser.set_arguments( 2, script_arguments );
     parser.parse( argv[ 1 ] );
     
     for ( size_t i = 0; i < parser.diagnostic_count(); ++i )

@@ -75,7 +75,7 @@ fannkuch( n )
 }
 
 
-var n = parse_integer( pick( 1, ... ) ) || 7;
+var n = parse_integer( ( ... ) ) || 7;
 printf( "Pfannkuchen(%d) = %d\n", n, fannkuch( n ) );
 return 0;
 

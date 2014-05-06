@@ -142,7 +142,7 @@ offset_momentum( bodies )
 }
 
 
-var n = parse_integer( pick( 1, ... ) ) || 1000;
+var n = parse_integer( ( ... ) ) || 1000;
 ofset_momentum( bodies );
 printf( "%0.9f\n", energy( bodies ) );
 for ( var i = 0; i < n; ++i )

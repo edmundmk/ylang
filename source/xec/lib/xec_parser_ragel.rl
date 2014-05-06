@@ -395,8 +395,8 @@ bool xec_parser::parse( const char* path )
     // Default arguments.
     if ( ! script )
     {
-        const char* argv[] = { "scriptname", "..." };
-        set_arguments( 2, argv );
+        const char* argv[] = { "..." };
+        set_arguments( 1, argv );
     }
 
     
