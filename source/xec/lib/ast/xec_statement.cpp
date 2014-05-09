@@ -20,6 +20,7 @@ xec_statement::~xec_statement()
 
 
 
+
 /*
     decl;
 */
@@ -78,6 +79,7 @@ xec_expression* xec_statement_expression::get_expr()
 
 xec_statement_compound::xec_statement_compound()
     :   token( NULL )
+    ,   scope( NULL )
 {
 }
 
@@ -106,6 +108,11 @@ void xec_statement_compound::append_statement( xec_statement* stmt )
     statements.push_back( std::unique_ptr< xec_statement >( stmt ) );
 }
 
+void xec_statement_compound::set_scope( xec_scope* scope )
+{
+    this->scope = scope;
+}
+
 size_t xec_statement_compound::get_count()
 {
     return statements.size();
@@ -115,6 +122,12 @@ xec_statement* xec_statement_compound::get_stmt( size_t index )
 {
     return statements.at( index ).get();
 }
+
+xec_scope* xec_statement_compound::get_scope()
+{
+    return scope;
+}
+
 
 
 
@@ -158,6 +171,7 @@ xec_statement_if::xec_statement_if( xec_token* token, xec_expression* expr,
     ,   expr( expr )
     ,   iftrue( iftrue )
     ,   iffalse( iffalse )
+    ,   scope( NULL )
 {
 }
 
@@ -169,6 +183,11 @@ xec_statement_dispatch xec_statement_if::visitor_dispatch()
 int xec_statement_if::get_location()
 {
     return token->sloc;
+}
+
+void xec_statement_if::set_scope( xec_scope* scope )
+{
+    this->scope = scope;
 }
 
 xec_expression* xec_statement_if::get_expr()
@@ -186,6 +205,11 @@ xec_statement* xec_statement_if::get_iffalse()
     return iffalse.get();
 }
 
+xec_scope* xec_statement_if::get_scope()
+{
+    return scope;
+}
+
 
 
 /*
@@ -198,6 +222,7 @@ xec_statement_switch::xec_statement_switch( xec_token* token,
     :   token( token )
     ,   expr( expr )
     ,   body( body )
+    ,   scope( NULL )
 {
 }
 
@@ -211,6 +236,11 @@ int xec_statement_switch::get_location()
     return token->sloc;
 }
 
+void xec_statement_switch::set_scope( xec_scope* scope )
+{
+    this->scope = scope;
+}
+
 xec_expression* xec_statement_switch::get_expr()
 {
     return expr.get();
@@ -220,6 +250,12 @@ xec_statement_compound* xec_statement_switch::get_body()
 {
     return body.get();
 }
+
+xec_scope* xec_statement_switch::get_scope()
+{
+    return scope;
+}
+
 
 
 
@@ -262,6 +298,7 @@ xec_statement_while::xec_statement_while(
     :   token( token )
     ,   expr( expr )
     ,   body( body )
+    ,   scope( NULL )
 {
 }
 
@@ -275,6 +312,11 @@ int xec_statement_while::get_location()
     return token->sloc;
 }
 
+void xec_statement_while::set_scope( xec_scope* scope )
+{
+    this->scope = scope;
+}
+
 xec_expression* xec_statement_while::get_expr()
 {
     return expr.get();
@@ -284,6 +326,12 @@ xec_statement* xec_statement_while::get_body()
 {
     return body.get();
 }
+
+xec_scope* xec_statement_while::get_scope()
+{
+    return scope;
+}
+
 
 
 
@@ -309,6 +357,11 @@ int xec_statement_do::get_location()
     return token->sloc;
 }
 
+void xec_statement_do::set_scope( xec_scope* scope )
+{
+    this->scope = scope;
+}
+
 xec_statement* xec_statement_do::get_body()
 {
     return body.get();
@@ -318,6 +371,12 @@ xec_expression* xec_statement_do::get_expr()
 {
     return expr.get();
 }
+
+xec_scope* xec_statement_do::get_scope()
+{
+    return scope;
+}
+
 
 
 
@@ -336,6 +395,7 @@ xec_statement_foreach::xec_statement_foreach( xec_token* token,
     ,   expr_list( expr_list )
     ,   expr( expr )
     ,   body( body )
+    ,   scope( NULL )
     ,   eachkey( false )
     ,   declare( false )
 {
@@ -359,6 +419,11 @@ void xec_statement_foreach::set_eachkey( bool eachkey )
 void xec_statement_foreach::set_declare( bool declare )
 {
     this->declare = declare;
+}
+
+void xec_statement_foreach::set_scope( xec_scope* scope )
+{
+    this->scope = scope;
 }
 
 bool xec_statement_foreach::get_eachkey()
@@ -386,6 +451,12 @@ xec_statement* xec_statement_foreach::get_body()
     return body.get();
 }
 
+xec_scope* xec_statement_foreach::get_scope()
+{
+    return scope;
+}
+
+
 
 
 
@@ -401,6 +472,7 @@ xec_statement_for::xec_statement_for( xec_token* token, xec_expression* init,
     ,   expr( expr )
     ,   update( update )
     ,   body( body )
+    ,   scope( NULL )
 {
 }
 
@@ -412,6 +484,11 @@ xec_statement_dispatch xec_statement_for::visitor_dispatch()
 int xec_statement_for::get_location()
 {
     return token->sloc;
+}
+
+void xec_statement_for::set_scope( xec_scope* scope )
+{
+    this->scope = scope;
 }
 
 xec_expression* xec_statement_for::get_init()
@@ -433,6 +510,13 @@ xec_statement* xec_statement_for::get_body()
 {
     return body.get();
 }
+
+xec_scope* xec_statement_for::get_scope()
+{
+    return scope;
+}
+
+
 
 
 
@@ -575,6 +659,7 @@ xec_statement_usingscope::xec_statement_usingscope(
     :   token( token )
     ,   expr( expr )
     ,   body( body )
+    ,   scope( NULL )
 {
 }
 
@@ -588,6 +673,11 @@ int xec_statement_usingscope::get_location()
     return token->sloc;
 }
 
+void xec_statement_usingscope::set_scope( xec_scope* scope )
+{
+    this->scope = scope;
+}
+
 xec_expression* xec_statement_usingscope::get_expr()
 {
     return expr.get();
@@ -597,6 +687,13 @@ xec_statement* xec_statement_usingscope::get_body()
 {
     return body.get();
 }
+
+xec_scope* xec_statement_usingscope::get_scope()
+{
+    return scope;
+}
+
+
 
 
 

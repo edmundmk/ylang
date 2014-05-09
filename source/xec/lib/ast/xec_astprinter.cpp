@@ -101,7 +101,7 @@ void xec_astprinter::visit( xec_expression_string* expr, int indent )
 
 void xec_astprinter::visit( xec_expression_identifier* expr, int indent )
 {
-    printf( "%*s%s\n", indent, "", expr->get_identifier() );
+    printf( "%*s'%s'\n", indent, "", expr->get_identifier() );
 }
 
 void xec_astprinter::visit( xec_expression_lookup* expr, int indent )
@@ -276,7 +276,7 @@ void xec_astprinter::visit( xec_constructor_table* expr, int indent )
 
 void xec_astprinter::visit( xec_constructor_object* expr, int indent )
 {
-    printf( "%*sobject", indent, "" );
+    printf( "%*sobject\n", indent, "" );
     if ( expr->get_proto() )
         visit( expr->get_proto(), indent + INDENT );
     else

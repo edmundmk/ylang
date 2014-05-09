@@ -15,6 +15,7 @@
 
 class xec_statement_compound;
 class xec_declaration;
+class xec_scope;
 
 
 /*
@@ -126,16 +127,19 @@ public:
     void set_token( xec_token* token );
     void set_proto( xec_expression* proto );
     void add_member( xec_declaration* decl );
+    void set_scope( xec_scope* scope );
 
     xec_expression* get_proto();
     size_t get_member_count();
     xec_declaration* get_member( size_t index );
+    xec_scope* get_scope();
 
 private:
 
     xec_token*                                          token;
     std::unique_ptr< xec_expression >                   proto;
     std::deque< std::unique_ptr< xec_declaration > >    members;
+    xec_scope*                                          scope;
 
 };
 
@@ -157,14 +161,18 @@ public:
     virtual int get_location();
     
     void set_token( xec_token* token );
+    void set_varargs( bool varargs );
     void set_thiscall( bool thiscall );
     void set_coroutine( bool coroutine );
     void set_body( xec_statement_compound* body );
+    void set_scope( xec_scope* scope );
     
+    bool get_varargs();
     bool get_thiscall();
     bool get_coroutine();
     xec_expression_list* get_parameters();
     xec_statement_compound* get_body();
+    xec_scope* get_scope();
     
 
 private:
@@ -172,11 +180,13 @@ private:
     xec_token*                                  token;
     std::unique_ptr< xec_expression_list >      params;
     std::unique_ptr< xec_statement_compound >   body;
+    xec_scope*                                  scope;
+    bool                                        varargs;
     bool                                        thiscall;
     bool                                        coroutine;
 
 };
 
 
-
 #endif
+

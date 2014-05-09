@@ -154,6 +154,7 @@ xec_expression* xec_constructor_table::get_value( size_t index )
 
 xec_constructor_object::xec_constructor_object()
     :   token( NULL )
+    ,   scope( NULL )
 {
 }
 
@@ -185,6 +186,11 @@ void xec_constructor_object::add_member( xec_declaration* decl )
     members.push_back( std::unique_ptr< xec_declaration >( decl ) );
 }
 
+void xec_constructor_object::set_scope( xec_scope* scope )
+{
+    this->scope = scope;
+}
+
 xec_expression* xec_constructor_object::get_proto()
 {
     return proto.get();
@@ -198,6 +204,11 @@ size_t xec_constructor_object::get_member_count()
 xec_declaration* xec_constructor_object::get_member( size_t index )
 {
     return members.at( index ).get();
+}
+
+xec_scope* xec_constructor_object::get_scope()
+{
+    return scope;
 }
 
 
@@ -214,6 +225,8 @@ xec_constructor_function::xec_constructor_function(
                                 xec_expression_list* params )
     :   token( NULL )
     ,   params( params )
+    ,   scope( NULL )
+    ,   varargs( false )
     ,   thiscall( false )
     ,   coroutine( false )
 {
@@ -237,6 +250,11 @@ void xec_constructor_function::set_token( xec_token* token )
     this->token = token;
 }
 
+void xec_constructor_function::set_varargs( bool varargs )
+{
+    this->varargs = varargs;
+}
+
 void xec_constructor_function::set_thiscall( bool thiscall )
 {
     this->thiscall = thiscall;
@@ -250,6 +268,16 @@ void xec_constructor_function::set_coroutine( bool coroutine )
 void xec_constructor_function::set_body( xec_statement_compound* body )
 {
     this->body.reset( body );
+}
+
+void xec_constructor_function::set_scope( xec_scope* scope )
+{
+    this->scope = scope;
+}
+
+bool xec_constructor_function::get_varargs()
+{
+    return varargs;
 }
 
 bool xec_constructor_function::get_thiscall()
@@ -270,6 +298,11 @@ xec_expression_list* xec_constructor_function::get_parameters()
 xec_statement_compound* xec_constructor_function::get_body()
 {
     return body.get();
+}
+
+xec_scope* xec_constructor_function::get_scope()
+{
+    return scope;
 }
 
 

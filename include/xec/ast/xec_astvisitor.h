@@ -25,66 +25,72 @@ public:
     return_t visit( xec_declaration* expr, arguments_t ... arguments );
     template < typename declaration_t > return_t dispatch_decl( xec_declaration* decl, arguments_t ... arguments );
 
-    return_t visit( xec_declaration_var* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_declaration_object* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_declaration_prototype* decl, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_declaration_function* decl, arguments_t ... arguments ) { return return_t(); }
+    return_t fallback( xec_declaration* decl, arguments_t ... arguments ) { return return_t(); }
+
+    return_t visit( xec_declaration_var* decl, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( decl, arguments ... ); }
+    return_t visit( xec_declaration_object* decl, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( decl, arguments ... ); }
+    return_t visit( xec_declaration_prototype* decl, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( decl, arguments ... ); }
+    return_t visit( xec_declaration_function* decl, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( decl, arguments ... ); }
 
     return_t visit( xec_expression* expr, arguments_t ... arguments );
     template < typename expression_t > return_t dispatch_expr( xec_expression* expr, arguments_t ... arguments );
 
-    return_t visit( xec_expression_null* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_bool* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_number* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_string* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_identifier* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_lookup* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_indexkey* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_index* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_yield* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_call* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_preop* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_postop* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_unary* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_binary* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_comparison* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_logical* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_conditional* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_varargs* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_unpack* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_list* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_assign* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_mono* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_expression_declare* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_constructor_new* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_constructor_list* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_constructor_table* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_constructor_object* expr, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_constructor_function* expr, arguments_t ... arguments ) { return return_t(); }
+    return_t fallback( xec_expression* expr, arguments_t ... arguments ) { return return_t(); }
+
+    return_t visit( xec_expression_null* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_bool* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_number* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_string* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_identifier* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_lookup* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_indexkey* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_index* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_yield* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_call* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_preop* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_postop* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_unary* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_binary* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_comparison* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_logical* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_conditional* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_varargs* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_unpack* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_list* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_assign* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_mono* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_expression_declare* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_constructor_new* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_constructor_list* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_constructor_table* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_constructor_object* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
+    return_t visit( xec_constructor_function* expr, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( expr, arguments ... ); }
     
     return_t visit( xec_statement* stmt, arguments_t ... arguments );
     template < typename statement_t > return_t dispatch_stmt( xec_statement* stmt, arguments_t ... arguments );
     
-    return_t visit( xec_statement_declaration* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_expression* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_compound* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_delete* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_if* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_switch* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_case* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_while* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_do* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_foreach* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_for* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_continue* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_break* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_return* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_yield* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_using* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_usingscope* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_try* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_catch* stmt, arguments_t ... arguments ) { return return_t(); }
-    return_t visit( xec_statement_throw* stmt, arguments_t ... arguments ) { return return_t(); }
+    return_t fallback( xec_statement* stmt, arguments_t ... arguments ) { return return_t(); }
+    
+    return_t visit( xec_statement_declaration* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_expression* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_compound* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_delete* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_if* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_switch* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_case* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_while* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_do* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_foreach* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_for* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_continue* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_break* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_return* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_yield* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_using* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_usingscope* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_try* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_catch* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
+    return_t visit( xec_statement_throw* stmt, arguments_t ... arguments ) { return ( (visitor_t*)this )->fallback( stmt, arguments ... ); }
 
 };
 

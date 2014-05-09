@@ -52,8 +52,6 @@ public:
 
 /* lemon private: */
 
-    void set_global_scope( xec_scope* scope );
-    void set_script_scope( xec_scope* scope );
     void destroy( xec_token* token );
 
 

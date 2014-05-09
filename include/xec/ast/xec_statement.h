@@ -19,6 +19,7 @@ class xec_declaration;
 class xec_expression;
 class xec_expression_list;
 class xec_statement_catch;
+class xec_scope;
 
 
 enum xec_statement_dispatch
@@ -55,7 +56,7 @@ public:
     
     virtual xec_statement_dispatch  visitor_dispatch()  = 0;
     virtual int                     get_location()      = 0;
-    
+
 };
 
 
@@ -121,14 +122,17 @@ public:
     
     void set_token( xec_token* token );
     void append_statement( xec_statement* stmt );
+    void set_scope( xec_scope* scope );
 
     size_t get_count();
     xec_statement* get_stmt( size_t index );
+    xec_scope* get_scope();
 
 private:
 
     xec_token*                                      token;
     std::deque< std::unique_ptr< xec_statement > >  statements;
+    xec_scope*                                      scope;
 
 };
 
@@ -170,10 +174,14 @@ public:
 
     virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
-    
+
+    void set_scope( xec_scope* scope );
+
     xec_expression* get_expr();
     xec_statement* get_iftrue();
     xec_statement* get_iffalse();
+    xec_scope* get_scope();
+    
     
 private:
 
@@ -181,6 +189,7 @@ private:
     std::unique_ptr< xec_expression >   expr;
     std::unique_ptr< xec_statement >    iftrue;
     std::unique_ptr< xec_statement >    iffalse;
+    xec_scope*                          scope;
 
 };
 
@@ -200,14 +209,18 @@ public:
     virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
+    void set_scope( xec_scope* scope );
+    
     xec_expression* get_expr();
     xec_statement_compound* get_body();
+    xec_scope* get_scope();
     
 private:
 
     xec_token*                                  token;
     std::unique_ptr< xec_expression >           expr;
     std::unique_ptr< xec_statement_compound >   body;
+    xec_scope*                                  scope;
 
 };
 
@@ -251,14 +264,18 @@ public:
     virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
+    void set_scope( xec_scope* scope );
+    
     xec_expression* get_expr();
     xec_statement* get_body();
+    xec_scope* get_scope();
     
 private:
 
     xec_token*                          token;
     std::unique_ptr< xec_expression >   expr;
     std::unique_ptr< xec_statement >    body;
+    xec_scope*                          scope;
     
 };
 
@@ -277,14 +294,18 @@ public:
     virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
+    void set_scope( xec_scope* scope );
+    
     xec_statement* get_body();
     xec_expression* get_expr();
+    xec_scope* get_scope();
     
 private:
 
     xec_token*                          token;
     std::unique_ptr< xec_statement >    body;
     std::unique_ptr< xec_expression >   expr;
+    xec_scope*                          scope;
 
 };
 
@@ -308,12 +329,14 @@ public:
 
     void set_eachkey( bool eachkey );
     void set_declare( bool declare );
+    void set_scope( xec_scope* scope );
 
     bool get_eachkey();
     bool get_declare();
     xec_expression_list* get_expr_list();
     xec_expression* get_expr();
     xec_statement* get_body();
+    xec_scope* get_scope();
 
 private:
 
@@ -321,6 +344,7 @@ private:
     std::unique_ptr< xec_expression_list >  expr_list;
     std::unique_ptr< xec_expression >       expr;
     std::unique_ptr< xec_statement >        body;
+    xec_scope*                              scope;
     bool                                    eachkey;
     bool                                    declare;
 
@@ -342,10 +366,13 @@ public:
     virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
 
+    void set_scope( xec_scope* scope );
+
     xec_expression* get_init();
     xec_expression* get_expr();
     xec_expression* get_update();
     xec_statement* get_body();
+    xec_scope* get_scope();
 
 private:
 
@@ -354,6 +381,7 @@ private:
     std::unique_ptr< xec_expression >   expr;
     std::unique_ptr< xec_expression >   update;
     std::unique_ptr< xec_statement >    body;
+    xec_scope*                          scope;
 
 };
 
@@ -485,14 +513,18 @@ public:
     virtual xec_statement_dispatch visitor_dispatch();
     virtual int get_location();
     
+    void set_scope( xec_scope* scope );
+    
     xec_expression* get_expr();
     xec_statement* get_body();
+    xec_scope* get_scope();
     
 private:
 
     xec_token*                          token;
     std::unique_ptr< xec_expression >   expr;
     std::unique_ptr< xec_statement >    body;
+    xec_scope*                          scope;
 
 };
 

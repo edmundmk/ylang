@@ -13,7 +13,7 @@
 #include "xec_astvisitor.h"
 
 
-class xec_astprinter : private xec_astvisitor< xec_astprinter, void, int >
+class xec_astprinter : protected xec_astvisitor< xec_astprinter, void, int >
 {
 public:
 
@@ -22,7 +22,7 @@ public:
     void print( xec_statement* stmt );
     
     
-private:
+protected:
 
     friend class xec_astvisitor< xec_astprinter, void, int >;
 
