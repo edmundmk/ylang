@@ -154,6 +154,7 @@ const char* xec_expression_string::get_string()
 
 xec_expression_identifier::xec_expression_identifier( xec_token* token )
     :   token( token )
+    ,   name( NULL )
 {
 }
 
@@ -167,9 +168,19 @@ int xec_expression_identifier::get_location()
     return token->sloc;
 }
 
+void xec_expression_identifier::set_name( xec_name* name )
+{
+    this->name = name;
+}
+
 const char* xec_expression_identifier::get_identifier()
 {
     return token->text;
+}
+
+xec_name* xec_expression_identifier::get_name()
+{
+    return name;
 }
 
 

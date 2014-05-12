@@ -15,6 +15,7 @@
 
 
 struct xec_token;
+class xec_name;
 class xec_expression_list;
 class xec_expression_comparison;
 class xec_declaration_function;
@@ -215,11 +216,15 @@ public:
     virtual xec_expression_dispatch visitor_dispatch();
     virtual int get_location();
 
+    void set_name( xec_name* name );
+
     const char* get_identifier();
+    xec_name* get_name();
 
 private:
 
-    xec_token* token;
+    xec_token*  token;
+    xec_name*   name;
 
 };
 

@@ -15,9 +15,11 @@
 
 class xec_sema;
 class xec_sema_reuse_scope;
-class xec_sema_declare_name;
+class xec_sema_forbid_declaration;
+class xec_sema_declare_param;
 class xec_sema_declare_var;
 class xec_sema_lvalue;
+class xec_sema_nonglobal;
 
 
 
@@ -86,43 +88,43 @@ protected:
 
 
 
-/*
-    Resolves an expression representing the name of a declaration.
-*/
 
-class xec_sema_declare_name
-    :   public xec_astvisitor< xec_sema_declare_name, void, xec_scope* >
-{
-public:
-
-    explicit xec_sema_declare_name( xec_parser* p );
-
-protected:
-
-    xec_parser* p;
-    
-};
 
 
 
 /*
-    Declares an expression list containing parameter declarations
+    Declares a parameter declaration.
 */
 
-class xec_sema_declare_params
-    :   public xec_astvisitor< xec_sema_declare_params,
+class xec_sema_declare_param
+    :   public xec_astvisitor< xec_sema_declare_param,
                         void, xec_scope*, xec_constructor_function* >
 {
 public:
 
-    explicit xec_sema_declare_params( xec_parser* p );
+    explicit xec_sema_declare_param( xec_parser* p );
+
+    using xec_astvisitor< xec_sema_declare_param, void, xec_scope*, xec_constructor_function* >::fallback;
+    using xec_astvisitor< xec_sema_declare_param, void, xec_scope*, xec_constructor_function* >::visit;
+    
+    void fallback( xec_declaration* decl, xec_scope* scope, xec_constructor_function* function );
+    void fallback( xec_expression* expr, xec_scope* scope, xec_constructor_function* function );
+    void fallback( xec_statement* stmt, xec_scope* scope, xec_constructor_function* function );
+    
+    void visit( xec_expression_identifier* expr, xec_scope* scope, xec_constructor_function* function );
+    void visit( xec_expression_varargs* expr, xec_scope* scope, xec_constructor_function* function );
+    
+
+private:
+
+    xec_parser* p;
 
 };
 
 
 
 /*
-    Declares an expression list containing var declarations.
+    Declares a var declaration.
 */
 
 class xec_sema_declare_var
@@ -131,8 +133,62 @@ class xec_sema_declare_var
 public:
 
     explicit xec_sema_declare_var( xec_parser* p );
+    
+    using xec_astvisitor< xec_sema_declare_var, void, xec_scope* >::fallback;
+    using xec_astvisitor< xec_sema_declare_var, void, xec_scope* >::visit;
+    
+    void fallback( xec_declaration* decl, xec_scope* scope );
+    void fallback( xec_expression* expr, xec_scope* scope );
+    void fallback( xec_statement* stmt, xec_scope* scope );
+    
+    void visit( xec_expression_identifier* expr, xec_scope* scope );
+
+
+private:
+
+    xec_parser* p;
 
 };
+
+
+
+
+
+/*
+    Ensures that the leftmost identifier in an lvalue is either not a global
+    name or is the special name 'global'.  This rule helps avoid typos.
+*/
+
+class xec_sema_nonglobal
+    :   public xec_astvisitor< xec_sema_nonglobal, void, xec_scope* >
+{
+public:
+
+    xec_sema_nonglobal( xec_parser* p, xec_sema* sema );
+    
+    using xec_astvisitor< xec_sema_nonglobal, void, xec_scope* >::fallback;
+    using xec_astvisitor< xec_sema_nonglobal, void, xec_scope* >::visit;
+    
+    void fallback( xec_declaration* decl, xec_scope* scope );
+    void fallback( xec_expression* expr, xec_scope* scope );
+    void fallback( xec_statement* stmt, xec_scope* scope );
+    
+    void visit( xec_expression_identifier* expr, xec_scope* scope );
+    void visit( xec_expression_lookup* expr, xec_scope* scope );
+    void visit( xec_expression_indexkey* expr, xec_scope* scope );
+    void visit( xec_expression_index* expr, xec_scope* scope );
+    void visit( xec_expression_list* expr, xec_scope* scope );
+    void visit( xec_expression_mono* expr, xec_scope* scope );
+
+
+private:
+
+    xec_parser* p;
+    xec_sema*   sema;
+
+};
+
+
 
 
 /*
@@ -144,9 +200,35 @@ class xec_sema_lvalue
 {
 public:
 
-    explicit xec_sema_lvalue( xec_parser* p );
+    xec_sema_lvalue( xec_parser* p, xec_sema* sema );
+
+    using xec_astvisitor< xec_sema_lvalue, void, xec_scope* >::fallback;
+    using xec_astvisitor< xec_sema_lvalue, void, xec_scope* >::visit;
+    
+    void fallback( xec_declaration* decl, xec_scope* scope );
+    void fallback( xec_expression* expr, xec_scope* scope );
+    void fallback( xec_statement* stmt, xec_scope* scope );
+    
+    void visit( xec_expression_identifier* expr, xec_scope* scope );
+    void visit( xec_expression_lookup* expr, xec_scope* scope );
+    void visit( xec_expression_indexkey* expr, xec_scope* scope );
+    void visit( xec_expression_index* expr, xec_scope* scope );
+    void visit( xec_expression_conditional* expr, xec_scope* scope );
+    void visit( xec_expression_list* expr, xec_scope* scope );
+    void visit( xec_expression_mono* expr, xec_scope* scope );
+
+
+private:
+
+    xec_parser*         p;
+    xec_sema*           sema;
+    xec_sema_nonglobal  sema_nonglobal;
+    
 
 };
+
+
+
 
 
 
@@ -219,6 +301,11 @@ public:
 
 protected:
 
+    friend class xec_sema_lvalue;
+    friend class xec_sema_nonglobal;
+
+    xec_name* lookup_name( xec_scope* scope, const char* name );
+
     xec_constructor_function* get_function( xec_scope* scope );
     xec_scope* get_continue_scope( xec_scope* scope );
     xec_scope* get_break_scope( xec_scope* scope );
@@ -227,8 +314,7 @@ protected:
     xec_parser*                 p;
     xec_sema_reuse_scope        sema_reuse_scope;
     xec_sema_forbid_declaration sema_forbid_declaration;
-    xec_sema_declare_name       sema_declare_name;
-    xec_sema_declare_params     sema_declare_params;
+    xec_sema_declare_param      sema_declare_param;
     xec_sema_declare_var        sema_declare_var;
     xec_sema_lvalue             sema_lvalue;
     
@@ -240,10 +326,9 @@ xec_sema::xec_sema( xec_parser* p )
     :   p( p )
     ,   sema_reuse_scope( p, this )
     ,   sema_forbid_declaration( p, this )
-    ,   sema_declare_name( p )
-    ,   sema_declare_params( p )
+    ,   sema_declare_param( p )
     ,   sema_declare_var( p )
-    ,   sema_lvalue( p )
+    ,   sema_lvalue( p, this )
 {
 }
 
@@ -256,26 +341,46 @@ void xec_sema::visit( xec_declaration_var* decl, xec_scope* scope )
     visit( decl->get_expr_list(), scope );
 
     // Declare names into scope.
-    sema_declare_var.visit( decl->get_name_list(), scope );
+    xec_expression_list* vars = decl->get_name_list();
+    for ( size_t i = 0; i < vars->get_count(); ++i )
+        sema_declare_var.visit( vars->get_expr( i ), scope );
+    if ( vars->get_final() )
+        sema_declare_var.visit( vars->get_final(), scope );
 }
 
 void xec_sema::visit( xec_declaration_object* decl, xec_scope* scope )
 {
     // Declare object name.
-    sema_declare_name.visit( decl->get_name(), scope );
+    //      If it's a single identifier, then declare the name.  This scope
+    //          is also implied.
+    //      If it's compound, create implied scopes for each element.  We
+    //          need to declare object members in the final implied scope.
+    
     
     // Visit object.
-    visit( decl->get_object(), scope );
 }
 
 void xec_sema::visit( xec_declaration_prototype* decl, xec_scope* scope )
 {
-    // Handle prototype declaration.
+    // Declare prototype name.
+    //      Must be a single identifier.  Declare as implied prototype.
+    //      Must be declared in an object scope.
 }
 
 void xec_sema::visit( xec_declaration_function* decl, xec_scope* scope )
 {
     // Declare function name (need to handle prototypes).
+    //      If it's a single identifier, then declare the name.  Resolve
+    //          against implied prototypes in the same scope.
+    //      If it's compound, look up in implied scopes, and if it
+    //          matches a prototype, then resolve against that prototype.
+    
+    //      If the function matches a prototype, then the parameter lists
+    //          must match.  The scope for the function is child scope
+    //          of the object containing a prototype.
+
+    //      Functions in object scopes (including those with compound names)
+    //          must be marked as thiscall.
 
     // Visit function.
     visit( decl->get_function(), scope );
@@ -287,6 +392,8 @@ void xec_sema::visit( xec_declaration_function* decl, xec_scope* scope )
 void xec_sema::visit( xec_expression_identifier* expr, xec_scope* scope )
 {
     // Resolve identifier.
+    xec_name* name = lookup_name( scope, expr->get_identifier() );
+    expr->set_name( name );
 }
 
 void xec_sema::visit( xec_expression_lookup* expr, xec_scope* scope )
@@ -412,7 +519,11 @@ void xec_sema::visit( xec_expression_declare* expr, xec_scope* scope )
     visit( expr->get_expr_list(), scope );
 
     // Declare variables on left.
-    sema_declare_var.visit( expr->get_name_list(), scope );
+    xec_expression_list* vars = expr->get_name_list();
+    for ( size_t i = 0; i < vars->get_count(); ++i )
+        sema_declare_var.visit( vars->get_expr( i ), scope );
+    if ( vars->get_final() )
+        sema_declare_var.visit( vars->get_final(), scope );
 }
 
 void xec_sema::visit( xec_constructor_new* expr, xec_scope* scope )
@@ -463,11 +574,15 @@ void xec_sema::visit( xec_constructor_function* expr, xec_scope* scope )
     // Declare this, if the function is thiscall.
     if ( expr->get_thiscall() )
     {
-    
+        scope->declare_name( XEC_NAME_THIS, "this" );
     }
     
     // Declare parameters.
-    sema_declare_params.visit( expr->get_parameters(), scope, expr );
+    xec_expression_list* params = expr->get_parameters();
+    for ( size_t i = 0; i < params->get_count(); ++i )
+        sema_declare_param.visit( params->get_expr( i ), scope, expr );
+    if ( params->get_final() )
+        sema_declare_param.visit( params->get_final(), scope, expr );
     
     // Visit body.
     sema_reuse_scope.visit( expr->get_body(), scope );
@@ -581,7 +696,11 @@ void xec_sema::visit( xec_statement_foreach* stmt, xec_scope* scope )
         visit( stmt->get_expr(), scope );
 
         // Declare names.
-        sema_declare_var.visit( stmt->get_expr_list(), scope );
+        xec_expression_list* vars = stmt->get_expr_list();
+        for ( size_t i = 0; i < vars->get_count(); ++i )
+            sema_declare_var.visit( vars->get_expr( i ), scope );
+        if ( vars->get_final() )
+            sema_declare_var.visit( vars->get_final(), scope );
     }
     else
     {
@@ -707,6 +826,67 @@ void xec_sema::visit( xec_statement_throw* stmt, xec_scope* scope )
 
 
 
+xec_name* xec_sema::lookup_name( xec_scope* scope, const char* name )
+{
+    // Lookup name in outer scopes.
+    for ( ; scope != NULL; scope = scope->get_outer() )
+    {
+        xec_name* result = scope->lookup_name( name );
+        if ( result )
+            return result;
+    }
+    
+    // Otherwise 'declare' it in global scope.
+    scope = p->get_global_scope();
+    return scope->declare_name( XEC_NAME_GLOBAL, name );
+}
+
+
+
+xec_constructor_function* xec_sema::get_function( xec_scope* scope )
+{
+    for ( ; scope != NULL; scope = scope->get_outer() )
+    {
+        if ( scope->get_kind() == XEC_SCOPE_FUNCTION )
+        {
+            return scope->get_function();
+        }
+    }
+    
+    return NULL;
+}
+
+xec_scope* xec_sema::get_continue_scope( xec_scope* scope )
+{
+    for ( ; scope != NULL; scope = scope->get_outer() )
+    {
+        if ( scope->get_kind() == XEC_SCOPE_LOOP )
+        {
+            return scope;
+        }
+    }
+    
+    return NULL;
+}
+
+xec_scope* xec_sema::get_break_scope( xec_scope* scope )
+{
+    for ( ; scope != NULL; scope = scope->get_outer() )
+    {
+        if ( scope->get_kind() == XEC_SCOPE_LOOP
+                || scope->get_kind() == XEC_SCOPE_SWITCH )
+        {
+            return scope;
+        }
+    }
+    
+    return NULL;
+}
+
+
+
+
+
 
 
 xec_sema_reuse_scope::xec_sema_reuse_scope( xec_parser* p, xec_sema* sema )
@@ -782,30 +962,256 @@ void xec_sema_forbid_declaration::visit(
 
 
 
-xec_sema_declare_name::xec_sema_declare_name( xec_parser* p )
+
+
+xec_sema_declare_param::xec_sema_declare_param( xec_parser* p )
     :   p( p )
 {
 }
 
 
-
-
-xec_sema_declare_params::xec_sema_declare_params( xec_parser* p )
+void xec_sema_declare_param::fallback( xec_declaration* decl,
+                xec_scope* scope, xec_constructor_function* function )
 {
+    p->diagnostic( decl->get_location(), "malformed parameter name" );
 }
+
+void xec_sema_declare_param::fallback( xec_expression* expr,
+                xec_scope* scope, xec_constructor_function* function )
+{
+    p->diagnostic( expr->get_location(), "malformed parameter name" );
+}
+
+void xec_sema_declare_param::fallback( xec_statement* stmt,
+                xec_scope* scope, xec_constructor_function* function )
+{
+    p->diagnostic( stmt->get_location(), "malformed parameter name" );
+}
+    
+
+void xec_sema_declare_param::visit( xec_expression_identifier* expr,
+                xec_scope* scope, xec_constructor_function* function )
+{
+    // Check for duplicate declaration.
+    if ( scope->lookup_name( expr->get_identifier() ) )
+    {
+        p->diagnostic( expr->get_location(),
+                "parameter '%s' already declared", expr->get_identifier() );
+        return;
+    }
+    
+    // Declare.
+    xec_name* name =
+            scope->declare_name( XEC_NAME_PARAMETER, expr->get_identifier() );
+    expr->set_name( name );
+}
+
+void xec_sema_declare_param::visit( xec_expression_varargs* expr,
+                xec_scope* scope, xec_constructor_function* function )
+{
+    // Grammar ensures that this is the last expression.
+    function->set_varargs( true );
+}
+
 
 
 
 
 xec_sema_declare_var::xec_sema_declare_var( xec_parser* p )
+    :   p( p )
 {
+}
+
+void xec_sema_declare_var::fallback( xec_declaration* decl, xec_scope* scope )
+{
+    p->diagnostic( decl->get_location(), "malformed variable name" );
+}
+
+void xec_sema_declare_var::fallback( xec_expression* expr, xec_scope* scope )
+{
+    p->diagnostic( expr->get_location(), "malformed variable name" );
+}
+
+void xec_sema_declare_var::fallback( xec_statement* stmt, xec_scope* scope )
+{
+    p->diagnostic( stmt->get_location(), "malformed variable name" );
+}
+
+void xec_sema_declare_var::visit(
+                xec_expression_identifier* expr, xec_scope* scope )
+{
+    // Check for duplicate declarations.
+    if ( scope->lookup_name( expr->get_identifier() ) )
+    {
+        p->diagnostic( expr->get_location(),
+                "variable '%s' already declared", expr->get_identifier() );
+        return;
+    }
+    
+    // Declare variable.
+    xec_name* name =
+            scope->declare_name( XEC_NAME_VARIABLE, expr->get_identifier() );
+    expr->set_name( name );
 }
 
 
 
 
-xec_sema_lvalue::xec_sema_lvalue( xec_parser* p )
+
+xec_sema_nonglobal::xec_sema_nonglobal( xec_parser* p, xec_sema* sema )
+    :   p( p )
+    ,   sema( sema )
 {
+}
+
+void xec_sema_nonglobal::fallback( xec_declaration* decl, xec_scope* scope )
+{
+    sema->visit( decl, scope );
+}
+
+void xec_sema_nonglobal::fallback( xec_expression* expr, xec_scope* scope )
+{
+    sema->visit( expr, scope );
+}
+
+void xec_sema_nonglobal::fallback( xec_statement* stmt, xec_scope* scope )
+{
+    sema->visit( stmt, scope );
+}
+    
+void xec_sema_nonglobal::visit(
+                xec_expression_identifier* expr, xec_scope* scope )
+{
+    // Look up name.
+    xec_name* name = sema->lookup_name( scope, expr->get_identifier() );
+
+    // Globals are not allowed, except for special name 'global'.
+    if ( name->get_kind() == XEC_NAME_GLOBAL &&
+                        strcmp( expr->get_identifier(), "global" ) != 0 )
+    {
+        p->diagnostic( expr->get_location(),
+                "unknown variable '%s'", expr->get_identifier() );
+        return;
+    }
+    
+    // Resolve name.
+    expr->set_name( name );
+}
+
+void xec_sema_nonglobal::visit( xec_expression_lookup* expr, xec_scope* scope )
+{
+    visit( expr->get_expr(), scope );
+}
+
+void xec_sema_nonglobal::visit(
+                xec_expression_indexkey* expr, xec_scope* scope )
+{
+    visit( expr->get_expr(), scope );
+    sema->visit( expr->get_index(), scope );
+}
+
+void xec_sema_nonglobal::visit( xec_expression_index* expr, xec_scope* scope )
+{
+    visit( expr->get_expr(), scope );
+    sema->visit( expr->get_index(), scope );
+}
+
+void xec_sema_nonglobal::visit( xec_expression_list* expr, xec_scope* scope )
+{
+    for ( size_t i = 0; i < expr->get_count(); ++i )
+        visit( expr->get_expr( i ), scope );
+    if ( expr->get_final() )
+        visit( expr->get_final(), scope );
+}
+
+void xec_sema_nonglobal::visit( xec_expression_mono* expr, xec_scope* scope )
+{
+    visit( expr->get_expr(), scope );
+}
+
+
+
+
+
+
+xec_sema_lvalue::xec_sema_lvalue( xec_parser* p, xec_sema* sema )
+    :   p( p )
+    ,   sema( sema )
+    ,   sema_nonglobal( p, sema )
+{
+}
+
+void xec_sema_lvalue::fallback( xec_declaration* decl, xec_scope* scope )
+{
+    p->diagnostic( decl->get_location(), "expression is not assignable" );
+}
+
+void xec_sema_lvalue::fallback( xec_expression* expr, xec_scope* scope )
+{
+    p->diagnostic( expr->get_location(), "expression is not assignable" );
+}
+
+void xec_sema_lvalue::fallback( xec_statement* stmt, xec_scope* scope )
+{
+    p->diagnostic( stmt->get_location(), "expression is not assignable" );
+}
+
+
+void xec_sema_lvalue::visit(
+                xec_expression_identifier* expr, xec_scope* scope )
+{
+    // Look up name.
+    xec_name* name = sema->lookup_name( scope, expr->get_identifier() );
+
+    // To help avoid typos, unqualified globals are not assignable.
+    if ( name->get_kind() == XEC_NAME_GLOBAL )
+    {
+        p->diagnostic( expr->get_location(),
+                "unknown variable '%s'", expr->get_identifier() );
+        return;
+    }
+    
+    // Resolve name.
+    expr->set_name( name );
+}
+
+void xec_sema_lvalue::visit( xec_expression_lookup* expr, xec_scope* scope )
+{
+    sema_nonglobal.visit( expr->get_expr(), scope );
+}
+
+void xec_sema_lvalue::visit( xec_expression_indexkey* expr, xec_scope* scope )
+{
+    sema_nonglobal.visit( expr->get_expr(), scope );
+    sema->visit( expr->get_index(), scope );
+}
+
+void xec_sema_lvalue::visit( xec_expression_index* expr, xec_scope* scope )
+{
+    sema_nonglobal.visit( expr->get_expr(), scope );
+    sema->visit( expr->get_index(), scope );
+}
+
+void xec_sema_lvalue::visit(
+                xec_expression_conditional* expr, xec_scope* scope )
+{
+    // Conditional expressions are assignable if both branches are.
+    sema->visit( expr->get_condition(), scope );
+    visit( expr->get_iftrue(), scope );
+    visit( expr->get_iffalse(), scope );
+}
+
+void xec_sema_lvalue::visit( xec_expression_list* expr, xec_scope* scope )
+{
+    for ( size_t i = 0; i < expr->get_count(); ++i )
+        visit( expr->get_expr( i ), scope );
+    if ( expr->get_final() )
+        visit( expr->get_final(), scope );
+}
+
+void xec_sema_lvalue::visit( xec_expression_mono* expr, xec_scope* scope )
+{
+    visit( expr->get_expr(), scope );
 }
 
 
