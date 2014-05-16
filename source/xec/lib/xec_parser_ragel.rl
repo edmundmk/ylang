@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <intformat.h>
 #include "xec_token.h"
+#include "xec_semantics.h"
 
 
 void* XecParseAlloc( void* (*malloc)( size_t ) );
@@ -488,6 +489,11 @@ error:
     fclose( file );
 
 
+    // Perform semantic pass.
+    xec_semantics( this );
+
+
+    // Check if there were errors.
     return diagnostics.size() == 0;
 }
 

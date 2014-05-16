@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include <intformat.h>
 #include "xec_token.h"
+#include "xec_semantics.h"
 
 
 void* XecParseAlloc( void* (*malloc)( size_t ) );
@@ -26,12 +27,12 @@ void  XecParseFree( void* p, void (*free)( void* ) );
 
 
 
-#line 259 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 260 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 
 
 
 
-#line 35 "xec_parser_ragel.cpp"
+#line 36 "xec_parser_ragel.cpp"
 static const char _lexer_actions[] = {
 	0, 1, 0, 1, 1, 1, 2, 1, 
 	5, 1, 6, 1, 7, 1, 8, 1, 
@@ -1156,7 +1157,7 @@ static const int lexer_error = 0;
 static const int lexer_en_main = 31;
 
 
-#line 263 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 264 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 
 
 
@@ -1327,12 +1328,12 @@ bool xec_parser::parse( const char* path )
     int cs;
     
     
-#line 1331 "xec_parser_ragel.cpp"
+#line 1332 "xec_parser_ragel.cpp"
 	{
 	cs = lexer_start;
 	}
 
-#line 433 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 434 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
     
     
     // Perform lexing.
@@ -1368,7 +1369,7 @@ bool xec_parser::parse( const char* path )
         const unsigned char* eof    = iseof ? pe : NULL;
 
         
-#line 1372 "xec_parser_ragel.cpp"
+#line 1373 "xec_parser_ragel.cpp"
 	{
 	int _klen;
 	unsigned int _trans;
@@ -1442,19 +1443,19 @@ _match:
 		switch ( *_acts++ )
 		{
 	case 0:
-#line 33 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 34 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ newlines.push_back( (int)( offset + ( p - buffer ) - 1 ) ); }
 	break;
 	case 1:
-#line 34 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 35 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
 	break;
 	case 2:
-#line 35 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 36 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ data.append( (char)(*p) ); }
 	break;
 	case 4:
-#line 46 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 47 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{
         data.shrink();
         int sloc = (int)( offset + ( p - buffer ) );
@@ -1467,141 +1468,141 @@ _match:
     }
 	break;
 	case 5:
-#line 82 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 83 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ data.append( '\"' ); }
 	break;
 	case 6:
-#line 83 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 84 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ data.append( '\\' ); }
 	break;
 	case 7:
-#line 84 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 85 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ data.append( '/' ); }
 	break;
 	case 8:
-#line 85 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 86 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ data.append( '\b' ); }
 	break;
 	case 9:
-#line 86 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 87 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ data.append( '\f' ); }
 	break;
 	case 10:
-#line 87 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 88 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ data.append( '\n' ); }
 	break;
 	case 11:
-#line 88 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 89 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ data.append( '\r' ); }
 	break;
 	case 12:
-#line 89 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 90 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ data.append( '\t' ); }
 	break;
 	case 13:
-#line 91 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 92 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp = ( (*p) - '0' ) << 4; }
 	break;
 	case 14:
-#line 92 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 93 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp = ( (*p) - 'a' + 0x0A ) << 4; }
 	break;
 	case 15:
-#line 93 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 94 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp = ( (*p) - 'A' + 0x0A ) << 4; }
 	break;
 	case 16:
-#line 95 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 96 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ data.append( (char)( temp | (*p) - '0' ) ); }
 	break;
 	case 17:
-#line 96 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 97 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ data.append( (char)( temp | (*p) - 'a' + 0x0A ) ); }
 	break;
 	case 18:
-#line 97 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 98 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ data.append( (char)( temp | (*p) - 'A' + 0x0A ) ); }
 	break;
 	case 19:
-#line 101 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 102 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{
                     uloc = (int)( offset + ( p - buffer ) );
                 }
 	break;
 	case 20:
-#line 104 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 105 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp = ( (*p) - '0' ) << 20; }
 	break;
 	case 21:
-#line 105 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 106 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp = ( (*p) - 'a' + 0x0A ) << 20; }
 	break;
 	case 22:
-#line 106 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 107 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp = ( (*p) - 'A' + 0x0A ) << 20; }
 	break;
 	case 23:
-#line 108 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 109 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp |= ( (*p) - '0' ) << 16; }
 	break;
 	case 24:
-#line 109 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 110 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp |= ( (*p) - 'a' + 0x0A ) << 16; }
 	break;
 	case 25:
-#line 110 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 111 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp |= ( (*p) - 'A' + 0x0A ) << 16; }
 	break;
 	case 26:
-#line 112 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 113 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp |= ( (*p) - '0' ) << 12; }
 	break;
 	case 27:
-#line 113 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 114 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp |= ( (*p) - 'a' + 0x0A ) << 12; }
 	break;
 	case 28:
-#line 114 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 115 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp |= ( (*p) - 'A' + 0x0A ) << 12; }
 	break;
 	case 29:
-#line 116 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 117 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp |= ( (*p) - '0' ) << 8; }
 	break;
 	case 30:
-#line 117 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 118 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp |= ( (*p) - 'a' + 0x0A ) << 8; }
 	break;
 	case 31:
-#line 118 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 119 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp |= ( (*p) - 'A' + 0x0A ) << 8; }
 	break;
 	case 32:
-#line 120 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 121 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp |= ( (*p) - '0' ) << 4; }
 	break;
 	case 33:
-#line 121 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 122 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp |= ( (*p) - 'a' + 0x0A ) << 4; }
 	break;
 	case 34:
-#line 122 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 123 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp |= ( (*p) - 'A' + 0x0A ) << 4; }
 	break;
 	case 35:
-#line 124 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 125 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp |= (*p) - '0'; }
 	break;
 	case 36:
-#line 125 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 126 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp |= (*p) - 'a' + 0x0A; }
 	break;
 	case 37:
-#line 126 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 127 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ temp |= (*p) - 'A' + 0x0A; }
 	break;
 	case 38:
-#line 129 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 130 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{
                     if ( ! encode_utf8( &data, temp ) )
                     {
@@ -1613,20 +1614,20 @@ _match:
                 }
 	break;
 	case 39:
-#line 162 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 163 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{
                     xec_token* token = make_identifier( sloc, &data );
                     TOKEN( token );
                 }
 	break;
 	case 40:
-#line 169 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 170 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{
                     MTOKEN( XEC_TOKEN_IDENTIFIER, sloc, "~this", 5 );
                 }
 	break;
 	case 41:
-#line 176 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 177 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{
                     size_t length = data.size();
                     data.append( '\0' );
@@ -1635,7 +1636,7 @@ _match:
                 }
 	break;
 	case 42:
-#line 185 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 186 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{
                     size_t length = data.size();
                     data.append( '\0' );
@@ -1644,222 +1645,222 @@ _match:
                 }
 	break;
 	case 43:
-#line 192 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 193 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_XMARK, sloc, "!", 1 ); }
 	break;
 	case 44:
-#line 193 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 194 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_PERCENT, sloc, "%", 1 ); }
 	break;
 	case 45:
-#line 194 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 195 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_AMPERSAND, sloc, "&", 1 ); }
 	break;
 	case 46:
-#line 195 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 196 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LPN, sloc, "(", 1 ); }
 	break;
 	case 47:
-#line 196 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 197 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_RPN, sloc, ")", 1 ); }
 	break;
 	case 48:
-#line 197 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 198 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_ASTERISK, sloc, "*", 1 ); }
 	break;
 	case 49:
-#line 198 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 199 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_PLUS, sloc, "+", 1 ); }
 	break;
 	case 50:
-#line 199 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 200 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_COMMA, sloc, ",", 1 ); }
 	break;
 	case 51:
-#line 200 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 201 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_MINUS, sloc, "-", 1 ); }
 	break;
 	case 52:
-#line 201 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 202 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_PERIOD, sloc, ".", 1 ); }
 	break;
 	case 53:
-#line 202 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 203 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_SOLIDUS, sloc, "/", 1 ); }
 	break;
 	case 54:
-#line 203 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 204 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_COLON, sloc, ":", 1 ); }
 	break;
 	case 55:
-#line 204 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 205 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_SEMICOLON, sloc, ";", 1 ); }
 	break;
 	case 56:
-#line 205 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 206 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LESS, sloc, "<", 1 ); }
 	break;
 	case 57:
-#line 206 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 207 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_ASSIGN, sloc, "=", 1 ); }
 	break;
 	case 58:
-#line 207 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 208 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_GREATER, sloc, ">", 1 ); }
 	break;
 	case 59:
-#line 208 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 209 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_QMARK, sloc, "?", 1 ); }
 	break;
 	case 60:
-#line 209 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 210 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LSQ, sloc, "[", 1 ); }
 	break;
 	case 61:
-#line 210 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 211 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_RSQ, sloc, "]", 1 ); }
 	break;
 	case 62:
-#line 211 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 212 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_CARET, sloc, "^", 1 ); }
 	break;
 	case 63:
-#line 212 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 213 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LBR, sloc, "{", 1 ); }
 	break;
 	case 64:
-#line 213 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 214 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_VBAR, sloc, "|", 1 ); }
 	break;
 	case 65:
-#line 214 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 215 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_RBR, sloc, "}", 1 ); }
 	break;
 	case 66:
-#line 215 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 216 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_TILDE, sloc, "~", 1 ); }
 	break;
 	case 67:
-#line 217 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 218 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_INCREMENT, sloc, "++", 2 ); }
 	break;
 	case 68:
-#line 218 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 219 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_DECREMENT, sloc, "--", 2 ); }
 	break;
 	case 69:
-#line 220 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 221 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_CONCATENATE, sloc, "..", 2 ); }
 	break;
 	case 70:
-#line 222 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 223 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LSHIFT, sloc, "<<", 2 ); }
 	break;
 	case 71:
-#line 223 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 224 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_RSHIFT, sloc, ">>", 2 ); }
 	break;
 	case 72:
-#line 224 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 225 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_URSHIFT, sloc, ">>>", 3 ); }
 	break;
 	case 73:
-#line 226 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 227 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_NOTEQUAL, sloc, "!=", 2 ); }
 	break;
 	case 74:
-#line 227 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 228 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LESSEQUAL, sloc, "<=", 2 ); }
 	break;
 	case 75:
-#line 228 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 229 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_EQUAL, sloc, "==", 2 ); }
 	break;
 	case 76:
-#line 229 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 230 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_GREATEREQUAL, sloc, ">=", 2 ); }
 	break;
 	case 77:
-#line 230 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 231 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_NOTIN, sloc, "!in", 3 ); }
 	break;
 	case 78:
-#line 231 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 232 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_NOTIS, sloc, "!is", 3 ); }
 	break;
 	case 79:
-#line 233 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 234 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_MODASSIGN, sloc, "%=", 2 ); }
 	break;
 	case 80:
-#line 234 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 235 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_BITANDASSIGN, sloc, "&=", 2 ); }
 	break;
 	case 81:
-#line 235 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 236 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_MULASSIGN, sloc, "*=", 2 ); }
 	break;
 	case 82:
-#line 236 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 237 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_ADDASSIGN, sloc, "+=", 2 ); }
 	break;
 	case 83:
-#line 237 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 238 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_SUBASSIGN, sloc, "-=", 2 ); }
 	break;
 	case 84:
-#line 238 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 239 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_DIVASSIGN, sloc, "/=", 2 ); }
 	break;
 	case 85:
-#line 239 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 240 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_BITXORASSIGN, sloc, "^=", 2 ); }
 	break;
 	case 86:
-#line 240 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 241 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_BITORASSIGN, sloc, "|=", 2 ); }
 	break;
 	case 87:
-#line 241 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 242 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_INTDIVASSIGN, sloc, "~=", 2 ); }
 	break;
 	case 88:
-#line 242 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 243 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LSHIFTASSIGN, sloc, "<<=", 3 ); }
 	break;
 	case 89:
-#line 243 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 244 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_RSHIFTASSIGN, sloc, ">>=", 3 ); }
 	break;
 	case 90:
-#line 244 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 245 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_URSHIFTASSIGN, sloc, ">>>=", 4 ); }
 	break;
 	case 91:
-#line 246 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 247 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LOGICAND, sloc, "&&", 2 ); }
 	break;
 	case 92:
-#line 247 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 248 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LOGICXOR, sloc, "^^", 2 ); }
 	break;
 	case 93:
-#line 248 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 249 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LOGICOR, sloc, "||", 2 ); }
 	break;
 	case 94:
-#line 250 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 251 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_EACHKEY, sloc, "::", 2 ); }
 	break;
 	case 95:
-#line 251 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 252 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_ELLIPSIS, sloc, "...", 3 ); }
 	break;
 	case 96:
-#line 257 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 258 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ {cs = 31; goto _again;} }
 	break;
-#line 1863 "xec_parser_ragel.cpp"
+#line 1864 "xec_parser_ragel.cpp"
 		}
 	}
 
@@ -1876,11 +1877,11 @@ _again:
 	while ( __nacts-- > 0 ) {
 		switch ( *__acts++ ) {
 	case 0:
-#line 33 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 34 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ newlines.push_back( (int)( offset + ( p - buffer ) - 1 ) ); }
 	break;
 	case 3:
-#line 38 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 39 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{
         data.shrink();
         int sloc = (int)( offset + ( p - buffer ) );
@@ -1889,7 +1890,7 @@ _again:
     }
 	break;
 	case 4:
-#line 46 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 47 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{
         data.shrink();
         int sloc = (int)( offset + ( p - buffer ) );
@@ -1902,20 +1903,20 @@ _again:
     }
 	break;
 	case 39:
-#line 162 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 163 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{
                     xec_token* token = make_identifier( sloc, &data );
                     TOKEN( token );
                 }
 	break;
 	case 40:
-#line 169 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 170 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{
                     MTOKEN( XEC_TOKEN_IDENTIFIER, sloc, "~this", 5 );
                 }
 	break;
 	case 41:
-#line 176 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 177 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{
                     size_t length = data.size();
                     data.append( '\0' );
@@ -1924,7 +1925,7 @@ _again:
                 }
 	break;
 	case 42:
-#line 185 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 186 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{
                     size_t length = data.size();
                     data.append( '\0' );
@@ -1933,222 +1934,222 @@ _again:
                 }
 	break;
 	case 43:
-#line 192 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 193 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_XMARK, sloc, "!", 1 ); }
 	break;
 	case 44:
-#line 193 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 194 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_PERCENT, sloc, "%", 1 ); }
 	break;
 	case 45:
-#line 194 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 195 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_AMPERSAND, sloc, "&", 1 ); }
 	break;
 	case 46:
-#line 195 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 196 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LPN, sloc, "(", 1 ); }
 	break;
 	case 47:
-#line 196 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 197 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_RPN, sloc, ")", 1 ); }
 	break;
 	case 48:
-#line 197 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 198 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_ASTERISK, sloc, "*", 1 ); }
 	break;
 	case 49:
-#line 198 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 199 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_PLUS, sloc, "+", 1 ); }
 	break;
 	case 50:
-#line 199 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 200 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_COMMA, sloc, ",", 1 ); }
 	break;
 	case 51:
-#line 200 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 201 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_MINUS, sloc, "-", 1 ); }
 	break;
 	case 52:
-#line 201 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 202 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_PERIOD, sloc, ".", 1 ); }
 	break;
 	case 53:
-#line 202 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 203 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_SOLIDUS, sloc, "/", 1 ); }
 	break;
 	case 54:
-#line 203 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 204 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_COLON, sloc, ":", 1 ); }
 	break;
 	case 55:
-#line 204 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 205 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_SEMICOLON, sloc, ";", 1 ); }
 	break;
 	case 56:
-#line 205 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 206 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LESS, sloc, "<", 1 ); }
 	break;
 	case 57:
-#line 206 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 207 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_ASSIGN, sloc, "=", 1 ); }
 	break;
 	case 58:
-#line 207 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 208 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_GREATER, sloc, ">", 1 ); }
 	break;
 	case 59:
-#line 208 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 209 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_QMARK, sloc, "?", 1 ); }
 	break;
 	case 60:
-#line 209 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 210 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LSQ, sloc, "[", 1 ); }
 	break;
 	case 61:
-#line 210 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 211 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_RSQ, sloc, "]", 1 ); }
 	break;
 	case 62:
-#line 211 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 212 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_CARET, sloc, "^", 1 ); }
 	break;
 	case 63:
-#line 212 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 213 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LBR, sloc, "{", 1 ); }
 	break;
 	case 64:
-#line 213 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 214 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_VBAR, sloc, "|", 1 ); }
 	break;
 	case 65:
-#line 214 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 215 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_RBR, sloc, "}", 1 ); }
 	break;
 	case 66:
-#line 215 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 216 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_TILDE, sloc, "~", 1 ); }
 	break;
 	case 67:
-#line 217 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 218 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_INCREMENT, sloc, "++", 2 ); }
 	break;
 	case 68:
-#line 218 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 219 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_DECREMENT, sloc, "--", 2 ); }
 	break;
 	case 69:
-#line 220 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 221 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_CONCATENATE, sloc, "..", 2 ); }
 	break;
 	case 70:
-#line 222 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 223 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LSHIFT, sloc, "<<", 2 ); }
 	break;
 	case 71:
-#line 223 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 224 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_RSHIFT, sloc, ">>", 2 ); }
 	break;
 	case 72:
-#line 224 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 225 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_URSHIFT, sloc, ">>>", 3 ); }
 	break;
 	case 73:
-#line 226 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 227 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_NOTEQUAL, sloc, "!=", 2 ); }
 	break;
 	case 74:
-#line 227 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 228 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LESSEQUAL, sloc, "<=", 2 ); }
 	break;
 	case 75:
-#line 228 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 229 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_EQUAL, sloc, "==", 2 ); }
 	break;
 	case 76:
-#line 229 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 230 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_GREATEREQUAL, sloc, ">=", 2 ); }
 	break;
 	case 77:
-#line 230 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 231 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_NOTIN, sloc, "!in", 3 ); }
 	break;
 	case 78:
-#line 231 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 232 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_NOTIS, sloc, "!is", 3 ); }
 	break;
 	case 79:
-#line 233 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 234 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_MODASSIGN, sloc, "%=", 2 ); }
 	break;
 	case 80:
-#line 234 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 235 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_BITANDASSIGN, sloc, "&=", 2 ); }
 	break;
 	case 81:
-#line 235 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 236 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_MULASSIGN, sloc, "*=", 2 ); }
 	break;
 	case 82:
-#line 236 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 237 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_ADDASSIGN, sloc, "+=", 2 ); }
 	break;
 	case 83:
-#line 237 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 238 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_SUBASSIGN, sloc, "-=", 2 ); }
 	break;
 	case 84:
-#line 238 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 239 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_DIVASSIGN, sloc, "/=", 2 ); }
 	break;
 	case 85:
-#line 239 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 240 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_BITXORASSIGN, sloc, "^=", 2 ); }
 	break;
 	case 86:
-#line 240 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 241 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_BITORASSIGN, sloc, "|=", 2 ); }
 	break;
 	case 87:
-#line 241 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 242 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_INTDIVASSIGN, sloc, "~=", 2 ); }
 	break;
 	case 88:
-#line 242 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 243 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LSHIFTASSIGN, sloc, "<<=", 3 ); }
 	break;
 	case 89:
-#line 243 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 244 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_RSHIFTASSIGN, sloc, ">>=", 3 ); }
 	break;
 	case 90:
-#line 244 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 245 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_URSHIFTASSIGN, sloc, ">>>=", 4 ); }
 	break;
 	case 91:
-#line 246 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 247 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LOGICAND, sloc, "&&", 2 ); }
 	break;
 	case 92:
-#line 247 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 248 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LOGICXOR, sloc, "^^", 2 ); }
 	break;
 	case 93:
-#line 248 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 249 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_LOGICOR, sloc, "||", 2 ); }
 	break;
 	case 94:
-#line 250 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 251 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_EACHKEY, sloc, "::", 2 ); }
 	break;
 	case 95:
-#line 251 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 252 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ MTOKEN( XEC_TOKEN_ELLIPSIS, sloc, "...", 3 ); }
 	break;
 	case 96:
-#line 257 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 258 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
 	{ {cs = 31; goto _again;} }
 	break;
-#line 2152 "xec_parser_ragel.cpp"
+#line 2153 "xec_parser_ragel.cpp"
 		}
 	}
 	}
@@ -2156,7 +2157,7 @@ _again:
 	_out: {}
 	}
 
-#line 468 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
+#line 469 "../../toolbox/source/xec/lib/xec_parser_ragel.rl"
         
         offset += read;
     }
@@ -2180,6 +2181,11 @@ error:
     fclose( file );
 
 
+    // Perform semantic pass.
+    xec_semantics( this );
+
+
+    // Check if there were errors.
     return diagnostics.size() == 0;
 }
 
