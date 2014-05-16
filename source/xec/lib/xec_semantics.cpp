@@ -501,7 +501,8 @@ xec_sema::xec_sema( xec_parser* p )
 void xec_sema::visit( xec_declaration_var* decl, xec_scope* scope )
 {
     // Visit expression.
-    visit( decl->get_expr_list(), scope );
+    if ( decl->get_expr_list() )
+        visit( decl->get_expr_list(), scope );
 
     // Declare names into scope.
     xec_expression_list* vars = decl->get_name_list();
@@ -1106,7 +1107,7 @@ void xec_sema_reuse_scope::visit(
                 xec_statement_compound* stmt, xec_scope* scope )
 {
     // Visit sub-statements.
-    for ( size_t i = 0; stmt->get_count(); ++i )
+    for ( size_t i = 0; i < stmt->get_count(); ++i )
         sema->visit( stmt->get_stmt( i ), scope );
 }
 
