@@ -49,6 +49,23 @@ xec_constructor_function* xec_scope::get_function()
 }
 
 
+xec_scope* xec_scope::declare_scope( xec_scope_kind kind, const char* name )
+{
+    assert( scopes.find( name ) == scopes.end() );
+    xec_scope* declare = make_child_scope( kind );
+    scopes.emplace( name, declare );
+    return declare;
+}
+
+xec_scope* xec_scope::lookup_scope( const char* name )
+{
+    auto i = scopes.find( name );
+    if ( i != scopes.end() )
+        return i->second;
+    else
+        return NULL;
+}
+
 
 xec_name* xec_scope::declare_name( xec_name_kind kind, const char* name )
 {
@@ -77,7 +94,13 @@ xec_name::xec_name( xec_scope* scope, xec_name_kind kind, const char* name )
     :   scope( scope )
     ,   kind( kind )
     ,   name( name )
+    ,   prototype( NULL )
 {
+}
+
+void xec_name::set_prototype( xec_declaration_prototype* prototype )
+{
+    this->prototype = prototype;
 }
 
 xec_scope* xec_name::get_scope()
@@ -93,5 +116,10 @@ xec_name_kind xec_name::get_kind()
 const char* xec_name::get_name()
 {
     return name;
+}
+
+xec_declaration_prototype* xec_name::get_prototype()
+{
+    return prototype;
 }
 

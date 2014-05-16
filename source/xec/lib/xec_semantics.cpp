@@ -229,6 +229,77 @@ private:
 
 
 
+/*
+    Declare prototype name.
+*/
+
+class xec_sema_declare_prototype
+    :   public xec_astvisitor< xec_sema_declare_prototype, void,
+                                    xec_declaration_prototype*, xec_scope* >
+{
+public:
+
+    xec_sema_declare_prototype( xec_parser* p );
+    
+    using xec_astvisitor< xec_sema_declare_prototype, void,
+                            xec_declaration_prototype*, xec_scope* >::fallback;
+    using xec_astvisitor< xec_sema_declare_prototype, void,
+                            xec_declaration_prototype*, xec_scope* >::visit;
+    
+    void fallback( xec_declaration* decl,
+                    xec_declaration_prototype* prototype, xec_scope* scope );
+    void fallback( xec_expression* expr,
+                    xec_declaration_prototype* prototype, xec_scope* scope );
+    void fallback( xec_statement* stmt,
+                    xec_declaration_prototype* prototype, xec_scope* scope );
+    
+    void visit( xec_expression_identifier* expr,
+                    xec_declaration_prototype* prototype, xec_scope* scope );
+
+
+private:
+
+    xec_parser* p;
+
+};
+
+
+
+/*
+    Declare object name.
+*/
+
+class xec_sema_declare_object
+    :   public xec_astvisitor<
+                    xec_sema_declare_object, xec_scope*, xec_scope*, bool >
+{
+public:
+
+    explicit xec_sema_declare_object( xec_parser* p );
+
+    using xec_astvisitor<
+            xec_sema_declare_object, xec_scope*, xec_scope*, bool >::fallback;
+    using xec_astvisitor<
+            xec_sema_declare_object, xec_scope*, xec_scope*, bool >::visit;
+    
+    xec_scope* fallback( xec_declaration* decl,
+                                    xec_scope* scope, bool declare );
+    xec_scope* fallback( xec_expression* expr,
+                                    xec_scope* scope, bool declare );
+    xec_scope* fallback( xec_statement* stmt,
+                                    xec_scope* scope, bool declare );
+    
+    xec_scope* visit( xec_expression_identifier* expr,
+                                    xec_scope* scope, bool declare );
+    xec_scope* visit( xec_expression_lookup* expr,
+                                    xec_scope* scope, bool declare );
+    
+private:
+
+    xec_parser* p;
+    
+};
+
 
 
 
@@ -317,6 +388,10 @@ protected:
     xec_sema_declare_param      sema_declare_param;
     xec_sema_declare_var        sema_declare_var;
     xec_sema_lvalue             sema_lvalue;
+    xec_sema_declare_object     sema_declare_object;
+    xec_sema_declare_prototype  sema_declare_prototype;
+    
+    std::unordered_set< xec_declaration_prototype* > prototypes;
     
 };
 
@@ -329,6 +404,8 @@ xec_sema::xec_sema( xec_parser* p )
     ,   sema_declare_param( p )
     ,   sema_declare_var( p )
     ,   sema_lvalue( p, this )
+    ,   sema_declare_prototype( p )
+    ,   sema_declare_object( p )
 {
 }
 
@@ -350,21 +427,28 @@ void xec_sema::visit( xec_declaration_var* decl, xec_scope* scope )
 
 void xec_sema::visit( xec_declaration_object* decl, xec_scope* scope )
 {
-    // Declare object name.
-    //      If it's a single identifier, then declare the name.  This scope
-    //          is also implied.
-    //      If it's compound, create implied scopes for each element.  We
-    //          need to declare object members in the final implied scope.
+    // Declare object.
+    xec_constructor_object* object = decl->get_object();
     
+    // Resolve prototype.
+    if ( object->get_proto() )
+        visit( object->get_proto(), scope );
     
-    // Visit object.
+    // Declare object name (also declares object scope).
+    scope = sema_declare_object.visit( decl->get_name(), scope, true );
+    
+    // Visit object declarations.
+    for ( size_t i = 0; i < object->get_member_count(); ++i )
+        visit( object->get_member( i ), scope );
 }
 
 void xec_sema::visit( xec_declaration_prototype* decl, xec_scope* scope )
 {
     // Declare prototype name.
-    //      Must be a single identifier.  Declare as implied prototype.
-    //      Must be declared in an object scope.
+    sema_declare_prototype.visit( decl->get_name(), decl, scope );
+    
+    // Remember prototype as it hasn't yet been linked with a definition.
+    prototypes.insert( decl );
 }
 
 void xec_sema::visit( xec_declaration_function* decl, xec_scope* scope )
@@ -1212,6 +1296,140 @@ void xec_sema_lvalue::visit( xec_expression_list* expr, xec_scope* scope )
 void xec_sema_lvalue::visit( xec_expression_mono* expr, xec_scope* scope )
 {
     visit( expr->get_expr(), scope );
+}
+
+
+
+
+
+xec_sema_declare_prototype::xec_sema_declare_prototype( xec_parser* p )
+    :   p( p )
+{
+}
+
+void xec_sema_declare_prototype::fallback( xec_declaration* decl,
+                xec_declaration_prototype* prototype, xec_scope* scope )
+{
+    p->diagnostic( decl->get_location(), "invalid prototype name" );
+}
+
+void xec_sema_declare_prototype::fallback( xec_expression* expr,
+                xec_declaration_prototype* prototype, xec_scope* scope )
+{
+    p->diagnostic( expr->get_location(), "invalid prototype name" );
+}
+
+void xec_sema_declare_prototype::fallback( xec_statement* stmt,
+                xec_declaration_prototype* prototype, xec_scope* scope )
+{
+    p->diagnostic( stmt->get_location(), "invalid prototype name" );
+}
+    
+void xec_sema_declare_prototype::visit( xec_expression_identifier* expr,
+                xec_declaration_prototype* prototype, xec_scope* scope )
+{
+    if ( scope->get_kind() != XEC_SCOPE_OBJECT )
+    {
+        p->diagnostic( expr->get_location(), "prototype outside object" );
+        return;
+    }
+    
+    if ( scope->lookup_name( expr->get_identifier() ) )
+    {
+        p->diagnostic( expr->get_location(),
+            "object member '%s' already declared", expr->get_identifier() );
+    }
+    
+    xec_name* name = scope->declare_name(
+                    XEC_NAME_PROTOTYPE, expr->get_identifier() );
+    name->set_prototype( prototype );
+    expr->set_name( name );
+}
+
+
+
+xec_sema_declare_object::xec_sema_declare_object( xec_parser* p )
+    :   p( p )
+{
+}
+
+
+xec_scope* xec_sema_declare_object::fallback(
+                xec_declaration* decl, xec_scope* scope, bool declare )
+{
+    p->diagnostic( decl->get_location(), "invalid object name" );
+    return scope;
+}
+
+xec_scope* xec_sema_declare_object::fallback(
+                xec_expression* expr, xec_scope* scope, bool declare )
+{
+    p->diagnostic( expr->get_location(), "invalid object name" );
+    return scope;
+}
+
+xec_scope* xec_sema_declare_object::fallback(
+                xec_statement* stmt, xec_scope* scope, bool declare )
+{
+    p->diagnostic( stmt->get_location(), "invalid object name" );
+    return scope;
+}
+    
+xec_scope* xec_sema_declare_object::visit(
+        xec_expression_identifier* expr, xec_scope* scope, bool declare )
+{
+    const char* identifier = expr->get_identifier();
+    if ( declare )
+    {
+        // Object declared with a single identifier actually declares a var.
+        // Check for already-declared variable.
+        if ( scope->lookup_name( identifier ) )
+        {
+            p->diagnostic( expr->get_location(),
+                "variable '%s' already declared", identifier );
+        }
+        
+        // Declare.
+        xec_name* name = scope->declare_name( XEC_NAME_VARIABLE, identifier );
+        expr->set_name( name );
+    
+        // Final name opens new scope to declare object members in.
+        return scope->declare_scope( XEC_SCOPE_OBJECT, identifier );
+    }
+    else
+    {
+        // Leftmost identifier in a compound name - just (re)open scope.
+        xec_scope* reopen = scope->lookup_scope( identifier );
+        if ( reopen )
+            return reopen;
+        else
+            return scope->declare_scope( XEC_SCOPE_IMPLIED, identifier );
+    }
+}
+
+xec_scope* xec_sema_declare_object::visit(
+        xec_expression_lookup* expr, xec_scope* scope, bool declare )
+{
+    // Reopen scope on left.
+    scope = visit( expr->get_expr(), scope, false );
+    
+    const char* identifier = expr->get_identifier();
+    if ( declare )
+    {
+        // This is the final name that declares a new object.  Even if the
+        // scope was implied by a previous declaration, declare a fresh scope
+        // to contain the object members.
+        return scope->declare_scope( XEC_SCOPE_OBJECT, identifier );
+    }
+    else
+    {
+        // Attempt to reopen the scope.
+        xec_scope* reopen = scope->lookup_scope( identifier );
+        if ( reopen )
+            return reopen;
+        else
+            return scope->declare_scope( XEC_SCOPE_IMPLIED, identifier );
+    }
 }
 
 

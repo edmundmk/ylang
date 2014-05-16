@@ -19,7 +19,6 @@
 
 class xec_scope;
 class xec_name;
-class xec_implied;
 
 class xec_constructor_function;
 class xec_declaration_prototype;
@@ -43,6 +42,7 @@ enum xec_name_kind
     XEC_NAME_THIS,
     XEC_NAME_VARIABLE,
     XEC_NAME_PARAMETER,
+    XEC_NAME_PROTOTYPE,
 };
 
 
@@ -63,9 +63,11 @@ public:
     xec_scope_kind get_kind();
     xec_scope* get_outer();
     xec_constructor_function* get_function();
-
-    xec_name* declare_name( xec_name_kind kind, const char* name );
-    xec_name* lookup_name( const char* name );
+    
+    xec_scope*  declare_scope( xec_scope_kind kind, const char* name );
+    xec_scope*  lookup_scope( const char* name );
+    xec_name*   declare_name( xec_name_kind kind, const char* name );
+    xec_name*   lookup_name( const char* name );
 
 
     
@@ -76,7 +78,7 @@ private:
     std::deque< std::unique_ptr< xec_scope > > children;
     xec_constructor_function* function;
 
-    std::unordered_map< std::string, std::unique_ptr< xec_implied > > implied;
+    std::unordered_map< std::string, xec_scope* > scopes;
     std::unordered_map< std::string, std::unique_ptr< xec_name > > names;
     
 };
@@ -93,46 +95,22 @@ public:
 
     xec_name( xec_scope* scope, xec_name_kind kind, const char* name );
 
+    void set_prototype( xec_declaration_prototype* prototype );
+
     xec_scope* get_scope();
     xec_name_kind get_kind();
     const char* get_name();
+    xec_declaration_prototype* get_prototype();
 
 
 private:
 
-    xec_scope*      scope;
-    xec_name_kind   kind;
-    const char*     name;
-
-};
-
-
-
-
-/*
-    Scopes remember an 'implied' hierarchy naming objects and prototypes.
-    This is necessary for prototype resolution.
-*/
-
-class xec_implied
-{
-public:
-
-    xec_implied( const char* name, xec_scope* scope );
-    xec_implied( const char* name, xec_declaration_prototype* prototype );
-
-
-private:
-
-    const char*                 name;
     xec_scope*                  scope;
+    xec_name_kind               kind;
+    const char*                 name;
     xec_declaration_prototype*  prototype;
-
+    
 };
-
-
-
-
 
 
 

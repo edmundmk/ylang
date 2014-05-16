@@ -117,11 +117,9 @@ public:
     virtual xec_declaration_dispatch visitor_dispatch();
     virtual int get_location();
     
-    void set_varargs( bool varargs );
     void set_thiscall( bool thiscall );
     void set_coroutine( bool coroutine );
 
-    bool get_varargs();
     bool get_thiscall();
     bool get_coroutine();
     xec_expression* get_name();
@@ -132,7 +130,6 @@ protected:
 
     std::unique_ptr< xec_expression >       name;
     std::unique_ptr< xec_expression_list >  params;
-    bool                                    varargs;
     bool                                    thiscall;
     bool                                    coroutine;
     
