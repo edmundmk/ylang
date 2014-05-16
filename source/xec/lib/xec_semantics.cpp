@@ -266,6 +266,38 @@ private:
 
 
 /*
+    Check prototype parameters.
+*/
+
+class xec_sema_check_params
+    :   public xec_astvisitor<
+                xec_sema_check_params, void, xec_declaration_prototype* >
+{
+public:
+
+    explicit xec_sema_check_params( xec_parser* p );
+    
+    using xec_astvisitor< xec_sema_check_params,
+                    void, xec_declaration_prototype* >::fallback;
+    using xec_astvisitor< xec_sema_check_params,
+                    void, xec_declaration_prototype* >::visit;
+    
+    void fallback( xec_declaration* decl, xec_declaration_prototype* p );
+    void fallback( xec_expression* expr, xec_declaration_prototype* p );
+    void fallback( xec_statement* stmt, xec_declaration_prototype* p );
+
+    void visit( xec_expression_identifier* expr, xec_declaration_prototype* p );
+    void visit( xec_expression_varargs* expr, xec_declaration_prototype* p );
+
+private:
+
+    xec_parser* p;
+    
+};
+
+
+
+/*
     Declare object name.
 */
 
@@ -275,7 +307,7 @@ class xec_sema_declare_object
 {
 public:
 
-    explicit xec_sema_declare_object( xec_parser* p );
+    explicit xec_sema_declare_object( xec_parser* p, xec_sema* sema );
 
     using xec_astvisitor<
             xec_sema_declare_object, xec_scope*, xec_scope*, bool >::fallback;
@@ -297,9 +329,57 @@ public:
 private:
 
     xec_parser* p;
+    xec_sema*   sema;
     
 };
 
+
+
+
+/*
+    Declare function name.
+*/
+
+class xec_sema_declare_function
+    :   public xec_astvisitor
+                <
+                    xec_sema_declare_function,
+                    xec_scope*,
+                    xec_constructor_function*,
+                    xec_scope*,
+                    bool
+                >
+{
+public:
+
+    xec_sema_declare_function( xec_parser* p, xec_sema* sema );
+    
+    using xec_astvisitor< xec_sema_declare_function,
+        xec_scope*, xec_constructor_function*, xec_scope*, bool >::fallback;
+    using xec_astvisitor< xec_sema_declare_function,
+        xec_scope*, xec_constructor_function*, xec_scope*, bool >::visit;
+
+    xec_scope* fallback( xec_declaration* decl,
+        xec_constructor_function* function, xec_scope* scope, bool declare );
+    xec_scope* fallback( xec_expression* expr,
+        xec_constructor_function* function, xec_scope* scope, bool declare );
+    xec_scope* fallback( xec_statement* stmt,
+        xec_constructor_function* function, xec_scope* scope, bool declare );
+    
+    xec_scope* visit( xec_expression_identifier* expr,
+        xec_constructor_function* function, xec_scope* scope, bool declare );
+    xec_scope* visit( xec_expression_lookup* expr,
+        xec_constructor_function* function, xec_scope* scope, bool declare );
+
+private:
+
+    bool resolve_prototype( xec_scope* scope,
+            const char* identifier, xec_constructor_function* function );
+
+    xec_parser* p;
+    xec_sema*   sema;
+
+};
 
 
 
@@ -374,6 +454,8 @@ protected:
 
     friend class xec_sema_lvalue;
     friend class xec_sema_nonglobal;
+    friend class xec_sema_declare_object;
+    friend class xec_sema_declare_function;
 
     xec_name* lookup_name( xec_scope* scope, const char* name );
 
@@ -390,6 +472,8 @@ protected:
     xec_sema_lvalue             sema_lvalue;
     xec_sema_declare_object     sema_declare_object;
     xec_sema_declare_prototype  sema_declare_prototype;
+    xec_sema_declare_function   sema_declare_function;
+    xec_sema_check_params       sema_check_params;
     
     std::unordered_set< xec_declaration_prototype* > prototypes;
     
@@ -405,7 +489,9 @@ xec_sema::xec_sema( xec_parser* p )
     ,   sema_declare_var( p )
     ,   sema_lvalue( p, this )
     ,   sema_declare_prototype( p )
-    ,   sema_declare_object( p )
+    ,   sema_declare_object( p, this )
+    ,   sema_declare_function( p, this )
+    ,   sema_check_params( p )
 {
 }
 
@@ -444,6 +530,13 @@ void xec_sema::visit( xec_declaration_object* decl, xec_scope* scope )
 
 void xec_sema::visit( xec_declaration_prototype* decl, xec_scope* scope )
 {
+    // Check prototype parameters.
+    xec_expression_list* parameters = decl->get_parameters();
+    for ( size_t i = 0; i < parameters->get_count(); ++i )
+        sema_check_params.visit( parameters->get_expr( i ), decl );
+    if ( parameters->get_final() )
+        sema_check_params.visit( parameters->get_final(), decl );
+
     // Declare prototype name.
     sema_declare_prototype.visit( decl->get_name(), decl, scope );
     
@@ -465,6 +558,14 @@ void xec_sema::visit( xec_declaration_function* decl, xec_scope* scope )
 
     //      Functions in object scopes (including those with compound names)
     //          must be marked as thiscall.
+
+    // Declaring function.
+    xec_constructor_function* function = decl->get_function();
+
+    // Declare function name (also finds scope lookup should proceed from).
+    xec_scope* prototype_scope =
+            sema_declare_function.visit( decl, function, scope, true );
+    scope = prototype_scope ? prototype_scope : scope;
 
     // Visit function.
     visit( decl->get_function(), scope );
@@ -1057,19 +1158,19 @@ xec_sema_declare_param::xec_sema_declare_param( xec_parser* p )
 void xec_sema_declare_param::fallback( xec_declaration* decl,
                 xec_scope* scope, xec_constructor_function* function )
 {
-    p->diagnostic( decl->get_location(), "malformed parameter name" );
+    p->diagnostic( decl->get_location(), "invalid parameter name" );
 }
 
 void xec_sema_declare_param::fallback( xec_expression* expr,
                 xec_scope* scope, xec_constructor_function* function )
 {
-    p->diagnostic( expr->get_location(), "malformed parameter name" );
+    p->diagnostic( expr->get_location(), "invalid parameter name" );
 }
 
 void xec_sema_declare_param::fallback( xec_statement* stmt,
                 xec_scope* scope, xec_constructor_function* function )
 {
-    p->diagnostic( stmt->get_location(), "malformed parameter name" );
+    p->diagnostic( stmt->get_location(), "invalid parameter name" );
 }
     
 
@@ -1096,6 +1197,10 @@ void xec_sema_declare_param::visit( xec_expression_varargs* expr,
     // Grammar ensures that this is the last expression.
     function->set_varargs( true );
 }
+
+
+
+
 
 
 
@@ -1348,8 +1453,52 @@ void xec_sema_declare_prototype::visit( xec_expression_identifier* expr,
 
 
 
-xec_sema_declare_object::xec_sema_declare_object( xec_parser* p )
+
+xec_sema_check_params::xec_sema_check_params( xec_parser* p )
     :   p( p )
+{
+}
+    
+void xec_sema_check_params::fallback(
+                xec_declaration* decl, xec_declaration_prototype* prototype )
+{
+    p->diagnostic( decl->get_location(), "invalid parameter name" );
+}
+
+void xec_sema_check_params::fallback(
+                xec_expression* expr, xec_declaration_prototype* prototype )
+{
+    p->diagnostic( expr->get_location(), "invalid parameter name" );
+}
+
+void xec_sema_check_params::fallback(
+                xec_statement* stmt, xec_declaration_prototype* prototype )
+{
+    p->diagnostic( stmt->get_location(), "invalid parameter name" );
+}
+
+
+void xec_sema_check_params::visit(
+        xec_expression_identifier* expr, xec_declaration_prototype* prototype )
+{
+    // Valid parameter name.
+}
+
+void xec_sema_check_params::visit(
+        xec_expression_varargs* expr, xec_declaration_prototype* prototype )
+{
+    // Set varargs.
+    prototype->set_varargs( true );
+}
+
+
+
+
+
+xec_sema_declare_object::xec_sema_declare_object(
+                                xec_parser* p, xec_sema* sema )
+    :   p( p )
+    ,   sema( sema )
 {
 }
 
@@ -1398,6 +1547,16 @@ xec_scope* xec_sema_declare_object::visit(
     }
     else
     {
+        // No globals except 'global' allowed, as for any other lvalue.
+        xec_name* name = sema->lookup_name( scope, identifier );
+        if ( name->get_kind() == XEC_NAME_GLOBAL
+                        && strcmp( identifier, "global" ) != 0 )
+        {
+            p->diagnostic( expr->get_location(),
+                            "unknown variable '%s'", identifier );
+        }
+        expr->set_name( name );
+    
         // Leftmost identifier in a compound name - just (re)open scope.
         xec_scope* reopen = scope->lookup_scope( identifier );
         if ( reopen )
@@ -1430,6 +1589,152 @@ xec_scope* xec_sema_declare_object::visit(
         else
             return scope->declare_scope( XEC_SCOPE_IMPLIED, identifier );
     }
+}
+
+
+
+
+
+xec_sema_declare_function::xec_sema_declare_function(
+                                xec_parser* p, xec_sema* sema )
+    :   p( p )
+    ,   sema( sema )
+{
+}
+    
+xec_scope* xec_sema_declare_function::fallback( xec_declaration* decl,
+        xec_constructor_function* function, xec_scope* scope, bool declare )
+{
+    p->diagnostic( decl->get_location(), "invalid function name" );
+    return scope;
+}
+
+xec_scope* xec_sema_declare_function::fallback( xec_expression* expr,
+        xec_constructor_function* function, xec_scope* scope, bool declare )
+{
+    p->diagnostic( expr->get_location(), "invalid function name" );
+    return scope;
+}
+
+xec_scope* xec_sema_declare_function::fallback( xec_statement* stmt,
+        xec_constructor_function* function, xec_scope* scope, bool declare )
+{
+    p->diagnostic( stmt->get_location(), "invalid function name" );
+    return scope;
+}
+    
+xec_scope* xec_sema_declare_function::visit( xec_expression_identifier* expr,
+        xec_constructor_function* function, xec_scope* scope, bool declare )
+{
+    const char* identifier = expr->get_identifier();
+    if ( declare )
+    {
+        // Single name, so declare the name.
+        if ( scope->lookup_name( identifier ) )
+        {
+            p->diagnostic( expr->get_location(),
+                        "function '%s' already declared", identifier );
+        }
+        
+        // Declare.
+        xec_name* name = scope->declare_name( XEC_NAME_VARIABLE, identifier );
+        expr->set_name( name );
+     
+        // Functions declared in object scopes are thiscall.
+        if ( scope->get_kind() == XEC_SCOPE_OBJECT )
+            function->set_thiscall( true );
+    
+        // Lookups of names inside the function happen in this scope.
+        if ( resolve_prototype( scope, expr->get_identifier(), function ) )
+            return scope;
+        else
+            return NULL;
+    }
+    else
+    {
+        // No globals except 'global' allowed, as for any other lvalue.
+        xec_name* name = sema->lookup_name( scope, identifier );
+        if ( name->get_kind() == XEC_NAME_GLOBAL
+                        && strcmp( identifier, "global" ) != 0 )
+        {
+            p->diagnostic( expr->get_location(),
+                            "unknown variable '%s'", identifier );
+        }
+        expr->set_name( name );
+    
+        // Leftmost identifier in a compound name - just (re)open scope.
+        xec_scope* reopen = scope->lookup_scope( identifier );
+        if ( reopen )
+            return reopen;
+        else
+            return scope->declare_scope( XEC_SCOPE_IMPLIED, identifier );
+    }
+}
+
+xec_scope* xec_sema_declare_function::visit( xec_expression_lookup* expr,
+        xec_constructor_function* function, xec_scope* scope, bool declare )
+{
+    // Reopen scope on left.
+    scope = visit( expr->get_expr(), function, scope, false );
+    
+    const char* identifier = expr->get_identifier();
+    if ( declare )
+    {
+        // Was declared with a compound identifier, so it's thiscall.
+        function->set_thiscall( true );
+    
+        // Final name that declares the function.
+        if ( resolve_prototype( scope, expr->get_identifier(), function ) )
+            return scope;
+        else
+            return NULL;
+    }
+    else
+    {
+        // Attempt to reopen the scope.
+        xec_scope* reopen = scope->lookup_scope( identifier );
+        if ( reopen )
+            return reopen;
+        else
+            return scope->declare_scope( XEC_SCOPE_IMPLIED, identifier );
+    }
+
+}
+
+
+
+bool xec_sema_declare_function::resolve_prototype( xec_scope* scope,
+                const char* identifier, xec_constructor_function* function )
+{
+    // Look up prototype.
+    xec_name* name = scope->lookup_name( identifier );
+    if ( ! name )
+        return false;
+    xec_declaration_prototype* prototype = name->get_prototype();
+    if ( ! prototype )
+        return false;
+    
+    // Check that parameters match.
+    if ( prototype->get_varargs() != function->get_varargs()
+            || prototype->get_parameters()->get_count()
+                            != function->get_parameters()->get_count() )
+    {
+        p->diagnostic( function->get_location(),
+                            "parameter list does not match prototype" );
+        return false;
+    }
+    
+    // Check if the prototype has been matched.
+    if ( sema->prototypes.find( prototype ) == sema->prototypes.end() )
+    {
+        p->diagnostic( function->get_location(),
+                            "multiple implementations for prototype" );
+        return false;
+    }
+    
+    // Matched a prototype.
+    sema->prototypes.erase( prototype );
+    return true;
 }
 
 

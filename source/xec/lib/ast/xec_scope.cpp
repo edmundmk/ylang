@@ -69,6 +69,7 @@ xec_scope* xec_scope::lookup_scope( const char* name )
 
 xec_name* xec_scope::declare_name( xec_name_kind kind, const char* name )
 {
+    assert( this->kind != XEC_SCOPE_IMPLIED );
     assert( names.find( name ) == names.end() );
     xec_name* declare = new xec_name( this, kind, name );
     names.emplace( name, std::unique_ptr< xec_name >( declare ) );

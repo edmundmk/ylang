@@ -106,6 +106,7 @@ xec_declaration_prototype::xec_declaration_prototype(
                     xec_expression* name, xec_expression_list* params )
     :   name( name )
     ,   params( params )
+    ,   varargs( false )
     ,   thiscall( false )
     ,   coroutine( false )
 {
@@ -121,6 +122,11 @@ int xec_declaration_prototype::get_location()
     return name->get_location();
 }
 
+void xec_declaration_prototype::set_varargs( bool varargs )
+{
+    this->varargs = varargs;
+}
+
 void xec_declaration_prototype::set_thiscall( bool thiscall )
 {
     this->thiscall = thiscall;
@@ -129,6 +135,11 @@ void xec_declaration_prototype::set_thiscall( bool thiscall )
 void xec_declaration_prototype::set_coroutine( bool coroutine )
 {
     this->coroutine = coroutine;
+}
+
+bool xec_declaration_prototype::get_varargs()
+{
+    return varargs;
 }
 
 bool xec_declaration_prototype::get_thiscall()
