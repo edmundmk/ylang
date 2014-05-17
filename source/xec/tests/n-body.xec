@@ -129,7 +129,7 @@ energy( bodies )
 offset_momentum( bodies )
 {
     var px, py, pz = 0, 0, 0;
-    for ( bi : bodies )
+    for ( var bi : bodies )
     {
         px += bi.vx * bi.mass;
         py += bi.vy * bi.mass;

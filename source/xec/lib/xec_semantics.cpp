@@ -564,8 +564,8 @@ void xec_sema::visit( xec_declaration_function* decl, xec_scope* scope )
     xec_constructor_function* function = decl->get_function();
 
     // Declare function name (also finds scope lookup should proceed from).
-    xec_scope* prototype_scope =
-            sema_declare_function.visit( decl, function, scope, true );
+    xec_scope* prototype_scope = sema_declare_function.visit(
+                            decl->get_name(), function, scope, true );
     scope = prototype_scope ? prototype_scope : scope;
 
     // Visit function.
