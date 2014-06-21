@@ -40,6 +40,7 @@ enum xec_name_kind
 {
     XEC_NAME_GLOBAL,
     XEC_NAME_THIS,
+    XEC_NAME_BASE,
     XEC_NAME_VARIABLE,
     XEC_NAME_PARAMETER,
     XEC_NAME_PROTOTYPE,

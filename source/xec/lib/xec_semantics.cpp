@@ -757,10 +757,11 @@ void xec_sema::visit( xec_constructor_function* expr, xec_scope* scope )
     scope->set_function( expr );
     expr->set_scope( scope );
     
-    // Declare this, if the function is thiscall.
+    // Declare this and super, if the function is thiscall.
     if ( expr->get_thiscall() )
     {
         scope->declare_name( XEC_NAME_THIS, "this" );
+        scope->declare_name( XEC_NAME_BASE, "base" );
     }
     
     // Declare parameters.
@@ -1350,36 +1351,22 @@ void xec_sema_lvalue::fallback( xec_statement* stmt, xec_scope* scope )
 void xec_sema_lvalue::visit(
                 xec_expression_identifier* expr, xec_scope* scope )
 {
-    // Look up name.
-    xec_name* name = sema->lookup_name( scope, expr->get_identifier() );
-
-    // To help avoid typos, unqualified globals are not assignable.
-    if ( name->get_kind() == XEC_NAME_GLOBAL )
-    {
-        p->diagnostic( expr->get_location(),
-                "unknown variable '%s'", expr->get_identifier() );
-        return;
-    }
-    
-    // Resolve name.
-    expr->set_name( name );
+    sema_nonglobal.visit( expr, scope );
 }
 
 void xec_sema_lvalue::visit( xec_expression_lookup* expr, xec_scope* scope )
 {
-    sema_nonglobal.visit( expr->get_expr(), scope );
+    sema_nonglobal.visit( expr, scope );
 }
 
 void xec_sema_lvalue::visit( xec_expression_indexkey* expr, xec_scope* scope )
 {
-    sema_nonglobal.visit( expr->get_expr(), scope );
-    sema->visit( expr->get_index(), scope );
+    sema_nonglobal.visit( expr, scope );
 }
 
 void xec_sema_lvalue::visit( xec_expression_index* expr, xec_scope* scope )
 {
-    sema_nonglobal.visit( expr->get_expr(), scope );
-    sema->visit( expr->get_index(), scope );
+    sema_nonglobal.visit( expr, scope );
 }
 
 void xec_sema_lvalue::visit(
@@ -1393,6 +1380,7 @@ void xec_sema_lvalue::visit(
 
 void xec_sema_lvalue::visit( xec_expression_list* expr, xec_scope* scope )
 {
+    // Every expression in the list must be assignable.
     for ( size_t i = 0; i < expr->get_count(); ++i )
         visit( expr->get_expr( i ), scope );
     if ( expr->get_final() )
@@ -1401,6 +1389,7 @@ void xec_sema_lvalue::visit( xec_expression_list* expr, xec_scope* scope )
 
 void xec_sema_lvalue::visit( xec_expression_mono* expr, xec_scope* scope )
 {
+    // The mono expression must be assignable.
     visit( expr->get_expr(), scope );
 }
 
