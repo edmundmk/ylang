@@ -70,9 +70,12 @@ public:
     xec_name*   declare_name( xec_name_kind kind, const char* name );
     xec_name*   lookup_name( const char* name );
 
+    void print();
 
     
 private:
+
+    void print( int indent );
 
     xec_scope_kind kind;
     xec_scope* outer_scope;

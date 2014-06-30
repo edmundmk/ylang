@@ -179,10 +179,10 @@ void xec_astprinter::visit( xec_expression_comparison* expr, int indent )
 {
     printf( "%*scomparison\n", indent, "" );
     visit( expr->get_first_expr(), indent + INDENT );
-    for ( size_t i = 0; i < expr->get_count(); ++i )
+    for ( size_t i = 0; i < expr->get_rest_count(); ++i )
     {
         printf( "%*s%s\n", indent, "", opname( expr->get_operator( i ) ) );
-        visit( expr->get_expr( i ), indent + INDENT );
+        visit( expr->get_rest_expr( i ), indent + INDENT );
     }
 }
 

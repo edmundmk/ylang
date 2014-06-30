@@ -13,16 +13,16 @@ sed -i '' 's|xob_parser_lemon\.c|../../toolbox/source/xob/lib/xob_parser_lemon.c
 
 cd ../../..
 
-cd source/xec/lib
+cd source/xec/lib/parser
 
 ragel -o xec_parser_ragel.cpp xec_parser_ragel.rl
-sed -i '' 's|xec_parser_ragel\.rl|../../toolbox/source/xec/lib/xec_parser_ragel.rl|g' xec_parser_ragel.cpp
+sed -i '' 's|xec_parser_ragel\.rl|../../toolbox/source/xec/lib/parser/xec_parser_ragel.rl|g' xec_parser_ragel.cpp
 
 lemon xec_parser_lemon.y
 mv xec_parser_lemon.c xec_parser_lemon.cpp
-sed -i '' 's|xec_parser_lemon\.y|../../toolbox/source/xec/lib/xec_parser_lemon.y|g' xec_parser_lemon.cpp
-sed -i '' 's|xec_parser_lemon\.c|../../toolbox/source/xec/lib/xec_parser_lemon.cpp|g' xec_parser_lemon.cpp
+sed -i '' 's|xec_parser_lemon\.y|../../toolbox/source/xec/lib/parser/xec_parser_lemon.y|g' xec_parser_lemon.cpp
+sed -i '' 's|xec_parser_lemon\.c|../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp|g' xec_parser_lemon.cpp
 
-cd ../../..
+cd ../../../..
 
 

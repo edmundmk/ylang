@@ -648,8 +648,8 @@ void xec_sema::visit( xec_expression_binary* expr, xec_scope* scope )
 void xec_sema::visit( xec_expression_comparison* expr, xec_scope* scope )
 {
     visit( expr->get_first_expr(), scope );
-    for ( size_t i = 0; i < expr->get_count(); ++i )
-        visit( expr->get_expr( i ), scope );
+    for ( size_t i = 0; i < expr->get_rest_count(); ++i )
+        visit( expr->get_rest_expr( i ), scope );
 }
 
 void xec_sema::visit( xec_expression_logical* expr, xec_scope* scope )

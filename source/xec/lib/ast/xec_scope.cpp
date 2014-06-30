@@ -8,6 +8,7 @@
 
 #include "xec_scope.h"
 #include <assert.h>
+#include <unordered_set>
 
 
 
@@ -84,6 +85,74 @@ xec_name* xec_scope::lookup_name( const char* name )
     else
         return NULL;
 }
+
+
+
+void xec_scope::print()
+{
+    print( 0 );
+}
+
+void xec_scope::print( int indent )
+{
+    const char* kind_name = "??";
+    switch ( get_kind() )
+    {
+    case XEC_SCOPE_GLOBAL:      kind_name = "global";       break;
+    case XEC_SCOPE_IMPLIED:     kind_name = "implied";      break;
+    case XEC_SCOPE_FUNCTION:    kind_name = "function";     break;
+    case XEC_SCOPE_OBJECT:      kind_name = "object";       break;
+    case XEC_SCOPE_BLOCK:       kind_name = "block";        break;
+    case XEC_SCOPE_LOOP:        kind_name = "loop";         break;
+    case XEC_SCOPE_SWITCH:      kind_name = "switch";       break;
+    }
+    
+    printf( "%s [%p]\n%*s{\n", kind_name, get_function(), indent, "" );
+    
+    std::unordered_set< xec_scope* > named_scopes;
+    for ( auto i = scopes.begin(); i != scopes.end(); ++i )
+    {
+        named_scopes.insert( i->second );
+        printf( "%*s%s : ", indent + 4, "", i->first.c_str() );
+        i->second->print( indent + 4 );
+    }
+    
+    for ( auto i = children.begin(); i != children.end(); ++i )
+    {
+        xec_scope* scope = i->get();
+        if ( named_scopes.find( scope ) != named_scopes.end() )
+            continue;
+        
+        printf( "%*s", indent + 4, "" );
+        scope->print( indent + 4 );
+    }
+    
+    for ( auto i = names.begin(); i != names.end(); ++i )
+    {
+        xec_name* name = i->second.get();
+        
+        const char* kind_name = "??";
+        switch ( name->get_kind() )
+        {
+        case XEC_NAME_GLOBAL:       kind_name = "global";       break;
+        case XEC_NAME_THIS:         kind_name = "this";         break;
+        case XEC_NAME_BASE:         kind_name = "base";         break;
+        case XEC_NAME_VARIABLE:     kind_name = "variable";     break;
+        case XEC_NAME_PARAMETER:    kind_name = "parameter";    break;
+        case XEC_NAME_PROTOTYPE:    kind_name = "prototype";    break;
+        }
+        
+        printf( "%*s%s %s", indent + 4, "", kind_name, name->get_name() );
+        if ( name->get_prototype() )
+            printf( " [%p]", name->get_prototype() );
+        printf( "\n" );
+    }
+    
+    printf( "%*s}\n", indent, "" );
+}
+
+
+
 
 
 

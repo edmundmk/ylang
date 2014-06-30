@@ -241,6 +241,7 @@ public:
 
     virtual xec_expression_dispatch visitor_dispatch();
     virtual int get_location();
+    virtual xec_expression* as_mono();
 
     xec_expression* get_expr();
     const char* get_identifier();
@@ -265,6 +266,7 @@ public:
 
     virtual xec_expression_dispatch visitor_dispatch();
     virtual int get_location();
+    virtual xec_expression* as_mono();
 
     xec_expression* get_expr();
     xec_expression* get_index();
@@ -509,10 +511,10 @@ public:
     
     void add_comparison( xec_token* token, xec_expression* expr );
 
-    size_t get_count();
+    size_t get_rest_count();
     xec_expression* get_first_expr();
     xec_operator_kind get_operator( size_t index );
-    xec_expression* get_expr( size_t index );
+    xec_expression* get_rest_expr( size_t index );
 
 private:
 

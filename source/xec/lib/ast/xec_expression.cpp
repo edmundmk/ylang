@@ -206,6 +206,12 @@ int xec_expression_lookup::get_location()
     return expr->get_location();
 }
 
+xec_expression* xec_expression_lookup::as_mono()
+{
+    // ( x.y )() suppresses thiscall.
+    return new xec_expression_mono( this );
+}
+
 xec_expression* xec_expression_lookup::get_expr()
 {
     return expr.get();
@@ -238,6 +244,12 @@ xec_expression_dispatch xec_expression_indexkey::visitor_dispatch()
 int xec_expression_indexkey::get_location()
 {
     return expr->get_location();
+}
+
+xec_expression* xec_expression_indexkey::as_mono()
+{
+    // ( x.[ y ] )() suppresses thiscall.
+    return new xec_expression_mono( this );
 }
 
 xec_expression* xec_expression_indexkey::get_expr()
@@ -649,7 +661,7 @@ void xec_expression_comparison::add_comparison(
     comparisons.push_back( std::move( cmp ) );
 }
 
-size_t xec_expression_comparison::get_count()
+size_t xec_expression_comparison::get_rest_count()
 {
     return comparisons.size();
 }
@@ -677,7 +689,7 @@ xec_operator_kind xec_expression_comparison::get_operator( size_t index )
     }
 }
 
-xec_expression* xec_expression_comparison::get_expr( size_t index )
+xec_expression* xec_expression_comparison::get_rest_expr( size_t index )
 {
     return comparisons.at( index ).expr.get();
 }
