@@ -5,7 +5,750 @@
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
-#if 1
+
+#include "xec_compile.h"
+#include <assert.h>
+#include <math.h>
+#include "xec_astvisitor.h"
+#include "xec_opcodes.h"
+#include "xec_scope.h"
+
+
+class xec_operand;
+class xec_unpack;
+class xec_lvalues;
+
+class xec_compiler;
+class xec_compiler_operand;
+class xec_compiler_thiscall;
+
+
+
+
+/*
+    A bare identifier represents a name in a number of contexts.  Each name
+    is 'qualified' by the context it should be looked up in.
+*/
+
+enum xec_name_qual
+{
+    XEC_QUAL_GLOBAL,        // name is a global
+    XEC_QUAL_LOCAL,         // name is a local
+    XEC_QUAL_THIS,          // name -> this.name
+    XEC_QUAL_OBJECT,        // name -> [object].name
+    XEC_QUAL_UPVAL,         // name is upval
+    XEC_QUAL_UPVAL_THIS,    // name -> [upval this].name
+    XEC_QUAL_UPVAL_OBJECT,  // name -> [upval object].name
+};
+
+
+
+/*
+    A single register, either a local variable, an operand allocation, or
+    a temporary.
+    
+        -   Local variables are fixed on the stack and are allocated their own
+            stack slot until the block is closed.
+    
+        -   Operand allocations reserve a stack slot until the operand
+            structure is disposed (or destroyed).
+    
+        -   Temporaries pick a stack location but do not necessarily reserve
+            the slot.  Therefore allocating new operands may clobber the
+            temporary, and assigning to the temporary may clobber any operands
+            created after the temporary.  Temporaries may be temporarily
+            reserved if the value must persist during operand evaluation.
+            
+    It might be tempting to reuse the 'target' register as an ad-hoc
+    temporary, but this is only valid if there is no possibility that a
+    later expression depends on the original value of any local variables.
+    
+    There is no disadvantage to using temporaries as other allocations will
+    freely reuse the slot.
+*/
+
+class xec_operand
+{
+public:
+
+    operator int ();
+    
+    void reserve();
+    void release();
+    void dispose();
+    
+    void invert();
+    bool inverted();
+
+};
+
+
+
+/*
+    A contiguous set of registers, used when dealing with call-like opcodes.
+*/
+
+class xec_unpack
+{
+public:
+
+    // Register range.
+    int base();
+    int count();
+    
+};
+
+
+
+/*
+    A set of 'lvalues' that can be assigned to.
+*/
+
+class xec_lvalues
+{
+public:
+
+    int count();
+    xec_operand value( int i );
+    void assign( int i, int v );
+    void assign( int i, xec_expression* expr );
+
+};
+
+
+
+/*
+    The target of jump instructions.
+*/
+
+class xec_label
+{
+};
+
+
+
+
+/*
+    Evaluates expressions but returns no values.
+*/
+
+class xec_compiler_evaluate
+{
+};
+
+
+
+/*
+    Evaulates expressions returning a single value.  If target is -1 then
+    the resulting operand will be a temporary allocation, otherwise assigns
+    the expression into the target register.
+*/
+
+class xec_compiler_operand
+    :   public xec_astvisitor< xec_compiler_operand, xec_operand, int >
+{
+public:
+
+    explicit xec_compiler_operand( xec_compiler* c );
+
+    xec_operand visit( xec_expression_null* expr, int target );
+    xec_operand visit( xec_expression_bool* expr, int target );
+    xec_operand visit( xec_expression_number* expr, int target );
+    xec_operand visit( xec_expression_string* expr, int target );
+    xec_operand visit( xec_expression_identifier* expr, int target );
+    xec_operand visit( xec_expression_lookup* expr, int target );
+    xec_operand visit( xec_expression_indexkey* expr, int target );
+    xec_operand visit( xec_expression_index* expr, int target );
+    xec_operand visit( xec_expression_yield* expr, int target );
+    xec_operand visit( xec_expression_call* expr, int target );
+    xec_operand visit( xec_expression_preop* expr, int target );
+    xec_operand visit( xec_expression_postop* expr, int target );
+    xec_operand visit( xec_expression_unary* expr, int target );
+    xec_operand visit( xec_expression_binary* expr, int target );
+    xec_operand visit( xec_expression_comparison* expr, int target );
+    xec_operand visit( xec_expression_logical* expr, int target );
+    xec_operand visit( xec_expression_conditional* expr, int target );
+    xec_operand visit( xec_expression_varargs* expr, int target );
+    xec_operand visit( xec_expression_unpack* expr, int target );
+    xec_operand visit( xec_expression_list* expr, int target );
+    xec_operand visit( xec_expression_assign* expr, int target );
+    xec_operand visit( xec_expression_mono* expr, int target );
+    xec_operand visit( xec_expression_declare* expr, int target );
+    xec_operand visit( xec_constructor_new* expr, int target );
+    xec_operand visit( xec_constructor_list* expr, int target );
+    xec_operand visit( xec_constructor_table* expr, int target );
+    xec_operand visit( xec_constructor_object* expr, int target );
+    xec_operand visit( xec_constructor_function* expr, int target );
+
+private:
+
+    xec_compiler* c;
+
+};
+
+
+
+/*
+    Appends a function and possibly
+*/
+
+class xec_compiler_thiscall
+{
+};
+
+
+
+/*
+    Appends n results from an unpack expression to a unpack.
+*/
+
+class xec_compiler_unpack
+{
+};
+
+
+
+/*
+    Appends lvalues to an lvalue list.
+*/
+
+class xec_compiler_lvalue
+{
+};
+
+
+
+/*
+    Branches to a label if an expression is true, or to a different one
+    if the expression is false.
+*/
+
+class xec_compiler_test
+{
+};
+
+
+
+/*
+    The compiler object, which builds functions' opcode lists and tracks
+    stack slot allocations.  Dispatches to the other compilers.
+*/
+
+class xec_compiler
+{
+public:
+
+    xec_name_qual name_qual( xec_name* name );
+    
+    int literal( double n );
+    int literal( const char* string, size_t length );
+
+    int key( const char* s );
+
+    int local_this( xec_name* name );
+    int local( xec_name* name );
+    int local( xec_scope* object );
+    
+    int upval_this( xec_name* name );
+    int upval( xec_name* name );
+    int upval( xec_scope* object );
+
+    xec_operand temporary( int n );
+    xec_operand promote( xec_operand temporary, int target );
+    xec_operand result( int target );
+    xec_operand result( int target, xec_operand a );
+    xec_operand result( int target, xec_operand a, xec_operand b );
+    xec_operand asmono( int target, xec_unpack* manyval );
+
+    void evaluate( xec_expression* expr );
+    void assign( int target, xec_expression* expr );
+    xec_operand operand( xec_expression* expr );
+    xec_operand operinv( xec_expression* expr );
+    void thiscall( xec_unpack* unpack, xec_expression* expr );
+    void unpack( xec_unpack* unpack, xec_expression* expr );
+    void lvalues( xec_lvalues* lvalues, xec_expression* expr );
+    void test( xec_expression* expr, xec_label* iftrue, xec_label* iffalse );
+
+    void move( int a, int b );
+    void emit( xec_opcode o, int a );
+    void emit( xec_opcode o, int a, int b );
+    void emit( xec_opcode o, int a, int b, int c );
+    void comp( xec_operator_kind o, int r, int a, int b );
+
+    void label( xec_label* label );
+    void jump( xec_opcode o, xec_label* label );
+    void jump( xec_opcode o, int a, xec_label* label );
+    
+
+private:
+
+    xec_compiler_operand compiler_operand;
+
+};
+
+
+
+
+xec_compiler_operand::xec_compiler_operand( xec_compiler* c )
+    :   c( c )
+{
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_null* expr, int target )
+{
+    xec_operand r = c->result( target );
+    c->emit( XEC_LITNULL, r );
+    return r;
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_bool* expr, int target )
+{
+    xec_operand r = c->result( target );
+    c->emit( expr->get_value() ? XEC_LITTRUE : XEC_LITFALSE, r );
+    return r;
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_number* expr, int target )
+{
+    xec_operand r = c->result( target );
+    double n = expr->get_value();
+    if ( n >= XEC_LITINT_MIN && n <= XEC_LITINT_MAX && rint( n ) == n )
+        c->emit( XEC_LITINT, r, (int)n );
+    else
+        c->emit( XEC_LITERAL, r, c->literal( n ) );
+    return r;
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_string* expr, int target )
+{
+    xec_operand r = c->result( target );
+    int literal = c->literal( expr->get_string(), expr->get_length() );
+    c->emit( XEC_LITERAL, r, literal );
+    return r;
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_identifier* expr, int target )
+{
+    xec_operand r = c->result( target );
+    xec_name* name = expr->get_name();
+    switch ( c->name_qual( name ) )
+    {
+    case XEC_QUAL_GLOBAL:
+        c->emit( XEC_GETGLOBAL, r, c->key( name->get_name() ) );
+        break;
+    
+    case XEC_QUAL_LOCAL:
+        c->move( r, c->local( name ) );
+        break;
+    
+    case XEC_QUAL_THIS:
+        c->emit( XEC_GETKEY, r,
+                c->local_this( name ), c->key( name->get_name() ) );
+        break;
+    
+    case XEC_QUAL_OBJECT:
+        c->emit( XEC_GETKEY, r,
+                c->local( name->get_scope() ), c->key( name->get_name() ) );
+        break;
+    
+    case XEC_QUAL_UPVAL:
+        c->emit( XEC_GETUPVAL, r, c->upval( name ) );
+        break;
+    
+    case XEC_QUAL_UPVAL_THIS:
+        c->emit( XEC_GETUPVAL, r, c->upval_this( name ) );
+        c->emit( XEC_GETKEY, r, r, c->key( name->get_name() ) );
+        break;
+        
+    case XEC_QUAL_UPVAL_OBJECT:
+        c->emit( XEC_GETUPVAL, r, c->upval( name->get_scope() ) );
+        c->emit( XEC_GETKEY, r, r, c->key( name->get_name() ) );
+        break;
+    }
+    return r;
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_lookup* expr, int target )
+{
+    xec_operand object = c->operand( expr->get_expr() );
+    xec_operand r = c->result( target, object );
+    c->emit( XEC_GETKEY, r, object, c->key( expr->get_identifier() ) );
+    return r;
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_indexkey* expr, int target )
+{
+    xec_operand object = c->operand( expr->get_expr() );
+    xec_operand index = c->operand( expr->get_index() );
+    xec_operand r = c->result( target, object, index );
+    c->emit( XEC_GETINDEXKEY, r, object, index );
+    return r;
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_index* expr, int target )
+{
+    xec_operand object = c->operand( expr->get_expr() );
+    xec_operand index = c->operand( expr->get_index() );
+    xec_operand r = c->result( target, object, index );
+    c->emit( XEC_GETINDEX, r, object, index );
+    return r;
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_yield* expr, int target )
+{
+    xec_unpack unpack;
+    c->unpack( &unpack, expr->get_arguments() );
+    c->emit( XEC_YIELD, unpack.base(), unpack.count(), 1 );
+    return c->asmono( target, &unpack );
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_call* expr, int target )
+{
+    xec_unpack unpack;
+    c->thiscall( &unpack, expr->get_expr() );
+    c->unpack( &unpack, expr->get_arguments() );
+    if ( expr->get_yieldcall() )
+        c->emit( XEC_YIELDCALL, unpack.base(), unpack.count(), 1 );
+    else
+        c->emit( XEC_CALL, unpack.base(), unpack.count(), 1 );
+    return c->asmono( target, &unpack );
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_preop* expr, int target )
+{
+    xec_operand r = c->result( target );
+    
+    xec_lvalues lvalues;
+    c->lvalues( &lvalues, expr->get_expr() );
+    
+    for ( int i = 0; i < lvalues.count(); ++i )
+    {
+        xec_operand v = lvalues.value( i );
+        
+        if ( i == 0 )
+        {
+            if ( expr->get_operator() == XEC_OPERATOR_INCREMENT )
+                c->emit( XEC_INC, r, v );
+            else
+                c->emit( XEC_DEC, r, v );
+            lvalues.assign( i, r );
+        }
+        else
+        {
+            if ( expr->get_operator() == XEC_OPERATOR_INCREMENT )
+                c->emit( XEC_INC, v, v );
+            else
+                c->emit( XEC_DEC, v, v );
+            lvalues.assign( i, v );
+        }
+    }
+    
+    return r;
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_postop* expr, int target )
+{
+    xec_operand r = c->result( target );
+    
+    xec_lvalues lvalues;
+    c->lvalues( &lvalues, expr->get_expr() );
+    
+    for ( int i = 0; i < lvalues.count(); ++i )
+    {
+        xec_operand v = lvalues.value( i );
+        
+        if ( i == 0 )
+            c->move( r, v );
+        
+        if ( expr->get_operator() == XEC_OPERATOR_INCREMENT )
+            c->emit( XEC_INC, v, v );
+        else
+            c->emit( XEC_DEC, v, v );
+        lvalues.assign( i, v );
+    }
+    
+    return r;
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_unary* expr, int target )
+{
+    switch ( expr->get_operator() )
+    {
+    case XEC_OPERATOR_POSITIVE:
+    {
+        // Doesn't do anything but is only allowed on numbers.
+        xec_operand v = c->operand( expr->get_expr() );
+        c->emit( XEC_ASSERTNUM, v );
+        return v;
+    }
+        
+    case XEC_OPERATOR_NEGATIVE:
+    {
+        xec_operand v = c->operand( expr->get_expr() );
+        xec_operand r = c->result( target, v );
+        c->emit( XEC_NEG, r, v );
+        return r;
+    }
+    
+    case XEC_OPERATOR_LOGICNOT:
+    {
+        // Lazily evaluate not expressions.
+        xec_operand v = c->operand( expr->get_expr() );
+        v.invert();
+        return v;
+    }
+    
+    case XEC_OPERATOR_BITNOT:
+    {
+        xec_operand v = c->operand( expr->get_expr() );
+        xec_operand r = c->result( target, v );
+        c->emit( XEC_NOT, r, v );
+        return r;
+    }
+    
+    default:
+        assert( ! "invalid unary operator" );
+        return c->operand( expr->get_expr() );
+    }
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_binary* expr, int target )
+{
+    xec_operand a = c->operand( expr->get_lhs() );
+    xec_operand b = c->operand( expr->get_rhs() );
+    xec_operand r = c->result( target, a, b );
+
+    switch ( expr->get_operator() )
+    {
+    case XEC_OPERATOR_MULTIPLY:
+        c->emit( XEC_MUL, r, a, b );
+        return r;
+    
+    case XEC_OPERATOR_DIVIDE:
+        c->emit( XEC_DIV, r, a, b );
+        return r;
+        
+    case XEC_OPERATOR_MODULUS:
+        c->emit( XEC_MOD, r, a, b );
+        return r;
+        
+    case XEC_OPERATOR_INTDIV:
+        c->emit( XEC_IDIV, r, a, b );
+        return r;
+        
+    case XEC_OPERATOR_ADD:
+        c->emit( XEC_ADD, r, a, b );
+        return r;
+        
+    case XEC_OPERATOR_SUBTRACT:
+        c->emit( XEC_SUB, r, a, b );
+        return r;
+        
+    case XEC_OPERATOR_LSHIFT:
+        c->emit( XEC_LSL, r, a, b );
+        return r;
+        
+    case XEC_OPERATOR_RSHIFT:
+        c->emit( XEC_ASR, r, a, b );
+        return r;
+        
+    case XEC_OPERATOR_URSHIFT:
+        c->emit( XEC_LSR, r, a, b );
+        return r;
+        
+    case XEC_OPERATOR_BITAND:
+        c->emit( XEC_AND, r, a, b );
+        return r;
+        
+    case XEC_OPERATOR_BITXOR:
+        c->emit( XEC_XOR, r, a, b );
+        return r;
+        
+    case XEC_OPERATOR_BITOR:
+        c->emit( XEC_OR, r, a, b );
+        return r;
+        
+    case XEC_OPERATOR_CONCATENATE:
+        c->emit( XEC_CONCAT, r, a, b );
+        return r;
+    
+    default:
+        assert( ! "invalid binary operator" );
+        c->emit( XEC_LITNULL, r );
+        return r;
+    }
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_comparison* expr, int target )
+{
+    std::pair< xec_opcode, bool > op;
+
+    if ( expr->get_rest_count() == 1 )
+    {
+        // A single comparison with no shortcut evaluation.
+        xec_operand a = c->operand( expr->get_first_expr() );
+        xec_operand b = c->operand( expr->get_rest_expr( 0 ) );
+        xec_operand r = c->result( target, a, b );
+        c->comp( expr->get_operator( 0 ), r, a, b  );
+        return r;
+    }
+    else
+    {
+        // A list of comparisons each sharing a term with the one before, and
+        // requiring shortcut evaluation.
+        
+        // Allocate temporaries.
+        xec_operand q = c->temporary( 0 );  // result
+        xec_operand s = c->temporary( 1 );  // middle term (odd terms)
+        xec_operand t = c->temporary( 2 );  // middle term (even terms)
+        
+        // Perform first comparison.
+        xec_operand a = c->operand( expr->get_first_expr() );
+        assert( (int)a != (int)s );
+        c->assign( s, expr->get_rest_expr( 0 ) );
+        c->comp( expr->get_operator( 0 ), q, a, s );
+        a.dispose();
+        
+        // To avoid moves we change where we store the shared term.
+        xec_operand* prev = &s;
+        xec_operand* next = &t;
+
+        // Middle comparisons.  Middle terms must be stored in temporaries
+        // even if they are locals since the next term might assign to them.
+        xec_label label;
+        for ( size_t i = 1; i < expr->get_rest_count() - 1; ++i )
+        {
+            // Shortcut evaluation.
+            c->jump( XEC_IFFALSE, q, &label );
+            
+            // Perform comparison.
+            prev->reserve();
+            c->assign( *next, expr->get_rest_expr( i ) );
+            c->comp( expr->get_operator( i ), q, *prev, *next );
+            prev->release();
+            
+            // Next is now the term we want to preserve.
+            std::swap( prev, next );
+        }
+        
+        // Shortcut evaluation.
+        c->jump( XEC_IFFALSE, q, &label );
+        
+        // Last comparison.
+        prev->reserve();
+        size_t last = expr->get_rest_count() - 1;
+        xec_operand b = c->operand( expr->get_rest_expr( last ) );
+        c->comp( expr->get_operator( last ), q, *prev, b );
+        prev->release();
+        b.dispose();
+
+        // At this point q contains the first false result or the last result
+        // condition if all of them were true.
+        c->label( &label );
+        
+        // Ensure result ends up in target location.
+        return c->promote( q, target );
+    }
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_logical* expr, int target )
+{
+    switch ( expr->get_operator() )
+    {
+    case XEC_OPERATOR_LOGICAND:
+    {
+        // If lhs is false, return it.  Otherwise return the rhs.
+        xec_label label;
+        xec_operand q = c->temporary( 0 );
+        c->assign( q, expr->get_lhs() );
+        c->jump( XEC_IFFALSE, &label );
+        c->assign( q, expr->get_rhs() );
+        c->label( &label );
+        return c->promote( q, target );
+    }
+    
+    case XEC_OPERATOR_LOGICXOR:
+    {
+        // We can elide nots in some cases.
+        xec_operand a = c->operinv( expr->get_lhs() );
+        xec_operand b = c->operinv( expr->get_rhs() );
+        xec_operand r = c->result( target, a, b );
+        c->emit( XEC_LXOR, r, a, b );
+        if ( a.inverted() != b.inverted() )
+            r.invert();
+        return r;
+    }
+    
+    case XEC_OPERATOR_LOGICOR:
+    {
+        // If lhs is true, return it.  Otherwise return the rhs.
+        xec_label label;
+        xec_operand q = c->temporary( 0 );
+        c->assign( q, expr->get_lhs() );
+        c->jump( XEC_IFTRUE, &label );
+        c->assign( q, expr->get_rhs() );
+        c->label( &label );
+        return c->promote( q, target );
+    }
+    
+    default:
+        assert( ! "invalid logical operator" );
+        return c->result( target );
+    }
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_conditional* expr, int target )
+{
+    xec_operand q = c->temporary( 0 );
+    xec_label iftrue, iffalse, ifend;
+    c->test( expr->get_condition(), &iftrue, &iffalse );
+    c->label( &iftrue );
+    c->assign( q, expr->get_iftrue() );
+    c->jump( XEC_JUMP, &ifend );
+    c->label( &iffalse );
+    c->assign( q, expr->get_iffalse() );
+    c->label( &ifend );
+    return c->promote( q, target );
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_varargs* expr, int target )
+{
+    xec_operand r = c->result( target );
+    c->emit( XEC_VARARGS, r, 1 );
+    return r;
+}
+
+xec_operand xec_compiler_operand::visit( xec_expression_unpack* expr, int target )
+{
+    xec_operand r = c->result( target );
+    c->emit( XEC_UNPACK, r, 1 );
+    return r;
+}
+
+void visit( xec_expression_list* expr );
+void visit( xec_expression_assign* expr );
+void visit( xec_expression_mono* expr );
+void visit( xec_expression_declare* expr );
+void visit( xec_constructor_new* expr );
+void visit( xec_constructor_list* expr );
+void visit( xec_constructor_table* expr );
+void visit( xec_constructor_object* expr );
+void visit( xec_constructor_function* expr );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#if 0
 
 #include "xec_compile.h"
 #include <assert.h>
@@ -85,25 +828,29 @@ public:
     // Control flow.
 
     xec_looseop flow_loop();
-    void        flow_break( xec_looseop ijump );
-    void        flow_continue( xec_looseop ijump );
-    void        flow_endloop( xec_looseop ijump );
+    void        flow_break();
+    void        flow_continue();
+    void        flow_endloop();
     
-    void        flow_if( xec_looseop ijump );
-    void        flow_else( xec_looseop ijump );
+    void        flow_iftrue( xec_looseop v );
+    void        flow_iffalse( xec_looseop v );
+    void        flow_else();
     void        flow_endif();
 
-    void        flow_return( xec_looseop ireturn );
+    void        flow_return();
 
 
     // Instructions.
     
+    xec_looseop emit_immed( xec_opcode opcode, int immediate );
     xec_looseop emit_unary( xec_opcode opcode, xec_looseop a );
     xec_looseop emit_binary( xec_opcode opcode, xec_looseop a, xec_looseop b );
+    xec_looseop emit_trinary( xec_opcode opcode,
+                        xec_looseop a, xec_looseop b, xec_looseop c );
     xec_looseop emit_key( xec_opcode opcode, xec_looseop a, const char* key );
     xec_looseop emit_upval( xec_opcode opcode, xec_looseop a, xec_upindex u );
-    xec_looseop emit_unpack( xec_opcode opcode, size_t n, xec_unpack_kind r );
-    void        emit_argument( xec_looseop v );
+    xec_looseop emit_unpack( xec_opcode opcode,
+                        xec_unpack_kind r, xec_unpack_list* unpack );
     xec_looseop emit_select( xec_looseop unpack, size_t n );
 
 };
@@ -137,9 +884,7 @@ public:
     void            append( xec_looseop v );
     void            append_unpack( xec_unpack_kind unpack_kind, xec_looseop v );
     
-    size_t          count();
-    void            emit_arguments();
-    xec_looseop     emit_select( int n );
+    xec_looseop     select( size_t i );
 
 };
 
@@ -174,6 +919,30 @@ public:
     void visit( xec_expression_list* expr, xec_lvalue_list* lvlist );
     void visit( xec_expression_mono* expr, xec_lvalue_list* lvlist );
     
+};
+
+
+
+class xec_compiler_declare : public xec_astvisitor<
+                xec_compiler_declare, void, xec_lvalue_list* >
+{
+public:
+
+    explicit xec_compiler_declare( xec_compiler* c );
+
+    using xec_astvisitor< xec_compiler_declare,
+                    void, xec_lvalue_list* >::fallback;
+    using xec_astvisitor< xec_compiler_declare,
+                    void, xec_lvalue_list* >::visit;
+    
+
+    void fallback( xec_declaration* decl, xec_lvalue_list* lvlist );
+    void fallback( xec_expression* expr, xec_lvalue_list* lvlist );
+    void fallback( xec_statement* stmt, xec_lvalue_list* lvlist );
+
+    void visit( xec_expression_identifier* expr, xec_lvalue_list* lvlist );
+    void visit( xec_expression_list* expr, xec_lvalue_list* lvlist );
+
 };
 
 
@@ -344,6 +1113,7 @@ private:
 
     xec_emitloose* e;
     xec_compiler_lvalue compiler_lvalue;
+    xec_compiler_declare compiler_declare;
     xec_compiler_unpack compiler_unpack;
     xec_compiler_thiscall compiler_thiscall;
 
@@ -391,9 +1161,7 @@ void xec_compiler_unpack::visit( xec_expression_yield* expr,
     visit( expr->get_arguments(), XEC_UNPACK_ALL, &arguments );
 
     // Yield instruction, returning multiple values.
-    xec_looseop v =
-            c->e->emit_unpack( XEC_YIELD, arguments.count(), unpack_kind );
-    arguments.emit_arguments();
+    xec_looseop v = c->e->emit_unpack( XEC_YIELD, unpack_kind, &arguments );
     unpack_list->append_unpack( unpack_kind, v );
 }
 
@@ -420,9 +1188,8 @@ void xec_compiler_unpack::visit( xec_expression_call* expr,
     visit( expr->get_arguments(), XEC_UNPACK_ALL, &arguments );
     
     // Call instruction, returning multiple values.
-    xec_looseop v =
-            c->e->emit_unpack( XEC_CALL, arguments.count(), unpack_kind );
-    arguments.emit_arguments();
+    xec_opcode opcode = expr->get_yieldcall() ? XEC_YIELDCALL : XEC_CALL;
+    xec_looseop v = c->e->emit_unpack( opcode, unpack_kind, &arguments );
     unpack_list->append_unpack( unpack_kind, v );
 }
 
@@ -659,9 +1426,7 @@ xec_looseop xec_compiler::visit( xec_expression_yield* expr )
     compiler_unpack.visit( expr->get_arguments(), XEC_UNPACK_ALL, &arguments );
     
     // Yield and return a single result.
-    xec_looseop v =
-            e->emit_unpack( XEC_YIELD, arguments.count(), XEC_UNPACK_MONO );
-    arguments.emit_arguments();
+    xec_looseop v = e->emit_unpack( XEC_YIELD, XEC_UNPACK_MONO, &arguments );
     return v;
 }
 
@@ -681,9 +1446,8 @@ xec_looseop xec_compiler::visit( xec_expression_call* expr )
     compiler_unpack.visit( expr->get_arguments(), XEC_UNPACK_ALL, &arguments );
     
     // Call and return a single result.
-    xec_looseop v =
-            e->emit_unpack( XEC_CALL, arguments.count(), XEC_UNPACK_MONO );
-    arguments.emit_arguments();
+    xec_opcode opcode = expr->get_yieldcall() ? XEC_YIELDCALL : XEC_CALL;
+    xec_looseop v = e->emit_unpack( opcode, XEC_UNPACK_MONO, &arguments );
     return v;
 }
 
@@ -833,1342 +1597,348 @@ xec_looseop xec_compiler::visit( xec_expression_binary* expr )
 
 xec_looseop xec_compiler::visit( xec_expression_comparison* expr )
 {
-
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_expression_logical* expr )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_expression_conditional* expr )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_expression_varargs* expr )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_expression_unpack* expr )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_expression_list* expr )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_expression_assign* expr )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_expression_mono* expr )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_expression_declare* expr )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_constructor_new* expr )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_constructor_list* expr )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_constructor_table* expr )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_constructor_object* expr )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_constructor_function* expr )
-{
-    return INVALIDOP;
-}
-
-
-xec_looseop xec_compiler::visit( xec_statement_declaration* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_expression* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_compound* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_delete* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_if* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_switch* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_case* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_while* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_do* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_foreach* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_for* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_continue* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_break* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_return* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_yield* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_using* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_usingscope* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_try* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_catch* stmt )
-{
-    return INVALIDOP;
-}
-
-xec_looseop xec_compiler::visit( xec_statement_throw* stmt )
-{
-    return INVALIDOP;
-}
-
-
-
-
-
- 
+    // Evaluate first expression.
+    xec_looseop a = visit( expr->get_first_expr() );
+    xec_looseop b = visit( expr->get_rest_expr( 0 ) );
     
+    bool inverted = false;
+    xec_opcode opcode = comparison_op( expr->get_operator( 0 ), &inverted );
+    xec_looseop r = e->emit_binary( opcode, a, b );
+    if ( inverted )
+        r = e->emit_unary( XEC_NOT, r );
     
- 
-    
- 
-    
-
-
-#if 0
- 
-
-/*
-
-    Compilation proceeds in two stages.  First, the AST is visited to
-    generate loosecode.  loosecode is a set of vm opcodes but with
-    SSA-form-esque operand references rather than register numbers.  Trying
-    to pin results down to register numbers during the tree walk was driving
-    me mad.
-    
-    Additional loosecode opcodes load and store local variables - unlike real
-    SSA there are no phi functions.  Values used across branches must be stored
-    in a local and reloaded after the branch.  Also call and yield instructions
-    require additional instructions to identify their arguments.  Often
-    when unpack expressions are used we must select a particular result.
-    
-    These additional opcodes should fall out in the register allocation phase,
-    when locals, temporaries, arguments, and return values are all pinned down
-    to specific virtual machine registers.
-    
-    loosecode also allows us to perform some additional optimization passes,
-    such as constant folding and common subexpression elimination, taking
-    advantage of its SSA-like properties.
-    
-    At least, that is the idea.
-*/
-
-
-enum
-{
-    XEC_GETLOCAL    = 255,
-    XEC_SETLOCAL    = 254,
-    XEC_ARGUMENT    = 253,
-    XEC_SELECT      = 252,
-};
-
-
-struct xec_loosecode
-{
-    unsigned    opcode  : 8;
-    unsigned    a       : 24;
-    unsigned    b       : 24;
-    unsigned    c       : 16;
-};
-
-
-class xec_loosebuilder
-{
-public:
-
-    xec_constructor_function* get_function();
-
-    int     literal( const char* s, size_t length );
-    int     literal( double n );
-    int     literal( int n );
-    int     literal( bool b );
-    int     key( const char* s );
-
-    int     label();
-    int     label( int jump );
-    int     jump( unsigned opcode, int a );
-    int     jump( unsigned opcode, int a, int label );
-    int     emit( unsigned opcode, int a, int b );
-    int     emit( unsigned opcode, int c );
-
-    int     local( xec_name* name );
-    int     upval( xec_name* name );
-    int     local_object( xec_scope* object_scope );
-    int     upval_object( xec_scope* object_scope );
-
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#endif
-
-
-
-
-
-
-#if 0
-
-#include "xec_compile.h"
-#include <deque>
-#include "xec_astvisitor.h"
-#include "xec_parser.h"
-#include "xec_opcodes.h"
-#include "xec_scope.h"
-
-
-class xec_emitcode;
-class xec_lrvalue;
-class xec_compiler;
-
-
-
-
-/*
-    Emits xec code instructions during compilation.
-*/
-
-
-class xec_emitcode
-{
-public:
-
-    xec_constructor_function* get_function();
-
-    int     literal( const char* s );
-    int     literal( double n );
-    int     literal( int n );
-    int     literal( bool b );
-    int     key( const char* s );
-    
-    int     upval( xec_name* name );
-    int     local( xec_name* name );
-    
-    int     label();
-    void    label( int jump );
-    void    emit( xec_opcode opcode, int r, int a, int b );
-    void    emit( xec_opcode opcode, int r, int c );
-    int     jump( xec_opcode opcode, int r );
-    void    jump( xec_opcode opcode, int r, int label );
-
-};
-
-
-
-
-int xec_emitcode::literal( const char* s )
-{
-    return 0;
-}
-
-int xec_emitcode::literal( double n )
-{
-    return 0;
-}
-
-int xec_emitcode::literal( int n )
-{
-    return 0;
-}
-
-int xec_emitcode::literal( bool b )
-{
-    return 0;
-}
-
-int xec_emitcode::key( const char* s )
-{
-    return 0;
-}
-
-void xec_emitcode::emit( xec_opcode opcode, int r, int a, int b )
-{
-}
-
-void xec_emitcode::emit( xec_opcode opcode, int r, int c )
-{
-}
-
-int xec_emitcode::label()
-{
-    return 0;
-}
-
-void xec_emitcode::label( int jump )
-{
-}
-
-int xec_emitcode::jump( xec_opcode opcode, int r)
-{
-    return 0;
-}
-
-void xec_emitcode::jump( xec_opcode opcode, int r, int label )
-{
-}
-
-
-
-
-
-
-/*
-    An lrvalue represents requests for values from an AST node, or the values
-    resulting from evaluation of an AST node:
-    
-    Requests:
-      -  A request for an lvalue.
-      -  A request for value(s), with no temporary(ies) allocated yet.
-      -  A set of lvalues into which results should be assigned.  Each is:
-            -  A new declaration (not allocated until assigned).
-            -  An object lookup, index, or indexkey (with temporaries).
-            -  A local.
-            -  An upvalue.
-            -  A temporary register (not allocated until assigned).
- 
-    Values:
-      -  An lvalue.
-      -  An rvalue or list of rvalues in temporary or local registers.
-      -  The chain of jumps and result value for a boolean expression.
-
-*/
-
-
-/*
-    An lrvalue represents values requested and generated from an AST node:
-  
-        -  Generate lvalues to be assigned to later.
-        -  Evaluate without generating a value.
-        -  Generate an operand (a single value in a register).
-        -  Generate n values in adjacent registers (-1 meaning all).
-        -  Generate either [ f, this ] or [ f ] depending on expression.
-        -  Assign values into the lvalues provided.
- 
-*/
-
-enum xec_lrkind
-{
-    XEC_LVALUE,
-    XEC_EVALUATE,
-    XEC_OPERAND,
-    XEC_MULTIVAL,
-    XEC_THISCALL,
-    XEC_ASSIGN,
-};
-
-
-class xec_lrvalue
-{
-public:
-
-    xec_lrvalue( xec_emitcode* e, xec_lrkind kind );
-    xec_lrvalue( xec_emitcode* e, xec_lrkind kind, int count );
-
-    xec_lrvalue thiscall(); // multival get thiscall at start (munge count if this)
-    xec_lrvalue append();   // multival append.
-
-    void        mono(); // restrict request to 1 value
-    void        allocate( xec_lrvalue* v ); // allocate storage reusing storage from v
-    
-    void        local( int local );
-    void        global( int key );
-    void        upval( int upval );
-    void        lookup( xec_lrvalue* o, int key );
-    void        indexkey( xec_lrvalue* o, xec_lrvalue* k );
-    void        index( xec_lrvalue* o, xec_lrvalue* i );
-
-    bool        open(); // if this is an operand, allocate temporary, if it's an lvalue, possibly allocate temporary.
-    bool        update( int r ); // evaluate lvalue, also open (possibly reuse r as temp)
-    void        close(); // assign lvalue and turn into rvalue, do not allocate storage.
-
-    int         count();
-    int         r();
-    
-
-};
-
-
-
-
-
-
-#define xec_looseop void
-#define ARGT xec_lrvalue*
-#define ARG xec_lrvalue* v
-
-
-
-class xec_compiler : public xec_astvisitor< xec_compiler, xec_looseop, ARGT >
-{
-public:
-
-    explicit xec_compiler( xec_emitcode* b );
-    
-    using xec_astvisitor< xec_compiler, xec_looseop, ARGT >::fallback;
-    using xec_astvisitor< xec_compiler, xec_looseop, ARGT >::visit;
-
-    xec_looseop visit( xec_declaration_var* decl );
-    xec_looseop visit( xec_declaration_object* decl );
-    xec_looseop visit( xec_declaration_prototype* decl );
-    xec_looseop visit( xec_declaration_function* decl );
-
-    xec_looseop visit( xec_expression_null* expr );
-    xec_looseop visit( xec_expression_bool* expr );
-    xec_looseop visit( xec_expression_number* expr );
-    xec_looseop visit( xec_expression_string* expr );
-    xec_looseop visit( xec_expression_identifier* expr );
-    xec_looseop visit( xec_expression_lookup* expr );
-    xec_looseop visit( xec_expression_indexkey* expr );
-    xec_looseop visit( xec_expression_index* expr );
-    xec_looseop visit( xec_expression_yield* expr );
-    xec_looseop visit( xec_expression_call* expr );
-    xec_looseop visit( xec_expression_preop* expr );
-    xec_looseop visit( xec_expression_postop* expr );
-    xec_looseop visit( xec_expression_unary* expr );
-    xec_looseop visit( xec_expression_binary* expr );
-    xec_looseop visit( xec_expression_comparison* expr );
-    xec_looseop visit( xec_expression_logical* expr );
-    xec_looseop visit( xec_expression_conditional* expr );
-    xec_looseop visit( xec_expression_varargs* expr );
-    xec_looseop visit( xec_expression_unpack* expr );
-    xec_looseop visit( xec_expression_list* expr );
-    xec_looseop visit( xec_expression_assign* expr );
-    xec_looseop visit( xec_expression_mono* expr );
-    xec_looseop visit( xec_expression_declare* expr );
-    xec_looseop visit( xec_constructor_new* expr );
-    xec_looseop visit( xec_constructor_list* expr );
-    xec_looseop visit( xec_constructor_table* expr );
-    xec_looseop visit( xec_constructor_object* expr );
-    xec_looseop visit( xec_constructor_function* expr );
-    
-    xec_looseop visit( xec_statement_declaration* stmt );
-    xec_looseop visit( xec_statement_expression* stmt );
-    xec_looseop visit( xec_statement_compound* stmt );
-    xec_looseop visit( xec_statement_delete* stmt );
-    xec_looseop visit( xec_statement_if* stmt );
-    xec_looseop visit( xec_statement_switch* stmt );
-    xec_looseop visit( xec_statement_case* stmt );
-    xec_looseop visit( xec_statement_while* stmt );
-    xec_looseop visit( xec_statement_do* stmt );
-    xec_looseop visit( xec_statement_foreach* stmt );
-    xec_looseop visit( xec_statement_for* stmt );
-    xec_looseop visit( xec_statement_continue* stmt );
-    xec_looseop visit( xec_statement_break* stmt );
-    xec_looseop visit( xec_statement_return* stmt );
-    xec_looseop visit( xec_statement_yield* stmt );
-    xec_looseop visit( xec_statement_using* stmt );
-    xec_looseop visit( xec_statement_usingscope* stmt );
-    xec_looseop visit( xec_statement_try* stmt );
-    xec_looseop visit( xec_statement_catch* stmt );
-    xec_looseop visit( xec_statement_throw* stmt );
-
-
-private:
-
-    xec_opcode comparisonop( xec_operator_kind op, bool* inverted );
-
-    xec_emitcode* e;
-
-};
-
-
-
-
-xec_compiler::xec_compiler( xec_emitcode* e )
-    :   e( e )
-{
-}
-
-
-xec_looseop xec_compiler::visit( xec_declaration_var* decl )
-{
-}
-
-xec_looseop xec_compiler::visit( xec_declaration_object* decl )
-{
-}
-
-xec_looseop xec_compiler::visit( xec_declaration_prototype* decl )
-{
-}
-
-xec_looseop xec_compiler::visit( xec_declaration_function* decl )
-{
-}
-
-
-
-xec_looseop xec_compiler::visit( xec_expression_null* expr )
-{
-    if ( v->open() )
+    if ( expr->get_rest_count() > 1 )
     {
-        e->emit( XEC_WIPE, v->r(), 1 );
-        v->close();
-    }
-}
-
-xec_looseop xec_compiler::visit( xec_expression_bool* expr )
-{
-    if ( v->open() )
-    {
-        e->emit( XEC_LITERAL, v->r(), e->literal( expr->get_value() ) );
-        v->close();
-    }
-}
-
-xec_looseop xec_compiler::visit( xec_expression_number* expr )
-{
-    if ( v->open() )
-    {
-        e->emit( XEC_LITERAL, v->r(), e->literal( expr->get_value() ) );
-        v->close();
-    }
-}
-
-xec_looseop xec_compiler::visit( xec_expression_string* expr )
-{
-    if ( v->open() )
-    {
-        e->emit( XEC_LITERAL, v->r(), e->literal( expr->get_string() ) );
-        v->close();
-    }
-}
-
-xec_looseop xec_compiler::visit( xec_expression_identifier* expr )
-{
-    xec_name* name = expr->get_name();
-    
-    // TODO: identifiers scoped to this (or to outer thises) and methods,
-    // which should be thiscall.
-    
-    if ( name->get_kind() == XEC_NAME_GLOBAL )
-    {
-        v->global( e->key( name->get_name() ) );
-    }
-    else if ( name->get_scope()->get_function() != e->get_function() )
-    {
-        if ( name->get_kind() != XEC_NAME_BASE )
+        // The final result must survive through the shortcut evaluations.
+        xec_varslot rslot = e->temp();
+        e->set( rslot, r );
+        
+        for ( size_t i = 1; i < expr->get_rest_count(); ++i )
         {
-            v->upval( e->upval( name ) );
+            // Only evaluate later conditions if the previous ones are true.
+            e->flow_iftrue( r );
+            r = e->get( rslot );
+            
+            // Evaluate.
+            a = b;
+            b = visit( expr->get_rest_expr( i ) );
+            opcode = comparison_op( expr->get_operator( 0 ), &inverted );
+            r = e->emit_binary( opcode, a, b );
+            if ( inverted )
+                r = e->emit_unary( XEC_NOT, r );
+        
+            // Store it.
+            e->set( rslot, r );
         }
-        else
+        
+        // Close shortcuts.
+        for ( size_t i = 1; i < expr->get_rest_count(); ++i )
         {
-            xec_name* thisname = name->get_scope()->lookup_name( "this" );
-            xec_lrvalue thisval( e, XEC_OPERAND );
-            e->emit( XEC_GETUPVAL, thisval.r(), e->upval( thisname ) );
-            v->lookup( &thisval, e->key( "base" ) );
+            e->flow_endif();
         }
+        
+        return e->get( rslot );
     }
     else
     {
-        // local
-        if ( name->get_kind() != XEC_NAME_BASE )
-        {
-            v->local( e->local( name ) );
-        }
-        else
-        {
-            xec_name* thisname = name->get_scope()->lookup_name( "this" );
-            xec_lrvalue thisval( e, XEC_OPERAND );
-            thisval.local( e->local( thisname ) );
-            v->lookup( &thisval, e->key( "base" ) );
-        }
-    }
-}
-
-xec_looseop xec_compiler::visit( xec_expression_lookup* expr )
-{
-    xec_lrvalue o( e, XEC_OPERAND );
-    visit( expr->get_expr(), &o );
-    v->lookup( &o, e->key( expr->get_identifier() ) );
-}
-
-xec_looseop xec_compiler::visit( xec_expression_indexkey* expr )
-{
-    xec_lrvalue o( e, XEC_OPERAND );
-    xec_lrvalue k( e, XEC_OPERAND );
-    visit( expr->get_expr(), &o );
-    visit( expr->get_index(), &k );
-    v->indexkey( &o, &k );
-}
-
-xec_looseop xec_compiler::visit( xec_expression_index* expr )
-{
-    xec_lrvalue o( e, XEC_OPERAND );
-    xec_lrvalue i( e, XEC_OPERAND );
-    visit( expr->get_expr(), &o );
-    visit( expr->get_index(), &i );
-    v->index( &o, &i );
-}
-
-xec_looseop xec_compiler::visit( xec_expression_yield* expr )
-{
-    /*
-        A yield instruction is similar to a call.
-        
-            yield r, #m, #n
-     
-        Where:
-            -  r is the register containing the first parameter.
-            -  m is the number of arguments, or -1 to use the stack top.
-            -  n is the number of results desired, or -1 to set the stack top.
-            
-    */
-
-    if ( ! expr->get_unpack() )
-        v->mono();
-
-    xec_lrvalue alloc( e, XEC_MULTIVAL );
-    visit( expr->get_arguments(), &alloc );
-    v->allocate( &alloc );
-    e->emit( XEC_YIELD, alloc.r(), alloc.count(), v->count() );
-
-}
-
-
-xec_looseop xec_compiler::visit( xec_expression_call* expr )
-{
-    /*
-        A call instruction has the following form:
-        
-            call r, #m, #n
-            
-        Where:
-            -  r is the register containing the function to call.
-            -  m is the number of parameters after r, or -1 to use stack top.
-            -  n is the number of results desired, or -1 to set the stack top.
-
-    */
-
-    if ( ! expr->get_unpack() )
-        v->mono();
-
-    xec_lrvalue alloc( e, XEC_MULTIVAL );
-    xec_lrvalue f = alloc.thiscall();
-    visit( expr->get_expr(), &f );
-    visit( expr->get_arguments(), &alloc );
-    v->allocate( &alloc );
-    e->emit( XEC_CALL, f.r(), alloc.count(), v->count() );
-}
-
-xec_looseop xec_compiler::visit( xec_expression_preop* expr )
-{
-    switch ( expr->get_operator() )
-    {
-    case XEC_OPERATOR_INCREMENT:
-    {
-        if ( v->open() )
-        {
-            xec_lrvalue l( e, XEC_LVALUE );
-            visit( expr->get_expr(), &l );
-
-            if ( l.update( v->r() ) )
-            {
-                xec_lrvalue a( e, XEC_OPERAND );
-                e->emit( XEC_LITERAL, a.r(), e->literal( 1.0 ) );
-                e->emit( XEC_ADD, l.r(), l.r(), a.r() );
-                e->emit( XEC_MOVE, v->r(), l.r(), 0 );
-                l.close();
-            }
-            
-            v->close();
-        }
-        else
-        {
-            xec_lrvalue l( e, XEC_LVALUE );
-            visit( expr->get_expr(), &l );
-
-            if ( l.update( -1 ) )
-            {
-                xec_lrvalue a( e, XEC_OPERAND );
-                e->emit( XEC_LITERAL, a.r(), e->literal( 1.0 ) );
-                e->emit( XEC_ADD, l.r(), l.r(), a.r() );
-                l.close();
-            }
-        }
-    }
-    
-    case XEC_OPERATOR_DECREMENT:
-    {
-        if ( v->open() )
-        {
-            xec_lrvalue l( e, XEC_LVALUE );
-            visit( expr->get_expr(), &l );
-        
-            if ( l.update( v->r() ) )
-            {
-                xec_lrvalue a( e, XEC_OPERAND );
-                e->emit( XEC_LITERAL, a.r(), e->literal( 1.0 ) );
-                e->emit( XEC_SUB, l.r(), l.r(), a.r() );
-                e->emit( XEC_MOVE, v->r(), l.r(), 0 );
-                l.close();
-            }
-            
-            v->close();
-        }
-        else
-        {
-            xec_lrvalue l( e, XEC_LVALUE );
-            visit( expr->get_expr(), &l );
-
-            if ( l.update( -1 ) )
-            {
-                xec_lrvalue a( e, XEC_OPERAND );
-                e->emit( XEC_LITERAL, a.r(), e->literal( 1.0 ) );
-                e->emit( XEC_SUB, l.r(), l.r(), a.r() );
-                l.close();
-            }
-        }
-        
-        break;
-    }
-
-    default:
-        assert( ! "invalid prefix operator" );
-        break;
-    }
-    
-}
-
-xec_looseop xec_compiler::visit( xec_expression_postop* expr )
-{
-    switch ( expr->get_operator() )
-    {
-    case XEC_OPERATOR_INCREMENT:
-    {
-        if ( v->open() )
-        {
-            xec_lrvalue l( e, XEC_LVALUE );
-            visit( expr->get_expr(), &l );
-        
-            if ( l.update( -1 ) )
-            {
-                e->emit( XEC_MOVE, v->r(), l.r(), 0 );
-                xec_lrvalue a( e, XEC_OPERAND );
-                e->emit( XEC_LITERAL, a.r(), e->literal( 1.0 ) );
-                e->emit( XEC_ADD, l.r(), l.r(), a.r() );
-                l.close();
-            }
-            
-            v->close();
-        }
-        else
-        {
-            xec_lrvalue l( e, XEC_LVALUE );
-            visit( expr->get_expr(), &l );
-        
-            if ( l.update( -1 ) )
-            {
-                xec_lrvalue a( e, XEC_OPERAND );
-                e->emit( XEC_LITERAL, a.r(), e->literal( 1.0 ) );
-                e->emit( XEC_ADD, l.r(), l.r(), a.r() );
-                l.close();
-            }
-        }
-
-        break;
-    }
-    
-    case XEC_OPERATOR_DECREMENT:
-    {
-        if ( v->open() )
-        {
-            xec_lrvalue l( e, XEC_LVALUE );
-            visit( expr->get_expr(), &l );
-        
-            if ( l.update( -1 ) )
-            {
-                e->emit( XEC_MOVE, v->r(), l.r(), 0 );
-                xec_lrvalue a( e, XEC_OPERAND );
-                e->emit( XEC_LITERAL, a.r(), e->literal( 1.0 ) );
-                e->emit( XEC_SUB, l.r(), l.r(), a.r() );
-                l.close();
-            }
-            
-            v->close();
-        }
-        else
-        {
-            xec_lrvalue l( e, XEC_LVALUE );
-            visit( expr->get_expr(), &l );
-        
-            if ( l.update( -1 ) )
-            {
-                xec_lrvalue a( e, XEC_OPERAND );
-                e->emit( XEC_LITERAL, a.r(), e->literal( 1.0 ) );
-                e->emit( XEC_SUB, l.r(), l.r(), a.r() );
-                l.close();
-            }
-        }
-
-        break;
-    }
-    
-    default:
-        assert( ! "invalid postfix operator" );
-        break;
-    }
-}
-
-xec_looseop xec_compiler::visit( xec_expression_unary* expr )
-{
-    switch ( expr->get_operator() )
-    {
-    case XEC_OPERATOR_POSITIVE:
-    {
-        visit( expr->get_expr(), v );
-    }
-        
-    case XEC_OPERATOR_NEGATIVE:
-    {
-        xec_lrvalue o( e, XEC_OPERAND );
-        visit( expr->get_expr(), &o );
-        if ( v->open() )
-        {
-            e->emit( XEC_NEG, v->r(), o.r(), 0 );
-            e->close();
-        }
-    }
-    
-    case XEC_OPERATOR_LOGICNOT:
-    {
-        // Logical not operation will occur when operand is realized.  This
-        // allows potential elision of not operations in logical expressions.
-        return invertnot( visit( expr->get_expr(), DARG ) );
-    }
-    
-    case XEC_OPERATOR_BITNOT:
-    {
-        xec_alloc a = realize( visit( expr->get_expr(), DARG ) );
-        r = allocate( r, a );
-        e->emit( XEC_NOT, r, a, 0 );
-        return r;
-    }
-    
-    default:
-        assert( ! "invalid postfix operator" );
+        // No shortcut evaulation required.
         return r;
     }
 }
-
-xec_looseop xec_compiler::visit( xec_expression_binary* expr )
-{
-    xec_opcode opcode;
-    switch ( expr->get_operator() )
-    {
-    case XEC_OPERATOR_MULTIPLY:     opcode = XEC_MUL;       break;
-    case XEC_OPERATOR_DIVIDE:       opcode = XEC_DIV;       break;
-    case XEC_OPERATOR_MODULUS:      opcode = XEC_MOD;       break;
-    case XEC_OPERATOR_INTDIV:       opcode = XEC_IDIV;      break;
-    case XEC_OPERATOR_ADD:          opcode = XEC_ADD;       break;
-    case XEC_OPERATOR_SUBTRACT:     opcode = XEC_SUB;       break;
-    case XEC_OPERATOR_LSHIFT:       opcode = XEC_LSL;       break;
-    case XEC_OPERATOR_RSHIFT:       opcode = XEC_ASR;       break;
-    case XEC_OPERATOR_URSHIFT:      opcode = XEC_LSR;       break;
-    case XEC_OPERATOR_BITAND:       opcode = XEC_AND;       break;
-    case XEC_OPERATOR_BITXOR:       opcode = XEC_XOR;       break;
-    case XEC_OPERATOR_BITOR:        opcode = XEC_OR;        break;
-    case XEC_OPERATOR_CONCATENATE:  opcode = XEC_CONCAT;    break;
-    default:
-        assert( ! "invalid binary operator" );
-        return r;
-    }
-    
-    xec_alloc a = realize( visit( expr->get_lhs(), DARG ) );
-    xec_alloc b = realize( visit( expr->get_rhs(), DARG ) );
-    r = allocate( r, a, b );
-    e->emit( opcode, r, a, b );
-    return r;
-}
-
-xec_looseop xec_compiler::visit( xec_expression_comparison* expr )
-{
-    // Chained comparison operators follow Python - a < b < c is the same
-    // as ( a < b ) && ( b < c ), with b evaluated at most once.  Shortcut
-    // evaluation is present, so c is only evaluated if a < b is true.
-    
-    xec_alloc a = realize( visit( expr->get_first_expr(), DARG ) );
-    
-    for ( size_t i = 0; i < expr->get_rest_count() - 1; ++i )
-    {
-        xec_alloc b = realize( visit( expr->get_rest_expr( i ), DARG ) );
-        r = shuffle( r, a, b );
-
-        bool inverted;
-        xec_opcode opcode = comparisonop( expr->get_operator( i ), &inverted );
-        e->emit( opcode, r, a, b );
-
-        if ( inverted )
-            r = invertnot( r );
-        
-        r = shortand( r );
-        
-        a = b;
-    }
-    
-    size_t i = expr->get_rest_count() - 1;
-    xec_alloc b = realize( visit( expr->get_rest_expr( i ), DARG ) );
-
-    r = allocate( r, a, b );
-
-    bool inverted;
-    xec_opcode opcode = comparisonop( expr->get_operator( i ), &inverted );
-    e->emit( opcode, r, a, b );
-
-    if ( inverted )
-        r = invertnot( r );
-    
-    return r;
-}
-
-
-xec_opcode xec_compiler::comparisonop( xec_operator_kind op, bool* inverted )
-{
-    switch ( op )
-    {
-    case XEC_OPERATOR_EQUAL:    *inverted = false; return XEC_EQ;
-    case XEC_OPERATOR_NOTEQUAL: *inverted = true;  return XEC_EQ;
-    case XEC_OPERATOR_LESS:     *inverted = false; return XEC_LT;
-    case XEC_OPERATOR_GREATER:  *inverted = true;  return XEC_LE;
-    case XEC_OPERATOR_LEQUAL:   *inverted = false; return XEC_LE;
-    case XEC_OPERATOR_GEQUAL:   *inverted = true;  return XEC_LT;
-    case XEC_OPERATOR_IN:       *inverted = false; return XEC_IN;
-    case XEC_OPERATOR_NOTIN:    *inverted = true;  return XEC_IN;
-    case XEC_OPERATOR_IS:       *inverted = false; return XEC_IS;
-    case XEC_OPERATOR_NOTIS:    *inverted = true;  return XEC_IS;
-    default:
-        assert( ! "invalid comparison operator" );
-        *inverted = false; return XEC_EQ;
-    }
-}
-
 
 xec_looseop xec_compiler::visit( xec_expression_logical* expr )
 {
-    switch( expr->get_operator() )
+    switch ( expr->get_operator() )
     {
     case XEC_OPERATOR_LOGICAND:
     {
-        r = visit( expr->get_lhs(), DARG );
-        r = shortand( r );
-        r = visit( expr->get_rhs(), r );
-        return r;
+        xec_varslot rslot = e->temp();
+        xec_looseop r = visit( expr->get_lhs() );
+        e->set( rslot, r );
+        e->flow_iftrue( r );
+        r = visit( expr->get_rhs() );
+        e->set( rslot, r );
+        e->flow_endif();
+        return e->get( rslot );
     }
     
     case XEC_OPERATOR_LOGICXOR:
     {
-        bool ainv, binv;
-        xec_alloc a = realizeinv( visit( expr->get_lhs(), DARG ), &ainv );
-        xec_alloc b = realizeinv( visit( expr->get_rhs(), DARG ), &binv );
-        
-        r = allocate( r, a, b );
-        e->emit( XEC_LXOR, r, a, b );
-        
-        // If both operands were normal or both were inverted, then the
-        // xor operation gives the correct result.  If only one operand
-        // was inverted, then the result is always wrong and requires
-        // inversion itself.
-        if ( ainv != binv )
-            r = invertnot( r );
-        
-        return r;
+        xec_looseop a = visit( expr->get_lhs() );
+        xec_looseop b = visit( expr->get_rhs() );
+        return e->emit_binary( XEC_LXOR, a, b );
     }
     
     case XEC_OPERATOR_LOGICOR:
     {
-        r = visit( expr->get_lhs(), DARG );
-        r = shortor( r );
-        r = visit( expr->get_rhs(), r );
-        return r;
+        xec_varslot rslot = e->temp();
+        xec_looseop r = visit( expr->get_lhs() );
+        e->set( rslot, r );
+        e->flow_iffalse( r );
+        r = visit( expr->get_rhs() );
+        e->set( rslot, r );
+        e->flow_endif();
+        return e->get( rslot );
     }
     
     default:
         assert( ! "invalid logical operator" );
-        return r;
+        return INVALIDOP;
     }
 }
 
 xec_looseop xec_compiler::visit( xec_expression_conditional* expr )
 {
-    return r;
+    xec_varslot rslot = e->temp();
+    xec_looseop q = visit( expr->get_condition() );
+    e->flow_iftrue( q );
+    e->set( rslot, visit( expr->get_iftrue() ) );
+    e->flow_else();
+    e->set( rslot, visit( expr->get_iffalse() ) );
+    e->flow_endif();
+    return e->get( rslot );
 }
 
 xec_looseop xec_compiler::visit( xec_expression_varargs* expr )
 {
-    r = allocate( r );
-    e->emit( XEC_VARARGS, r, 0, r.count() );
-    return r;
+    xec_unpack_list empty( e );
+    return e->emit_unpack( XEC_VARARGS, XEC_UNPACK_MONO, &empty );
 }
 
 xec_looseop xec_compiler::visit( xec_expression_unpack* expr )
 {
-    xec_alloc a = realize( visit( expr->get_expr(), DARG ) );
-    r = allocate( r, a );
-    e->emit( XEC_UNPACK, r, a, r.count() );
+    xec_unpack_list list( e );
+    list.append( visit( expr->get_expr() ) );
+    xec_looseop r = e->emit_unpack( XEC_UNPACK, XEC_UNPACK_MONO, &list );
     return r;
 }
 
 xec_looseop xec_compiler::visit( xec_expression_list* expr )
 {
+    xec_looseop r = INVALIDOP;
+    for ( size_t i = 0; i < expr->get_count(); ++i )
+    {
+        xec_looseop l = visit( expr->get_expr( i ) );
+        if ( r == INVALIDOP )
+            r = l;
+    }
+    if ( expr->get_final() )
+    {
+        xec_looseop l = visit( expr->get_final() );
+        if ( r == INVALIDOP )
+            r = l;
+    }
     return r;
 }
 
 xec_looseop xec_compiler::visit( xec_expression_assign* expr )
 {
-    // Right this is the complicated one.
+    xec_lvalue_list lvalues( e );
+    compiler_lvalue.visit( expr->get_lhs(), &lvalues );
     
+    xec_unpack_list rvalues( e );
+    compiler_unpack.visit( expr->get_rhs(), XEC_UNPACK_FINITE, &rvalues );
     
-    expr->get_operator();
-    expr->get_rhs();
+    xec_looseop r = INVALIDOP;
+    for ( size_t i = 0; i < lvalues.count(); ++i )
+    {
+        xec_looseop l = lvalues.assign( i, rvalues.select( i ) );
+        if ( r == INVALIDOP )
+            r = l;
+    }
+    
     return r;
 }
 
 xec_looseop xec_compiler::visit( xec_expression_mono* expr )
 {
-    return r;
+    return visit( expr->get_expr() );
 }
 
 xec_looseop xec_compiler::visit( xec_expression_declare* expr )
 {
+    xec_lvalue_list lvalues( e );
+    compiler_declare.visit( expr->get_name_list(), &lvalues );
+
+    xec_unpack_list rvalues( e );
+    compiler_unpack.visit( expr->get_expr_list(), XEC_UNPACK_FINITE, &rvalues );
+    
+    xec_looseop r = INVALIDOP;
+    for ( size_t i = 0; i < lvalues.count(); ++i )
+    {
+        xec_looseop l = lvalues.assign( i, rvalues.select( i ) );
+        if ( r == INVALIDOP )
+            r = l;
+    }
+    
     return r;
 }
 
-
-
 xec_looseop xec_compiler::visit( xec_constructor_new* expr )
 {
+    xec_unpack_list arguments( e );
+    arguments.append( visit( expr->get_proto() ) );
+    compiler_unpack.visit( expr->get_arguments(), XEC_UNPACK_ALL, &arguments );
+    xec_looseop r = e->emit_unpack( XEC_NEW, XEC_UNPACK_MONO, &arguments );
     return r;
 }
 
 xec_looseop xec_compiler::visit( xec_constructor_list* expr )
 {
-    return r;
+    xec_looseop l = e->emit_immed( XEC_LIST, (int)expr->get_count() );
+    
+    for ( size_t i = 0; i < expr->get_count(); ++i )
+    {
+        xec_looseop v = visit( expr->get_expr( i ) );
+        e->emit_trinary( XEC_PUTINDEX, l, e->literal( (double)i ), v );
+    }
+    
+    if ( expr->get_final() )
+    {
+        xec_unpack_list final( e );
+        final.append( l );
+        compiler_unpack.visit( expr->get_final(), XEC_UNPACK_ALL, &final );
+        e->emit_unpack( XEC_APPEND, XEC_UNPACK_MONO, &final );
+    }
+    
+    return l;
 }
 
 xec_looseop xec_compiler::visit( xec_constructor_table* expr )
 {
-    return r;
+    xec_looseop t = e->emit_immed( XEC_TABLE, (int)expr->get_count() );
+    
+    for ( size_t i = 0; i < expr->get_count(); ++i )
+    {
+        xec_looseop x = visit( expr->get_key( i ) );
+        xec_looseop v = visit( expr->get_value( i ) );
+        e->emit_trinary( XEC_PUTINDEX, t, x, v );
+    }
+    
+    return t;
 }
 
 xec_looseop xec_compiler::visit( xec_constructor_object* expr )
 {
-    return r;
+
+
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_constructor_function* expr )
 {
-    return r;
+    return INVALIDOP;
 }
-
 
 
 xec_looseop xec_compiler::visit( xec_statement_declaration* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_expression* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_compound* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_delete* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_if* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_switch* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_case* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_while* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_do* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_foreach* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_for* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_continue* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_break* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_return* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_yield* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_using* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_usingscope* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_try* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_catch* stmt )
 {
-    return r;
+    return INVALIDOP;
 }
 
 xec_looseop xec_compiler::visit( xec_statement_throw* stmt )
 {
-    return r;
-}
-
-
-
-xec_alloc xec_compiler::local( int r )
-{
-    // Allocation represents register r, the location of a local.
-    return xec_alloc();
-}
-
-xec_alloc xec_compiler::realize( xec_alloc r )
-{
-    // 'Realize' an allocation so that it can be used as an operand.
-
-    bool inverted;
-    r = realizeinv( r, &inverted );
-
-    if ( inverted )
-        e->emit( XEC_NOT, r, r, 0 );
-
-    return r;
-}
-
-xec_alloc xec_compiler::realizeinv( xec_alloc r, bool* inverted )
-{
-    // 'Realize' an allocation so that it can be used as an operand,
-    // but allow a resulting boolean value to potentially be inverted.
-    return r;
-}
-
-xec_alloc xec_compiler::allocate()
-{
-    return xec_alloc();
-}
-
-xec_alloc xec_compiler::allocate( xec_alloc r )
-{
-    // 'Allocate' an allocation to provide a result location.
-    return r;
-}
-
-xec_alloc xec_compiler::allocate( xec_alloc r, xec_alloc a )
-{
-    // Provide a result location for an operation which consumes operand a.
-    return r;
-}
-
-xec_alloc xec_compiler::allocate( xec_alloc r, xec_alloc a, xec_alloc b )
-{
-    // Provide a result location for an operation consuming operands a and b.
-    return r;
-}
-
-xec_alloc xec_compiler::shuffle( xec_alloc r, xec_alloc a, xec_alloc b )
-{
-    // Provide a result location for an operation consuming operand a, but
-    // operand b must remain valid.  There may be a chain of shuffles.
-    return r;
-}
-
-xec_alloc xec_compiler::invertnot( xec_alloc r )
-{
-    // r represents a conditional expression which requires inversion when
-    // it is realized or when it is used as a condition.
-    return r;
-}
-
-xec_alloc xec_compiler::shortand( xec_alloc r )
-{
-    // r represents a conditional expression.  Set up shortcut evaluation
-    // of a logical and operation - if the expression is false at this point
-    // then the final result is false.  Note that the value may be inverted.
-    return r;
-}
-
-xec_alloc xec_compiler::shortor( xec_alloc r )
-{
-    // r represents a conditional expression.  Set up shortcut evaluation
-    // of a logical or operation - if the expression is true at this point
-    // then the final result is true.  Note that the value may be inverted.
-    return r;
-}
-
-void xec_compiler::release( xec_alloc r )
-{
-    // Release an allocation.
+    return INVALIDOP;
 }
 
 
 
 
 
-
-void xec_compile( xec_parser* parser, xec_code* code )
-{
-    xec_emitcode emitter;
-    xec_compiler compiler( &emitter );
-    compiler.visit( parser->get_script(), DARG );
-}
-
-
+ 
+    
+    
+ 
+    
 
 #endif
-
-#endif 
-
-
-
