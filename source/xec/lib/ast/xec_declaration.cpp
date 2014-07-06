@@ -39,7 +39,7 @@ xec_declaration_var::xec_declaration_var( xec_token* token,
 {
 }
 
-xec_declaration_dispatch xec_declaration_var::visitor_dispatch()
+xec_declaration_kind xec_declaration_var::get_kind()
 {
     return XEC_DECLARATION_VAR;
 }
@@ -74,7 +74,7 @@ xec_declaration_object::xec_declaration_object(
 {
 }
 
-xec_declaration_dispatch xec_declaration_object::visitor_dispatch()
+xec_declaration_kind xec_declaration_object::get_kind()
 {
     return XEC_DECLARATION_OBJECT;
 }
@@ -112,7 +112,7 @@ xec_declaration_prototype::xec_declaration_prototype(
 {
 }
 
-xec_declaration_dispatch xec_declaration_prototype::visitor_dispatch()
+xec_declaration_kind xec_declaration_prototype::get_kind()
 {
     return XEC_DECLARATION_PROTOTYPE;
 }
@@ -175,7 +175,7 @@ xec_declaration_function::xec_declaration_function(
 {
 }
 
-xec_declaration_dispatch xec_declaration_function::visitor_dispatch()
+xec_declaration_kind xec_declaration_function::get_kind()
 {
     return XEC_DECLARATION_FUNCTION;
 }

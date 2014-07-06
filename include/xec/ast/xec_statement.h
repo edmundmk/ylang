@@ -22,7 +22,7 @@ class xec_statement_catch;
 class xec_scope;
 
 
-enum xec_statement_dispatch
+enum xec_statement_kind
 {
     XEC_STATEMENT_DECLARATION,
     XEC_STATEMENT_EXPRESSION,
@@ -54,7 +54,7 @@ public:
 
     virtual ~xec_statement();
     
-    virtual xec_statement_dispatch  visitor_dispatch()  = 0;
+    virtual xec_statement_kind  get_kind()  = 0;
     virtual int                     get_location()      = 0;
 
 };
@@ -72,7 +72,7 @@ public:
 
     explicit xec_statement_declaration( xec_declaration* decl );
 
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
     xec_declaration* get_decl();
@@ -95,7 +95,7 @@ public:
 
     explicit xec_statement_expression( xec_expression* expr );
 
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
     xec_expression* get_expr();
@@ -117,7 +117,7 @@ public:
 
     xec_statement_compound();
     
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
     void set_token( xec_token* token );
@@ -147,7 +147,7 @@ public:
 
     xec_statement_delete( xec_token* token, xec_expression_list* expr_list );
     
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
     xec_expression_list* get_expr_list();
@@ -172,7 +172,7 @@ public:
     xec_statement_if( xec_token* token, xec_expression* expr,
                     xec_statement* iftrue, xec_statement* iffalse );
 
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
 
     void set_scope( xec_scope* scope );
@@ -206,7 +206,7 @@ public:
     xec_statement_switch( xec_token* token,
                     xec_expression* expr, xec_statement_compound* body );
 
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
     void set_scope( xec_scope* scope );
@@ -236,7 +236,7 @@ public:
 
     xec_statement_case( xec_token* token, xec_expression* expr );
 
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
     xec_expression* get_expr();
@@ -261,7 +261,7 @@ public:
     xec_statement_while(
             xec_token* token, xec_expression* expr, xec_statement* body );
     
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
     void set_scope( xec_scope* scope );
@@ -291,7 +291,7 @@ public:
     xec_statement_do(
             xec_token* token, xec_statement* body, xec_expression* expr );
 
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
     void set_scope( xec_scope* scope );
@@ -324,7 +324,7 @@ public:
     xec_statement_foreach( xec_token* token, xec_expression_list* expr_list,
             xec_expression* expr, xec_statement* body );
 
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
 
     void set_eachkey( bool eachkey );
@@ -363,7 +363,7 @@ public:
     xec_statement_for( xec_token* token, xec_expression* init,
         xec_expression* expr, xec_expression* update, xec_statement* body );
 
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
 
     void set_scope( xec_scope* scope );
@@ -396,7 +396,7 @@ public:
 
     explicit xec_statement_continue( xec_token* token );
 
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
 private:
@@ -416,7 +416,7 @@ public:
 
     explicit xec_statement_break( xec_token* token );
 
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
 private:
@@ -437,7 +437,7 @@ public:
 
     xec_statement_return( xec_token* token, xec_expression_list* expr_list );
 
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
     xec_expression_list* get_expr_list();
@@ -461,7 +461,7 @@ public:
 
     xec_statement_yield( xec_token* token, xec_expression_list* expr_list );
 
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
     xec_expression_list* get_expr_list();
@@ -485,7 +485,7 @@ public:
 
     xec_statement_using( xec_token* token, xec_expression* expr );
 
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
     xec_expression* get_expr();
@@ -510,7 +510,7 @@ public:
     xec_statement_usingscope(
             xec_token* token, xec_expression* expr, xec_statement* body );
     
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
     void set_scope( xec_scope* scope );
@@ -541,7 +541,7 @@ public:
 
     xec_statement_try();
 
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
     void set_body( xec_token* token, xec_statement* body );
@@ -577,7 +577,7 @@ public:
     xec_statement_catch( xec_token* token,
         xec_expression* lvalue, xec_expression* proto, xec_statement* body );
 
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
 
     void set_declare( bool declare );
@@ -608,7 +608,7 @@ public:
 
     explicit xec_statement_throw( xec_token* token, xec_expression* expr );
     
-    virtual xec_statement_dispatch visitor_dispatch();
+    virtual xec_statement_kind get_kind();
     virtual int get_location();
     
     xec_expression* get_expr();

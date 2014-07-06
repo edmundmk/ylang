@@ -108,7 +108,7 @@ return_t xec_astvisitor< visitor_t, return_t, arguments_t ... >::visit( xec_decl
 
     };
     
-    xec_declaration_dispatch index = decl->visitor_dispatch();
+    xec_declaration_kind index = decl->get_kind();
     return ( this->*( dispatch[ index ] ) )( decl, arguments ... );
 }
 
@@ -157,7 +157,7 @@ return_t xec_astvisitor< visitor_t, return_t, arguments_t ... >::visit( xec_expr
         &visitor_t::template dispatch_expr< xec_constructor_function >,
     };
     
-    xec_expression_dispatch index = expr->visitor_dispatch();
+    xec_expression_kind index = expr->get_kind();
     return ( this->*( dispatch[ index ] ) )( expr, arguments ... );
 }
 
@@ -198,7 +198,7 @@ return_t xec_astvisitor< visitor_t, return_t, arguments_t ... >::visit( xec_stat
         &visitor_t::template dispatch_stmt< xec_statement_throw >,
     };
     
-    xec_statement_dispatch index = stmt->visitor_dispatch();
+    xec_statement_kind index = stmt->get_kind();
     return ( this->*( dispatch[ index ] ) )( stmt, arguments ... );
 }
 

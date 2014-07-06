@@ -25,7 +25,7 @@ xec_constructor_new::xec_constructor_new(
 {
 }
 
-xec_expression_dispatch xec_constructor_new::visitor_dispatch()
+xec_expression_kind xec_constructor_new::get_kind()
 {
     return XEC_CONSTRUCTOR_NEW;
 }
@@ -56,7 +56,7 @@ xec_constructor_list::xec_constructor_list()
 {
 }
 
-xec_expression_dispatch xec_constructor_list::visitor_dispatch()
+xec_expression_kind xec_constructor_list::get_kind()
 {
     return XEC_CONSTRUCTOR_LIST;
 }
@@ -107,7 +107,7 @@ xec_constructor_table::xec_constructor_table()
 {
 }
 
-xec_expression_dispatch xec_constructor_table::visitor_dispatch()
+xec_expression_kind xec_constructor_table::get_kind()
 {
     return XEC_CONSTRUCTOR_TABLE;
 }
@@ -158,7 +158,7 @@ xec_constructor_object::xec_constructor_object()
 {
 }
 
-xec_expression_dispatch xec_constructor_object::visitor_dispatch()
+xec_expression_kind xec_constructor_object::get_kind()
 {
     return XEC_CONSTRUCTOR_OBJECT;
 }
@@ -232,7 +232,7 @@ xec_constructor_function::xec_constructor_function(
 {
 }
 
-xec_expression_dispatch xec_constructor_function::visitor_dispatch()
+xec_expression_kind xec_constructor_function::get_kind()
 {
     return XEC_CONSTRUCTOR_FUNCTION;
 }

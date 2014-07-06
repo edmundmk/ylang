@@ -28,6 +28,12 @@ xec_expression_list* xec_expression::as_list()
     return list;
 }
 
+xec_expression_list* xec_expression::is_list()
+{
+    // Not a list!
+    return NULL;
+}
+
 xec_expression* xec_expression::as_mono()
 {
     // Most expressions are mono.
@@ -53,7 +59,7 @@ xec_expression_null::xec_expression_null( xec_token* token )
 {
 }
 
-xec_expression_dispatch xec_expression_null::visitor_dispatch()
+xec_expression_kind xec_expression_null::get_kind()
 {
     return XEC_EXPRESSION_NULL;
 }
@@ -75,7 +81,7 @@ xec_expression_bool::xec_expression_bool( xec_token* token )
 {
 }
 
-xec_expression_dispatch xec_expression_bool::visitor_dispatch()
+xec_expression_kind xec_expression_bool::get_kind()
 {
     return XEC_EXPRESSION_BOOL;
 }
@@ -100,7 +106,7 @@ xec_expression_number::xec_expression_number( xec_token* token )
 {
 }
 
-xec_expression_dispatch xec_expression_number::visitor_dispatch()
+xec_expression_kind xec_expression_number::get_kind()
 {
     return XEC_EXPRESSION_NUMBER;
 }
@@ -126,7 +132,7 @@ xec_expression_string::xec_expression_string( xec_token* token )
 {
 }
 
-xec_expression_dispatch xec_expression_string::visitor_dispatch()
+xec_expression_kind xec_expression_string::get_kind()
 {
     return XEC_EXPRESSION_STRING;
 }
@@ -158,7 +164,7 @@ xec_expression_identifier::xec_expression_identifier( xec_token* token )
 {
 }
 
-xec_expression_dispatch xec_expression_identifier::visitor_dispatch()
+xec_expression_kind xec_expression_identifier::get_kind()
 {
     return XEC_EXPRESSION_IDENTIFIER;
 }
@@ -196,7 +202,7 @@ xec_expression_lookup::xec_expression_lookup(
 {
 }
 
-xec_expression_dispatch xec_expression_lookup::visitor_dispatch()
+xec_expression_kind xec_expression_lookup::get_kind()
 {
     return XEC_EXPRESSION_LOOKUP;
 }
@@ -236,7 +242,7 @@ xec_expression_indexkey::xec_expression_indexkey(
 {
 }
 
-xec_expression_dispatch xec_expression_indexkey::visitor_dispatch()
+xec_expression_kind xec_expression_indexkey::get_kind()
 {
     return XEC_EXPRESSION_INDEXKEY;
 }
@@ -276,7 +282,7 @@ xec_expression_index::xec_expression_index(
 {
 }
 
-xec_expression_dispatch xec_expression_index::visitor_dispatch()
+xec_expression_kind xec_expression_index::get_kind()
 {
     return XEC_EXPRESSION_INDEX;
 }
@@ -312,7 +318,7 @@ xec_expression_yield::xec_expression_yield(
 {
 }
 
-xec_expression_dispatch xec_expression_yield::visitor_dispatch()
+xec_expression_kind xec_expression_yield::get_kind()
 {
     return XEC_EXPRESSION_YIELD;
 }
@@ -365,7 +371,7 @@ xec_expression_call::xec_expression_call(
 {
 }
 
-xec_expression_dispatch xec_expression_call::visitor_dispatch()
+xec_expression_kind xec_expression_call::get_kind()
 {
     return XEC_EXPRESSION_CALL;
 }
@@ -451,7 +457,7 @@ xec_expression_postop::xec_expression_postop(
 {
 }
 
-xec_expression_dispatch xec_expression_postop::visitor_dispatch()
+xec_expression_kind xec_expression_postop::get_kind()
 {
     return XEC_EXPRESSION_POSTOP;
 }
@@ -490,7 +496,7 @@ xec_expression_preop::xec_expression_preop(
 {
 }
 
-xec_expression_dispatch xec_expression_preop::visitor_dispatch()
+xec_expression_kind xec_expression_preop::get_kind()
 {
     return XEC_EXPRESSION_PREOP;
 }
@@ -530,7 +536,7 @@ xec_expression_unary::xec_expression_unary(
 {
 }
 
-xec_expression_dispatch xec_expression_unary::visitor_dispatch()
+xec_expression_kind xec_expression_unary::get_kind()
 {
     return XEC_EXPRESSION_UNARY;
 }
@@ -584,7 +590,7 @@ xec_expression_binary::xec_expression_binary(
 {
 }
 
-xec_expression_dispatch xec_expression_binary::visitor_dispatch()
+xec_expression_kind xec_expression_binary::get_kind()
 {
     return XEC_EXPRESSION_BINARY;
 }
@@ -637,7 +643,7 @@ xec_expression_comparison::xec_expression_comparison( xec_expression* expr )
 {
 }
 
-xec_expression_dispatch xec_expression_comparison::visitor_dispatch()
+xec_expression_kind xec_expression_comparison::get_kind()
 {
     return XEC_EXPRESSION_COMPARISON;
 }
@@ -710,7 +716,7 @@ xec_expression_logical::xec_expression_logical(
 {
 }
 
-xec_expression_dispatch xec_expression_logical::visitor_dispatch()
+xec_expression_kind xec_expression_logical::get_kind()
 {
     return XEC_EXPRESSION_LOGICAL;
 }
@@ -756,7 +762,7 @@ xec_expression_conditional::xec_expression_conditional(
 {
 }
 
-xec_expression_dispatch xec_expression_conditional::visitor_dispatch()
+xec_expression_kind xec_expression_conditional::get_kind()
 {
     return XEC_EXPRESSION_CONDITIONAL;
 }
@@ -792,7 +798,7 @@ xec_expression_varargs::xec_expression_varargs( xec_token* token )
 {
 }
 
-xec_expression_dispatch xec_expression_varargs::visitor_dispatch()
+xec_expression_kind xec_expression_varargs::get_kind()
 {
     return XEC_EXPRESSION_VARARGS;
 }
@@ -819,7 +825,7 @@ xec_expression_unpack::xec_expression_unpack( xec_expression* expr )
 {
 }
 
-xec_expression_dispatch xec_expression_unpack::visitor_dispatch()
+xec_expression_kind xec_expression_unpack::get_kind()
 {
     return XEC_EXPRESSION_UNPACK;
 }
@@ -849,7 +855,7 @@ xec_expression_list::xec_expression_list()
 {
 }
 
-xec_expression_dispatch xec_expression_list::visitor_dispatch()
+xec_expression_kind xec_expression_list::get_kind()
 {
     return XEC_EXPRESSION_LIST;
 }
@@ -887,6 +893,11 @@ xec_expression* xec_expression_list::as_mono()
 }
 
 xec_expression_list* xec_expression_list::as_list()
+{
+    return this;
+}
+
+xec_expression_list* xec_expression_list::is_list()
 {
     return this;
 }
@@ -942,7 +953,7 @@ xec_expression_assign::xec_expression_assign(
 {
 }
 
-xec_expression_dispatch xec_expression_assign::visitor_dispatch()
+xec_expression_kind xec_expression_assign::get_kind()
 {
     return XEC_EXPRESSION_ASSIGN;
 }
@@ -1001,7 +1012,7 @@ xec_expression_mono::xec_expression_mono( xec_expression* expr )
 {
 }
 
-xec_expression_dispatch xec_expression_mono::visitor_dispatch()
+xec_expression_kind xec_expression_mono::get_kind()
 {
     return XEC_EXPRESSION_MONO;
 }
@@ -1030,7 +1041,7 @@ xec_expression_declare::xec_expression_declare( xec_token* token,
 {
 }
 
-xec_expression_dispatch xec_expression_declare::visitor_dispatch()
+xec_expression_kind xec_expression_declare::get_kind()
 {
     return XEC_EXPRESSION_DECLARE;
 }

@@ -30,7 +30,7 @@ xec_statement_declaration::xec_statement_declaration( xec_declaration* decl )
 {
 }
 
-xec_statement_dispatch xec_statement_declaration::visitor_dispatch()
+xec_statement_kind xec_statement_declaration::get_kind()
 {
     return XEC_STATEMENT_DECLARATION;
 }
@@ -56,7 +56,7 @@ xec_statement_expression::xec_statement_expression( xec_expression* expr )
 {
 }
 
-xec_statement_dispatch xec_statement_expression::visitor_dispatch()
+xec_statement_kind xec_statement_expression::get_kind()
 {
     return XEC_STATEMENT_EXPRESSION;
 }
@@ -83,7 +83,7 @@ xec_statement_compound::xec_statement_compound()
 {
 }
 
-xec_statement_dispatch xec_statement_compound::visitor_dispatch()
+xec_statement_kind xec_statement_compound::get_kind()
 {
     return XEC_STATEMENT_COMPOUND;
 }
@@ -143,7 +143,7 @@ xec_statement_delete::xec_statement_delete(
 {
 }
 
-xec_statement_dispatch xec_statement_delete::visitor_dispatch()
+xec_statement_kind xec_statement_delete::get_kind()
 {
     return XEC_STATEMENT_DELETE;
 }
@@ -175,7 +175,7 @@ xec_statement_if::xec_statement_if( xec_token* token, xec_expression* expr,
 {
 }
 
-xec_statement_dispatch xec_statement_if::visitor_dispatch()
+xec_statement_kind xec_statement_if::get_kind()
 {
     return XEC_STATEMENT_IF;
 }
@@ -226,7 +226,7 @@ xec_statement_switch::xec_statement_switch( xec_token* token,
 {
 }
 
-xec_statement_dispatch xec_statement_switch::visitor_dispatch()
+xec_statement_kind xec_statement_switch::get_kind()
 {
     return XEC_STATEMENT_SWITCH;
 }
@@ -271,7 +271,7 @@ xec_statement_case::xec_statement_case(
 {
 }
 
-xec_statement_dispatch xec_statement_case::visitor_dispatch()
+xec_statement_kind xec_statement_case::get_kind()
 {
     return XEC_STATEMENT_CASE;
 }
@@ -302,7 +302,7 @@ xec_statement_while::xec_statement_while(
 {
 }
 
-xec_statement_dispatch xec_statement_while::visitor_dispatch()
+xec_statement_kind xec_statement_while::get_kind()
 {
     return XEC_STATEMENT_WHILE;
 }
@@ -347,7 +347,7 @@ xec_statement_do::xec_statement_do(
 {
 }
 
-xec_statement_dispatch xec_statement_do::visitor_dispatch()
+xec_statement_kind xec_statement_do::get_kind()
 {
     return XEC_STATEMENT_DO;
 }
@@ -401,7 +401,7 @@ xec_statement_foreach::xec_statement_foreach( xec_token* token,
 {
 }
 
-xec_statement_dispatch xec_statement_foreach::visitor_dispatch()
+xec_statement_kind xec_statement_foreach::get_kind()
 {
     return XEC_STATEMENT_FOREACH;
 }
@@ -476,7 +476,7 @@ xec_statement_for::xec_statement_for( xec_token* token, xec_expression* init,
 {
 }
 
-xec_statement_dispatch xec_statement_for::visitor_dispatch()
+xec_statement_kind xec_statement_for::get_kind()
 {
     return XEC_STATEMENT_FOR;
 }
@@ -529,7 +529,7 @@ xec_statement_continue::xec_statement_continue( xec_token* token )
 {
 }
 
-xec_statement_dispatch xec_statement_continue::visitor_dispatch()
+xec_statement_kind xec_statement_continue::get_kind()
 {
     return XEC_STATEMENT_CONTINUE;
 }
@@ -550,7 +550,7 @@ xec_statement_break::xec_statement_break( xec_token* token )
 {
 }
 
-xec_statement_dispatch xec_statement_break::visitor_dispatch()
+xec_statement_kind xec_statement_break::get_kind()
 {
     return XEC_STATEMENT_BREAK;
 }
@@ -574,7 +574,7 @@ xec_statement_return::xec_statement_return(
 {
 }
 
-xec_statement_dispatch xec_statement_return::visitor_dispatch()
+xec_statement_kind xec_statement_return::get_kind()
 {
     return XEC_STATEMENT_RETURN;
 }
@@ -603,7 +603,7 @@ xec_statement_yield::xec_statement_yield(
 {
 }
 
-xec_statement_dispatch xec_statement_yield::visitor_dispatch()
+xec_statement_kind xec_statement_yield::get_kind()
 {
     return XEC_STATEMENT_YIELD;
 }
@@ -632,7 +632,7 @@ xec_statement_using::xec_statement_using(
 {
 }
 
-xec_statement_dispatch xec_statement_using::visitor_dispatch()
+xec_statement_kind xec_statement_using::get_kind()
 {
     return XEC_STATEMENT_USING;
 }
@@ -663,7 +663,7 @@ xec_statement_usingscope::xec_statement_usingscope(
 {
 }
 
-xec_statement_dispatch xec_statement_usingscope::visitor_dispatch()
+xec_statement_kind xec_statement_usingscope::get_kind()
 {
     return XEC_STATEMENT_USINGSCOPE;
 }
@@ -709,7 +709,7 @@ xec_statement_try::xec_statement_try()
 {
 }
 
-xec_statement_dispatch xec_statement_try::visitor_dispatch()
+xec_statement_kind xec_statement_try::get_kind()
 {
     return XEC_STATEMENT_TRY;
 }
@@ -774,7 +774,7 @@ xec_statement_catch::xec_statement_catch( xec_token* token,
 {
 }
 
-xec_statement_dispatch xec_statement_catch::visitor_dispatch()
+xec_statement_kind xec_statement_catch::get_kind()
 {
     return XEC_STATEMENT_CATCH;
 }
@@ -822,7 +822,7 @@ xec_statement_throw::xec_statement_throw(
 {
 }
 
-xec_statement_dispatch xec_statement_throw::visitor_dispatch()
+xec_statement_kind xec_statement_throw::get_kind()
 {
     return XEC_STATEMENT_THROW;
 }

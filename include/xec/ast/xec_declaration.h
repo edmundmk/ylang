@@ -25,7 +25,7 @@ class xec_constructor_function;
 
 
 
-enum xec_declaration_dispatch
+enum xec_declaration_kind
 {
     XEC_DECLARATION_VAR,
     XEC_DECLARATION_OBJECT,
@@ -40,7 +40,7 @@ public:
 
     virtual ~xec_declaration();
 
-    virtual xec_declaration_dispatch    visitor_dispatch()  = 0;
+    virtual xec_declaration_kind    get_kind()  = 0;
     virtual int                         get_location()      = 0;
     
     virtual void set_thiscall( bool thiscall );
@@ -61,7 +61,7 @@ public:
     xec_declaration_var( xec_token* token,
             xec_expression_list* name_list, xec_expression_list* expr_list );
 
-    virtual xec_declaration_dispatch visitor_dispatch();
+    virtual xec_declaration_kind get_kind();
     virtual int get_location();
     
     xec_expression_list* get_name_list();
@@ -88,7 +88,7 @@ public:
     xec_declaration_object(
             xec_expression* name, xec_constructor_object* object );
 
-    virtual xec_declaration_dispatch visitor_dispatch();
+    virtual xec_declaration_kind get_kind();
     virtual int get_location();
 
     xec_expression* get_name();
@@ -114,7 +114,7 @@ public:
     xec_declaration_prototype(
             xec_expression* name, xec_expression_list* params );
 
-    virtual xec_declaration_dispatch visitor_dispatch();
+    virtual xec_declaration_kind get_kind();
     virtual int get_location();
     
     void set_varargs( bool varargs );
@@ -150,7 +150,7 @@ public:
     xec_declaration_function(
             xec_expression* name, xec_constructor_function* function );
 
-    virtual xec_declaration_dispatch visitor_dispatch();
+    virtual xec_declaration_kind get_kind();
     virtual int get_location();
 
     xec_expression* get_name();

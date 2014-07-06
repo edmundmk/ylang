@@ -24,7 +24,7 @@ class xec_statement_compound;
 
 
 
-enum xec_expression_dispatch
+enum xec_expression_kind
 {
     XEC_EXPRESSION_NULL,
     XEC_EXPRESSION_BOOL,
@@ -103,10 +103,11 @@ public:
 
     virtual ~xec_expression();
 
-    virtual xec_expression_dispatch     visitor_dispatch()  = 0;
+    virtual xec_expression_kind     get_kind()  = 0;
     virtual int                         get_location()      = 0;
     
     virtual xec_expression_list*        as_list();
+    virtual xec_expression_list*        is_list();
     virtual xec_expression*             as_mono();
     virtual xec_expression_comparison*  as_comparison();
     
@@ -125,7 +126,7 @@ public:
 
     xec_expression_null( xec_token* token );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
 
 private:
@@ -146,7 +147,7 @@ public:
 
     xec_expression_bool( xec_token* token );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
 
     bool get_value();
@@ -168,7 +169,7 @@ public:
 
     xec_expression_number( xec_token* token );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     
     double get_value();
@@ -190,7 +191,7 @@ public:
 
     xec_expression_string( xec_token* token );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
 
     size_t get_length();
@@ -213,7 +214,7 @@ public:
 
     xec_expression_identifier( xec_token* token );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
 
     void set_name( xec_name* name );
@@ -239,7 +240,7 @@ public:
 
     xec_expression_lookup( xec_expression* expr, xec_token* token );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     virtual xec_expression* as_mono();
 
@@ -264,7 +265,7 @@ public:
 
     xec_expression_indexkey( xec_expression* expr, xec_expression* index );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     virtual xec_expression* as_mono();
 
@@ -289,7 +290,7 @@ public:
 
     xec_expression_index( xec_expression* expr, xec_expression* index );
     
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
 
     xec_expression* get_expr();
@@ -315,7 +316,7 @@ public:
 
     xec_expression_yield( xec_token* token, xec_expression_list* args );
     
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     virtual xec_expression* as_mono();
     
@@ -347,7 +348,7 @@ public:
 
     xec_expression_call( xec_expression* expr, xec_expression_list* args );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     virtual xec_expression* as_mono();
 
@@ -387,7 +388,7 @@ public:
 
     xec_expression_preop( xec_expression* expr, xec_token* token );
     
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     
     xec_operator_kind get_operator();
@@ -413,7 +414,7 @@ public:
 
     xec_expression_postop( xec_expression* expr, xec_token* token );
     
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     
     xec_operator_kind get_operator();
@@ -441,7 +442,7 @@ public:
 
     xec_expression_unary( xec_expression* expr, xec_token* token );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
 
     xec_operator_kind get_operator();
@@ -478,7 +479,7 @@ public:
     xec_expression_binary(
         xec_expression* expr_a, xec_token* token, xec_expression* expr_b );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     
     xec_operator_kind get_operator();
@@ -505,7 +506,7 @@ public:
 
     xec_expression_comparison( xec_expression* expr );
     
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     virtual xec_expression_comparison* as_comparison();
     
@@ -543,7 +544,7 @@ public:
     xec_expression_logical(
         xec_expression* expr_a, xec_token* token, xec_expression* expr_b );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     
     xec_operator_kind get_operator();
@@ -570,7 +571,7 @@ public:
     xec_expression_conditional( xec_expression* condition,
                     xec_expression* iftrue, xec_expression* iffalse );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     
     xec_expression* get_condition();
@@ -596,7 +597,7 @@ public:
 
     explicit xec_expression_varargs( xec_token* token );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     virtual xec_expression* as_mono();
     
@@ -617,7 +618,7 @@ public:
 
     explicit xec_expression_unpack( xec_expression* expr );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     virtual xec_expression* as_mono();
     
@@ -640,10 +641,11 @@ public:
 
     xec_expression_list();
     
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     virtual xec_expression* as_mono();
     virtual xec_expression_list* as_list();
+    virtual xec_expression_list* is_list();
     
     void append_expression( xec_expression* expression );
     void append_final( xec_expression* final );
@@ -683,7 +685,7 @@ public:
     xec_expression_assign(
             xec_expression* lvalue, xec_token* op, xec_expression* rvalue );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     virtual xec_expression* as_mono();
     
@@ -711,7 +713,7 @@ public:
 
     explicit xec_expression_mono( xec_expression* expr );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     
     xec_expression* get_expr();
@@ -735,7 +737,7 @@ public:
     xec_expression_declare( xec_token* token,
             xec_expression_list* name_list, xec_expression_list* expr_list );
     
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     virtual xec_expression* as_mono();
 

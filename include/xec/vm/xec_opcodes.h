@@ -12,6 +12,7 @@
 
 static const int XEC_LITINT_MIN = 0;
 static const int XEC_LITINT_MAX = 0;
+static const int XEC_ELEMENT_MAX = 0;
 
 
 enum xec_opcode
@@ -32,6 +33,7 @@ enum xec_opcode
     XEC_SETKEY      = 14,
     XEC_SETINDEXKEY = 15,
     XEC_SETINDEX    = 16,
+    XEC_ELEMENT     = 99,
     XEC_DELETE      = 17,
     XEC_CLOSE       = 18,
 

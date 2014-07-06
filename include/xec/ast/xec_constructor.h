@@ -29,7 +29,7 @@ public:
     xec_constructor_new( xec_token* token,
                     xec_expression* proto, xec_expression_list* args );
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     
     xec_expression* get_proto();
@@ -55,7 +55,7 @@ public:
 
     xec_constructor_list();
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
 
     void set_token( xec_token* token );
@@ -86,7 +86,7 @@ public:
 
     xec_constructor_table();
     
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     
     void set_token( xec_token* token );
@@ -121,7 +121,7 @@ public:
 
     xec_constructor_object();
 
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
 
     void set_token( xec_token* token );
@@ -157,7 +157,7 @@ public:
 
     xec_constructor_function( xec_expression_list* params );
     
-    virtual xec_expression_dispatch visitor_dispatch();
+    virtual xec_expression_kind get_kind();
     virtual int get_location();
     
     void set_token( xec_token* token );
