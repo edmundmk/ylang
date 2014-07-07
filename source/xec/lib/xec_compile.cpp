@@ -6,6 +6,9 @@
 //
 
 
+#if 0
+
+
 #include "xec_compile.h"
 #include <assert.h>
 #include <math.h>
@@ -171,6 +174,11 @@ public:
     void            label( xec_label* label );
     void            jump( xec_opcode o, xec_label* label );
     void            jump( xec_opcode o, int a, xec_label* label );
+
+private:
+
+    xec_compiler_visitexpr  visitexpr;
+    int                     stacktop;
 
 };
 
@@ -593,7 +601,7 @@ void xec_compiler_visitexpr::visit( xec_expression_list* expr, xec_alloc target 
     else
     {
         // Remember the result in case assigning it clobbers something the
-        // later expressions in the lest rely on.
+        // later expressions in the list rely on.
         xec_alloc result = c->push();
         c->assign( expr->get_expr( 0 ), result );
         
@@ -657,6 +665,7 @@ void xec_compiler_visitexpr::visit( xec_expression_declare* expr, xec_alloc targ
             assert( ! "invalid name for declaration" );
         }
     }
+    c->move( target, values );
     values.release();
 }
 
@@ -742,6 +751,7 @@ void xec_compiler_visitexpr::visit( xec_constructor_object* expr, xec_alloc targ
         // HMMM.
     }
     
+    c->retire( expr->get_scope() );
     c->move( target, result );
     result.release();
 }
@@ -755,3 +765,133 @@ void xec_compiler_visitexpr::visit( xec_constructor_function* expr, xec_alloc ta
 
 
 
+
+int xec_compiler::literal( double n )
+{
+    return -1;
+}
+
+int xec_compiler::literal( const char* string, size_t length )
+{
+    return -1;
+}
+
+int xec_compiler::key( const char* s )
+{
+    return -1;
+}
+
+void xec_compiler::declare( xec_name* name, xec_alloc alloc, int n )
+{
+}
+
+void xec_compiler::declare( xec_scope* scope, xec_alloc alloc )
+{
+}
+
+void xec_compiler::retire( xec_name* name )
+{
+}
+
+void xec_compiler::retire( xec_scope* scope )
+{
+}
+
+xec_name_qual xec_compiler::name_qual( xec_name* name )
+{
+}
+
+xec_alloc xec_compiler::local_this( xec_name* name )
+{
+}
+
+xec_alloc xec_compiler::local( xec_name* name )
+{
+}
+
+xec_alloc xec_compiler::local( xec_scope* object )
+{
+}
+
+int xec_compiler::upval_this( xec_name* name )
+{
+}
+
+int xec_compiler::upval( xec_name* name )
+{
+}
+
+int xec_compiler::upval( xec_scope* object )
+{
+}
+
+xec_lvals xec_compiler::lvalues( xec_expression* expr )
+{
+}
+
+xec_alloc xec_compiler::push()
+{
+    xec_alloc result( this, stacktop );
+    stacktop += 1;
+    return result;
+}
+
+xec_alloc xec_compiler::push( xec_expression* expr )
+{
+    xec_alloc result( this, stacktop );
+    assign( expr, result );
+    stacktop += 1;
+}
+
+xec_alloc xec_compiler::push_thiscall( xec_expression* expr )
+{
+}
+
+xec_alloc xec_compiler::push( xec_expression* expr, int count )
+{
+}
+
+xec_alloc xec_compiler::operand( xec_expression* expr )
+{
+}
+
+std::pair< xec_alloc, bool > xec_compiler::operinv( xec_expression* expr )
+{
+}
+
+void xec_compiler::assign( xec_expression* expr, xec_alloc target )
+{
+    visitexpr( expr, target );
+}
+
+void xec_compiler::evaluate( xec_expression* expr )
+{
+}
+
+void xec_compiler::iffalse( xec_expression* expr, xec_label* label )
+{
+}
+
+void xec_compiler::iftrue( xec_expression* expr, xec_label* label )
+{
+}
+
+void xec_compiler::move( int a, int b )
+{
+    if ( a != b )
+        emit( XEC_MOVE, a, b );
+}
+
+void xec_compiler::emit( xec_opcode o, int a );
+void xec_compiler::emit( xec_opcode o, int a, int b );
+void xec_compiler::emit( xec_opcode o, int a, int b, int c );
+void xec_compiler::compare( xec_operator_kind o, int r, int a, int b );
+
+void xec_compiler::label( xec_label* label );
+void xec_compiler::jump( xec_opcode o, xec_label* label );
+void xec_compiler::jump( xec_opcode o, int a, xec_label* label );
+
+
+
+
+#endif 
