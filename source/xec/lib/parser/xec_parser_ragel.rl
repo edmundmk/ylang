@@ -14,8 +14,9 @@
 #include "xec_parser.h"
 #include <stdint.h>
 #include <intformat.h>
+#include <unordered_map>
+#include <region.h>
 #include "xec_token.h"
-#include "xec_semantics.h"
 
 
 void* XecParseAlloc( void* (*malloc)( size_t ) );
@@ -31,7 +32,7 @@ void  XecParseFree( void* p, void (*free)( void* ) );
     alphtype unsigned char;
     
     
-    action nl { newlines.push_back( (int)( offset + ( p - buffer ) - 1 ) ); }
+    action nl { newline( (int)( offset + ( p - buffer ) - 1 ) ); }
     action ts { sloc = (int)( offset + ( p - buffer ) ); data.clear(); }
     action dc { data.append( (char)fc ); }
     
@@ -39,7 +40,7 @@ void  XecParseFree( void* p, void (*free)( void* ) );
     {
         data.shrink();
         int sloc = (int)( offset + ( p - buffer ) );
-        diagnostic( sloc, "unexpected end of file" );
+        script->diagnostic( sloc, "unexpected end of file" );
         fbreak;
     }
     
@@ -48,10 +49,10 @@ void  XecParseFree( void* p, void (*free)( void* ) );
         data.shrink();
         int sloc = (int)( offset + ( p - buffer ) );
         if ( fc >= 0x20 && fc <= 0x7E )
-            diagnostic( sloc, "unexpected character '%c'", fc );
+            script->diagnostic( sloc, "unexpected character '%c'", fc );
         else
-            diagnostic( sloc, "unexpected character '\\x%02X'", fc );
-        if ( diagnostics.size() >= ERROR_LIMIT )
+            script->diagnostic( sloc, "unexpected character '\\x%02X'", fc );
+        if ( script->diagnostic_count() >= DIAGNOSTIC_LIMIT )
             goto error;
     }
 
@@ -130,9 +131,9 @@ void  XecParseFree( void* p, void (*free)( void* ) );
                 {
                     if ( ! encode_utf8( &data, temp ) )
                     {
-                        diagnostic(
+                        script->diagnostic(
                                 sloc, "invalid codepoint U+%04" PRIX32, temp );
-                        if ( diagnostics.size() >= ERROR_LIMIT )
+                        if ( script->diagnostic_count() >= DIAGNOSTIC_LIMIT )
                             goto error;
                     }
                 }
@@ -264,6 +265,11 @@ void  XecParseFree( void* p, void (*free)( void* ) );
 
 
 
+void xec_parser::newline( int sloc )
+{
+    script->newlines.push_back( sloc );
+}
+
 
 
 template < typename ... arguments_t >
@@ -277,7 +283,7 @@ xec_token* xec_parser::make_token( arguments_t ... arguments )
     }
     else
     {
-        return new ( alloc ) xec_token( arguments ... );
+        return alloc< xec_token >( arguments ... );
     }
 }
 
@@ -390,23 +396,23 @@ static bool encode_utf8( region_buffer* data, uint32_t cp )
 
 bool xec_parser::parse( const char* path )
 {
-    region_scope rscope( alloc );
+    region_scope rscope( script->alloc );
 
 
     // Default arguments.
-    if ( ! script )
+    if ( ! script->script )
     {
         const char* argv[] = { "..." };
-        set_arguments( 1, argv );
+        script->arguments( 1, argv );
     }
 
     
     // Open file.
-    this->filename = path;
+    script->filename = path;
     FILE* file = fopen( path, "r" );
     if ( ! file )
     {
-        diagnostic( 0, "unable to open file" );
+        script->diagnostic( 0, "unable to open file" );
         return false;
     }
     
@@ -437,14 +443,14 @@ bool xec_parser::parse( const char* path )
 #define TOKEN( token ) \
     { \
         XecParse( parser, token->kind, token, this ); \
-        if ( diagnostics.size() >= ERROR_LIMIT ) \
+        if ( script->diagnostic_count() >= DIAGNOSTIC_LIMIT ) \
             goto error; \
     }
 #define MTOKEN( ... ) \
     { \
         xec_token* token = make_token( __VA_ARGS__ ); \
         XecParse( parser, token->kind, token, this ); \
-        if ( diagnostics.size() >= ERROR_LIMIT ) \
+        if ( script->diagnostic_count() >= DIAGNOSTIC_LIMIT ) \
             goto error; \
     }
 
@@ -457,7 +463,7 @@ bool xec_parser::parse( const char* path )
         if ( iseof && ferror( file ) )
         {
             data.shrink();
-            diagnostic( offset, "error reading file" );
+            script->diagnostic( offset, "error reading file" );
             goto error;
         }
 
@@ -489,12 +495,8 @@ error:
     fclose( file );
 
 
-    // Perform semantic pass.
-    xec_semantics( this );
-
-
     // Check if there were errors.
-    return diagnostics.size() == 0;
+    return script->diagnostic_count() == 0;
 }
 
 

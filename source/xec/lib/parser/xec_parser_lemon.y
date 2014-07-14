@@ -20,15 +20,13 @@
     #include <assert.h>
     #include "xec_parser.h"
     #include "xec_token.h"
-    #include <xec/ast/xec_expression.h>
-    #include <xec/ast/xec_constructor.h>
-    #include <xec/ast/xec_declaration.h>
-    #include <xec/ast/xec_statement.h>
+    #include "xec_ast.h"
 }
 
 
 %extra_argument     { xec_parser* p }
 %token_type         { xec_token* }
+%default_type       { xec_ast_node* }
 
 
 %include
@@ -87,346 +85,301 @@ void xec_parser::destroy( xec_token* token )
 
 
 
-//
-// Entire script.
-//
 
-script          ::= .
-                {
-                }
-script          ::= stmt_list(stmt_list) .
-                {
-                    p->get_script()->set_body( stmt_list );
-                }
+script          ::= stmt_list .
+
 
 
 
 //
-// Braces with optional contents.
+//  declaration name or expression.
 //
 
-%type expr_paren    { xec_expression_list* }
-%type stmt_brace    { xec_statement_compound* }
-%type odecl_brace   { xec_constructor_object* }
 
-
-expr_paren(x)   ::= LPN RPN .
-                {
-                    x = new xec_expression_list();
-                }
-expr_paren(x)   ::= LPN expr_list(expr_list) RPN .
-                {
-                    x = expr_list->as_list();
-                }
-
-stmt_brace(x)   ::= LBR(token) RBR .
-                {
-                    x = new xec_statement_compound();
-                    x->set_token( token );
-                }
-stmt_brace(x)   ::= LBR(token) stmt_list(stmt_list) RBR .
-                {
-                    x = stmt_list;
-                    x->set_token( token );
-                }
-
-odecl_brace(x)  ::= LBR RBR .
-                {
-                    x = new xec_constructor_object();
-                }
-odecl_brace(x)  ::= LBR odecl_list(object) RBR .
-                {
-                    x = object;
-                }
-
-
-
-//
-// Names and declarations.
-//
-
-%type name          { xec_expression* }
-%type name_list     { xec_expression* }
-%type proto         { xec_expression_call* }
-%type decl          { xec_declaration* }
-%type odecl         { xec_declaration* }
-%type odecl_list    { xec_constructor_object* }
-
-
-// Names as used in declarations.
 name(x)         ::= IDENTIFIER(token) .
                 {
-                    x = new xec_expression_identifier( token );
+                    x = p->alloc< xec_expr_unqual >(
+                            token->sloc, token->text );
                 }
-name(x)         ::= name(expr) PERIOD IDENTIFIER(token) .
+name(x)         ::= name(name) PERIOD IDENTIFIER(token) .
                 {
-                    x = new xec_expression_lookup( expr, token );
+                    x = p->alloc< xec_expr_key >(
+                            token->sloc, name, token->text );
+                }
+
+proto(x)        ::= name(name) LPN expr_list(params) RPN .
+                {
+                    x = p->alloc< xec_expr_call >(
+                            name->sloc, name, params );
                 }
 
 
-// Comma-separated lists of names.
-name_list(x)    ::= name(expr) .
+
+
+//
+// declarations
+//
+
+%type object_lbr { xec_new_object* }
+%type assign_op  { xec_token* }
+
+
+// objects
+decl_object(x)  ::= object_lbr(object) object_decls RBR .
                 {
-                    x = expr;
                 }
-name_list(x)    ::= name_list(expr_list) COMMA name(expr) .
+
+object_lbr(x)   ::= name(name) LBR .
                 {
-                    xec_expression_list* list;
-                    x = list = expr_list->as_list();
-                    list->append_expression( expr );
+                }
+object_lbr(x)   ::= name(name) COLON expr_simple(proto) LBR .
+                {
+                }
+
+object_decls    ::= .
+object_decls    ::= object_decls object_decl(decl) .
+                {
+                }
+
+object_decl(x)  ::= decl_object(decl) .
+                {
+                }
+object_decl(x)  ::= decl_func(decl) .
+                {
+                }
+object_decl(x)  ::= decl_proto(decl) SEMICOLON .
+                {
+                }
+object_decl(x)  ::= decl_var(decl) SEMICOLON .
+                {
                 }
 
 
-// Function headers - a single name with a single set of 'call' parentheses.
-proto(x)        ::= name(expr) expr_paren(args) .
+
+// prototypes
+decl_proto(x)   ::= proto(proto) .
                 {
-                    x = new xec_expression_call( expr, args );
+                }
+decl_proto(x)   ::= proto(proto) YIELD .
+                {
                 }
 
 
-// Declarations valid as statements.
-decl(x)         ::= name(name) odecl_brace(object) .
+// functions (with implementation)
+decl_func(x)    ::= func_lbr(func) stmt_list RBR .
                 {
-                    x = new xec_declaration_object( name, object );
                 }
-decl(x)         ::= name(name) COLON expr_simple(proto) odecl_brace(object) .
+
+func_lbr(x)     ::= proto(proto) LBR .
                 {
-                    object->set_proto( proto );
-                    x = new xec_declaration_object( name, object );
-                }
-decl(x)         ::= proto(header) stmt_brace(body) .
-                {
-                    // Convert call expression to function declaration.
-                    x = header->as_function( body );
-                }
-decl(x)         ::= proto(header) YIELD stmt_brace(body) .
-                {
-                    // Convert call expression to coroutine declaration.
-                    xec_declaration_function* value;
-                    x = value = header->as_function( body );
-                    value->get_function()->set_coroutine( true );
-                }
-decl(x)         ::= VAR(token) name_list(name_list) SEMICOLON .
-                {
-                    x = new xec_declaration_var(
-                        token, name_list->as_list(), NULL );
-                }
-decl(x)         ::= VAR(token) name_list(name_list)
-                            ASSIGN expr_list(expr_list) SEMICOLON .
-                {
-                    x = new xec_declaration_var(
-                        token, name_list->as_list(), expr_list->as_list() );
                 }
 
 
-// Declarations valid only in objects (previous set, plus prototypes).
-odecl(x)        ::= decl(decl) .
+// variable declarations.
+decl_var(x)     ::= VAR varname_list(lvals) ASSIGN expr_list(rvals) .
                 {
-                    x = decl;
-                }
-odecl(x)        ::= proto(header) SEMICOLON .
-                {
-                    // Convert call expression to prototype declaration.
-                    x = header->as_prototype();
-                }
-odecl(x)        ::= proto(header) YIELD SEMICOLON .
-                {
-                    // Call expression becomes coroutine prototype declaration.
-                    xec_declaration_prototype* decl;
-                    x = decl = header->as_prototype();
-                    decl->set_coroutine( true );
                 }
 
-
-odecl_list(x)   ::= SEMICOLON .
+varname_list(x) ::= IDENTIFIER(token) .
                 {
-                    x = new xec_constructor_object();
                 }
-odecl_list(x)   ::= odecl(decl) .
+varname_list(x) ::= varname_list(list) COMMA IDENTIFIER(token) .
                 {
-                    x = new xec_constructor_object();
-                    decl->set_thiscall( true );
-                    x->add_member( decl );
-                }
-odecl_list(x)   ::= odecl_list(object) SEMICOLON .
-                {
-                    x = object;
-                }
-odecl_list(x)   ::= odecl_list(object) odecl(decl) .
-                {
-                    x = object;
-                    decl->set_thiscall( true );
-                    x->add_member( decl );
                 }
 
 
 
 //
-// Expressions.
+// expressions
 //
-
-%type expr_index    { xec_expression* }
-%type expr_yield    { xec_expression* }
-%type expr_new      { xec_expression* }
-%type expr_call     { xec_expression_call* }
-%type expr_postfix  { xec_expression* }
-%type expr_simple   { xec_expression* }
-%type expr_literal  { xec_expression* }
-%type expr_suffix   { xec_expression* }
-%type expr_unary    { xec_expression* }
-%type expr_mul      { xec_expression* }
-%type expr_add      { xec_expression* }
-%type expr_shift    { xec_expression* }
-%type expr_bitand   { xec_expression* }
-%type expr_bitxor   { xec_expression* }
-%type expr_bitor    { xec_expression* }
-%type expr_concat   { xec_expression* }
-%type expr_compare  { xec_expression* }
-%type expr_and      { xec_expression* }
-%type expr_xor      { xec_expression* }
-%type expr_or       { xec_expression* }
-%type expr_nolbr    { xec_expression* }
-%type expr_value    { xec_expression* }
-%type expr_lbody    { xec_expression* }
-%type expr_final    { xec_expression* }
-%type expr_list     { xec_expression* }
-%type expr_assign   { xec_expression* }
-%type assign_op     { xec_token* }
-%type value_lbody   { xec_constructor_list* }
-%type value_list    { xec_constructor_list* }
-%type keyval_lbody  { xec_constructor_table* }
-%type keyval_list   { xec_constructor_table* }
 
 
 // All lookups which aren't bare names, up to the first call parenthesis.
 expr_index(x)   ::= LPN expr_assign(expr) RPN .
                 {
-                    // Multiple values in brackets collapse to a single value.
-                    x = expr->as_mono();
+                    switch ( expr->kind )
+                    {
+                    case XEC_EXPR_KEY:
+                    case XEC_EXPR_INKEY:
+                    case XEC_EXPR_CALL:
+                    case XEC_EXPR_CALLKEY:
+                    case XEC_EXPR_CALLINKEY:
+                    case XEC_EXPR_YIELD:
+                    case XEC_EXPR_VARARG:
+                    case XEC_EXPR_UNPACK:
+                    case XEC_EXPR_LIST:
+                    case XEC_AST_ASSIGN_LIST:
+                        x = p->alloc< xec_expr_mono >(
+                                expr->sloc, expr );
+                        break;
+                        
+                    default:
+                        x = expr;
+                        break;
+                    }
                 }
-expr_index(x)   ::= name(expr) PERIOD LSQ expr_value(index) RSQ .
+expr_index(x)   ::= name(expr) PERIOD LSQ expr_value(key) RSQ .
                 {
-                    x = new xec_expression_indexkey( expr, index );
+                    expr = p->expr_name( expr );
+                    x = p->alloc< xec_expr_inkey >(
+                            expr->sloc, expr, key );
                 }
 expr_index(x)   ::= name(expr) LSQ expr_value(index) RSQ .
                 {
-                    x = new xec_expression_index( expr, index );
+                    expr = p->expr_name( expr );
+                    x = p->alloc< xec_expr_index >(
+                             expr->sloc, expr, index );
                 }
 expr_index(x)   ::= expr_index(expr) PERIOD IDENTIFIER(token) .
                 {
-                    x = new xec_expression_lookup( expr, token );
+                    x = p->alloc< xec_expr_key >(
+                             expr->sloc, expr, token->text );
+                    p->destroy( token );
                 }
-expr_index(x)   ::= expr_index(expr) PERIOD LSQ expr_value(index) RSQ .
+expr_index(x)   ::= expr_index(expr) PERIOD LSQ expr_value(key) RSQ .
                 {
-                    x = new xec_expression_indexkey( expr, index );
+                    x = p->alloc< xec_expr_inkey >(
+                             expr->sloc, expr, key );
                 }
 expr_index(x)   ::= expr_index(expr) LSQ expr_value(index) RSQ .
                 {
-                    x = new xec_expression_index( expr, index );
+                    x = p->alloc< xec_expr_index >(
+                             expr->sloc, expr, index );
                 }
 
 // 'yield' expression - looks like a call but isn't.
-expr_yield(x)   ::= YIELD(token) expr_paren(args) .
+expr_yield(x)   ::= YIELD(token) LPN expr_list(args) RPN .
                 {
-                    x = new xec_expression_yield( token, args );
+                    x = p->alloc< xec_expr_yield >(
+                             token->sloc, args );
+                    p->destroy( token );
                 }
 
 // 'new' constructor - looks like a call but isn't.
-expr_new(x)     ::= NEW(token) name(proto) expr_paren(args) .
+expr_new(x)     ::= NEW(token) name(proto) LPN expr_list(args) RPN .
                 {
-                    x = new xec_constructor_new( token, proto, args );
+                    proto = p->expr_name( proto );
+                    x = p->alloc< xec_new_new >(
+                             token->sloc, proto, args );
+                    p->destroy( token );
                 }
-expr_new(x)     ::= NEW(token) expr_index(proto) expr_paren(args) .
+expr_new(x)     ::= NEW(token) expr_index(proto) LPN expr_list(args) RPN.
                 {
-                    x = new xec_constructor_new( token, proto, args );
+                    x = p->alloc< xec_new_new >(
+                             token->sloc, proto, args );
+                    p->destroy( token );
                 }
 
 // All call expressions that aren't bare prototypes.
-expr_call(x)    ::= proto(expr) expr_paren(args) .
+expr_call(x)    ::= proto(expr) LPN expr_list(args) RPN .
                 {
-                    x = new xec_expression_call( expr, args );
+                    expr = p->expr_proto( expr );
+                    x = p->expr_call( expr, args );
                 }
-expr_call(x)    ::= expr_index(expr) expr_paren(args) .
+expr_call(x)    ::= expr_index(expr) LPN expr_list(args) RPN .
                 {
-                    x = new xec_expression_call( expr, args );
+                    x = p->expr_call( expr, args );
                 }
-expr_call(x)    ::= expr_yield(expr) expr_paren(args) .
+expr_call(x)    ::= expr_yield(expr) LPN expr_list(args) RPN .
                 {
-                    x = new xec_expression_call( expr, args );
+                    x = p->expr_call( expr, args );
                 }
-expr_call(x)    ::= expr_new(expr) expr_paren(args) .
+expr_call(x)    ::= expr_new(expr) LPN expr_list(args) RPN .
                 {
-                    x = new xec_expression_call( expr, args );
+                    x = p->expr_call( expr, args );
                 }
-expr_call(x)    ::= expr_call(expr) expr_paren(args) .
+expr_call(x)    ::= expr_call(expr) LPN expr_list(args) RPN .
                 {
-                    x = new xec_expression_call( expr, args );
+                    x = p->expr_call( expr, args );
                 }
-expr_call(x)    ::= expr_postfix(expr) expr_paren(args) .
+expr_call(x)    ::= expr_postfix(expr) LPN expr_list(args) RPN .
                 {
-                    x = new xec_expression_call( expr, args );
+                    x = p->expr_call( expr, args );
                 }
 
 // All lookups after the first call parenthesis.
 expr_postfix(x) ::= proto(expr) PERIOD IDENTIFIER(token) .
                 {
-                    x = new xec_expression_lookup( expr, token );
+                    expr = p->expr_proto( expr );
+                    x = p->alloc< xec_expr_key >(
+                             expr->sloc, expr, token->text );
+                    p->destroy( token );
                 }
 expr_postfix(x) ::= proto(expr) PERIOD LSQ expr_value(index) RSQ .
                 {
-                    x = new xec_expression_indexkey( expr, index );
+                    expr = p->expr_proto( expr );
+                    x = p->alloc< xec_expr_inkey >(
+                             expr->sloc, expr, index );
                 }
 expr_postfix(x) ::= proto(expr) LSQ expr_value(index) RSQ .
                 {
-                    x = new xec_expression_index( expr, index );
+                    expr = p->expr_proto( expr );
+                    x = p->alloc< xec_expr_index >(
+                             expr->sloc, expr, index );
                 }
 expr_postfix(x) ::= expr_yield(expr) PERIOD IDENTIFIER(token) .
                 {
-                    x = new xec_expression_lookup( expr, token );
+                    x = p->alloc< xec_expr_key >(
+                             expr->sloc, expr, token->text );
+                    p->destroy( token );
                 }
 expr_postfix(x) ::= expr_yield(expr) PERIOD LSQ expr_value(index) RSQ .
                 {
-                    x = new xec_expression_indexkey( expr, index );
+                    x = p->alloc< xec_expr_inkey >(
+                             expr->sloc, expr, index );
                 }
 expr_postfix(x) ::= expr_yield(expr) LSQ expr_value(index) RSQ .
                 {
-                    x = new xec_expression_index( expr, index );
+                    x = p->alloc< xec_expr_index >(
+                             expr->sloc, expr, index );
                 }
 expr_postfix(x) ::= expr_new(expr) PERIOD IDENTIFIER(token) .
                 {
-                    x = new xec_expression_lookup( expr, token );
+                    x = p->alloc< xec_expr_key >(
+                             expr->sloc, expr, token->text );
+                    p->destroy( token );
                 }
 expr_postfix(x) ::= expr_new(expr) PERIOD LSQ expr_value(index) RSQ .
                 {
-                    x = new xec_expression_indexkey( expr, index );
+                    x = p->alloc< xec_expr_inkey >(
+                             expr->sloc, expr, index );
                 }
 expr_postfix(x) ::= expr_new(expr) LSQ expr_value(index) RSQ .
                 {
-                    x = new xec_expression_index( expr, index );
+                    x = p->alloc< xec_expr_index >(
+                             expr->sloc, expr, index );
                 }
 expr_postfix(x) ::= expr_call(expr) PERIOD IDENTIFIER(token) .
                 {
-                    x = new xec_expression_lookup( expr, token );
+                    x = p->alloc< xec_expr_key >(
+                             expr->sloc, expr, token->text );
+                    p->destroy( token );
                 }
 expr_postfix(x) ::= expr_call(expr) PERIOD LSQ expr_value(index) RSQ .
                 {
-                    x = new xec_expression_indexkey( expr, index );
+                    x = p->alloc< xec_expr_inkey >(
+                             expr->sloc, expr, index );
                 }
 expr_postfix(x) ::= expr_call(expr) LSQ expr_value(index) RSQ .
                 {
-                    x = new xec_expression_index( expr, index );
+                    x = p->alloc< xec_expr_index >(
+                             expr->sloc, expr, index );
                 }
 expr_postfix(x) ::= expr_postfix(expr) PERIOD IDENTIFIER(token) .
                 {
-                    x = new xec_expression_lookup( expr, token );
+                    x = p->alloc< xec_expr_key >(
+                             expr->sloc, expr, token->text );
+                    p->destroy( token );
                 }
 expr_postfix(x) ::= expr_postfix(expr) PERIOD LSQ expr_value(index) RSQ .
                 {
-                    x = new xec_expression_indexkey( expr, index );
+                    x = p->alloc< xec_expr_inkey >(
+                             expr->sloc, expr, index );
                 }
 expr_postfix(x) ::= expr_postfix(expr) LSQ expr_value(index) RSQ .
                 {
-                    x = new xec_expression_index( expr, index );
+                    x = p->alloc< xec_expr_index >(
+                             expr->sloc, expr, index );
                 }
 
 // All lookup, call, and call-like expressions, including yield calls.  Used
@@ -436,11 +389,11 @@ expr_postfix(x) ::= expr_postfix(expr) LSQ expr_value(index) RSQ .
 // a() yield.b - or call - a() yield() - expressions after the yield keyword.
 expr_simple(x)  ::= name(expr) .
                 {
-                    x = expr;
+                    x = p->expr_name( expr );
                 }
 expr_simple(x)  ::= proto(expr) .
                 {
-                    x = expr;
+                    x = p->expr_proto( expr );
                 }
 expr_simple(x)  ::= expr_index(expr) .
                 {
@@ -464,12 +417,15 @@ expr_simple(x)  ::= expr_postfix(expr) .
                 }
 expr_simple(x)  ::= proto(expr) YIELD .
                 {
-                    expr->set_yieldcall( true );
+                    expr = p->expr_proto( expr );
+                    assert( expr->kind == XEC_EXPR_CALL );
+                    ( (xec_expr_call*)expr )->yieldcall = true;
                     x = expr;
                 }
 expr_simple(x)  ::= expr_call(expr) YIELD .
                 {
-                    expr->set_yieldcall( true );
+                    assert( expr->kind == XEC_EXPR_CALL );
+                    ( (xec_expr_call*)expr )->yieldcall = true;
                     x = expr;
                 }
 
@@ -477,25 +433,32 @@ expr_literal(x) ::= expr_simple(expr) .
                 {
                     x = expr;
                 }
-expr_literal(x) ::= NUMBER(token) .
+expr_literal(x) ::= NULL(token) .
                 {
-                    x = new xec_expression_number( token );
-                }
-expr_literal(x) ::= STRING(token) .
-                {
-                    x = new xec_expression_string( token );
+                    x = p->alloc< xec_expr_null >( token->sloc );
+                    p->destroy( token );
                 }
 expr_literal(x) ::= TRUE(token) .
                 {
-                    x = new xec_expression_bool( token );
+                    x = p->alloc< xec_expr_bool >( token->sloc, true );
+                    p->destroy( token );
                 }
 expr_literal(x) ::= FALSE(token) .
                 {
-                    x = new xec_expression_bool( token );
+                    x = p->alloc< xec_expr_bool >( token->sloc, false );
+                    p->destroy( token );
                 }
-expr_literal(x) ::= NULL(token) .
+expr_literal(x) ::= NUMBER(token) .
                 {
-                    x = new xec_expression_null( token );
+                    double number = p->parse_number( token );
+                    x = p->alloc< xec_expr_number >( token->sloc, number );
+                    p->destroy( token );
+                }
+expr_literal(x) ::= STRING(token) .
+                {
+                    x = p->alloc< xec_expr_string >(
+                            token->sloc, token->text, token->size );
+                    p->destroy( token );
                 }
 
 expr_suffix(x)  ::= expr_literal(expr) .
@@ -504,11 +467,15 @@ expr_suffix(x)  ::= expr_literal(expr) .
                 }
 expr_suffix(x)  ::= expr_suffix(expr) INCREMENT(token) .
                 {
-                    x = new xec_expression_postop( expr, token );
+                    x = p->alloc< xec_expr_postop >(
+                             expr->sloc, token->kind, expr );
+                    p->destroy( token );
                 }
 expr_suffix(x)  ::= expr_suffix(expr) DECREMENT(token) .
                 {
-                    x = new xec_expression_postop( expr, token );
+                    x = p->alloc< xec_expr_postop >(
+                             expr->sloc, token->kind, expr );
+                    p->destroy( token );
                 }
 
 expr_unary(x)   ::= expr_suffix(expr) .
@@ -517,207 +484,241 @@ expr_unary(x)   ::= expr_suffix(expr) .
                 }
 expr_unary(x)   ::= PLUS(token) expr_unary(expr) .
                 {
-                    x = new xec_expression_unary( expr, token );
+                    x = p->alloc< xec_expr_preop >(
+                             token->sloc, token->kind, expr );
+                    p->destroy( token );
                 }
 expr_unary(x)   ::= MINUS(token) expr_unary(expr) .
                 {
-                    x = new xec_expression_unary( expr, token );
+                    x = p->alloc< xec_expr_unary >(
+                             token->sloc, token->kind, expr );
+                    p->destroy( token );
                 }
 expr_unary(x)   ::= XMARK(token) expr_unary(expr) .
                 {
-                    x = new xec_expression_unary( expr, token );
+                    x = p->alloc< xec_expr_unary >(
+                             token->sloc, token->kind, expr );
+                    p->destroy( token );
                 }
 expr_unary(x)   ::= TILDE(token) expr_unary(expr) .
                 {
-                    x = new xec_expression_unary( expr, token );
+                    x = p->alloc< xec_expr_unary >(
+                             token->sloc, token->kind, expr );
+                    p->destroy( token );
                 }
 expr_unary(x)   ::= INCREMENT(token) expr_unary(expr) .
                 {
-                    x = new xec_expression_preop( expr, token );
+                    x = p->alloc< xec_expr_unary >(
+                             token->sloc, token->kind, expr );
+                    p->destroy( token );
                 }
 expr_unary(x)   ::= DECREMENT(token) expr_unary(expr) .
                 {
-                    x = new xec_expression_preop( expr, token );
+                    x = p->alloc< xec_expr_unary >(
+                             token->sloc, token->kind, expr );
+                    p->destroy( token );
                 }
 
 expr_mul(x)     ::= expr_unary(expr) .
                 {
                     x = expr;
                 }
-expr_mul(x)     ::= expr_mul(expr_a) ASTERISK(token) expr_unary(expr_b) .
+expr_mul(x)     ::= expr_mul(lhs) ASTERISK(token) expr_unary(rhs) .
                 {
-                    x = new xec_expression_binary( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_binary >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
-expr_mul(x)     ::= expr_mul(expr_a) SOLIDUS(token) expr_unary(expr_b) .
+expr_mul(x)     ::= expr_mul(lhs) SOLIDUS(token) expr_unary(rhs) .
                 {
-                    x = new xec_expression_binary( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_binary >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
-expr_mul(x)     ::= expr_mul(expr_a) PERCENT(token) expr_unary(expr_b) .
+expr_mul(x)     ::= expr_mul(lhs) PERCENT(token) expr_unary(rhs) .
                 {
-                    x = new xec_expression_binary( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_binary >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
-expr_mul(x)     ::= expr_mul(expr_a) TILDE(token) expr_unary(expr_b) .
+expr_mul(x)     ::= expr_mul(lhs) TILDE(token) expr_unary(rhs) .
                 {
-                    x = new xec_expression_binary( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_binary >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
 
 expr_add(x)     ::= expr_mul(expr) .
                 {
                     x = expr;
                 }
-expr_add(x)     ::= expr_add(expr_a) PLUS(token) expr_mul(expr_b) .
+expr_add(x)     ::= expr_add(lhs) PLUS(token) expr_mul(rhs) .
                 {
-                    x = new xec_expression_binary( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_binary >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
-expr_add(x)     ::= expr_add(expr_a) MINUS(token) expr_mul(expr_b) .
+expr_add(x)     ::= expr_add(lhs) MINUS(token) expr_mul(rhs) .
                 {
-                    x = new xec_expression_binary( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_binary >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
 
 expr_shift(x)   ::= expr_add(expr) .
                 {
                     x = expr;
                 }
-expr_shift(x)   ::= expr_shift(expr_a) LSHIFT(token) expr_add(expr_b) .
+expr_shift(x)   ::= expr_shift(lhs) LSHIFT(token) expr_add(rhs) .
                 {
-                    x = new xec_expression_binary( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_binary >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
-expr_shift(x)   ::= expr_shift(expr_a) RSHIFT(token) expr_add(expr_b) .
+expr_shift(x)   ::= expr_shift(lhs) RSHIFT(token) expr_add(rhs) .
                 {
-                    x = new xec_expression_binary( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_binary >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
-expr_shift(x)   ::= expr_shift(expr_a) URSHIFT(token) expr_add(expr_b) .
+expr_shift(x)   ::= expr_shift(lhs) URSHIFT(token) expr_add(rhs) .
                 {
-                    x = new xec_expression_binary( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_binary >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
 
 expr_bitand(x)  ::= expr_shift(expr) .
                 {
                     x = expr;
                 }
-expr_bitand(x)  ::= expr_bitand(expr_a) AMPERSAND(token) expr_shift(expr_b) .
+expr_bitand(x)  ::= expr_bitand(lhs) AMPERSAND(token) expr_shift(rhs) .
                 {
-                    x = new xec_expression_binary( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_binary >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
 
 expr_bitxor(x)  ::= expr_bitand(expr) .
                 {
                     x = expr;
                 }
-expr_bitxor(x)  ::= expr_bitxor(expr_a) CARET(token) expr_bitand(expr_b) .
+expr_bitxor(x)  ::= expr_bitxor(lhs) CARET(token) expr_bitand(rhs) .
                 {
-                    x = new xec_expression_binary( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_binary >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
 
 expr_bitor(x)   ::= expr_bitxor(expr) .
                 {
                     x = expr;
                 }
-expr_bitor(x)   ::= expr_bitor(expr_a) VBAR(token) expr_bitxor(expr_b) .
+expr_bitor(x)   ::= expr_bitor(lhs) VBAR(token) expr_bitxor(rhs) .
                 {
-                    x = new xec_expression_binary( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_binary >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
 
 expr_concat(x)  ::= expr_bitor(expr) .
                 {
                     x = expr;
                 }
-expr_concat(x)  ::= expr_concat(expr_a) CONCATENATE(token) expr_bitor(expr_b) .
+expr_concat(x)  ::= expr_concat(lhs) CONCATENATE(token) expr_bitor(rhs) .
                 {
-                    x = new xec_expression_binary( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_binary >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
 
 expr_compare(x) ::= expr_concat(expr) .
                 {
                     x = expr;
                 }
-expr_compare(x) ::= expr_compare(expr_a) EQUAL(token) expr_concat(expr_b) .
+expr_compare(x) ::= expr_compare(lhs) EQUAL(token) expr_concat(rhs) .
                 {
-                    xec_expression_comparison* comparison;
-                    x = comparison = expr_a->as_comparison();
-                    comparison->add_comparison( token, expr_b );
+                    x = p->expr_compare( token, lhs, rhs );
+                    p->destroy( token );
                 }
-expr_compare(x) ::= expr_compare(expr_a) NOTEQUAL(token) expr_concat(expr_b) .
+expr_compare(x) ::= expr_compare(lhs) NOTEQUAL(token) expr_concat(rhs) .
                 {
-                    xec_expression_comparison* comparison;
-                    x = comparison = expr_a->as_comparison();
-                    comparison->add_comparison( token, expr_b );
+                    x = p->expr_compare( token, lhs, rhs );
+                    p->destroy( token );
                 }
-expr_compare(x) ::= expr_compare(expr_a) LESS(token) expr_concat(expr_b) .
+expr_compare(x) ::= expr_compare(lhs) LESS(token) expr_concat(rhs) .
                 {
-                    xec_expression_comparison* comparison;
-                    x = comparison = expr_a->as_comparison();
-                    comparison->add_comparison( token, expr_b );
+                    x = p->expr_compare( token, lhs, rhs );
+                    p->destroy( token );
                 }
-expr_compare(x) ::= expr_compare(expr_a) GREATER(token) expr_concat(expr_b) .
+expr_compare(x) ::= expr_compare(lhs) GREATER(token) expr_concat(rhs) .
                 {
-                    xec_expression_comparison* comparison;
-                    x = comparison = expr_a->as_comparison();
-                    comparison->add_comparison( token, expr_b );
+                    x = p->expr_compare( token, lhs, rhs );
+                    p->destroy( token );
                 }
-expr_compare(x) ::= expr_compare(expr_a) LESSEQUAL(token) expr_concat(expr_b) .
+expr_compare(x) ::= expr_compare(lhs) LESSEQUAL(token) expr_concat(rhs) .
                 {
-                    xec_expression_comparison* comparison;
-                    x = comparison = expr_a->as_comparison();
-                    comparison->add_comparison( token, expr_b );
+                    x = p->expr_compare( token, lhs, rhs );
+                    p->destroy( token );
                 }
-expr_compare(x) ::= expr_compare(expr_a)
-                                GREATEREQUAL(token) expr_concat(expr_b) .
+expr_compare(x) ::= expr_compare(lhs)
+                                GREATEREQUAL(token) expr_concat(rhs) .
                 {
-                    xec_expression_comparison* comparison;
-                    x = comparison = expr_a->as_comparison();
-                    comparison->add_comparison( token, expr_b );
+                    x = p->expr_compare( token, lhs, rhs );
+                    p->destroy( token );
                 }
-expr_compare(x) ::= expr_compare(expr_a) IN(token) expr_concat(expr_b) .
+expr_compare(x) ::= expr_compare(lhs) IN(token) expr_concat(rhs) .
                 {
-                    xec_expression_comparison* comparison;
-                    x = comparison = expr_a->as_comparison();
-                    comparison->add_comparison( token, expr_b );
+                    x = p->expr_compare( token, lhs, rhs );
+                    p->destroy( token );
                 }
-expr_compare(x) ::= expr_compare(expr_a) NOTIN(token) expr_concat(expr_b) .
+expr_compare(x) ::= expr_compare(lhs) NOTIN(token) expr_concat(rhs) .
                 {
-                    xec_expression_comparison* comparison;
-                    x = comparison = expr_a->as_comparison();
-                    comparison->add_comparison( token, expr_b );
+                    x = p->expr_compare( token, lhs, rhs );
+                    p->destroy( token );
                 }
-expr_compare(x) ::= expr_compare(expr_a) IS(token) expr_concat(expr_b) .
+expr_compare(x) ::= expr_compare(lhs) IS(token) expr_concat(rhs) .
                 {
-                    xec_expression_comparison* comparison;
-                    x = comparison = expr_a->as_comparison();
-                    comparison->add_comparison( token, expr_b );
+                    x = p->expr_compare( token, lhs, rhs );
+                    p->destroy( token );
                 }
-expr_compare(x) ::= expr_compare(expr_a) NOTIS(token) expr_concat(expr_b) .
+expr_compare(x) ::= expr_compare(lhs) NOTIS(token) expr_concat(rhs) .
                 {
-                    xec_expression_comparison* comparison;
-                    x = comparison = expr_a->as_comparison();
-                    comparison->add_comparison( token, expr_b );
+                    x = p->expr_compare( token, lhs, rhs );
+                    p->destroy( token );
                 }
 
 expr_and(x)     ::= expr_compare(expr) .
                 {
                     x = expr;
                 }
-expr_and(x)     ::= expr_and(expr_a) LOGICAND(token) expr_compare(expr_b) .
+expr_and(x)     ::= expr_and(lhs) LOGICAND(token) expr_compare(rhs) .
                 {
-                    x = new xec_expression_logical( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_logical >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
 
 expr_xor(x)     ::= expr_and(expr) .
                 {
                     x = expr;
                 }
-expr_xor(x)     ::= expr_xor(expr_a) LOGICXOR(token) expr_and(expr_b) .
+expr_xor(x)     ::= expr_xor(lhs) LOGICXOR(token) expr_and(rhs) .
                 {
-                    x = new xec_expression_logical( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_logical >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
 
 expr_or(x)      ::= expr_xor(expr) .
                 {
                     x = expr;
                 }
-expr_or(x)      ::= expr_or(expr_a) LOGICOR(token) expr_xor(expr_b) .
+expr_or(x)      ::= expr_or(lhs) LOGICOR(token) expr_xor(rhs) .
                 {
-                    x = new xec_expression_logical( expr_a, token, expr_b );
+                    x = p->alloc< xec_expr_logical >(
+                                    lhs->sloc, token->kind, lhs, rhs );
+                    p->destroy( token );
                 }
 
 // Must exclude an open brace to avoid conflict with compound statement.
@@ -725,67 +726,50 @@ expr_nolbr(x)   ::= expr_or(expr) .
                 {
                     x = expr;
                 }
-expr_nolbr(x)   ::= expr_or(comparison) QMARK
+expr_nolbr(x)   ::= expr_or(condition) QMARK
                                 expr_value(iftrue) COLON expr_value(iffalse) .
                 {
-                    x = new xec_expression_conditional(
-                                    comparison, iftrue, iffalse );
+                    x = p->alloc< xec_expr_qmark >(
+                            condition->sloc, condition, iftrue, iffalse );
                 }
 expr_nolbr(x)   ::= LSQ(token) RSQ .
                 {
-                    xec_constructor_list* list;
-                    x = list = new xec_constructor_list();
-                    list->set_token( token );
+                    x = p->alloc< xec_new_list >( token->sloc );
+                    p->destroy( token );
                 }
 expr_nolbr(x)   ::= LSQ(token) value_list(expr) RSQ .
                 {
                     x = expr;
-                    expr->set_token( token );
+                    x->sloc = token->sloc;
+                    p->destroy( token );
                 }
-expr_nolbr(x)   ::= COLON(token) odecl_brace(object) .
+expr_nolbr(x)   ::= newobj_lbr(object) object_decls RBR .
                 {
-                    object->set_token( token );
-                    x = object;
                 }
-expr_nolbr(x)   ::= COLON(token) expr_simple(proto) odecl_brace(object) .
+expr_nolbr(x)   ::= newfunc_lbr(func) stmt_list RBR .
                 {
-                    object->set_token( token );
-                    object->set_proto( proto );
-                    x = object;
                 }
-expr_nolbr(x)   ::= QMARK(token) expr_paren(params) stmt_brace(body) .
+
+newobj_lbr(x)   ::= COLON(token) LBR .
                 {
-                    xec_constructor_function* func;
-                    x = func = new xec_constructor_function( params );
-                    func->set_token( token );
-                    func->set_body( body );
                 }
-expr_nolbr(x)   ::= PERIOD(token) QMARK expr_paren(params) stmt_brace(body) .
+newobj_lbr(x)   ::= COLON(token) expr_simple(proto) LBR .
                 {
-                    xec_constructor_function* func;
-                    x = func = new xec_constructor_function( params );
-                    func->set_token( token );
-                    func->set_thiscall( true );
-                    func->set_body( body );
                 }
-expr_nolbr(x)   ::= QMARK(token) expr_paren(params) YIELD stmt_brace(body) .
+
+newfunc_lbr(x)  ::= QMARK(token) LPN expr_list(params) RPN LBR .
                 {
-                    xec_constructor_function* func;
-                    x = func = new xec_constructor_function( params );
-                    func->set_token( token );
-                    func->set_coroutine( true );
-                    func->set_body( body );
                 }
-expr_nolbr(x)   ::= PERIOD(token) QMARK
-                                expr_paren(params) YIELD stmt_brace(body) .
+newfunc_lbr(x)  ::= PERIOD(token) QMARK LPN expr_list(params) RPN LBR .
                 {
-                    xec_constructor_function* func;
-                    x = func = new xec_constructor_function( params );
-                    func->set_token( token );
-                    func->set_thiscall( true );
-                    func->set_coroutine( true );
-                    func->set_body( body );
                 }
+newfunc_lbr(x)  ::= QMARK(token) LPN expr_list(params) RPN YIELD LBR .
+                {
+                }
+newfunc_lbr(x)  ::= PERIOD(token) QMARK LPN expr_list(params) RPN YIELD LBR .
+                {
+                }
+
 
 // All single-value expressions, including those starting with an open brace.
 expr_value(x)   ::= expr_nolbr(expr) .
@@ -794,85 +778,107 @@ expr_value(x)   ::= expr_nolbr(expr) .
                 }
 expr_value(x)   ::= LBR(token) RBR .
                 {
-                    xec_constructor_table* table;
-                    x = table = new xec_constructor_table();
-                    table->set_token( token );
+                    x = p->alloc< xec_new_table >( token->sloc );
+                    p->destroy( token );
                 }
 expr_value(x)   ::= LBR(token) keyval_list(table) RBR .
                 {
                     x = table;
-                    table->set_token( token );
+                    x->sloc = token->sloc;
+                    p->destroy( token );
                 }
 
 expr_lbody(x)   ::= expr_value(expr) .
                 {
                     x = expr;
                 }
-expr_lbody(x)   ::= expr_lbody(expr_list) COMMA expr_value(expr) .
+expr_lbody(x)   ::= expr_lbody(list) COMMA expr_value(expr) .
                 {
-                    xec_expression_list* list;
-                    x = list = expr_list->as_list();
-                    list->append_expression( expr );
+                    xec_expr_list* l;
+                    if ( list->kind != XEC_EXPR_LIST )
+                        l = p->alloc< xec_expr_list >( list->sloc );
+                    else
+                        l = (xec_expr_list*)list;
+                    l->values.push_back( expr );
+                    x = l;
                 }
 
 // Unpack expressions are valid only as the last expression in a list.
 expr_final(x)   ::= ELLIPSIS(token) .
                 {
-                    x = new xec_expression_varargs( token );
+                    x = p->alloc< xec_expr_vararg >( token->sloc );
+                    p->destroy( token );
                 }
 expr_final(x)   ::= proto(expr) ELLIPSIS .
                 {
-                    expr->set_unpack( true );
+                    expr = p->expr_proto( expr );
+                    assert( expr->kind == XEC_EXPR_CALL );
+                    ( (xec_expr_call*)expr )->unpack = true;
                     x = expr;
                 }
 expr_final(x)   ::= expr_call(expr) ELLIPSIS .
                 {
-                    expr->set_unpack( true );
+                    assert( expr->kind == XEC_EXPR_CALL );
+                    ( (xec_expr_call*)expr )->unpack = true;
                     x = expr;
                 }
 expr_final(x)   ::= expr_yield(expr) ELLIPSIS .
                 {
+                    assert( expr->kind == XEC_EXPR_YIELD );
+                    ( (xec_expr_yield*)expr )->unpack = true;
                     x = expr;
                 }
 expr_final(x)   ::= proto(expr) YIELD ELLIPSIS .
                 {
-                    expr->set_yieldcall( true );
-                    expr->set_unpack( true );
+                    expr = p->expr_proto( expr );
+                    assert( expr->kind == XEC_EXPR_CALL );
+                    ( (xec_expr_call*)expr )->yieldcall = true;
+                    ( (xec_expr_call*)expr )->unpack = true;
                     x = expr;
                 }
 expr_final(x)   ::= expr_call(expr) YIELD ELLIPSIS .
                 {
-                    expr->set_yieldcall( true );
-                    expr->set_unpack( true );
+                    assert( expr->kind == XEC_EXPR_CALL );
+                    ( (xec_expr_call*)expr )->yieldcall = true;
+                    ( (xec_expr_call*)expr )->unpack = true;
                     x = expr;
                 }
 expr_final(x)   ::= name(expr) LSQ RSQ ELLIPSIS .
                 {
-                    x = new xec_expression_unpack( expr );
+                    expr = p->expr_name( expr );
+                    x = p->alloc< xec_expr_unpack >(
+                             expr->sloc, expr );
                 }
 expr_final(x)   ::= proto(expr) LSQ RSQ ELLIPSIS .
                 {
-                    x = new xec_expression_unpack( expr );
+                    expr = p->expr_proto( expr );
+                    x = p->alloc< xec_expr_unpack >(
+                             expr->sloc, expr );
                 }
 expr_final(x)   ::= expr_index(expr) LSQ RSQ ELLIPSIS .
                 {
-                    x = new xec_expression_unpack( expr );
+                    x = p->alloc< xec_expr_unpack >(
+                             expr->sloc, expr );
                 }
 expr_final(x)   ::= expr_yield(expr) LSQ RSQ ELLIPSIS .
                 {
-                    x = new xec_expression_unpack( expr );
+                    x = p->alloc< xec_expr_unpack >(
+                             expr->sloc, expr );
                 }
 expr_final(x)   ::= expr_new(expr) LSQ RSQ ELLIPSIS .
                 {
-                    x = new xec_expression_unpack( expr );
+                    x = p->alloc< xec_expr_unpack >(
+                             expr->sloc, expr );
                 }
 expr_final(x)   ::= expr_call(expr) LSQ RSQ ELLIPSIS .
                 {
-                    x = new xec_expression_unpack( expr );
+                    x = p->alloc< xec_expr_unpack >(
+                             expr->sloc, expr );
                 }
 expr_final(x)   ::= expr_postfix(expr) LSQ RSQ ELLIPSIS .
                 {
-                    x = new xec_expression_unpack( expr );
+                    x = p->alloc< xec_expr_unpack >(
+                             expr->sloc, expr );
                 }
 
 expr_list(x)    ::= expr_final(expr) .
@@ -883,11 +889,15 @@ expr_list(x)    ::= expr_lbody(expr) .
                 {
                     x = expr;
                 }
-expr_list(x)    ::= expr_lbody(expr_list) COMMA expr_final(expr) .
+expr_list(x)    ::= expr_lbody(list) COMMA expr_final(expr) .
                 {
-                    xec_expression_list* list;
-                    x = list = expr_list->as_list();
-                    list->append_final( expr );
+                    xec_expr_list* l;
+                    if ( list->kind != XEC_EXPR_LIST )
+                        l = p->alloc< xec_expr_list >( list->sloc );
+                    else
+                        l = (xec_expr_list*)list;
+                    l->unpack = expr;
+                    x = l;
                 }
 
 expr_assign(x)  ::= expr_list(expr) .
@@ -896,7 +906,6 @@ expr_assign(x)  ::= expr_list(expr) .
                 }
 expr_assign(x)  ::= expr_lbody(lvalue) assign_op(op) expr_assign(rvalue) .
                 {
-                    x = new xec_expression_assign( lvalue, op, rvalue );
                 }
 
 // Assignment operators.
@@ -956,348 +965,288 @@ assign_op(x)    ::= BITORASSIGN(token) .
 // Non-empty lists for list [ ... ] constructors.
 value_lbody(x)  ::= expr_value(expr) .
                 {
-                    x = new xec_constructor_list();
-                    x->append_value( expr );
                 }
 value_lbody(x)  ::= value_lbody(list) COMMA expr_value(expr) .
                 {
-                    x = list;
-                    x->append_value( expr );
                 }
 
 value_list(x)   ::= expr_final(expr) .
                 {
-                    x = new xec_constructor_list();
-                    x->append_final( expr );
                 }
 value_list(x)   ::= expr_final(expr) COMMA .
                 {
-                    x = new xec_constructor_list();
-                    x->append_final( expr );
                 }
 value_list(x)   ::= value_lbody(list) .
                 {
-                    x = list;
                 }
 value_list(x)   ::= value_lbody(list) COMMA .
                 {
-                    x = list;
                 }
 value_list(x)   ::= value_lbody(list) COMMA expr_final(expr) .
                 {
-                    x = list;
-                    x->append_final( expr );
                 }
 
 // Non-empty key -> value lists for { ... } constructors.
 keyval_lbody(x) ::= expr_value(key) COLON expr_value(value) .
                 {
-                    x = new xec_constructor_table();
-                    x->append_keyval( key, value );
                 }
 keyval_lbody(x) ::= keyval_lbody(table) COMMA
                                 expr_value(key) COLON expr_value(value) .
                 {
-                    x = table;
-                    x->append_keyval( key, value );
                 }
 
 keyval_list(x)  ::= keyval_lbody(table) .
                 {
-                    x = table;
                 }
 keyval_list(x)  ::= keyval_lbody(table) COMMA .
                 {
-                    x = table;
                 }
 
 
 
 //
-// Expression statements must exclude { in the initial position.
+// expressions excluding { in the initial position
 //
 
-%type sexpr_lbody   { xec_expression* }
-%type sexpr_list    { xec_expression* }
-%type sexpr_assign  { xec_expression* }
 
 sexpr_lbody(x)  ::= expr_nolbr(expr) .
                 {
-                    x = expr;
                 }
-sexpr_lbody(x)  ::= sexpr_lbody(expr_list) COMMA expr_value(expr) .
+sexpr_lbody(x)  ::= sexpr_lbody(list) COMMA expr_value(expr) .
                 {
-                    xec_expression_list* list;
-                    x = list = expr_list->as_list();
-                    list->append_expression( expr );
                 }
 
 sexpr_list(x)   ::= expr_final(expr) .
                 {
-                    x = expr;
                 }
 sexpr_list(x)   ::= sexpr_lbody(expr) .
                 {
-                    x = expr;
                 }
-sexpr_list(x)   ::= sexpr_lbody(expr_list) COMMA expr_final(expr) .
+sexpr_list(x)   ::= sexpr_lbody(list) COMMA expr_final(expr) .
                 {
-                    xec_expression_list* list;
-                    x = list = expr_list->as_list();
-                    list->append_final( expr );
                 }
 
 sexpr_assign(x) ::= sexpr_list(expr) .
                 {
-                    x = expr;
                 }
 sexpr_assign(x) ::= sexpr_lbody(lvalue) assign_op(op) expr_assign(rvalue) .
                 {
-                    x = new xec_expression_assign( lvalue, op, rvalue );
                 }
+
 
 
 
 //
-// Statements
+// statements
 //
 
-%type condition     { xec_expression* }
-%type stmt_yield    { xec_token* }
-%type stmt_using    { xec_token* }
-%type stmt          { xec_statement* }
-%type catch         { xec_statement_catch* }
-%type catch_list    { xec_statement_try* }
-%type stmt_list     { xec_statement_compound* }
 
-
-// Conditions are expressions, or var declarations.
-condition(x)    ::= expr_assign(expr) .
+// Statement lists.
+stmt_list       ::= .
                 {
-                    x = expr;
                 }
-condition(x)    ::= VAR(token) name_list(name_list)
-                                ASSIGN expr_list(expr_list) .
+stmt_list       ::= stmt_list stmt .
                 {
-                    x = new xec_expression_declare( token,
-                                name_list->as_list(), expr_list->as_list() );
                 }
 
-
-// Productions used for conflict resolution.
-stmt_yield(x)   ::= YIELD(token) .
-                {
-                    x = token;
-                }
-
-stmt_using(x)   ::= USING(token) .
-                {
-                    x = token;
-                }
 
 // Statements.
-stmt(x)         ::= stmt_brace(stmt) .
+stmt(x)         ::= SEMICOLON .
                 {
-                    x = stmt;
                 }
 stmt(x)         ::= sexpr_assign(expr) SEMICOLON .
                 {
-                    x = new xec_statement_expression( expr );
                 }
-stmt(x)         ::= DELETE(token) expr_lbody(expr) SEMICOLON .
+stmt(x)         ::= decl_object(decl) .
                 {
-                    x = new xec_statement_delete( token, expr->as_list() );
                 }
-stmt(x)         ::= IF(token) LPN condition(expr) RPN stmt(iftrue) .
+stmt(x)         ::= decl_func(decl) .
                 {
-                    x = new xec_statement_if( token, expr, iftrue, NULL );
                 }
-stmt(x)         ::= IF(token) LPN condition(expr) RPN stmt(iftrue)
+stmt(x)         ::= decl_var(decl) SEMICOLON .
+                {
+                }
+stmt(x)         ::= stmt_lbr stmt_list RBR .
+                {
+                }
+stmt(x)         ::= stmt_if(stmt) LPN condition(expr) RPN stmt(iftrue) .
+                {
+                }
+stmt(x)         ::= stmt_if(stmt) LPN condition(expr) RPN stmt(iftrue)
                                 ELSE stmt(iffalse) .
                 {
-                    x = new xec_statement_if( token, expr, iftrue, iffalse );
                 }
-stmt(x)         ::= SWITCH(token) LPN condition(expr) RPN stmt_brace(body) .
+stmt(x)         ::= stmt_switch(stmt) LPN condition(expr) RPN
+                                LBR stmt_list RPN .
                 {
-                    x = new xec_statement_switch( token, expr, body );
                 }
-stmt(x)         ::= CASE(token) expr_value(expr) COLON .
+stmt(x)         ::= stmt_while(stmt) LPN condition(expr) RPN stmt(body) .
                 {
-                    x = new xec_statement_case( token, expr );
                 }
-stmt(x)         ::= DEFAULT(token) COLON .
-                {
-                    x = new xec_statement_case( token, NULL );
-                }
-stmt(x)         ::= WHILE(token) LPN condition(expr) RPN stmt(body) .
-                {
-                    x = new xec_statement_while( token, expr, body );
-                }
-stmt(x)         ::= DO(token) stmt(body) WHILE
+stmt(x)         ::= stmt_do(stmt) stmt(body) WHILE
                                 LPN expr_assign(expr) RPN SEMICOLON .
                 {
-                    x = new xec_statement_do( token, body, expr );
                 }
-stmt(x)         ::= FOR(token) LPN expr_lbody(lvalue)
+stmt(x)         ::= stmt_for(stmt) LPN expr_lbody(lval)
                                 COLON expr_value(expr) RPN stmt(body) .
                 {
-                    x = new xec_statement_foreach( token,
-                                    lvalue->as_list(), expr, body );
                 }
-stmt(x)         ::= FOR(token) LPN expr_lbody(lvalue)
+stmt(x)         ::= stmt_for(stmt) LPN expr_lbody(lval)
                                 EACHKEY expr_value(expr) RPN stmt(body) .
                 {
-                    xec_statement_foreach* stmt;
-                    x = stmt = new xec_statement_foreach( token,
-                                    lvalue->as_list(), expr, body );
-                    stmt->set_eachkey( true );
                 }
-stmt(x)         ::= FOR(token) LPN VAR name_list(name_list)
-                                COLON expr_value(expr) RPN stmt(body) .
+stmt(x)         ::= stmt_for(stmt) LPN VAR varname_list(lvals)
+                                COLON expr_value(list) RPN stmt(body) .
                 {
-                    xec_statement_foreach* stmt;
-                    x = stmt = new xec_statement_foreach( token,
-                                        name_list->as_list(), expr, body );
-                    stmt->set_declare( true );
                 }
-stmt(x)         ::= FOR(token) LPN VAR name_list(name_list)
-                                EACHKEY expr_value(expr) RPN stmt(body) .
+stmt(x)         ::= stmt_for(stmt) LPN VAR varname_list(lvals)
+                                EACHKEY expr_value(object) RPN stmt(body) .
                 {
-                    xec_statement_foreach* stmt;
-                    x = stmt = new xec_statement_foreach( token,
-                                        name_list->as_list(), expr, body );
-                    stmt->set_declare( true );
-                    stmt->set_eachkey( true );
                 }
-stmt(x)         ::= FOR(token) LPN condition(init) SEMICOLON expr_assign(expr)
-                                SEMICOLON expr_assign(update) RPN stmt(body) .
+stmt(x)         ::= stmt_for(stmt) LPN condition(init) SEMICOLON
+                                expr_assign(expr) SEMICOLON
+                                        expr_assign(update) RPN stmt(body) .
                 {
-                    x = new xec_statement_for(
-                                        token, init, expr, update, body );
                 }
-stmt(x)         ::= CONTINUE(token) SEMICOLON .
+stmt(x)         ::= stmt_uscope(stmt) condition(expr) RPN stmt(body) .
                 {
-                    x = new xec_statement_continue( token );
                 }
-stmt(x)         ::= BREAK(token) SEMICOLON .
+stmt(x)         ::= stmt_using(stmt) expr_assign(expr) SEMICOLON .
                 {
-                    x = new xec_statement_break( token );
                 }
-stmt(x)         ::= RETURN(token) SEMICOLON .
+stmt(x)         ::= stmt_using(stmt) decl_var(decl) SEMICOLON .
                 {
-                    x = new xec_statement_return( token, NULL );
-                }
-stmt(x)         ::= RETURN(token) expr_list(expr) SEMICOLON .
-                {
-                    x = new xec_statement_return( token, expr->as_list() );
-                }
-stmt(x)         ::= stmt_yield(token) SEMICOLON .
-                {
-                    x = new xec_statement_yield( token, NULL );
-                }
-stmt(x)         ::= stmt_yield(token) expr_list(expr) SEMICOLON .
-                {
-                    x = new xec_statement_yield( token, expr->as_list() );
-                }
-stmt(x)         ::= USING(token) LPN condition(expr) RPN stmt(body) .
-                {
-                    x = new xec_statement_usingscope( token, expr, body );
-                }
-stmt(x)         ::= stmt_using(token) condition(expr) SEMICOLON .
-                {
-                    x = new xec_statement_using( token, expr );
                 }
 stmt(x)         ::= TRY(token) stmt(body) catch_list(stmt) .
                 {
-                    x = stmt;
-                    stmt->set_body( token, body );
                 }
 stmt(x)         ::= TRY(token) stmt(body) FINALLY(ftoken) stmt(fbody) .
                 {
-                    xec_statement_try* stmt;
-                    x = stmt = new xec_statement_try();
-                    stmt->set_body( token, body );
-                    stmt->set_finally( ftoken, fbody );
                 }
 stmt(x)         ::= TRY(token) stmt(body) catch_list(stmt)
                                 FINALLY(ftoken) stmt(fbody) .
                 {
-                    x = stmt;
-                    stmt->set_body( token, body );
-                    stmt->set_finally( ftoken, fbody );
+                }
+stmt(x)         ::= DELETE(token) expr_lbody(expr) SEMICOLON .
+                {
+                }
+stmt(x)         ::= CASE(token) expr_value(expr) COLON .
+                {
+                }
+stmt(x)         ::= DEFAULT(token) COLON .
+                {
+                }
+stmt(x)         ::= CONTINUE(token) SEMICOLON .
+                {
+                }
+stmt(x)         ::= BREAK(token) SEMICOLON .
+                {
+                }
+stmt(x)         ::= RETURN(token) SEMICOLON .
+                {
+                }
+stmt(x)         ::= RETURN(token) expr_list(expr) SEMICOLON .
+                {
+                }
+stmt(x)         ::= stmt_yield(token) SEMICOLON .
+                {
+                }
+stmt(x)         ::= stmt_yield(token) expr_list(expr) SEMICOLON .
+                {
                 }
 stmt(x)         ::= THROW(token) expr_value(expr) SEMICOLON .
                 {
-                    x = new xec_statement_throw( token, expr );
                 }
 
+
 // Catch clauses.
-catch(x)        ::= CATCH(token) LPN COLON expr_simple(proto) RPN stmt(body) .
-                {
-                    x = new xec_statement_catch( token, NULL, proto, body );
-                }
-catch(x)        ::= CATCH(token) LPN expr_value(lvalue)
+catch(x)        ::= stmt_catch(stmt) LPN
                                 COLON expr_simple(proto) RPN stmt(body) .
                 {
-                    x = new xec_statement_catch( token, lvalue, proto, body );
                 }
-catch(x)        ::= CATCH(token) LPN VAR name(lvalue)
+catch(x)        ::= stmt_catch(stmt) LPN expr_value(lvalue)
                                 COLON expr_simple(proto) RPN stmt(body) .
                 {
-                    x = new xec_statement_catch( token, lvalue, proto, body );
-                    x->set_declare( true );
+                }
+catch(x)        ::= stmt_catch(stmt) LPN VAR name(lvalue)
+                                COLON expr_simple(proto) RPN stmt(body) .
+                {
                 }
 
 catch_list(x)   ::= catch(cstmt) .
                 {
-                    x = new xec_statement_try();
-                    x->append_catch( cstmt );
                 }
 catch_list(x)   ::= catch_list(stmt) catch(cstmt) .
                 {
-                    x = stmt;
-                    x->append_catch( cstmt );
                 }
 
-// Statement lists.
-stmt_list(x)    ::= stmt(stmt) .
+
+// Statement introductions.
+stmt_lbr(x)     ::= LBR(token) .
                 {
-                    x = new xec_statement_compound();
-                    x->append_statement( stmt );
                 }
-stmt_list(x)    ::= decl(decl) .
+
+stmt_if(x)      ::= IF(token) .
                 {
-                    x = new xec_statement_compound();
-                    xec_statement_declaration* stmt =
-                                    new xec_statement_declaration( decl );
-                    x->append_statement( stmt );
                 }
-stmt_list(x)    ::= SEMICOLON .
+
+stmt_switch(x)  ::= SWITCH(token) .
                 {
-                    x = new xec_statement_compound();
                 }
-stmt_list(x)    ::= stmt_list(stmt_list) stmt(stmt) .
+
+stmt_while(x)   ::= WHILE(token) .
                 {
-                    x = stmt_list;
-                    x->append_statement( stmt );
                 }
-stmt_list(x)    ::= stmt_list(stmt_list) decl(decl) .
+
+stmt_do(x)      ::= DO(token) .
                 {
-                    x = stmt_list;
-                    xec_statement_declaration* stmt =
-                                    new xec_statement_declaration( decl );
-                    x->append_statement( stmt );
                 }
-stmt_list(x)    ::= stmt_list(stmt_list) SEMICOLON .
+
+stmt_for(x)     ::= FOR(token) .
                 {
-                    x = stmt_list;
                 }
+
+stmt_yield(x)   ::= YIELD(token) .
+                {
+                }
+
+stmt_catch(x)   ::= CATCH(token) .
+                {
+                }
+
+stmt_uscope(x)  ::= USING(token) LPN .
+                {
+                }
+
+stmt_using(x)   ::= USING(token) .
+                {
+                }
+
+
+
+// Conditions.
+condition(x)    ::= expr_assign(expr) .
+                {
+                }
+condition(x)    ::= decl_var(decl) .
+                {
+                }
+condition(x)    ::= USING expr_assign(expr) .
+                {
+                }
+condition(x)    ::= USING decl_var(decl) .
+                {
+                }
+
+
+
+
 
 
 
 %syntax_error
 {
-    p->diagnostic( TOKEN->sloc,
+    p->get_script()->diagnostic( TOKEN->sloc,
             "unexpected %s", TOKEN->get_spelling().c_str() );
 }
 

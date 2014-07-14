@@ -17,6 +17,11 @@ static const int XEC_ELEMENT_MAX = 0;
 
 enum xec_opcode
 {
+    XEC_NOP         = 0,
+    
+
+
+/*
     XEC_LITNULL     = 0,
     XEC_LITTRUE     = 56,
     XEC_LITFALSE    = 57,
@@ -87,28 +92,7 @@ enum xec_opcode
     
     XEC_ITERATE     = 53,
     XEC_ASSERTNUM   = 60,
-
-
-};
-
-
-
-class xec_instruction
-{
-public:
-
-    xec_instruction();
-    xec_instruction( xec_opcode opcode, unsigned r, unsigned a, unsigned b );
-
-    xec_opcode opcode() const;
-    unsigned r() const;
-    unsigned a() const;
-    unsigned b() const;
-
-private:
-
-    uint32_t i;
-
+*/
 };
 
 
