@@ -169,7 +169,7 @@ struct xec_ast_node
 {
     xec_ast_node( xec_ast_node_kind kind, int sloc );
 
-    xec_ast_node_kind    kind;
+    xec_ast_node_kind   kind;
     int                 sloc;
 };
 
@@ -392,6 +392,8 @@ struct xec_new_list : public xec_ast_node
 
 struct xec_key_value
 {
+    xec_key_value( xec_ast_node* key, xec_ast_node* value );
+
     xec_ast_node*       key;
     xec_ast_node*       value;
 };
@@ -511,15 +513,21 @@ struct xec_ast_declare_list : public xec_ast_node
 
 struct xec_ast_assign : public xec_ast_node
 {
+    xec_ast_assign( int sloc, xec_token_kind assignop );
+
+    xec_token_kind      assignop;
     xec_ast_node*       lvalue;
-    xec_ast_node*       value;
+    xec_ast_node*       rvalue;
 };
 
 
 struct xec_ast_assign_list : public xec_ast_node
 {
+    xec_ast_assign_list( int sloc, xec_token_kind assignop );
+
+    xec_token_kind      assignop;
     xec_ast_node_list   lvalues;
-    xec_expr_list*      values;
+    xec_ast_node*       rvalues;
 };
 
 
@@ -537,17 +545,17 @@ struct xec_stmt_compound : public xec_ast_node
 struct xec_stmt_if : public xec_ast_node
 {
     xec_ast_scope*      scope;
-    xec_ast_node*        condition;
-    xec_ast_node*        iftrue;
-    xec_ast_node*        iffalse;
+    xec_ast_node*       condition;
+    xec_ast_node*       iftrue;
+    xec_ast_node*       iffalse;
 };
 
 
 struct xec_stmt_while : public xec_ast_node
 {
     xec_ast_scope*      scope;
-    xec_ast_node*        condition;
-    xec_ast_node*        body;
+    xec_ast_node*       condition;
+    xec_ast_node*       body;
 };
 
 
@@ -562,7 +570,7 @@ struct xec_stmt_do : public xec_ast_node
 struct xec_stmt_foreach : public xec_ast_node
 {
     xec_ast_scope*      scope;
-    xec_ast_node*       lvalues;
+    xec_ast_node_list   lvalues;
     xec_ast_node*       list;
     xec_ast_node*       body;
 };

@@ -27,6 +27,10 @@
 %extra_argument     { xec_parser* p }
 %token_type         { xec_token* }
 %default_type       { xec_ast_node* }
+%type value_lbody   { xec_new_list* }
+%type value_list    { xec_new_list* }
+%type keyval_lbody  { xec_new_table* }
+%type keyval_list   { xec_new_table* }
 
 
 %include
@@ -99,18 +103,18 @@ script          ::= stmt_list .
 name(x)         ::= IDENTIFIER(token) .
                 {
                     x = p->alloc< xec_expr_unqual >(
-                            token->sloc, token->text );
+                                    token->sloc, token->text );
                 }
 name(x)         ::= name(name) PERIOD IDENTIFIER(token) .
                 {
                     x = p->alloc< xec_expr_key >(
-                            token->sloc, name, token->text );
+                                    token->sloc, name, token->text );
                 }
 
 proto(x)        ::= name(name) LPN expr_list(params) RPN .
                 {
                     x = p->alloc< xec_expr_call >(
-                            name->sloc, name, params );
+                                    name->sloc, name, params );
                 }
 
 
@@ -209,8 +213,7 @@ expr_index(x)   ::= LPN expr_assign(expr) RPN .
                     case XEC_EXPR_UNPACK:
                     case XEC_EXPR_LIST:
                     case XEC_AST_ASSIGN_LIST:
-                        x = p->alloc< xec_expr_mono >(
-                                expr->sloc, expr );
+                        x = p->alloc< xec_expr_mono >( expr->sloc, expr );
                         break;
                         
                     default:
@@ -221,37 +224,31 @@ expr_index(x)   ::= LPN expr_assign(expr) RPN .
 expr_index(x)   ::= name(expr) PERIOD LSQ expr_value(key) RSQ .
                 {
                     expr = p->expr_name( expr );
-                    x = p->alloc< xec_expr_inkey >(
-                            expr->sloc, expr, key );
+                    x = p->alloc< xec_expr_inkey >( expr->sloc, expr, key );
                 }
 expr_index(x)   ::= name(expr) LSQ expr_value(index) RSQ .
                 {
                     expr = p->expr_name( expr );
-                    x = p->alloc< xec_expr_index >(
-                             expr->sloc, expr, index );
+                    x = p->alloc< xec_expr_index >( expr->sloc, expr, index );
                 }
 expr_index(x)   ::= expr_index(expr) PERIOD IDENTIFIER(token) .
                 {
-                    x = p->alloc< xec_expr_key >(
-                             expr->sloc, expr, token->text );
+                    x = p->alloc< xec_expr_key >( expr->sloc, expr, token->text );
                     p->destroy( token );
                 }
 expr_index(x)   ::= expr_index(expr) PERIOD LSQ expr_value(key) RSQ .
                 {
-                    x = p->alloc< xec_expr_inkey >(
-                             expr->sloc, expr, key );
+                    x = p->alloc< xec_expr_inkey >( expr->sloc, expr, key );
                 }
 expr_index(x)   ::= expr_index(expr) LSQ expr_value(index) RSQ .
                 {
-                    x = p->alloc< xec_expr_index >(
-                             expr->sloc, expr, index );
+                    x = p->alloc< xec_expr_index >( expr->sloc, expr, index );
                 }
 
 // 'yield' expression - looks like a call but isn't.
 expr_yield(x)   ::= YIELD(token) LPN expr_list(args) RPN .
                 {
-                    x = p->alloc< xec_expr_yield >(
-                             token->sloc, args );
+                    x = p->alloc< xec_expr_yield >( token->sloc, args );
                     p->destroy( token );
                 }
 
@@ -259,14 +256,12 @@ expr_yield(x)   ::= YIELD(token) LPN expr_list(args) RPN .
 expr_new(x)     ::= NEW(token) name(proto) LPN expr_list(args) RPN .
                 {
                     proto = p->expr_name( proto );
-                    x = p->alloc< xec_new_new >(
-                             token->sloc, proto, args );
+                    x = p->alloc< xec_new_new >( token->sloc, proto, args );
                     p->destroy( token );
                 }
 expr_new(x)     ::= NEW(token) expr_index(proto) LPN expr_list(args) RPN.
                 {
-                    x = p->alloc< xec_new_new >(
-                             token->sloc, proto, args );
+                    x = p->alloc< xec_new_new >( token->sloc, proto, args );
                     p->destroy( token );
                 }
 
@@ -467,12 +462,14 @@ expr_suffix(x)  ::= expr_literal(expr) .
                 }
 expr_suffix(x)  ::= expr_suffix(expr) INCREMENT(token) .
                 {
+                    expr = p->expr_lvalue( expr );
                     x = p->alloc< xec_expr_postop >(
                              expr->sloc, token->kind, expr );
                     p->destroy( token );
                 }
 expr_suffix(x)  ::= expr_suffix(expr) DECREMENT(token) .
                 {
+                    expr = p->expr_lvalue( expr );
                     x = p->alloc< xec_expr_postop >(
                              expr->sloc, token->kind, expr );
                     p->destroy( token );
@@ -484,7 +481,7 @@ expr_unary(x)   ::= expr_suffix(expr) .
                 }
 expr_unary(x)   ::= PLUS(token) expr_unary(expr) .
                 {
-                    x = p->alloc< xec_expr_preop >(
+                    x = p->alloc< xec_expr_unary >(
                              token->sloc, token->kind, expr );
                     p->destroy( token );
                 }
@@ -508,13 +505,15 @@ expr_unary(x)   ::= TILDE(token) expr_unary(expr) .
                 }
 expr_unary(x)   ::= INCREMENT(token) expr_unary(expr) .
                 {
-                    x = p->alloc< xec_expr_unary >(
+                    expr = p->expr_lvalue( expr );
+                    x = p->alloc< xec_expr_preop >(
                              token->sloc, token->kind, expr );
                     p->destroy( token );
                 }
 expr_unary(x)   ::= DECREMENT(token) expr_unary(expr) .
                 {
-                    x = p->alloc< xec_expr_unary >(
+                    expr = p->expr_lvalue( expr );
+                    x = p->alloc< xec_expr_preop >(
                              token->sloc, token->kind, expr );
                     p->destroy( token );
                 }
@@ -794,13 +793,7 @@ expr_lbody(x)   ::= expr_value(expr) .
                 }
 expr_lbody(x)   ::= expr_lbody(list) COMMA expr_value(expr) .
                 {
-                    xec_expr_list* l;
-                    if ( list->kind != XEC_EXPR_LIST )
-                        l = p->alloc< xec_expr_list >( list->sloc );
-                    else
-                        l = (xec_expr_list*)list;
-                    l->values.push_back( expr );
-                    x = l;
+                    x = p->expr_append( list, expr );
                 }
 
 // Unpack expressions are valid only as the last expression in a list.
@@ -846,39 +839,32 @@ expr_final(x)   ::= expr_call(expr) YIELD ELLIPSIS .
 expr_final(x)   ::= name(expr) LSQ RSQ ELLIPSIS .
                 {
                     expr = p->expr_name( expr );
-                    x = p->alloc< xec_expr_unpack >(
-                             expr->sloc, expr );
+                    x = p->alloc< xec_expr_unpack >( expr->sloc, expr );
                 }
 expr_final(x)   ::= proto(expr) LSQ RSQ ELLIPSIS .
                 {
                     expr = p->expr_proto( expr );
-                    x = p->alloc< xec_expr_unpack >(
-                             expr->sloc, expr );
+                    x = p->alloc< xec_expr_unpack >( expr->sloc, expr );
                 }
 expr_final(x)   ::= expr_index(expr) LSQ RSQ ELLIPSIS .
                 {
-                    x = p->alloc< xec_expr_unpack >(
-                             expr->sloc, expr );
+                    x = p->alloc< xec_expr_unpack >( expr->sloc, expr );
                 }
 expr_final(x)   ::= expr_yield(expr) LSQ RSQ ELLIPSIS .
                 {
-                    x = p->alloc< xec_expr_unpack >(
-                             expr->sloc, expr );
+                    x = p->alloc< xec_expr_unpack >( expr->sloc, expr );
                 }
 expr_final(x)   ::= expr_new(expr) LSQ RSQ ELLIPSIS .
                 {
-                    x = p->alloc< xec_expr_unpack >(
-                             expr->sloc, expr );
+                    x = p->alloc< xec_expr_unpack >( expr->sloc, expr );
                 }
 expr_final(x)   ::= expr_call(expr) LSQ RSQ ELLIPSIS .
                 {
-                    x = p->alloc< xec_expr_unpack >(
-                             expr->sloc, expr );
+                    x = p->alloc< xec_expr_unpack >( expr->sloc, expr );
                 }
 expr_final(x)   ::= expr_postfix(expr) LSQ RSQ ELLIPSIS .
                 {
-                    x = p->alloc< xec_expr_unpack >(
-                             expr->sloc, expr );
+                    x = p->alloc< xec_expr_unpack >( expr->sloc, expr );
                 }
 
 expr_list(x)    ::= expr_final(expr) .
@@ -891,21 +877,17 @@ expr_list(x)    ::= expr_lbody(expr) .
                 }
 expr_list(x)    ::= expr_lbody(list) COMMA expr_final(expr) .
                 {
-                    xec_expr_list* l;
-                    if ( list->kind != XEC_EXPR_LIST )
-                        l = p->alloc< xec_expr_list >( list->sloc );
-                    else
-                        l = (xec_expr_list*)list;
-                    l->unpack = expr;
-                    x = l;
+                    x = p->expr_final( list, expr );
                 }
 
 expr_assign(x)  ::= expr_list(expr) .
                 {
                     x = expr;
                 }
-expr_assign(x)  ::= expr_lbody(lvalue) assign_op(op) expr_assign(rvalue) .
+expr_assign(x)  ::= expr_lbody(lv) assign_op(op) expr_assign(rv) .
                 {
+                    x = p->expr_assign( op, lv, rv );
+                    p->destroy( op );
                 }
 
 // Assignment operators.
@@ -965,41 +947,59 @@ assign_op(x)    ::= BITORASSIGN(token) .
 // Non-empty lists for list [ ... ] constructors.
 value_lbody(x)  ::= expr_value(expr) .
                 {
+                    x = p->alloc< xec_new_list >( -1 );
+                    x->values.push_back( expr );
                 }
 value_lbody(x)  ::= value_lbody(list) COMMA expr_value(expr) .
                 {
+                    x = list;
+                    x->values.push_back( expr );
                 }
 
 value_list(x)   ::= expr_final(expr) .
                 {
+                    x = p->alloc< xec_new_list >( -1 );
+                    x->unpack = expr;
                 }
 value_list(x)   ::= expr_final(expr) COMMA .
                 {
+                    x = p->alloc< xec_new_list >( -1 );
+                    x->unpack = expr;
                 }
 value_list(x)   ::= value_lbody(list) .
                 {
+                    x = list;
                 }
 value_list(x)   ::= value_lbody(list) COMMA .
                 {
+                    x = list;
                 }
 value_list(x)   ::= value_lbody(list) COMMA expr_final(expr) .
                 {
+                    x = list;
+                    x->unpack = expr;
                 }
 
 // Non-empty key -> value lists for { ... } constructors.
 keyval_lbody(x) ::= expr_value(key) COLON expr_value(value) .
                 {
+                    x = new xec_new_table( -1 );
+                    x->elements.emplace_back( key, value );
                 }
 keyval_lbody(x) ::= keyval_lbody(table) COMMA
                                 expr_value(key) COLON expr_value(value) .
                 {
+                    x = table;
+                    x->elements.emplace_back( key, value );
                 }
 
 keyval_list(x)  ::= keyval_lbody(table) .
                 {
+                    x = table;
                 }
 keyval_list(x)  ::= keyval_lbody(table) COMMA .
                 {
+                    x = table;
                 }
 
 
@@ -1011,26 +1011,34 @@ keyval_list(x)  ::= keyval_lbody(table) COMMA .
 
 sexpr_lbody(x)  ::= expr_nolbr(expr) .
                 {
+                    x = expr;
                 }
 sexpr_lbody(x)  ::= sexpr_lbody(list) COMMA expr_value(expr) .
                 {
+                    x = p->expr_append( list, expr );
                 }
 
 sexpr_list(x)   ::= expr_final(expr) .
                 {
+                    x = expr;
                 }
 sexpr_list(x)   ::= sexpr_lbody(expr) .
                 {
+                    x = expr;
                 }
 sexpr_list(x)   ::= sexpr_lbody(list) COMMA expr_final(expr) .
                 {
+                    x = p->expr_final( list, expr );
                 }
 
 sexpr_assign(x) ::= sexpr_list(expr) .
                 {
+                    x = expr;
                 }
-sexpr_assign(x) ::= sexpr_lbody(lvalue) assign_op(op) expr_assign(rvalue) .
+sexpr_assign(x) ::= sexpr_lbody(lv) assign_op(op) expr_assign(rv) .
                 {
+                    x = p->expr_assign( op, lv, rv );
+                    p->destroy( op );
                 }
 
 

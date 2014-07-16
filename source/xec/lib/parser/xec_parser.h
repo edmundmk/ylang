@@ -14,15 +14,14 @@
 #include <unordered_set>
 #include <symbol.h>
 #include "xec_script.h"
+#include "xec_ast.h"
 
 
 
 class region_buffer;
 class xec_script;
 
-struct yyParser;
 struct xec_token;
-struct xec_ast_node;
 
 
 
@@ -32,30 +31,35 @@ public:
 
     explicit xec_parser( xec_script* script );
     
-    // General.
     xec_script*     get_script();
     template < typename object_t, typename ... arguments_t >
         object_t*   alloc( arguments_t ... arguments );
     
-    // Parsing.
+
     bool            parse( const char* filename );
 
-    // Lexer interface.
+
     void            newline( int sloc );
     template < typename ... arguments_t >
         xec_token*  make_token( arguments_t ... arguments );
     xec_token*      make_identifier( int sloc, region_buffer* buffer );
     
-    // Parser interface.
+
     void            destroy( xec_token* token );
     double          parse_number( xec_token* token );
+
+
     xec_ast_node*   expr_name( xec_ast_node* name );
     xec_ast_node*   expr_proto( xec_ast_node* proto );
     xec_ast_node*   expr_call( xec_ast_node* expr, xec_ast_node* args );
-    xec_ast_node*   expr_compare(
-            xec_token* token, xec_ast_node* lhs, xec_ast_node* rhs );
-
+    xec_ast_node*   expr_compare( xec_token* op, xec_ast_node* lhs, xec_ast_node* rhs );
+    xec_ast_node*   expr_append( xec_ast_node* list, xec_ast_node* expr );
+    xec_ast_node*   expr_final( xec_ast_node* list, xec_ast_node* final );
+    xec_ast_node*   expr_lvalue( xec_ast_node* lvalue );
+    void            expr_lvalue_list( xec_expr_list* list, xec_ast_node_list* lvalues );
+    xec_ast_node*   expr_assign( xec_token* op, xec_ast_node* lv, xec_ast_node* rv );
     
+
 private:
 
     static const size_t BUFFER_SIZE         = 4 * 1024 * 1024;
@@ -64,6 +68,7 @@ private:
     xec_script*                     script;
     std::deque< void* >             recycle_tokens;
     std::unordered_set< symkey >    identifiers;
+    
 
 };
 
