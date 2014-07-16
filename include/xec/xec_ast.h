@@ -329,6 +329,8 @@ struct xec_expr_binary : public xec_ast_node
 
 struct xec_expr_compare : public xec_ast_node
 {
+    xec_expr_compare( int sloc, xec_ast_node* first );
+    
     xec_ast_node*       first;
     xec_opkind_list     opkinds;
     xec_ast_node_list   terms;
@@ -364,7 +366,7 @@ struct xec_expr_qmark : public xec_ast_node
 
 struct xec_new_new : public xec_ast_node
 {
-    xec_new_new( int sloc, xec_ast_node* proto, xec_ast_node* args );
+    xec_new_new( int sloc, xec_ast_node* proto, xec_expr_list* args );
 
     xec_ast_node*       proto;
     xec_expr_list*      arguments;
@@ -428,7 +430,7 @@ struct xec_expr_mono : public xec_ast_node
 
 struct xec_expr_call : public xec_ast_node
 {
-    xec_expr_call( int sloc, xec_ast_node* function, xec_ast_node* args );
+    xec_expr_call( int sloc, xec_ast_node* function, xec_expr_list* args );
 
     xec_ast_node*       function;
     xec_expr_list*      arguments;
@@ -459,7 +461,7 @@ struct xec_expr_callinkey : public xec_ast_node
 
 struct xec_expr_yield : public xec_ast_node
 {
-    xec_expr_yield( int sloc, xec_ast_node* args );
+    xec_expr_yield( int sloc, xec_expr_list* args );
 
     xec_expr_list*      arguments;
     bool                unpack;
@@ -485,7 +487,7 @@ struct xec_expr_list : public xec_ast_node
     explicit xec_expr_list( int sloc );
 
     xec_ast_node_list   values;
-    xec_ast_node*       unpack;
+    xec_ast_node*       final;
 };
 
 

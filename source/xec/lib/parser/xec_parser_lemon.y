@@ -114,7 +114,7 @@ name(x)         ::= name(name) PERIOD IDENTIFIER(token) .
 proto(x)        ::= name(name) LPN expr_list(params) RPN .
                 {
                     x = p->alloc< xec_expr_call >(
-                                    name->sloc, name, params );
+                                    name->sloc, name, p->expr_list( params ) );
                 }
 
 
@@ -248,7 +248,8 @@ expr_index(x)   ::= expr_index(expr) LSQ expr_value(index) RSQ .
 // 'yield' expression - looks like a call but isn't.
 expr_yield(x)   ::= YIELD(token) LPN expr_list(args) RPN .
                 {
-                    x = p->alloc< xec_expr_yield >( token->sloc, args );
+                    x = p->alloc< xec_expr_yield >(
+                                    token->sloc, p->expr_list( args ) );
                     p->destroy( token );
                 }
 
@@ -256,12 +257,14 @@ expr_yield(x)   ::= YIELD(token) LPN expr_list(args) RPN .
 expr_new(x)     ::= NEW(token) name(proto) LPN expr_list(args) RPN .
                 {
                     proto = p->expr_name( proto );
-                    x = p->alloc< xec_new_new >( token->sloc, proto, args );
+                    x = p->alloc< xec_new_new >(
+                                    token->sloc, proto, p->expr_list( args ) );
                     p->destroy( token );
                 }
 expr_new(x)     ::= NEW(token) expr_index(proto) LPN expr_list(args) RPN.
                 {
-                    x = p->alloc< xec_new_new >( token->sloc, proto, args );
+                    x = p->alloc< xec_new_new >(
+                                    token->sloc, proto, p->expr_list( args ) );
                     p->destroy( token );
                 }
 

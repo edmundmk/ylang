@@ -55,6 +55,7 @@ public:
     xec_ast_node*   expr_compare( xec_token* op, xec_ast_node* lhs, xec_ast_node* rhs );
     xec_ast_node*   expr_append( xec_ast_node* list, xec_ast_node* expr );
     xec_ast_node*   expr_final( xec_ast_node* list, xec_ast_node* final );
+    xec_expr_list*  expr_list( xec_ast_node* list );
     xec_ast_node*   expr_lvalue( xec_ast_node* lvalue );
     void            expr_lvalue_list( xec_expr_list* list, xec_ast_node_list* lvalues );
     xec_ast_node*   expr_assign( xec_token* op, xec_ast_node* lv, xec_ast_node* rv );

@@ -75,10 +75,24 @@ xec_ast_node* xec_parser::expr_final( xec_ast_node* list, xec_ast_node* expr )
         l = alloc< xec_expr_list >( list->sloc );
     else
         l = (xec_expr_list*)list;
-    l->unpack = expr;
+    l->final = expr;
     return l;
 }
 
+
+xec_expr_list* xec_parser::expr_list( xec_ast_node* list )
+{
+    if ( list->kind == XEC_EXPR_LIST )
+    {
+        return (xec_expr_list*)list;
+    }
+    else
+    {
+        xec_expr_list* l = alloc< xec_expr_list >( list->sloc );
+        l->values.push_back( list );
+        return l;
+    }
+}
 
 
 xec_ast_node* xec_parser::expr_lvalue( xec_ast_node* lvalue )
