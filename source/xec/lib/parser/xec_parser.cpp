@@ -26,32 +26,54 @@ xec_script* xec_parser::get_script()
 
 double xec_parser::parse_number( xec_token* token )
 {
-    return 0;
+    char* endp = NULL;
+    double number = strtod( token->text, &endp );
+    if ( endp[ 0 ] != '\0' )
+    {
+        script->diagnostic(
+            token->sloc, "unable to parse number '%s'", token->text );
+    }
+    else if ( number == HUGE_VAL || number == -HUGE_VAL )
+    {
+        script->diagnostic(
+            token->sloc, "number out of range '%s'", token->text );
+    }
+    return number;
 }
 
 
 xec_ast_node* xec_parser::expr_name( xec_ast_node* name )
 {
+    // A name is used in an expression.  Perform lookup of unqualified names.
+
     return NULL;
 }
 
 
 xec_ast_node* xec_parser::expr_proto( xec_ast_node* proto )
 {
+    // A prototype is used in an expression.  Perform lookup of unqualified
+    // names and replace the proto with a call expression.
+
     return NULL;
 }
 
-
-xec_ast_node* xec_parser::expr_call( xec_ast_node* expr, xec_ast_node* args )
-{
-    return NULL;
-}
 
 
 xec_ast_node* xec_parser::expr_compare(
         xec_token* token, xec_ast_node* lhs, xec_ast_node* rhs )
 {
-    return NULL;
+    // Build a compare expression.
+    xec_expr_compare* c;
+    if ( lhs->kind == XEC_EXPR_COMPARE )
+        c = (xec_expr_compare*)lhs;
+    else
+        c = alloc< xec_expr_compare >( lhs->sloc, lhs );
+    
+    c->opkinds.push_back( token->kind );
+    c->terms.push_back( rhs );
+
+    return c;
 }
 
 
@@ -95,13 +117,46 @@ xec_expr_list* xec_parser::expr_list( xec_ast_node* list )
 }
 
 
+
+
 xec_ast_node* xec_parser::expr_lvalue( xec_ast_node* lvalue )
 {
-    return NULL;
+    // The expression must be a single lvalue.  Only a restricted set of
+    // expressions are lvalues, and global variables must be scoped using
+    // 'global.'
+    
+    switch ( lvalue->kind )
+    {
+    case XEC_EXPR_LOCAL:
+    case XEC_EXPR_UPVAL:
+    case XEC_EXPR_KEY:
+    case XEC_EXPR_INKEY:
+    case XEC_EXPR_INDEX:
+    {
+        break;
+    }
+    
+    case XEC_EXPR_GLOBAL:
+    {
+        xec_expr_global* g = (xec_expr_global*)lvalue;
+        if ( ! g->gexplicit )
+            script->diagnostic( lvalue->sloc, "unexpected identifier" );
+        break;
+    }
+    
+    default:
+    {
+        script->diagnostic( lvalue->sloc, "invalid lvalue" );
+        break;
+    }
+    }
+
+    return lvalue;
 }
 
+
 void xec_parser::expr_lvalue_list(
-        xec_expr_list* list, xec_ast_node_list* lvalues )
+        xec_ast_node* list, xec_ast_node_list* lvalues )
 {
 }
 

@@ -17,20 +17,60 @@
 
 %include
 {
-    #include <assert.h>
-    #include "xec_parser.h"
-    #include "xec_token.h"
-    #include "xec_ast.h"
+
+#include <assert.h>
+#include "xec_parser.h"
+#include "xec_token.h"
+#include "xec_ast.h"
+
+
+struct xec_token_scope
+{
+    xec_token*      token;
+    xec_ast_scope*  scope;
+};
+
+
+inline xec_token_scope make_token_scope(
+                xec_token* token, xec_ast_scope* scope )
+{
+    xec_token_scope result;
+    result.token = token;
+    result.scope = scope;
+    return result;
+}
+
+
 }
 
 
 %extra_argument     { xec_parser* p }
 %token_type         { xec_token* }
 %default_type       { xec_ast_node* }
+
+%type assign_op     { xec_token* }
 %type value_lbody   { xec_new_list* }
 %type value_list    { xec_new_list* }
 %type keyval_lbody  { xec_new_table* }
 %type keyval_list   { xec_new_table* }
+
+%type stmt_lbr      { xec_stmt_block* }
+%type stmt_lbr_ru   { xec_stmt_block* }
+%type stmt_if       { xec_stmt_if* }
+%type stmt_switch   { xec_stmt_switch* }
+%type stmt_while    { xec_stmt_while* }
+%type stmt_do       { xec_stmt_do* }
+%type scope_for     { xec_token_scope }
+%type stmt_foreach  { xec_stmt_foreach* }
+%type stmt_for      { xec_stmt_for* }
+%type stmt_uscope   { xec_stmt_using_scope* }
+%type try_block     { xec_stmt_try* }
+%type try_catch     { xec_stmt_try* }
+%type catch         { xec_stmt_catch* }
+%type stmt_catch    { xec_stmt_catch* }
+
+%type token_yield   { xec_token* }
+%type token_using   { xec_token* }
 
 
 %include
@@ -102,7 +142,7 @@ script          ::= stmt_list .
 
 name(x)         ::= IDENTIFIER(token) .
                 {
-                    x = p->alloc< xec_expr_unqual >(
+                    x = p->alloc< xec_unqual_name >(
                                     token->sloc, token->text );
                 }
 name(x)         ::= name(name) PERIOD IDENTIFIER(token) .
@@ -113,7 +153,7 @@ name(x)         ::= name(name) PERIOD IDENTIFIER(token) .
 
 proto(x)        ::= name(name) LPN expr_list(params) RPN .
                 {
-                    x = p->alloc< xec_expr_call >(
+                    x = p->alloc< xec_unqual_proto >(
                                     name->sloc, name, p->expr_list( params ) );
                 }
 
@@ -123,9 +163,6 @@ proto(x)        ::= name(name) LPN expr_list(params) RPN .
 //
 // declarations
 //
-
-%type object_lbr { xec_new_object* }
-%type assign_op  { xec_token* }
 
 
 // objects
@@ -157,6 +194,9 @@ object_decl(x)  ::= decl_proto(decl) SEMICOLON .
 object_decl(x)  ::= decl_var(decl) SEMICOLON .
                 {
                 }
+object_decl(x)  ::= decl_noinit(decl) SEMICOLON .
+                {
+                }
 
 
 
@@ -184,12 +224,18 @@ decl_var(x)     ::= VAR varname_list(lvals) ASSIGN expr_list(rvals) .
                 {
                 }
 
+decl_noinit(x)  ::= VAR varname_list(lvals) .
+                {
+                }
+
 varname_list(x) ::= IDENTIFIER(token) .
                 {
                 }
 varname_list(x) ::= varname_list(list) COMMA IDENTIFIER(token) .
                 {
                 }
+
+
 
 
 
@@ -246,7 +292,8 @@ expr_index(x)   ::= expr_index(expr) LSQ expr_value(index) RSQ .
                 }
 
 // 'yield' expression - looks like a call but isn't.
-expr_yield(x)   ::= YIELD(token) LPN expr_list(args) RPN .
+expr_yield(x)   ::= YIELD(token) LPN /* shift in preference to token_yield */
+                                expr_list(args) RPN .
                 {
                     x = p->alloc< xec_expr_yield >(
                                     token->sloc, p->expr_list( args ) );
@@ -272,27 +319,33 @@ expr_new(x)     ::= NEW(token) expr_index(proto) LPN expr_list(args) RPN.
 expr_call(x)    ::= proto(expr) LPN expr_list(args) RPN .
                 {
                     expr = p->expr_proto( expr );
-                    x = p->expr_call( expr, args );
+                    x = p->alloc< xec_expr_call >(
+                                expr->sloc, expr, p->expr_list( args ) );
                 }
 expr_call(x)    ::= expr_index(expr) LPN expr_list(args) RPN .
                 {
-                    x = p->expr_call( expr, args );
+                    x = p->alloc< xec_expr_call >(
+                                expr->sloc, expr, p->expr_list( args ) );
                 }
 expr_call(x)    ::= expr_yield(expr) LPN expr_list(args) RPN .
                 {
-                    x = p->expr_call( expr, args );
+                    x = p->alloc< xec_expr_call >(
+                                expr->sloc, expr, p->expr_list( args ) );
                 }
 expr_call(x)    ::= expr_new(expr) LPN expr_list(args) RPN .
                 {
-                    x = p->expr_call( expr, args );
+                    x = p->alloc< xec_expr_call >(
+                                expr->sloc, expr, p->expr_list( args ) );
                 }
 expr_call(x)    ::= expr_call(expr) LPN expr_list(args) RPN .
                 {
-                    x = p->expr_call( expr, args );
+                    x = p->alloc< xec_expr_call >(
+                                expr->sloc, expr, p->expr_list( args ) );
                 }
 expr_call(x)    ::= expr_postfix(expr) LPN expr_list(args) RPN .
                 {
-                    x = p->expr_call( expr, args );
+                    x = p->alloc< xec_expr_call >(
+                                expr->sloc, expr, p->expr_list( args ) );
                 }
 
 // All lookups after the first call parenthesis.
@@ -1052,201 +1105,411 @@ sexpr_assign(x) ::= sexpr_lbody(lv) assign_op(op) expr_assign(rv) .
 //
 
 
-// Statement lists.
-stmt_list       ::= .
-                {
-                }
-stmt_list       ::= stmt_list stmt .
-                {
-                }
-
-
-// Statements.
-stmt(x)         ::= SEMICOLON .
-                {
-                }
-stmt(x)         ::= sexpr_assign(expr) SEMICOLON .
-                {
-                }
-stmt(x)         ::= decl_object(decl) .
-                {
-                }
-stmt(x)         ::= decl_func(decl) .
-                {
-                }
-stmt(x)         ::= decl_var(decl) SEMICOLON .
-                {
-                }
-stmt(x)         ::= stmt_lbr stmt_list RBR .
-                {
-                }
-stmt(x)         ::= stmt_if(stmt) LPN condition(expr) RPN stmt(iftrue) .
-                {
-                }
-stmt(x)         ::= stmt_if(stmt) LPN condition(expr) RPN stmt(iftrue)
-                                ELSE stmt(iffalse) .
-                {
-                }
-stmt(x)         ::= stmt_switch(stmt) LPN condition(expr) RPN
-                                LBR stmt_list RPN .
-                {
-                }
-stmt(x)         ::= stmt_while(stmt) LPN condition(expr) RPN stmt(body) .
-                {
-                }
-stmt(x)         ::= stmt_do(stmt) stmt(body) WHILE
-                                LPN expr_assign(expr) RPN SEMICOLON .
-                {
-                }
-stmt(x)         ::= stmt_for(stmt) LPN expr_lbody(lval)
-                                COLON expr_value(expr) RPN stmt(body) .
-                {
-                }
-stmt(x)         ::= stmt_for(stmt) LPN expr_lbody(lval)
-                                EACHKEY expr_value(expr) RPN stmt(body) .
-                {
-                }
-stmt(x)         ::= stmt_for(stmt) LPN VAR varname_list(lvals)
-                                COLON expr_value(list) RPN stmt(body) .
-                {
-                }
-stmt(x)         ::= stmt_for(stmt) LPN VAR varname_list(lvals)
-                                EACHKEY expr_value(object) RPN stmt(body) .
-                {
-                }
-stmt(x)         ::= stmt_for(stmt) LPN condition(init) SEMICOLON
-                                expr_assign(expr) SEMICOLON
-                                        expr_assign(update) RPN stmt(body) .
-                {
-                }
-stmt(x)         ::= stmt_uscope(stmt) condition(expr) RPN stmt(body) .
-                {
-                }
-stmt(x)         ::= stmt_using(stmt) expr_assign(expr) SEMICOLON .
-                {
-                }
-stmt(x)         ::= stmt_using(stmt) decl_var(decl) SEMICOLON .
-                {
-                }
-stmt(x)         ::= TRY(token) stmt(body) catch_list(stmt) .
-                {
-                }
-stmt(x)         ::= TRY(token) stmt(body) FINALLY(ftoken) stmt(fbody) .
-                {
-                }
-stmt(x)         ::= TRY(token) stmt(body) catch_list(stmt)
-                                FINALLY(ftoken) stmt(fbody) .
-                {
-                }
-stmt(x)         ::= DELETE(token) expr_lbody(expr) SEMICOLON .
-                {
-                }
-stmt(x)         ::= CASE(token) expr_value(expr) COLON .
-                {
-                }
-stmt(x)         ::= DEFAULT(token) COLON .
-                {
-                }
-stmt(x)         ::= CONTINUE(token) SEMICOLON .
-                {
-                }
-stmt(x)         ::= BREAK(token) SEMICOLON .
-                {
-                }
-stmt(x)         ::= RETURN(token) SEMICOLON .
-                {
-                }
-stmt(x)         ::= RETURN(token) expr_list(expr) SEMICOLON .
-                {
-                }
-stmt(x)         ::= stmt_yield(token) SEMICOLON .
-                {
-                }
-stmt(x)         ::= stmt_yield(token) expr_list(expr) SEMICOLON .
-                {
-                }
-stmt(x)         ::= THROW(token) expr_value(expr) SEMICOLON .
-                {
-                }
-
-
-// Catch clauses.
-catch(x)        ::= stmt_catch(stmt) LPN
-                                COLON expr_simple(proto) RPN stmt(body) .
-                {
-                }
-catch(x)        ::= stmt_catch(stmt) LPN expr_value(lvalue)
-                                COLON expr_simple(proto) RPN stmt(body) .
-                {
-                }
-catch(x)        ::= stmt_catch(stmt) LPN VAR name(lvalue)
-                                COLON expr_simple(proto) RPN stmt(body) .
-                {
-                }
-
-catch_list(x)   ::= catch(cstmt) .
-                {
-                }
-catch_list(x)   ::= catch_list(stmt) catch(cstmt) .
-                {
-                }
-
-
-// Statement introductions.
-stmt_lbr(x)     ::= LBR(token) .
-                {
-                }
-
-stmt_if(x)      ::= IF(token) .
-                {
-                }
-
-stmt_switch(x)  ::= SWITCH(token) .
-                {
-                }
-
-stmt_while(x)   ::= WHILE(token) .
-                {
-                }
-
-stmt_do(x)      ::= DO(token) .
-                {
-                }
-
-stmt_for(x)     ::= FOR(token) .
-                {
-                }
-
-stmt_yield(x)   ::= YIELD(token) .
-                {
-                }
-
-stmt_catch(x)   ::= CATCH(token) .
-                {
-                }
-
-stmt_uscope(x)  ::= USING(token) LPN .
-                {
-                }
-
-stmt_using(x)   ::= USING(token) .
-                {
-                }
-
-
-
 // Conditions.
-condition(x)    ::= expr_assign(expr) .
+cond_using(x)   ::= expr_assign(expr) .
                 {
+                    x = expr;
                 }
-condition(x)    ::= decl_var(decl) .
+cond_using(x)   ::= decl_var(decl) .
                 {
+                    x = decl;
+                }
+
+condition(x)    ::= cond_using(cond) .
+                {
+                    x = cond;
                 }
 condition(x)    ::= USING expr_assign(expr) .
                 {
                 }
 condition(x)    ::= USING decl_var(decl) .
                 {
+                }
+
+
+
+// Statement lists.
+stmt_list       ::= .
+                {
+                }
+stmt_list       ::= stmt_list stmt(stmt) .
+                {
+                    p->statement( stmt );
+                }
+
+
+// Normally block statements open a new scope scopes.
+stmt(x)         ::= stmt_lbr(stmt) stmt_list RBR .
+                {
+                    x = stmt;
+                    p->close_scope( stmt->scope );
+                }
+stmt(x)         ::= stmt_common(stmt) .
+                {
+                    x = stmt;
+                }
+
+stmt_lbr(x)     ::= LBR(token) .
+                {
+                    x = p->alloc< xec_stmt_block >( token->sloc );
+                    x->scope = p->block_scope( x );
+                    x->scope->block = x;
+                    p->destroy( token );
+                }
+
+
+// Compound statements which are loop or switch bodies reuse the scope.
+stmt_reuse(x)   ::= stmt_lbr_ru(stmt) stmt_list RBR .
+                {
+                    x = stmt;
+                }
+stmt_reuse(x)   ::= stmt_common(stmt) .
+                {
+                    x = stmt;
+                }
+
+stmt_lbr_ru(x)  ::= LBR(token) .
+                {
+                    x = p->alloc< xec_stmt_block >( token->sloc );
+                    x->scope = p->get_scope();
+                    x->scope->block = x;
+                    p->destroy( token );
+                }
+
+
+
+// Statements.
+stmt_common(x)  ::= SEMICOLON .
+                {
+                    x = nullptr;
+                }
+stmt_common(x)  ::= sexpr_assign(expr) SEMICOLON .
+                {
+                    x = expr;
+                }
+stmt_common(x)  ::= decl_object(decl) .
+                {
+                    x = decl;
+                }
+stmt_common(x)  ::= decl_func(decl) .
+                {
+                    x = decl;
+                }
+stmt_common(x)  ::= decl_var(decl) SEMICOLON .
+                {
+                    x = decl;
+                }
+stmt_common(x)  ::= decl_noinit(decl) SEMICOLON .
+                {
+                    x = decl;
+                }
+stmt_common(x)  ::= stmt_if(stmt) LPN condition(expr) RPN stmt(block) .
+                {
+                    stmt->condition = expr;
+                    stmt->iftrue    = p->stmt_nodecl( block );
+                    p->close_scope( stmt->scope );
+                    x = stmt;
+                }
+stmt_common(x)  ::= stmt_if(stmt) LPN condition(expr) RPN stmt(block)
+                                ELSE stmt(orblock) .
+                {
+                    stmt->condition = expr;
+                    stmt->iftrue    = p->stmt_nodecl( block );
+                    stmt->iffalse   = p->stmt_nodecl( orblock );
+                    p->close_scope( stmt->scope );
+                    x = stmt;
+                }
+stmt_common(x)  ::= stmt_switch(stmt) LPN condition(expr) RPN
+                                stmt_lbr_ru(block) stmt_list RPN .
+                {
+                    stmt->value     = expr;
+                    stmt->body      = block;
+                    p->close_scope( stmt->scope );
+                    x = stmt;
+                }
+stmt_common(x)  ::= stmt_while(stmt) LPN condition(expr) RPN
+                                stmt_reuse(block) .
+                {
+                    stmt->condition = expr;
+                    stmt->body      = p->stmt_nodecl( block );
+                    p->close_scope( stmt->scope );
+                    x = stmt;
+                }
+stmt_common(x)  ::= stmt_do(stmt) stmt_reuse(block) WHILE
+                                LPN expr_assign(expr) RPN SEMICOLON .
+                {
+                    stmt->body      = p->stmt_nodecl( block );
+                    stmt->condition = expr;
+                    p->close_scope( stmt->scope );
+                    x = stmt;
+                }
+stmt_common(x)  ::= stmt_foreach(stmt) stmt_reuse(block) .
+                {
+                    stmt->body      = block;
+                    p->close_scope( stmt->scope );
+                    x = stmt;
+                }
+stmt_common(x)  ::= stmt_for(stmt) stmt_reuse(block) .
+                {
+                    stmt->body      = block;
+                    p->close_scope( stmt->scope );
+                    x = stmt;
+                }
+stmt_common(x)  ::= stmt_uscope(stmt) cond_using(expr) RPN stmt_reuse(block) .
+                {
+                    stmt->uvalue    = expr;
+                    stmt->body      = p->stmt_nodecl( block );
+                    p->close_scope( stmt->scope );
+                    x = stmt;
+                }
+stmt_common(x)  ::= token_using(token) expr_assign(expr) SEMICOLON .
+                {
+                    x = p->alloc< xec_stmt_using >( token->sloc, expr );
+                    p->destroy( token );
+                }
+stmt_common(x)  ::= token_using(token) decl_var(decl) SEMICOLON .
+                {
+                    x = p->alloc< xec_stmt_using >( token->sloc, decl );
+                    p->destroy( token );
+                }
+stmt_common(x)  ::= stmt_try(stmt) .
+                {
+                    x = stmt;
+                }
+stmt_common(x)  ::= DELETE(token) expr_lbody(expr) SEMICOLON .
+                {
+                    xec_stmt_delete* s;
+                    x = s = p->alloc< xec_stmt_delete >( token->sloc );
+                    p->expr_delete_list( expr, &s->lvalues );
+                    p->destroy( token );
+                }
+stmt_common(x)  ::= CASE(token) expr_value(expr) COLON .
+                {
+                    x = p->alloc< xec_stmt_case >( token->sloc, expr );
+                    p->destroy( token );
+                }
+stmt_common(x)  ::= DEFAULT(token) COLON .
+                {
+                    x = p->alloc< xec_stmt_case >( token->sloc, nullptr );
+                    p->destroy( token );
+                }
+stmt_common(x)  ::= CONTINUE(token) SEMICOLON .
+                {
+                    xec_ast_node* target = p->get_continue_target();
+                    x = p->alloc< xec_stmt_continue >( token->sloc, target );
+                    p->destroy( token );
+                }
+stmt_common(x)  ::= BREAK(token) SEMICOLON .
+                {
+                    xec_ast_node* target = p->get_break_target();
+                    x = p->alloc< xec_stmt_break >( token->sloc, target );
+                    p->destroy( token );
+                }
+stmt_common(x)  ::= RETURN(token) SEMICOLON .
+                {
+                    xec_expr_list* vals =
+                                p->alloc< xec_expr_list >( token->sloc );
+                    x = p->alloc< xec_stmt_return >( token->sloc, vals );
+                    p->destroy( token );
+                }
+stmt_common(x)  ::= RETURN(token) expr_list(expr) SEMICOLON .
+                {
+                    x = p->alloc< xec_stmt_return >(
+                                    token->sloc, p->expr_list( expr ) );
+                    p->destroy( token );
+                }
+stmt_common(x)  ::= token_yield(token) SEMICOLON .
+                {
+                    xec_expr_list* args =
+                                p->alloc< xec_expr_list >( token->sloc );
+                    x = p->alloc< xec_expr_yield >( token->sloc, args );
+                    p->destroy( token );
+                }
+stmt_common(x)  ::= token_yield(token) expr_list(expr) SEMICOLON .
+                {
+                    x = p->alloc< xec_expr_yield >(
+                                    token->sloc, p->expr_list( expr ) );
+                    p->destroy( token );
+                }
+stmt_common(x)  ::= THROW(token) expr_value(expr) SEMICOLON .
+                {
+                    x = p->alloc< xec_stmt_throw >( token->sloc, expr );
+                    p->destroy( token );
+                }
+
+
+
+// Statements with scopes.
+stmt_if(x)      ::= IF(token) .
+                {
+                    x = p->alloc< xec_stmt_if >( token->sloc );
+                    x->scope = p->block_scope( x );
+                    p->destroy( token );
+                }
+
+stmt_switch(x)  ::= SWITCH(token) .
+                {
+                    x = p->alloc< xec_stmt_switch >( token->sloc );
+                    x->scope = p->block_scope( x );
+                    p->destroy( token );
+                }
+
+stmt_while(x)   ::= WHILE(token) .
+                {
+                    x = p->alloc< xec_stmt_while >( token->sloc );
+                    x->scope = p->block_scope( x );
+                    p->destroy( token );
+                }
+
+stmt_do(x)      ::= DO(token) .
+                {
+                    x = p->alloc< xec_stmt_do >( token->sloc );
+                    x->scope = p->block_scope( x );
+                    p->destroy( token );
+                }
+
+scope_for(x)    ::= FOR(token) .
+                {
+                    // open scope before we know the kind of statement.
+                    x = make_token_scope( token, p->block_scope( nullptr ) );
+                }
+
+stmt_foreach(x) ::= scope_for(forscope) LPN
+                        expr_lbody(lval) COLON expr_value(expr) RPN .
+                {
+                    x = p->alloc< xec_stmt_foreach >( forscope.token->sloc );
+                    forscope.scope->node = x;
+                    x->scope    = forscope.scope;
+                    p->expr_lvalue_list( lval, &x->lvalues );
+                    x->list     = expr;
+                    p->destroy( forscope.token );
+                }
+stmt_foreach(x) ::= scope_for(forscope) LPN
+                        expr_lbody(lval) EACHKEY expr_value(expr) RPN .
+                {
+                    x = p->alloc< xec_stmt_foreach >( forscope.token->sloc );
+                    forscope.scope->node = x;
+                    x->scope    = forscope.scope;
+                    p->expr_lvalue_list( lval, &x->lvalues );
+                    x->list     = expr;
+                    x->eachkey  = true;
+                    p->destroy( forscope.token );
+                }
+stmt_foreach(x) ::= scope_for(forscope) LPN
+                        VAR varname_list(lvals) COLON expr_value(expr) RPN .
+                {
+                }
+stmt_foreach(x) ::= scope_for(scope) LPN
+                        VAR varname_list(lvals) EACHKEY expr_value(expr) RPN .
+                {
+                }
+
+stmt_for(x)     ::= scope_for(forscope) LPN
+                        condition(einit) SEMICOLON
+                            expr_assign(expr) SEMICOLON
+                                expr_assign(eupdate) RPN .
+                {
+                    x = p->alloc< xec_stmt_for >( forscope.token->sloc );
+                    forscope.scope->node = x;
+                    x->scope        = forscope.scope;
+                    x->init         = einit;
+                    x->condition    = expr;
+                    x->update       = eupdate;
+                    p->destroy( forscope.token );
+                }
+
+stmt_uscope(x)  ::= USING(token) LPN /* shift in preference to token_using */ .
+                {
+                    x = p->alloc< xec_stmt_using_scope >( token->sloc );
+                    x->scope = p->block_scope( x );
+                    p->destroy( token );
+                }
+
+
+
+// Try statement.
+stmt_try(x)     ::= try_catch(stmt) . [TRY]
+                {
+                    x = stmt;
+                }
+stmt_try(x)     ::= try_catch(stmt) FINALLY stmt(block) . [TRY]
+                {
+                    stmt->fstmt = p->stmt_nodecl( block );
+                    x = stmt;
+                }
+stmt_try(x)     ::= try_block(stmt) FINALLY stmt(block) . [TRY]
+                {
+                    stmt->fstmt = p->stmt_nodecl( block );
+                    x = stmt;
+                }
+
+try_block(x)    ::= TRY(token) stmt(tstmt) .
+                {
+                    x = p->alloc< xec_stmt_try >( token->sloc, tstmt );
+                    p->destroy( token );
+                }
+
+try_catch(x)    ::= try_block(stmt) catch(cstmt) .
+                {
+                    stmt->clist.push_back( cstmt );
+                    x = stmt;
+                }
+try_catch(x)    ::= try_catch(stmt) catch(cstmt) .
+                {
+                    stmt->clist.push_back( cstmt );
+                    x = stmt;
+                }
+
+catch(x)        ::= stmt_catch(stmt) LPN
+                        COLON expr_simple(cproto) RPN stmt_reuse(block) .
+                {
+                    stmt->proto     = cproto;
+                    stmt->body      = p->stmt_nodecl( block );
+                    p->close_scope( stmt->scope );
+                }
+catch(x)        ::= stmt_catch(stmt) LPN expr_value(lval)
+                        COLON expr_simple(cproto) RPN stmt_reuse(block) .
+                {
+                    stmt->lvalue    = lval;
+                    stmt->proto     = cproto;
+                    stmt->body      = p->stmt_nodecl( block );
+                    p->close_scope( stmt->scope );
+                }
+catch(x)        ::= stmt_catch(stmt) LPN decl_catch(decl)
+                        COLON expr_simple(cproto) RPN stmt_reuse(block) .
+                {
+                    stmt->lvalue    = decl;
+                    stmt->proto     = cproto;
+                    stmt->body      = p->stmt_nodecl( block );
+                    p->close_scope( stmt->scope );
+                }
+
+stmt_catch(x)   ::= CATCH(token) .
+                {
+                    x = p->alloc< xec_stmt_catch >( token->sloc );
+                    x->scope = p->block_scope( x );
+                    p->destroy( token );
+                }
+
+decl_catch(x)   ::= VAR name(lvalue) .
+                {
+                }
+
+
+
+
+
+
+
+// To help resolve conflicts.
+token_yield(x)  ::= YIELD(token) .
+                {
+                    x = token;
+                }
+
+token_using(x)  ::= USING(token) .
+                {
+                    x = token;
                 }
 
 

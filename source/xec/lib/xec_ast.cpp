@@ -48,13 +48,6 @@ xec_expr_string::xec_expr_string( int sloc, const char* string, size_t length )
 }
 
 
-xec_expr_unqual::xec_expr_unqual( int sloc, const char* name )
-    :   xec_ast_node( XEC_EXPR_UNQUAL, sloc )
-    ,   name( name )
-{
-}
-
-
 xec_expr_key::xec_expr_key( int sloc, xec_ast_node* object, const char* key )
     :   xec_ast_node( XEC_EXPR_KEY, sloc )
     ,   object( object )
@@ -243,4 +236,23 @@ xec_ast_assign_list::xec_ast_assign_list( int sloc, xec_token_kind assignop )
 {
 }
 
+
+
+
+
+xec_unqual_name::xec_unqual_name( int sloc, const char* name )
+    :   xec_ast_node( XEC_UNQUAL_NAME, sloc )
+    ,   name( name )
+{
+}
+
+
+xec_unqual_proto::xec_unqual_proto(
+                int sloc, xec_ast_node* function, xec_expr_list* params )
+    :   xec_ast_node( XEC_UNQUAL_PROTO, sloc )
+    ,   function( function )
+    ,   parameters( params )
+    ,   coroutine( false )
+{
+}
 

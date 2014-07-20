@@ -22,6 +22,7 @@ struct xec_ast_name;
 struct xec_ast_prototype;
 struct xec_ast_node;
 struct xec_expr_list;
+struct xec_stmt_block;
 struct xec_key_value;
 
 
@@ -29,7 +30,8 @@ struct xec_key_value;
 enum xec_ast_scope_kind
 {
     XEC_SCOPE_GLOBAL,
-    XEC_SCOPE_FUNCTION,
+    XEC_SCOPE_SCRIPT,
+    XEC_SCOPE_BLOCK,
     XEC_SCOPE_OBJECT,
     XEC_SCOPE_IMPLIED,
 };
@@ -47,7 +49,6 @@ enum xec_ast_node_kind
     XEC_EXPR_STRING,
     
     // Names.
-    XEC_EXPR_UNQUAL,
     XEC_EXPR_LOCAL,
     XEC_EXPR_GLOBAL,
     XEC_EXPR_UPVAL,
@@ -92,13 +93,14 @@ enum xec_ast_node_kind
     XEC_AST_ASSIGN_LIST,
 
     // Statements with scopes.
-    XEC_STMT_COMPOUND,
+    XEC_STMT_BLOCK,
     XEC_STMT_IF,
+    XEC_STMT_SWITCH,
     XEC_STMT_WHILE,
     XEC_STMT_DO,
     XEC_STMT_FOREACH,
     XEC_STMT_FOR,
-    XEC_STMT_SWITCH,
+    XEC_STMT_USING_SCOPE,
     XEC_STMT_TRY,
     XEC_STMT_CATCH,
     
@@ -110,6 +112,10 @@ enum xec_ast_node_kind
     XEC_STMT_BREAK,
     XEC_STMT_RETURN,
     XEC_STMT_THROW,
+    
+    // Unresolved and unqualified.
+    XEC_UNQUAL_NAME,
+    XEC_UNQUAL_PROTO,
 
 };
 
@@ -136,10 +142,12 @@ typedef std::unordered_map< symkey, xec_ast_name*,
 struct xec_ast_scope
 {
     xec_ast_scope_kind  kind;
-    xec_ast_node*       node;
     xec_ast_scope*      outer;
+    xec_ast_node*       node;
+    xec_stmt_block*     block;
     xec_ast_name_map    names;
     xec_ast_node_list   decls;
+    xec_ast_node_list   usings;
 };
 
 
@@ -149,13 +157,15 @@ struct xec_ast_name
     const char*         name;
     xec_ast_scope*      implied;
     xec_ast_prototype*  prototype;
+    bool                constant;
+    bool                upval;
 };
 
 
 struct xec_ast_prototype
 {
     xec_ast_node_list   parameters;
-    bool                yieldcall;
+    bool                coroutine;
 };
 
 
@@ -186,7 +196,7 @@ struct xec_ast_func : public xec_ast_node
     xec_ast_node_list   parameters;
     xec_ast_node*       stmt;
     int                 upvalcount;
-    bool                yieldcall;
+    bool                coroutine;
 };
 
 
@@ -229,13 +239,6 @@ struct xec_expr_string : public xec_ast_node
     Names.
 */
 
-struct xec_expr_unqual : public xec_ast_node
-{
-    xec_expr_unqual( int sloc, const char* name );
-
-    const char*         name;
-};
-
 struct xec_expr_local : public xec_ast_node
 {
     xec_ast_name*       name;
@@ -245,6 +248,7 @@ struct xec_expr_local : public xec_ast_node
 struct xec_expr_global : public xec_ast_node
 {
     const char*         name;
+    bool                gexplicit;
 };
 
 
@@ -537,8 +541,10 @@ struct xec_ast_assign_list : public xec_ast_node
     Statements w/ scopes.
 */
 
-struct xec_stmt_compound : public xec_ast_node
+struct xec_stmt_block : public xec_ast_node
 {
+    xec_stmt_block( int sloc );
+
     xec_ast_scope*      scope;
     xec_ast_node_list   stmts;
 };
@@ -546,6 +552,8 @@ struct xec_stmt_compound : public xec_ast_node
 
 struct xec_stmt_if : public xec_ast_node
 {
+    xec_stmt_if( int sloc );
+
     xec_ast_scope*      scope;
     xec_ast_node*       condition;
     xec_ast_node*       iftrue;
@@ -553,8 +561,20 @@ struct xec_stmt_if : public xec_ast_node
 };
 
 
+struct xec_stmt_switch : public xec_ast_node
+{
+    xec_stmt_switch( int sloc );
+    
+    xec_ast_scope*      scope;
+    xec_ast_node*       value;
+    xec_ast_node*       body;
+};
+
+
 struct xec_stmt_while : public xec_ast_node
 {
+    xec_stmt_while( int sloc );
+
     xec_ast_scope*      scope;
     xec_ast_node*       condition;
     xec_ast_node*       body;
@@ -563,6 +583,8 @@ struct xec_stmt_while : public xec_ast_node
 
 struct xec_stmt_do : public xec_ast_node
 {
+    xec_stmt_do( int sloc );
+
     xec_ast_scope*      scope;
     xec_ast_node*       body;
     xec_ast_node*       condition;
@@ -571,15 +593,21 @@ struct xec_stmt_do : public xec_ast_node
 
 struct xec_stmt_foreach : public xec_ast_node
 {
+    xec_stmt_foreach( int sloc );
+
     xec_ast_scope*      scope;
     xec_ast_node_list   lvalues;
     xec_ast_node*       list;
     xec_ast_node*       body;
+    bool                declare;
+    bool                eachkey;
 };
 
 
 struct xec_stmt_for : public xec_ast_node
 {
+    xec_stmt_for( int sloc );
+
     xec_ast_scope*      scope;
     xec_ast_node*       init;
     xec_ast_node*       condition;
@@ -588,27 +616,34 @@ struct xec_stmt_for : public xec_ast_node
 };
 
 
-struct xec_stmt_switch : public xec_ast_node
+struct xec_stmt_using_scope : public xec_ast_node
 {
+    xec_stmt_using_scope( int sloc );
+    
     xec_ast_scope*      scope;
-    xec_ast_node*       value;
+    xec_ast_node*       uvalue;
     xec_ast_node*       body;
 };
 
-
 struct xec_stmt_try : public xec_ast_node
 {
-    xec_ast_node*       trybody;
-    xec_ast_node_list   catchlist;
-    xec_ast_node*       finallybody;
+    xec_stmt_try( int sloc, xec_ast_node* tstmt );
+
+    xec_ast_node*       tstmt;
+    xec_ast_node_list   clist;
+    xec_ast_node*       fstmt;
 };
 
 
 struct xec_stmt_catch : public xec_ast_node
 {
+    xec_stmt_catch( int sloc );
+
     xec_ast_scope*      scope;
     xec_ast_node*       lvalue;
     xec_ast_node*       proto;
+    xec_ast_node*       body;
+    bool                declare;
 };
 
 
@@ -618,45 +653,81 @@ struct xec_stmt_catch : public xec_ast_node
 
 struct xec_stmt_using : public xec_ast_node
 {
-    xec_ast_node_list   values;
+    xec_stmt_using( int sloc, xec_ast_node* uvalue );
+
+    xec_ast_node*       uvalue;
 };
 
 
 struct xec_stmt_delete : public xec_ast_node
 {
+    xec_stmt_delete( int sloc );
+
     xec_ast_node_list   lvalues;
 };
 
 
 struct xec_stmt_case : public xec_ast_node
 {
+    xec_stmt_case( int sloc, xec_ast_node* value );
+
     xec_ast_node*       value;
 };
 
 
 struct xec_stmt_continue : public xec_ast_node
 {
+    xec_stmt_continue( int sloc, xec_ast_node* target );
+
     xec_ast_node*       target;
 };
 
 
 struct xec_stmt_break : public xec_ast_node
 {
+    xec_stmt_break( int sloc, xec_ast_node* target );
+
     xec_ast_node*       target;
 };
 
 
 struct xec_stmt_return : public xec_ast_node
 {
+    xec_stmt_return( int sloc, xec_expr_list* values );
+
     xec_expr_list*      values;
 };
 
 
 struct xec_stmt_throw : public xec_ast_node
 {
+    xec_stmt_throw( int sloc, xec_ast_node* value );
+
     xec_ast_node*       value;
 };
 
+
+
+/*
+    Unresolved and unqualified.
+*/
+
+struct xec_unqual_name : public xec_ast_node
+{
+    xec_unqual_name( int sloc, const char* name );
+    
+    const char*         name;
+};
+
+
+struct xec_unqual_proto : public xec_ast_node
+{
+    xec_unqual_proto( int sloc, xec_ast_node* function, xec_expr_list* params );
+
+    xec_ast_node*       function;
+    xec_expr_list*      parameters;
+    bool                coroutine;
+};
 
 
 

@@ -49,17 +49,27 @@ public:
     double          parse_number( xec_token* token );
 
 
+    xec_ast_scope*  get_scope();
+    xec_ast_scope*  block_scope( xec_ast_node* node );
+    void            close_scope( xec_ast_scope* scope );
+    void            statement( xec_ast_node* stmt );
+    xec_ast_node*   get_continue_target();
+    xec_ast_node*   get_break_target();
+
+
     xec_ast_node*   expr_name( xec_ast_node* name );
     xec_ast_node*   expr_proto( xec_ast_node* proto );
-    xec_ast_node*   expr_call( xec_ast_node* expr, xec_ast_node* args );
     xec_ast_node*   expr_compare( xec_token* op, xec_ast_node* lhs, xec_ast_node* rhs );
     xec_ast_node*   expr_append( xec_ast_node* list, xec_ast_node* expr );
     xec_ast_node*   expr_final( xec_ast_node* list, xec_ast_node* final );
     xec_expr_list*  expr_list( xec_ast_node* list );
     xec_ast_node*   expr_lvalue( xec_ast_node* lvalue );
-    void            expr_lvalue_list( xec_expr_list* list, xec_ast_node_list* lvalues );
+    void            expr_lvalue_list( xec_ast_node* list, xec_ast_node_list* lvalues );
+    void            expr_delete_list( xec_ast_node* list, xec_ast_node_list* lvalues );
     xec_ast_node*   expr_assign( xec_token* op, xec_ast_node* lv, xec_ast_node* rv );
     
+    
+    xec_ast_node*   stmt_nodecl( xec_ast_node* stmt );
 
 private:
 
@@ -69,6 +79,7 @@ private:
     xec_script*                     script;
     std::deque< void* >             recycle_tokens;
     std::unordered_set< symkey >    identifiers;
+    std::deque< xec_ast_scope* >    scopes;
     
 
 };
