@@ -66,7 +66,7 @@ inline xec_token_scope make_token_scope(
 %type stmt_uscope   { xec_stmt_using_scope* }
 %type try_block     { xec_stmt_try* }
 %type try_catch     { xec_stmt_try* }
-%type catch         { xec_stmt_catch* }
+%type scope_catch   { xec_token_scope }
 %type stmt_catch    { xec_stmt_catch* }
 
 %type token_yield   { xec_token* }
@@ -1449,51 +1449,49 @@ try_block(x)    ::= TRY(token) stmt(tstmt) .
                     p->destroy( token );
                 }
 
-try_catch(x)    ::= try_block(stmt) catch(cstmt) .
+try_catch(x)    ::= try_block(stmt) stmt_catch(cstmt) stmt_reuse(block) .
                 {
+                    cstmt->body = p->stmt_nodecl( block );
+                    p->close_scope( cstmt->scope );
                     stmt->clist.push_back( cstmt );
                     x = stmt;
                 }
-try_catch(x)    ::= try_catch(stmt) catch(cstmt) .
+try_catch(x)    ::= try_catch(stmt) stmt_catch(cstmt) stmt_reuse(block) .
                 {
+                    cstmt->body = p->stmt_nodecl(block);
+                    p->close_scope( cstmt->scope );
                     stmt->clist.push_back( cstmt );
                     x = stmt;
                 }
 
-catch(x)        ::= stmt_catch(stmt) LPN
-                        COLON expr_simple(cproto) RPN stmt_reuse(block) .
+scope_catch(x)  ::= CATCH(token) .
                 {
-                    stmt->proto     = cproto;
-                    stmt->body      = p->stmt_nodecl( block );
-                    p->close_scope( stmt->scope );
-                }
-catch(x)        ::= stmt_catch(stmt) LPN expr_value(lval)
-                        COLON expr_simple(cproto) RPN stmt_reuse(block) .
-                {
-                    stmt->lvalue    = lval;
-                    stmt->proto     = cproto;
-                    stmt->body      = p->stmt_nodecl( block );
-                    p->close_scope( stmt->scope );
-                }
-catch(x)        ::= stmt_catch(stmt) LPN decl_catch(decl)
-                        COLON expr_simple(cproto) RPN stmt_reuse(block) .
-                {
-                    stmt->lvalue    = decl;
-                    stmt->proto     = cproto;
-                    stmt->body      = p->stmt_nodecl( block );
-                    p->close_scope( stmt->scope );
+                    // open scope here ready for declarations.
+                    x = make_token_scope( token, p->block_scope( nullptr ) );
                 }
 
-stmt_catch(x)   ::= CATCH(token) .
+stmt_catch(x)   ::= scope_catch(cscope) LPN COLON expr_simple(cproto) RPN .
                 {
-                    x = p->alloc< xec_stmt_catch >( token->sloc );
-                    x->scope = p->block_scope( x );
-                    p->destroy( token );
+                    x = p->alloc< xec_stmt_catch >( cscope.token->sloc );
+                    cscope.scope->node = x;
+                    x->proto    = cproto;
+                    p->destroy( cscope.token );
+                }
+stmt_catch(x)   ::= scope_catch(cscope) LPN
+                        expr_value(lval) COLON expr_simple(cproto) RPN .
+                {
+                    x = p->alloc< xec_stmt_catch >( cscope.token->sloc );
+                    cscope.scope->node = x;
+                    x->lvalue   = lval;
+                    x->proto    = cproto;
+                    p->destroy( cscope.token );
+                }
+stmt_catch(x)   ::= scope_catch(cscope) LPN
+                        VAR name(lval) COLON expr_simple(cproto) RPN .
+                {
                 }
 
-decl_catch(x)   ::= VAR name(lvalue) .
-                {
-                }
+
 
 
 
