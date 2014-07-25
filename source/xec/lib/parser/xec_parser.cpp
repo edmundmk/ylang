@@ -42,6 +42,82 @@ double xec_parser::parse_number( xec_token* token )
 }
 
 
+
+xec_ast_scope* xec_parser::get_scope()
+{
+    return scopes.back();
+}
+
+
+xec_ast_scope* xec_parser::block_scope( xec_ast_node* node )
+{
+    xec_ast_scope* outer = get_scope();
+    xec_ast_scope* scope = alloc< xec_ast_scope >(
+                    XEC_SCOPE_BLOCK, outer, node, outer->func );
+    scopes.push_back( scope );
+    return scope;
+}
+
+
+void xec_parser::close_scope( xec_ast_scope* scope )
+{
+    assert( scope == get_scope() );
+    scopes.pop_back();
+}
+
+
+void xec_parser::statement( xec_ast_node* stmt )
+{
+    xec_ast_scope* scope = get_scope();
+    assert( scope->block );
+    scope->block->stmts.push_back( stmt );
+}
+
+
+xec_ast_node* xec_parser::get_continue_target( int sloc )
+{
+    for ( xec_ast_scope* scope = get_scope();
+                    scope != NULL; scope = scope->outer )
+    {
+        if ( scope->node->kind == XEC_STMT_WHILE
+                || scope->node->kind == XEC_STMT_DO
+                || scope->node->kind == XEC_STMT_FOREACH
+                || scope->node->kind == XEC_STMT_FOR )
+            return scope->node;
+    
+        if ( scope->outer && scope->outer->func != scope->func )
+            break;
+    }
+    
+    script->diagnostic( sloc, "continue outside loop" );
+    return NULL;
+}
+
+
+xec_ast_node* xec_parser::get_break_target( int sloc )
+{
+    for ( xec_ast_scope* scope = get_scope();
+                    scope != NULL; scope = scope->outer )
+    {
+        if ( scope->node->kind == XEC_STMT_SWITCH
+                || scope->node->kind == XEC_STMT_WHILE
+                || scope->node->kind == XEC_STMT_DO
+                || scope->node->kind == XEC_STMT_FOREACH
+                || scope->node->kind == XEC_STMT_FOR )
+            return scope->node;
+    
+        if ( scope->outer && scope->outer->func != scope->func )
+            break;
+    }
+    
+    script->diagnostic( sloc, "break outside loop or switch" );
+    return NULL;
+}
+
+
+
+
+
 xec_ast_node* xec_parser::expr_name( xec_ast_node* name )
 {
     // A name is used in an expression.  Perform lookup of unqualified names.
@@ -161,6 +237,11 @@ void xec_parser::expr_lvalue_list(
 }
 
 
+void xec_parser::expr_delete_list(
+        xec_ast_node* list, xec_ast_node_list* lvalues )
+{
+}
+
 
 
 xec_ast_node* xec_parser::expr_assign(
@@ -183,3 +264,25 @@ xec_ast_node* xec_parser::expr_assign(
         return a;
     }
 }
+
+
+
+xec_ast_node* xec_parser::stmt_nodecl( xec_ast_node* stmt )
+{
+    switch ( stmt->kind )
+    {
+    case XEC_AST_DECLARE:
+    case XEC_AST_DECLARE_LIST:
+        script->diagnostic( stmt->sloc, "declaration is not allowed here" );
+        break;
+        
+    default:
+        break;
+    }
+    
+    return stmt;
+}
+
+
+
+

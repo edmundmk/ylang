@@ -21,6 +21,7 @@ struct xec_ast_scope;
 struct xec_ast_name;
 struct xec_ast_prototype;
 struct xec_ast_node;
+struct xec_ast_func;
 struct xec_expr_list;
 struct xec_stmt_block;
 struct xec_key_value;
@@ -141,9 +142,13 @@ typedef std::unordered_map< symkey, xec_ast_name*,
 
 struct xec_ast_scope
 {
+    xec_ast_scope( xec_ast_scope_kind kind,
+            xec_ast_scope* outer, xec_ast_node* node, xec_ast_func* func );
+
     xec_ast_scope_kind  kind;
     xec_ast_scope*      outer;
     xec_ast_node*       node;
+    xec_ast_func*       func;
     xec_stmt_block*     block;
     xec_ast_name_map    names;
     xec_ast_node_list   decls;

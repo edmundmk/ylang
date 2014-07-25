@@ -142,13 +142,20 @@ offset_momentum( bodies )
 }
 
 
-var n = parse_integer( ( ... ) ) || 1000;
-ofset_momentum( bodies );
-printf( "%0.9f\n", energy( bodies ) );
-for ( var i = 0; i < n; ++i )
-    advance( bodies, 0.01 );
-printf( "%0.9f\n", energy( bodies ) );
-return 0;
+
+main( n )
+{
+    n = atoi( n, 1000 );
+    offset_momentum( bodies );
+    printf( "%0.9f\n", energy( bodies ) );
+    for ( var i = 0; i < n; ++i )
+        advance( bodies, 0.01 );
+    printf( "%0.9f\n", energy( bodies ) );
+    return 0;
+}
+
+
+main( ... );
 
 
 

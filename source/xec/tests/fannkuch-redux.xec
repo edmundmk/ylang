@@ -75,7 +75,18 @@ fannkuch( n )
 }
 
 
-var n = parse_integer( ( ... ) ) || 7;
-printf( "Pfannkuchen(%d) = %d\n", n, fannkuch( n ) );
-return 0;
+main( n )
+{
+    n = atoi( n, 7 );
+    printf( "Pfannkuchen(%d) = %d\n", n, fannkuch( n ) );
+    return 0;
+}
+
+
+
+main( ... );
+
+
+
+
 

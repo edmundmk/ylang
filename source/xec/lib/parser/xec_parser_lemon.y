@@ -1295,13 +1295,13 @@ stmt_common(x)  ::= DEFAULT(token) COLON .
                 }
 stmt_common(x)  ::= CONTINUE(token) SEMICOLON .
                 {
-                    xec_ast_node* target = p->get_continue_target();
+                    xec_ast_node* target = p->get_continue_target( token->sloc );
                     x = p->alloc< xec_stmt_continue >( token->sloc, target );
                     p->destroy( token );
                 }
 stmt_common(x)  ::= BREAK(token) SEMICOLON .
                 {
-                    xec_ast_node* target = p->get_break_target();
+                    xec_ast_node* target = p->get_break_target( token->sloc );
                     x = p->alloc< xec_stmt_break >( token->sloc, target );
                     p->destroy( token );
                 }
@@ -1496,10 +1496,10 @@ stmt_catch(x)   ::= scope_catch(cscope) LPN
 
 
 
+//
+// deal with grammar conflicts
+//
 
-
-
-// To help resolve conflicts.
 token_yield(x)  ::= YIELD(token) .
                 {
                     x = token;

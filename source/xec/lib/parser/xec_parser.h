@@ -53,8 +53,8 @@ public:
     xec_ast_scope*  block_scope( xec_ast_node* node );
     void            close_scope( xec_ast_scope* scope );
     void            statement( xec_ast_node* stmt );
-    xec_ast_node*   get_continue_target();
-    xec_ast_node*   get_break_target();
+    xec_ast_node*   get_continue_target( int sloc );
+    xec_ast_node*   get_break_target( int sloc );
 
 
     xec_ast_node*   expr_name( xec_ast_node* name );
@@ -70,6 +70,7 @@ public:
     
     
     xec_ast_node*   stmt_nodecl( xec_ast_node* stmt );
+
 
 private:
 

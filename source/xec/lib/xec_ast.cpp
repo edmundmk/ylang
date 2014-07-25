@@ -11,6 +11,19 @@
 
 
 
+xec_ast_scope::xec_ast_scope( xec_ast_scope_kind kind,
+                xec_ast_scope* outer, xec_ast_node* node, xec_ast_func* func )
+    :   kind( kind )
+    ,   outer( outer )
+    ,   node( node )
+    ,   func( func )
+    ,   block( NULL )
+{
+}
+
+
+
+
 xec_ast_node::xec_ast_node( xec_ast_node_kind kind, int sloc )
     :   kind( kind )
     ,   sloc( sloc )
@@ -237,6 +250,131 @@ xec_ast_assign_list::xec_ast_assign_list( int sloc, xec_token_kind assignop )
 }
 
 
+
+xec_stmt_block::xec_stmt_block( int sloc )
+    :   xec_ast_node( XEC_STMT_BLOCK, sloc )
+    ,   scope( NULL )
+{
+}
+
+xec_stmt_if::xec_stmt_if( int sloc )
+    :   xec_ast_node( XEC_STMT_IF, sloc )
+    ,   scope( NULL )
+    ,   condition( NULL )
+    ,   iftrue( NULL )
+    ,   iffalse( NULL )
+{
+}
+
+xec_stmt_switch::xec_stmt_switch( int sloc )
+    :   xec_ast_node( XEC_STMT_SWITCH, sloc )
+    ,   scope( NULL )
+    ,   value( NULL )
+    ,   body( NULL )
+{
+}
+
+xec_stmt_while::xec_stmt_while( int sloc )
+    :   xec_ast_node( XEC_STMT_WHILE, sloc )
+    ,   scope( NULL )
+    ,   condition( NULL )
+    ,   body( NULL )
+{
+}
+
+xec_stmt_do::xec_stmt_do( int sloc )
+    :   xec_ast_node( XEC_STMT_DO, sloc )
+    ,   scope( NULL )
+    ,   body( NULL )
+    ,   condition( NULL )
+{
+}
+
+xec_stmt_foreach::xec_stmt_foreach( int sloc )
+    :   xec_ast_node( XEC_STMT_FOREACH, sloc )
+    ,   scope( NULL )
+    ,   list( NULL )
+    ,   body( NULL )
+    ,   declare( false )
+    ,   eachkey( false )
+{
+}
+
+xec_stmt_for::xec_stmt_for( int sloc )
+    :   xec_ast_node( XEC_STMT_FOR, sloc )
+    ,   scope( NULL )
+    ,   init( NULL )
+    ,   condition( NULL )
+    ,   update( NULL )
+    ,   body( NULL )
+{
+}
+
+xec_stmt_using_scope::xec_stmt_using_scope( int sloc )
+    :   xec_ast_node( XEC_STMT_USING_SCOPE, sloc )
+    ,   uvalue( NULL )
+    ,   body( NULL )
+{
+}
+
+xec_stmt_try::xec_stmt_try( int sloc, xec_ast_node* tstmt )
+    :   xec_ast_node( XEC_STMT_TRY, sloc )
+    ,   tstmt( tstmt )
+    ,   fstmt( NULL )
+{
+}
+
+xec_stmt_catch::xec_stmt_catch( int sloc )
+    :   xec_ast_node( XEC_STMT_CATCH, sloc )
+    ,   scope( NULL )
+    ,   lvalue( NULL )
+    ,   proto( NULL )
+    ,   body( NULL )
+    ,   declare( false )
+{
+}
+
+
+xec_stmt_using::xec_stmt_using( int sloc, xec_ast_node* uvalue )
+    :   xec_ast_node( XEC_STMT_USING, sloc )
+    ,   uvalue( uvalue )
+{
+}
+
+xec_stmt_delete::xec_stmt_delete( int sloc )
+    :   xec_ast_node( XEC_STMT_DELETE, sloc )
+{
+}
+
+xec_stmt_case::xec_stmt_case( int sloc, xec_ast_node* value )
+    :   xec_ast_node( XEC_STMT_CASE, sloc )
+    ,   value( value )
+{
+}
+
+xec_stmt_continue::xec_stmt_continue( int sloc, xec_ast_node* target )
+    :   xec_ast_node( XEC_STMT_CONTINUE, sloc )
+    ,   target( target )
+{
+}
+
+xec_stmt_break::xec_stmt_break( int sloc, xec_ast_node* target )
+    :   xec_ast_node( XEC_STMT_CONTINUE, sloc )
+    ,   target( target )
+{
+}
+
+xec_stmt_return::xec_stmt_return( int sloc, xec_expr_list* values )
+    :   xec_ast_node( XEC_STMT_RETURN, sloc )
+    ,   values( values )
+{
+}
+
+xec_stmt_throw::xec_stmt_throw( int sloc, xec_ast_node* value )
+    :   xec_ast_node( XEC_STMT_THROW, sloc )
+    ,   value( value )
+{
+}
 
 
 

@@ -3680,7 +3680,7 @@ static void yy_reduce(
       case 213: /* stmt_common ::= CONTINUE SEMICOLON */
 #line 1297 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
-                    xec_ast_node* target = p->get_continue_target();
+                    xec_ast_node* target = p->get_continue_target( yymsp[-1].minor.yy0->sloc );
                     yygotominor.yy3 = p->alloc< xec_stmt_continue >( yymsp[-1].minor.yy0->sloc, target );
                     p->destroy( yymsp[-1].minor.yy0 );
                   yy_destructor(yypParser,15,&yymsp[0].minor);
@@ -3690,7 +3690,7 @@ static void yy_reduce(
       case 214: /* stmt_common ::= BREAK SEMICOLON */
 #line 1303 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
-                    xec_ast_node* target = p->get_break_target();
+                    xec_ast_node* target = p->get_break_target( yymsp[-1].minor.yy0->sloc );
                     yygotominor.yy3 = p->alloc< xec_stmt_break >( yymsp[-1].minor.yy0->sloc, target );
                     p->destroy( yymsp[-1].minor.yy0 );
                   yy_destructor(yypParser,15,&yymsp[0].minor);
