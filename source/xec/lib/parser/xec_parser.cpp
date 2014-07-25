@@ -59,10 +59,38 @@ xec_ast_scope* xec_parser::block_scope( xec_ast_node* node )
 }
 
 
+xec_ast_scope* xec_parser::object_scope( xec_ast_node* name )
+{
+    // TODO.
+    return NULL;
+}
+
+
+xec_ast_func* xec_parser::function( int sloc, xec_ast_node* name,
+                xec_expr_list* params, bool coroutine, bool thisdot )
+{
+    // TODO.
+    return NULL;
+}
+
+
 void xec_parser::close_scope( xec_ast_scope* scope )
 {
     assert( scope == get_scope() );
     scopes.pop_back();
+}
+
+
+xec_ast_name* xec_parser::declare( xec_unqual_name* name )
+{
+    // TODO.
+    return NULL;
+}
+
+
+void xec_parser::declare_list( xec_unqual_list* list, xec_ast_name_list* names )
+{
+    // TODO.
 }
 
 
@@ -74,7 +102,15 @@ void xec_parser::statement( xec_ast_node* stmt )
 }
 
 
-xec_ast_node* xec_parser::get_continue_target( int sloc )
+void xec_parser::objmember( xec_ast_node* decl )
+{
+    // TODO.
+}
+
+
+
+
+xec_ast_node* xec_parser::continue_target( int sloc )
 {
     for ( xec_ast_scope* scope = get_scope();
                     scope != NULL; scope = scope->outer )
@@ -94,7 +130,7 @@ xec_ast_node* xec_parser::get_continue_target( int sloc )
 }
 
 
-xec_ast_node* xec_parser::get_break_target( int sloc )
+xec_ast_node* xec_parser::break_target( int sloc )
 {
     for ( xec_ast_scope* scope = get_scope();
                     scope != NULL; scope = scope->outer )
@@ -118,25 +154,27 @@ xec_ast_node* xec_parser::get_break_target( int sloc )
 
 
 
-xec_ast_node* xec_parser::expr_name( xec_ast_node* name )
+xec_ast_node* xec_parser::resolve( xec_ast_node* name )
 {
-    // A name is used in an expression.  Perform lookup of unqualified names.
+    // A name or proto is used in an expression.  Perform lookup of unqualified
+    // names, and replace protos with call expressions.
 
     return NULL;
 }
 
 
-xec_ast_node* xec_parser::expr_proto( xec_ast_node* proto )
+xec_expr_call* xec_parser::resolve( xec_unqual_proto* name )
 {
-    // A prototype is used in an expression.  Perform lookup of unqualified
-    // names and replace the proto with a call expression.
+    // A name or proto is used in an expression.  Perform lookup of unqualified
+    // names, and replace protos with call expressions.
 
     return NULL;
 }
 
 
 
-xec_ast_node* xec_parser::expr_compare(
+
+xec_ast_node* xec_parser::compare(
         xec_token* token, xec_ast_node* lhs, xec_ast_node* rhs )
 {
     // Build a compare expression.
@@ -154,7 +192,7 @@ xec_ast_node* xec_parser::expr_compare(
 
 
 
-xec_ast_node* xec_parser::expr_append( xec_ast_node* list, xec_ast_node* expr )
+xec_ast_node* xec_parser::append( xec_ast_node* list, xec_ast_node* expr )
 {
     xec_expr_list* l;
     if ( list->kind != XEC_EXPR_LIST )
@@ -166,7 +204,7 @@ xec_ast_node* xec_parser::expr_append( xec_ast_node* list, xec_ast_node* expr )
 }
 
 
-xec_ast_node* xec_parser::expr_final( xec_ast_node* list, xec_ast_node* expr )
+xec_ast_node* xec_parser::final( xec_ast_node* list, xec_ast_node* expr )
 {
     xec_expr_list* l;
     if ( list->kind != XEC_EXPR_LIST )
@@ -178,7 +216,7 @@ xec_ast_node* xec_parser::expr_final( xec_ast_node* list, xec_ast_node* expr )
 }
 
 
-xec_expr_list* xec_parser::expr_list( xec_ast_node* list )
+xec_expr_list* xec_parser::list( xec_ast_node* list )
 {
     if ( list->kind == XEC_EXPR_LIST )
     {
@@ -195,7 +233,7 @@ xec_expr_list* xec_parser::expr_list( xec_ast_node* list )
 
 
 
-xec_ast_node* xec_parser::expr_lvalue( xec_ast_node* lvalue )
+xec_ast_node* xec_parser::lvalue( xec_ast_node* lvalue )
 {
     // The expression must be a single lvalue.  Only a restricted set of
     // expressions are lvalues, and global variables must be scoped using
@@ -231,27 +269,75 @@ xec_ast_node* xec_parser::expr_lvalue( xec_ast_node* lvalue )
 }
 
 
-void xec_parser::expr_lvalue_list(
+void xec_parser::lvalue_list(
         xec_ast_node* list, xec_ast_node_list* lvalues )
 {
+    if ( list->kind == XEC_EXPR_LIST )
+    {
+        xec_expr_list* l = (xec_expr_list*)list;
+        for ( size_t i = 0; i < l->values.size(); ++l )
+            lvalues->push_back( lvalue( l->values[ i ] ) );
+        if ( l->final )
+            lvalues->push_back( lvalue( l->final ) );
+    }
+    else
+    {
+        lvalues->push_back( lvalue( list ) );
+    }
 }
 
 
-void xec_parser::expr_delete_list(
-        xec_ast_node* list, xec_ast_node_list* lvalues )
+
+xec_ast_node* xec_parser::delval( xec_ast_node* delval )
 {
+    // Expression must be a single deletable lvalue.
+    
+    switch ( delval->kind )
+    {
+    case XEC_EXPR_KEY:
+    case XEC_EXPR_INKEY:
+    {
+        break;
+    }
+    
+    default:
+    {
+        script->diagnostic( delval->sloc, "expression is not deletable" );
+        break;
+    }
+    }
+    
+    return delval;
+}
+
+
+void xec_parser::delval_list(
+        xec_ast_node* list, xec_ast_node_list* delvals )
+{
+    if ( list->kind == XEC_EXPR_LIST )
+    {
+        xec_expr_list* l = (xec_expr_list*)list;
+        for ( size_t i = 0; i < l->values.size(); ++l )
+            delvals->push_back( delval( l->values[ i ] ) );
+        if ( l->final )
+            delvals->push_back( delval( l->final ) );
+    }
+    else
+    {
+        delvals->push_back( delval( list ) );
+    }
 }
 
 
 
-xec_ast_node* xec_parser::expr_assign(
+xec_ast_node* xec_parser::assign(
         xec_token* op, xec_ast_node* lv, xec_ast_node* rv )
 {
     if ( lv->kind == XEC_EXPR_LIST )
     {
         xec_ast_assign_list* a;
         a = alloc< xec_ast_assign_list >( lv->sloc, op->kind );
-        expr_lvalue_list( (xec_expr_list*)lv, &a->lvalues );
+        lvalue_list( (xec_expr_list*)lv, &a->lvalues );
         a->rvalues = rv;
         return a;
     }
@@ -259,7 +345,7 @@ xec_ast_node* xec_parser::expr_assign(
     {
         xec_ast_assign* a;
         a = alloc< xec_ast_assign >( lv->sloc, op->kind );
-        a->lvalue = expr_lvalue( lv );
+        a->lvalue = lvalue( lv );
         a->rvalue = rv;
         return a;
     }
@@ -267,7 +353,7 @@ xec_ast_node* xec_parser::expr_assign(
 
 
 
-xec_ast_node* xec_parser::stmt_nodecl( xec_ast_node* stmt )
+xec_ast_node* xec_parser::nodecl( xec_ast_node* stmt )
 {
     switch ( stmt->kind )
     {

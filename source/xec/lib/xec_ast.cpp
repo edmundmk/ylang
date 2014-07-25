@@ -205,7 +205,7 @@ xec_expr_call::xec_expr_call(
 
 
 
-xec_expr_yield::xec_expr_yield( int sloc, xec_expr_list* args )
+xec_expr_yield::xec_expr_yield( int sloc, xec_ast_node* args )
     :   xec_ast_node( XEC_EXPR_YIELD, sloc )
     ,   arguments( args )
     ,   unpack( false )
@@ -231,6 +231,20 @@ xec_expr_list::xec_expr_list( int sloc )
 {
 }
 
+
+
+xec_ast_declare::xec_ast_declare( int sloc )
+    :   xec_ast_node( XEC_AST_DECLARE, sloc )
+    ,   name( NULL )
+    ,   value( NULL )
+{
+}
+
+xec_ast_declare_list::xec_ast_declare_list( int sloc )
+    :   xec_ast_node( XEC_AST_DECLARE_LIST, sloc )
+    ,   values( NULL )
+{
+}
 
 
 
@@ -310,8 +324,8 @@ xec_stmt_for::xec_stmt_for( int sloc )
 {
 }
 
-xec_stmt_using_scope::xec_stmt_using_scope( int sloc )
-    :   xec_ast_node( XEC_STMT_USING_SCOPE, sloc )
+xec_stmt_using::xec_stmt_using( int sloc )
+    :   xec_ast_node( XEC_STMT_USING, sloc )
     ,   uvalue( NULL )
     ,   body( NULL )
 {
@@ -335,11 +349,6 @@ xec_stmt_catch::xec_stmt_catch( int sloc )
 }
 
 
-xec_stmt_using::xec_stmt_using( int sloc, xec_ast_node* uvalue )
-    :   xec_ast_node( XEC_STMT_USING, sloc )
-    ,   uvalue( uvalue )
-{
-}
 
 xec_stmt_delete::xec_stmt_delete( int sloc )
     :   xec_ast_node( XEC_STMT_DELETE, sloc )
@@ -364,7 +373,7 @@ xec_stmt_break::xec_stmt_break( int sloc, xec_ast_node* target )
 {
 }
 
-xec_stmt_return::xec_stmt_return( int sloc, xec_expr_list* values )
+xec_stmt_return::xec_stmt_return( int sloc, xec_ast_node* values )
     :   xec_ast_node( XEC_STMT_RETURN, sloc )
     ,   values( values )
 {
@@ -385,11 +394,17 @@ xec_unqual_name::xec_unqual_name( int sloc, const char* name )
 }
 
 
+xec_unqual_list::xec_unqual_list( int sloc )
+    :   xec_ast_node( XEC_UNQUAL_LIST, sloc )
+{
+}
+
+
 xec_unqual_proto::xec_unqual_proto(
-                int sloc, xec_ast_node* function, xec_expr_list* params )
+                int sloc, xec_ast_node* name, xec_expr_list* params )
     :   xec_ast_node( XEC_UNQUAL_PROTO, sloc )
-    ,   function( function )
-    ,   parameters( params )
+    ,   name( name )
+    ,   params( params )
     ,   coroutine( false )
 {
 }

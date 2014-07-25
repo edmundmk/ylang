@@ -166,13 +166,6 @@ void  XecParseFree( void* p, void (*free)( void* ) );
                     TOKEN( token );
                 }
 
-        |   '~this' >ts
-                %
-                {
-                    MTOKEN( XEC_TOKEN_IDENTIFIER, sloc, "~this", 5 );
-                }
-
-
         |   number >ts
                 %
                 {

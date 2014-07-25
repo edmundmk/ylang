@@ -51,25 +51,34 @@ public:
 
     xec_ast_scope*  get_scope();
     xec_ast_scope*  block_scope( xec_ast_node* node );
+    xec_ast_scope*  object_scope( xec_ast_node* name );
+    xec_ast_func*   function( int sloc, xec_ast_node* name,
+                        xec_expr_list* params, bool coroutine, bool thisdot );
     void            close_scope( xec_ast_scope* scope );
+    xec_ast_name*   declare( xec_unqual_name* name );
+    void            declare_list( xec_unqual_list* list, xec_ast_name_list* names );
     void            statement( xec_ast_node* stmt );
-    xec_ast_node*   get_continue_target( int sloc );
-    xec_ast_node*   get_break_target( int sloc );
+    void            objmember( xec_ast_node* decl );
 
 
-    xec_ast_node*   expr_name( xec_ast_node* name );
-    xec_ast_node*   expr_proto( xec_ast_node* proto );
-    xec_ast_node*   expr_compare( xec_token* op, xec_ast_node* lhs, xec_ast_node* rhs );
-    xec_ast_node*   expr_append( xec_ast_node* list, xec_ast_node* expr );
-    xec_ast_node*   expr_final( xec_ast_node* list, xec_ast_node* final );
-    xec_expr_list*  expr_list( xec_ast_node* list );
-    xec_ast_node*   expr_lvalue( xec_ast_node* lvalue );
-    void            expr_lvalue_list( xec_ast_node* list, xec_ast_node_list* lvalues );
-    void            expr_delete_list( xec_ast_node* list, xec_ast_node_list* lvalues );
-    xec_ast_node*   expr_assign( xec_token* op, xec_ast_node* lv, xec_ast_node* rv );
+    xec_ast_node*   continue_target( int sloc );
+    xec_ast_node*   break_target( int sloc );
+
+
+    xec_ast_node*   resolve( xec_ast_node* unqual );
+    xec_expr_call*  resolve( xec_unqual_proto* proto );
+    xec_ast_node*   compare( xec_token* op, xec_ast_node* lhs, xec_ast_node* rhs );
+    xec_ast_node*   append( xec_ast_node* list, xec_ast_node* expr );
+    xec_ast_node*   final( xec_ast_node* list, xec_ast_node* final );
+    xec_expr_list*  list( xec_ast_node* list );
+    xec_ast_node*   lvalue( xec_ast_node* lvalue );
+    void            lvalue_list( xec_ast_node* list, xec_ast_node_list* lvalues );
+    xec_ast_node*   delval( xec_ast_node* delval );
+    void            delval_list( xec_ast_node* list, xec_ast_node_list* delvals );
+    xec_ast_node*   assign( xec_token* op, xec_ast_node* lv, xec_ast_node* rv );
     
     
-    xec_ast_node*   stmt_nodecl( xec_ast_node* stmt );
+    xec_ast_node*   nodecl( xec_ast_node* stmt );
 
 
 private:
