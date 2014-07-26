@@ -61,6 +61,7 @@ inline xec_token_scope make_token_scope(
 %type varname       { xec_unqual_name* }
 %type varname_list  { xec_unqual_list* }
 
+%type compare_op    { xec_token* }
 %type assign_op     { xec_token* }
 %type value_lbody   { xec_new_list* }
 %type value_list    { xec_new_list* }
@@ -138,6 +139,8 @@ void xec_parser::destroy( xec_token* token )
 
 
 script          ::= stmt_list .
+                {
+                }
 
 
 
@@ -154,7 +157,7 @@ name(x)         ::= IDENTIFIER(token) .
                 }
 name(x)         ::= name(name) PERIOD IDENTIFIER(token) .
                 {
-                    x = p->alloc< xec_expr_key >(
+                    x = p->alloc< xec_unqual_qual >(
                                     token->sloc, name, token->text );
                 }
 
@@ -173,70 +176,64 @@ proto(x)        ::= name(name) LPN expr_list(params) RPN .
 
 
 // objects
-decl_object(x)  ::= object_lbr(object) object_decls RBR .
+decl_object     ::= object_lbr(object) object_decls RBR .
                 {
-                    x = object;
                     p->close_scope( object->scope );
                 }
 
 object_lbr(x)   ::= name(name) LBR .
                 {
-                    x = p->alloc< xec_new_object >( name->sloc, nullptr );
-                    x->scope = p->object_scope( name );
+                    x = p->object( name->sloc, name, nullptr );
                 }
 object_lbr(x)   ::= name(name) COLON expr_simple(proto) LBR .
                 {
-                    x = p->alloc< xec_new_object >( name->sloc, proto );
-                    x->scope = p->object_scope( name );
+                    proto = p->resolve( proto );
+                    x = p->object( name->sloc, name, proto );
                 }
 
 object_decls    ::= .
                 {
                 }
-object_decls    ::= object_decls object_decl(decl) .
+object_decls    ::= object_decls object_decl .
                 {
-                    p->objmember( decl );
                 }
 
-object_decl(x)  ::= decl_object(decl) .
+object_decl     ::= SEMICOLON .
                 {
-                    x = decl;
                 }
-object_decl(x)  ::= decl_func(decl) .
+object_decl     ::= decl_object .
                 {
-                    x = decl;
                 }
-object_decl(x)  ::= decl_proto(decl) SEMICOLON .
+object_decl     ::= decl_func .
                 {
-                    x = decl;
                 }
-object_decl(x)  ::= decl_var(decl) SEMICOLON .
+object_decl     ::= decl_proto SEMICOLON .
                 {
-                    x = decl;
                 }
-object_decl(x)  ::= decl_noinit(decl) SEMICOLON .
+object_decl     ::= decl_var SEMICOLON .
                 {
-                    x = decl;
+                }
+object_decl     ::= decl_noinit SEMICOLON .
+                {
                 }
 
 
 
 // prototypes
-decl_proto(x)   ::= proto(proto) .
+decl_proto      ::= proto(proto) .
                 {
-                    x = proto;
+                    p->prototype( proto->sloc, proto );
                 }
-decl_proto(x)   ::= proto(proto) YIELD .
+decl_proto      ::= proto(proto) YIELD .
                 {
                     proto->coroutine = true;
-                    x = proto;
+                    p->prototype( proto->sloc, proto );
                 }
 
 
 // functions (with implementation)
-decl_func(x)    ::= func_lbr(func) stmt_list RBR .
+decl_func       ::= func_lbr(func) stmt_list RBR .
                 {
-                    x = func;
                     p->close_scope( func->scope );
                 }
 
@@ -254,42 +251,30 @@ func_lbr(x)     ::= proto(proto) YIELD LBR .
 
 
 // variable declarations.
-decl_var(x)     ::= VAR(token) varname(varname) ASSIGN expr_list(rval) .
+decl_var        ::= VAR(token) varname(varname) ASSIGN expr_list(rval) .
                 {
-                    xec_ast_declare* decl =
-                            p->alloc< xec_ast_declare >( token->sloc );
-                    decl->value   = rval;
-                    decl->name    = p->declare( varname );
-                    x = decl;
+                    p->var( token->sloc, varname, p->resolve( rval ) );
                     p->destroy( token );
                 }
-decl_var(x)     ::= VAR(token) varname_list(varnames) ASSIGN expr_list(rvals) .
+decl_var        ::= VAR(token) varname_list(varnames) ASSIGN expr_list(rvals) .
                 {
-                    xec_ast_declare_list* decl =
-                            p->alloc< xec_ast_declare_list >( token->sloc );
-                    decl->values = rvals;
-                    p->declare_list( varnames, &decl->names );
-                    x = decl;
+                    p->var_list( token->sloc, varnames, p->resolve( rvals ) );
                     p->destroy( token );
                 }
 
-decl_noinit(x)  ::= VAR(token) varname(varname) .
+decl_noinit     ::= VAR(token) varname(varname) .
                 {
-                    xec_ast_declare* decl =
-                            p->alloc< xec_ast_declare >( token->sloc );
-                    decl->name = p->declare( varname );
-                    x = decl;
+                    p->var( token->sloc, varname, nullptr );
                     p->destroy( token );
                 }
-decl_noinit(x)  ::= VAR(token) varname_list(varnames) .
+decl_noinit     ::= VAR(token) varname_list(varnames) .
                 {
-                    xec_ast_declare_list* decl =
-                            p->alloc< xec_ast_declare_list >( token->sloc );
-                    p->declare_list( varnames, &decl->names );
-                    x = decl;
+                    p->var_list( token->sloc, varnames, nullptr );
                     p->destroy( token );
                 }
 
+
+// varnames and varname lists.
 varname(x)      ::= IDENTIFIER(token) .
                 {
                     x = p->alloc< xec_unqual_name >( token->sloc, token->text );
@@ -320,6 +305,7 @@ varname_list(x) ::= varname_list(list) COMMA varname(name) .
 // All lookups which aren't bare names, up to the first call parenthesis.
 expr_index(x)   ::= LPN expr_assign(expr) RPN .
                 {
+                    expr = p->resolve( expr );
                     switch ( expr->kind )
                     {
                     case XEC_EXPR_KEY:
@@ -331,7 +317,7 @@ expr_index(x)   ::= LPN expr_assign(expr) RPN .
                     case XEC_EXPR_VARARG:
                     case XEC_EXPR_UNPACK:
                     case XEC_EXPR_LIST:
-                    case XEC_AST_ASSIGN_LIST:
+                    case XEC_EXPR_ASSIGN_LIST:
                         x = p->alloc< xec_expr_mono >( expr->sloc, expr );
                         break;
                         
@@ -342,25 +328,32 @@ expr_index(x)   ::= LPN expr_assign(expr) RPN .
                 }
 expr_index(x)   ::= name(expr) PERIOD LSQ expr_value(key) RSQ .
                 {
-                    expr = p->resolve( expr );
+                    expr  = p->resolve( expr );
+                    key   = p->resolve( key );
                     x = p->alloc< xec_expr_inkey >( expr->sloc, expr, key );
                 }
 expr_index(x)   ::= name(expr) LSQ expr_value(index) RSQ .
                 {
-                    expr = p->resolve( expr );
+                    expr  = p->resolve( expr );
+                    index = p->resolve( index );
                     x = p->alloc< xec_expr_index >( expr->sloc, expr, index );
                 }
 expr_index(x)   ::= expr_index(expr) PERIOD IDENTIFIER(token) .
                 {
+                    expr  = p->resolve( expr );
                     x = p->alloc< xec_expr_key >( expr->sloc, expr, token->text );
                     p->destroy( token );
                 }
 expr_index(x)   ::= expr_index(expr) PERIOD LSQ expr_value(key) RSQ .
                 {
+                    expr  = p->resolve( expr );
+                    key   = p->resolve( key );
                     x = p->alloc< xec_expr_inkey >( expr->sloc, expr, key );
                 }
 expr_index(x)   ::= expr_index(expr) LSQ expr_value(index) RSQ .
                 {
+                    expr  = p->resolve( expr );
+                    index = p->resolve( index );
                     x = p->alloc< xec_expr_index >( expr->sloc, expr, index );
                 }
 
@@ -369,7 +362,7 @@ expr_yield(x)   ::= YIELD(token) LPN /* shift in preference to token_yield */
                                 expr_list(args) RPN .
                 {
                     x = p->alloc< xec_expr_yield >(
-                                    token->sloc, p->list( args ) );
+                            token->sloc, p->list( p->resolve( args ) ) );
                     p->destroy( token );
                 }
 
@@ -378,13 +371,13 @@ expr_new(x)     ::= NEW(token) name(proto) LPN expr_list(args) RPN .
                 {
                     proto = p->resolve( proto );
                     x = p->alloc< xec_new_new >(
-                                    token->sloc, proto, p->list( args ) );
+                            token->sloc, proto, p->list( p->resolve( args ) ) );
                     p->destroy( token );
                 }
 expr_new(x)     ::= NEW(token) expr_index(proto) LPN expr_list(args) RPN.
                 {
                     x = p->alloc< xec_new_new >(
-                                    token->sloc, proto, p->list( args ) );
+                            token->sloc, proto, p->list( p->resolve( args ) ) );
                     p->destroy( token );
                 }
 
@@ -393,32 +386,32 @@ expr_call(x)    ::= proto(expr) LPN expr_list(args) RPN .
                 {
                     xec_expr_call* call = p->resolve( expr );
                     x = p->alloc< xec_expr_call >(
-                                call->sloc, call, p->list( args ) );
+                            call->sloc, call, p->list( p->resolve( args ) ) );
                 }
 expr_call(x)    ::= expr_index(expr) LPN expr_list(args) RPN .
                 {
                     x = p->alloc< xec_expr_call >(
-                                expr->sloc, expr, p->list( args ) );
+                            expr->sloc, expr, p->list( p->resolve( args ) ) );
                 }
 expr_call(x)    ::= expr_yield(expr) LPN expr_list(args) RPN .
                 {
                     x = p->alloc< xec_expr_call >(
-                                expr->sloc, expr, p->list( args ) );
+                            expr->sloc, expr, p->list( p->resolve( args ) ) );
                 }
 expr_call(x)    ::= expr_new(expr) LPN expr_list(args) RPN .
                 {
                     x = p->alloc< xec_expr_call >(
-                                expr->sloc, expr, p->list( args ) );
+                            expr->sloc, expr, p->list( p->resolve( args ) ) );
                 }
 expr_call(x)    ::= expr_call(expr) LPN expr_list(args) RPN .
                 {
                     x = p->alloc< xec_expr_call >(
-                                expr->sloc, expr, p->list( args ) );
+                            expr->sloc, expr, p->list( p->resolve( args ) ) );
                 }
 expr_call(x)    ::= expr_postfix(expr) LPN expr_list(args) RPN .
                 {
                     x = p->alloc< xec_expr_call >(
-                                expr->sloc, expr, p->list( args ) );
+                            expr->sloc, expr, p->list( p->resolve( args ) ) );
                 }
 
 // All lookups after the first call parenthesis.
@@ -432,12 +425,14 @@ expr_postfix(x) ::= proto(expr) PERIOD IDENTIFIER(token) .
 expr_postfix(x) ::= proto(expr) PERIOD LSQ expr_value(index) RSQ .
                 {
                     xec_expr_call* call = p->resolve( expr );
+                    index = p->resolve( index );
                     x = p->alloc< xec_expr_inkey >(
                              call->sloc, call, index );
                 }
 expr_postfix(x) ::= proto(expr) LSQ expr_value(index) RSQ .
                 {
                     xec_expr_call* call = p->resolve( expr );
+                    index = p->resolve( index );
                     x = p->alloc< xec_expr_index >(
                              call->sloc, call, index );
                 }
@@ -449,11 +444,13 @@ expr_postfix(x) ::= expr_yield(expr) PERIOD IDENTIFIER(token) .
                 }
 expr_postfix(x) ::= expr_yield(expr) PERIOD LSQ expr_value(index) RSQ .
                 {
+                    index = p->resolve( index );
                     x = p->alloc< xec_expr_inkey >(
                              expr->sloc, expr, index );
                 }
 expr_postfix(x) ::= expr_yield(expr) LSQ expr_value(index) RSQ .
                 {
+                    index = p->resolve( index );
                     x = p->alloc< xec_expr_index >(
                              expr->sloc, expr, index );
                 }
@@ -465,11 +462,13 @@ expr_postfix(x) ::= expr_new(expr) PERIOD IDENTIFIER(token) .
                 }
 expr_postfix(x) ::= expr_new(expr) PERIOD LSQ expr_value(index) RSQ .
                 {
+                    index = p->resolve( index );
                     x = p->alloc< xec_expr_inkey >(
                              expr->sloc, expr, index );
                 }
 expr_postfix(x) ::= expr_new(expr) LSQ expr_value(index) RSQ .
                 {
+                    index = p->resolve( index );
                     x = p->alloc< xec_expr_index >(
                              expr->sloc, expr, index );
                 }
@@ -481,11 +480,13 @@ expr_postfix(x) ::= expr_call(expr) PERIOD IDENTIFIER(token) .
                 }
 expr_postfix(x) ::= expr_call(expr) PERIOD LSQ expr_value(index) RSQ .
                 {
+                    index = p->resolve( index );
                     x = p->alloc< xec_expr_inkey >(
                              expr->sloc, expr, index );
                 }
 expr_postfix(x) ::= expr_call(expr) LSQ expr_value(index) RSQ .
                 {
+                    index = p->resolve( index );
                     x = p->alloc< xec_expr_index >(
                              expr->sloc, expr, index );
                 }
@@ -497,11 +498,13 @@ expr_postfix(x) ::= expr_postfix(expr) PERIOD IDENTIFIER(token) .
                 }
 expr_postfix(x) ::= expr_postfix(expr) PERIOD LSQ expr_value(index) RSQ .
                 {
+                    index = p->resolve( index );
                     x = p->alloc< xec_expr_inkey >(
                              expr->sloc, expr, index );
                 }
 expr_postfix(x) ::= expr_postfix(expr) LSQ expr_value(index) RSQ .
                 {
+                    index = p->resolve( index );
                     x = p->alloc< xec_expr_index >(
                              expr->sloc, expr, index );
                 }
@@ -513,7 +516,9 @@ expr_postfix(x) ::= expr_postfix(expr) LSQ expr_value(index) RSQ .
 // a() yield.b - or call - a() yield() - expressions after the yield keyword.
 expr_simple(x)  ::= name(expr) .
                 {
-                    x = p->resolve( expr );
+                    // Don't resolve the name here, as it may be a parameter
+                    // declaration for a prototype or function.
+                    x = expr;
                 }
 expr_simple(x)  ::= proto(expr) .
                 {
@@ -589,6 +594,7 @@ expr_suffix(x)  ::= expr_literal(expr) .
                 }
 expr_suffix(x)  ::= expr_suffix(expr) INCREMENT(token) .
                 {
+                    expr = p->resolve( expr );
                     expr = p->lvalue( expr );
                     x = p->alloc< xec_expr_postop >(
                              expr->sloc, token->kind, expr );
@@ -596,6 +602,7 @@ expr_suffix(x)  ::= expr_suffix(expr) INCREMENT(token) .
                 }
 expr_suffix(x)  ::= expr_suffix(expr) DECREMENT(token) .
                 {
+                    expr = p->resolve( expr );
                     expr = p->lvalue( expr );
                     x = p->alloc< xec_expr_postop >(
                              expr->sloc, token->kind, expr );
@@ -608,30 +615,35 @@ expr_unary(x)   ::= expr_suffix(expr) .
                 }
 expr_unary(x)   ::= PLUS(token) expr_unary(expr) .
                 {
+                    expr = p->resolve( expr );
                     x = p->alloc< xec_expr_unary >(
                              token->sloc, token->kind, expr );
                     p->destroy( token );
                 }
 expr_unary(x)   ::= MINUS(token) expr_unary(expr) .
                 {
+                    expr = p->resolve( expr );
                     x = p->alloc< xec_expr_unary >(
                              token->sloc, token->kind, expr );
                     p->destroy( token );
                 }
 expr_unary(x)   ::= XMARK(token) expr_unary(expr) .
                 {
+                    expr = p->resolve( expr );
                     x = p->alloc< xec_expr_unary >(
                              token->sloc, token->kind, expr );
                     p->destroy( token );
                 }
 expr_unary(x)   ::= TILDE(token) expr_unary(expr) .
                 {
+                    expr = p->resolve( expr );
                     x = p->alloc< xec_expr_unary >(
                              token->sloc, token->kind, expr );
                     p->destroy( token );
                 }
 expr_unary(x)   ::= INCREMENT(token) expr_unary(expr) .
                 {
+                    expr = p->resolve( expr );
                     expr = p->lvalue( expr );
                     x = p->alloc< xec_expr_preop >(
                              token->sloc, token->kind, expr );
@@ -639,6 +651,7 @@ expr_unary(x)   ::= INCREMENT(token) expr_unary(expr) .
                 }
 expr_unary(x)   ::= DECREMENT(token) expr_unary(expr) .
                 {
+                    expr = p->resolve( expr );
                     expr = p->lvalue( expr );
                     x = p->alloc< xec_expr_preop >(
                              token->sloc, token->kind, expr );
@@ -651,24 +664,32 @@ expr_mul(x)     ::= expr_unary(expr) .
                 }
 expr_mul(x)     ::= expr_mul(lhs) ASTERISK(token) expr_unary(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_binary >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
                 }
 expr_mul(x)     ::= expr_mul(lhs) SOLIDUS(token) expr_unary(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_binary >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
                 }
 expr_mul(x)     ::= expr_mul(lhs) PERCENT(token) expr_unary(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_binary >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
                 }
 expr_mul(x)     ::= expr_mul(lhs) TILDE(token) expr_unary(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_binary >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
@@ -680,12 +701,16 @@ expr_add(x)     ::= expr_mul(expr) .
                 }
 expr_add(x)     ::= expr_add(lhs) PLUS(token) expr_mul(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_binary >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
                 }
 expr_add(x)     ::= expr_add(lhs) MINUS(token) expr_mul(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_binary >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
@@ -697,18 +722,24 @@ expr_shift(x)   ::= expr_add(expr) .
                 }
 expr_shift(x)   ::= expr_shift(lhs) LSHIFT(token) expr_add(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_binary >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
                 }
 expr_shift(x)   ::= expr_shift(lhs) RSHIFT(token) expr_add(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_binary >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
                 }
 expr_shift(x)   ::= expr_shift(lhs) URSHIFT(token) expr_add(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_binary >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
@@ -720,6 +751,8 @@ expr_bitand(x)  ::= expr_shift(expr) .
                 }
 expr_bitand(x)  ::= expr_bitand(lhs) AMPERSAND(token) expr_shift(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_binary >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
@@ -731,6 +764,8 @@ expr_bitxor(x)  ::= expr_bitand(expr) .
                 }
 expr_bitxor(x)  ::= expr_bitxor(lhs) CARET(token) expr_bitand(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_binary >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
@@ -742,6 +777,8 @@ expr_bitor(x)   ::= expr_bitxor(expr) .
                 }
 expr_bitor(x)   ::= expr_bitor(lhs) VBAR(token) expr_bitxor(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_binary >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
@@ -753,6 +790,8 @@ expr_concat(x)  ::= expr_bitor(expr) .
                 }
 expr_concat(x)  ::= expr_concat(lhs) CONCATENATE(token) expr_bitor(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_binary >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
@@ -762,57 +801,55 @@ expr_compare(x) ::= expr_concat(expr) .
                 {
                     x = expr;
                 }
-expr_compare(x) ::= expr_compare(lhs) EQUAL(token) expr_concat(rhs) .
+expr_compare(x) ::= expr_compare(lhs) compare_op(token) expr_concat(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->compare( token, lhs, rhs );
                     p->destroy( token );
                 }
-expr_compare(x) ::= expr_compare(lhs) NOTEQUAL(token) expr_concat(rhs) .
+
+compare_op(x)   ::= EQUAL(token) .
                 {
-                    x = p->compare( token, lhs, rhs );
-                    p->destroy( token );
+                    x = token;
                 }
-expr_compare(x) ::= expr_compare(lhs) LESS(token) expr_concat(rhs) .
+compare_op(x)   ::= NOTEQUAL(token) .
                 {
-                    x = p->compare( token, lhs, rhs );
-                    p->destroy( token );
+                    x = token;
                 }
-expr_compare(x) ::= expr_compare(lhs) GREATER(token) expr_concat(rhs) .
+compare_op(x)   ::= LESS(token) .
                 {
-                    x = p->compare( token, lhs, rhs );
-                    p->destroy( token );
+                    x = token;
                 }
-expr_compare(x) ::= expr_compare(lhs) LESSEQUAL(token) expr_concat(rhs) .
+compare_op(x)   ::= GREATER(token) .
                 {
-                    x = p->compare( token, lhs, rhs );
-                    p->destroy( token );
+                    x = token;
                 }
-expr_compare(x) ::= expr_compare(lhs)
-                                GREATEREQUAL(token) expr_concat(rhs) .
+compare_op(x)   ::= LESSEQUAL(token) .
                 {
-                    x = p->compare( token, lhs, rhs );
-                    p->destroy( token );
+                    x = token;
                 }
-expr_compare(x) ::= expr_compare(lhs) IN(token) expr_concat(rhs) .
+compare_op(x)   ::= GREATEREQUAL(token) .
                 {
-                    x = p->compare( token, lhs, rhs );
-                    p->destroy( token );
+                    x = token;
                 }
-expr_compare(x) ::= expr_compare(lhs) NOTIN(token) expr_concat(rhs) .
+compare_op(x)   ::= IN(token) .
                 {
-                    x = p->compare( token, lhs, rhs );
-                    p->destroy( token );
+                    x = token;
                 }
-expr_compare(x) ::= expr_compare(lhs) IS(token) expr_concat(rhs) .
+compare_op(x)   ::= NOTIN(token) .
                 {
-                    x = p->compare( token, lhs, rhs );
-                    p->destroy( token );
+                    x = token;
                 }
-expr_compare(x) ::= expr_compare(lhs) NOTIS(token) expr_concat(rhs) .
+compare_op(x)   ::= IS(token) .
                 {
-                    x = p->compare( token, lhs, rhs );
-                    p->destroy( token );
+                    x = token;
                 }
+compare_op(x)   ::= NOTIS(token) .
+                {
+                    x = token;
+                }
+
 
 expr_and(x)     ::= expr_compare(expr) .
                 {
@@ -820,6 +857,8 @@ expr_and(x)     ::= expr_compare(expr) .
                 }
 expr_and(x)     ::= expr_and(lhs) LOGICAND(token) expr_compare(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_logical >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
@@ -831,6 +870,8 @@ expr_xor(x)     ::= expr_and(expr) .
                 }
 expr_xor(x)     ::= expr_xor(lhs) LOGICXOR(token) expr_and(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_logical >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
@@ -842,6 +883,8 @@ expr_or(x)      ::= expr_xor(expr) .
                 }
 expr_or(x)      ::= expr_or(lhs) LOGICOR(token) expr_xor(rhs) .
                 {
+                    lhs = p->resolve( lhs );
+                    rhs = p->resolve( rhs );
                     x = p->alloc< xec_expr_logical >(
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
@@ -855,6 +898,9 @@ expr_nolbr(x)   ::= expr_or(expr) .
 expr_nolbr(x)   ::= expr_or(condition) QMARK
                                 expr_value(iftrue) COLON expr_value(iffalse) .
                 {
+                    condition = p->resolve( condition );
+                    iftrue    = p->resolve( iftrue );
+                    iffalse   = p->resolve( iffalse );
                     x = p->alloc< xec_expr_qmark >(
                             condition->sloc, condition, iftrue, iffalse );
                 }
@@ -882,39 +928,38 @@ expr_nolbr(x)   ::= newfunc_lbr(func) stmt_list RBR .
 
 newobj_lbr(x)   ::= COLON(token) LBR .
                 {
-                    x = p->alloc< xec_new_object >( token->sloc, nullptr );
-                    x->scope = p->object_scope( nullptr );
+                    x = p->object( token->sloc, nullptr, nullptr );
                     p->destroy( token );
                 }
 newobj_lbr(x)   ::= COLON(token) expr_simple(proto) LBR .
                 {
-                    x = p->alloc< xec_new_object >( token->sloc, proto );
-                    x->scope = p->object_scope( nullptr );
+                    proto = p->resolve( proto );
+                    x = p->object( token->sloc, nullptr, proto );
                     p->destroy( token );
                 }
 
 newfunc_lbr(x)  ::= QMARK(token) LPN expr_list(params) RPN LBR .
                 {
-                    x = p->function( token->sloc, nullptr,
-                                    p->list( params ), false, false );
+                    x = p->function( token->sloc,
+                                    nullptr, params, false, false );
                     p->destroy( token );
                 }
 newfunc_lbr(x)  ::= PERIOD(token) QMARK LPN expr_list(params) RPN LBR .
                 {
-                    x = p->function( token->sloc, nullptr,
-                                    p->list( params ), false, true );
+                    x = p->function( token->sloc,
+                                    nullptr, params, false, true );
                     p->destroy( token );
                 }
 newfunc_lbr(x)  ::= QMARK(token) LPN expr_list(params) RPN YIELD LBR .
                 {
-                    x = p->function( token->sloc, nullptr,
-                                    p->list( params ), true, false );
+                    x = p->function( token->sloc,
+                                    nullptr, params, true, false );
                     p->destroy( token );
                 }
 newfunc_lbr(x)  ::= PERIOD(token) QMARK LPN expr_list(params) RPN YIELD LBR .
                 {
-                    x = p->function( token->sloc, nullptr,
-                                    p->list( params ), true, true );
+                    x = p->function( token->sloc,
+                                    nullptr, params, true, true );
                     p->destroy( token );
                 }
 
@@ -942,6 +987,7 @@ expr_lbody(x)   ::= expr_value(expr) .
                 }
 expr_lbody(x)   ::= expr_lbody(list) COMMA expr_value(expr) .
                 {
+                    // Do not resolve.
                     x = p->append( list, expr );
                 }
 
@@ -1026,10 +1072,13 @@ expr_list(x)    ::= expr_lbody(list) COMMA expr_final(expr) .
 
 expr_assign(x)  ::= expr_list(expr) .
                 {
+                    expr = p->resolve( expr );
                     x = expr;
                 }
 expr_assign(x)  ::= expr_lbody(lv) assign_op(op) expr_assign(rv) .
                 {
+                    lv = p->resolve( lv );
+                    rv = p->resolve( rv );
                     x = p->assign( op, lv, rv );
                     p->destroy( op );
                 }
@@ -1091,11 +1140,13 @@ assign_op(x)    ::= BITORASSIGN(token) .
 // Non-empty lists for list [ ... ] constructors.
 value_lbody(x)  ::= expr_value(expr) .
                 {
+                    expr = p->resolve( expr );
                     x = p->alloc< xec_new_list >( -1 );
                     x->values.push_back( expr );
                 }
 value_lbody(x)  ::= value_lbody(list) COMMA expr_value(expr) .
                 {
+                    expr = p->resolve( expr );
                     x = list;
                     x->values.push_back( expr );
                 }
@@ -1127,12 +1178,16 @@ value_list(x)   ::= value_lbody(list) COMMA expr_final(expr) .
 // Non-empty key -> value lists for { ... } constructors.
 keyval_lbody(x) ::= expr_value(key) COLON expr_value(value) .
                 {
+                    key   = p->resolve( key );
+                    value = p->resolve( value );
                     x = new xec_new_table( -1 );
                     x->elements.emplace_back( key, value );
                 }
 keyval_lbody(x) ::= keyval_lbody(table) COMMA
                                 expr_value(key) COLON expr_value(value) .
                 {
+                    key   = p->resolve( key );
+                    value = p->resolve( value );
                     x = table;
                     x->elements.emplace_back( key, value );
                 }
@@ -1155,10 +1210,12 @@ keyval_list(x)  ::= keyval_lbody(table) COMMA .
 
 sexpr_lbody(x)  ::= expr_nolbr(expr) .
                 {
+                    expr = p->resolve( expr );
                     x = expr;
                 }
 sexpr_lbody(x)  ::= sexpr_lbody(list) COMMA expr_value(expr) .
                 {
+                    expr = p->resolve( expr );
                     x = p->append( list, expr );
                 }
 
@@ -1181,6 +1238,7 @@ sexpr_assign(x) ::= sexpr_list(expr) .
                 }
 sexpr_assign(x) ::= sexpr_lbody(lv) assign_op(op) expr_assign(rv) .
                 {
+                    rv = p->resolve( rv );
                     x = p->assign( op, lv, rv );
                     p->destroy( op );
                 }
@@ -1193,15 +1251,34 @@ sexpr_assign(x) ::= sexpr_lbody(lv) assign_op(op) expr_assign(rv) .
 //
 
 
+
 // Conditions.
-condition(x)   ::= expr_assign(expr) .
+condition(x)    ::= expr_assign(expr) .
                 {
                     x = expr;
                 }
-condition(x)   ::= decl_var(decl) .
+condition(x)    ::= VAR(token) varname(varname) ASSIGN expr_list(rval) .
                 {
-                    x = decl;
+                    rval = p->resolve( rval );
+                    xec_expr_assign* assign = p->alloc< xec_expr_assign >(
+                                    token->sloc, XEC_TOKEN_ASSIGN );
+                    assign->lvalue = p->declare_local( varname );
+                    assign->rvalue = rval;
+                    x = assign;
+                    p->destroy( token );
                 }
+condition(x)    ::= VAR(token) varname_list(varnames) ASSIGN expr_list(rvals) .
+                {
+                    rvals = p->resolve( rvals );
+                    xec_expr_assign_list* assign =
+                            p->alloc< xec_expr_assign_list >(
+                                    token->sloc, XEC_TOKEN_ASSIGN );
+                    p->declare_local_list( varnames, &assign->lvalues );
+                    assign->rvalues = rvals;
+                    x = assign;
+                    p->destroy( token );
+                }
+
 
 
 
@@ -1209,9 +1286,24 @@ condition(x)   ::= decl_var(decl) .
 stmt_list       ::= .
                 {
                 }
+stmt_list       ::= stmt_list SEMICOLON .
+                {
+                }
 stmt_list       ::= stmt_list stmt(stmt) .
                 {
                     p->statement( stmt );
+                }
+stmt_list       ::= stmt_list decl_object .
+                {
+                }
+stmt_list       ::= stmt_list decl_func .
+                {
+                }
+stmt_list       ::= stmt_list decl_var SEMICOLON .
+                {
+                }
+stmt_list       ::= stmt_list decl_noinit SEMICOLON .
+                {
                 }
 
 
@@ -1256,34 +1348,14 @@ stmt_lbr_ru(x)  ::= LBR(token) .
 
 
 // Statements.
-stmt_common(x)  ::= SEMICOLON .
-                {
-                    x = nullptr;
-                }
 stmt_common(x)  ::= sexpr_assign(expr) SEMICOLON .
                 {
                     x = expr;
                 }
-stmt_common(x)  ::= decl_object(decl) .
-                {
-                    x = decl;
-                }
-stmt_common(x)  ::= decl_func(decl) .
-                {
-                    x = decl;
-                }
-stmt_common(x)  ::= decl_var(decl) SEMICOLON .
-                {
-                    x = decl;
-                }
-stmt_common(x)  ::= decl_noinit(decl) SEMICOLON .
-                {
-                    x = decl;
-                }
 stmt_common(x)  ::= stmt_if(stmt) LPN condition(expr) RPN stmt(block) .
                 {
                     stmt->condition = expr;
-                    stmt->iftrue    = p->nodecl( block );
+                    stmt->iftrue    = block;
                     p->close_scope( stmt->scope );
                     x = stmt;
                 }
@@ -1291,8 +1363,8 @@ stmt_common(x)  ::= stmt_if(stmt) LPN condition(expr) RPN stmt(block)
                                 ELSE stmt(orblock) .
                 {
                     stmt->condition = expr;
-                    stmt->iftrue    = p->nodecl( block );
-                    stmt->iffalse   = p->nodecl( orblock );
+                    stmt->iftrue    = block;
+                    stmt->iffalse   = orblock;
                     p->close_scope( stmt->scope );
                     x = stmt;
                 }
@@ -1308,14 +1380,14 @@ stmt_common(x)  ::= stmt_while(stmt) LPN condition(expr) RPN
                                 stmt_reuse(block) .
                 {
                     stmt->condition = expr;
-                    stmt->body      = p->nodecl( block );
+                    stmt->body      = block;
                     p->close_scope( stmt->scope );
                     x = stmt;
                 }
 stmt_common(x)  ::= stmt_do(stmt) stmt_reuse(block) WHILE
                                 LPN expr_assign(expr) RPN SEMICOLON .
                 {
-                    stmt->body      = p->nodecl( block );
+                    stmt->body      = block;
                     stmt->condition = expr;
                     p->close_scope( stmt->scope );
                     x = stmt;
@@ -1336,7 +1408,7 @@ stmt_common(x)  ::= stmt_using(stmt) LPN condition(expr) RPN
                                 stmt_reuse(block) .
                 {
                     stmt->uvalue    = expr;
-                    stmt->body      = p->nodecl( block );
+                    stmt->body      = block;
                     p->close_scope( stmt->scope );
                     x = stmt;
                 }
@@ -1353,6 +1425,7 @@ stmt_common(x)  ::= DELETE(token) expr_lbody(expr) SEMICOLON .
                 }
 stmt_common(x)  ::= CASE(token) expr_value(expr) COLON .
                 {
+                    expr = p->resolve( expr );
                     x = p->alloc< xec_stmt_case >( token->sloc, expr );
                     p->destroy( token );
                 }
@@ -1380,6 +1453,7 @@ stmt_common(x)  ::= RETURN(token) SEMICOLON .
                 }
 stmt_common(x)  ::= RETURN(token) expr_list(expr) SEMICOLON .
                 {
+                    expr = p->resolve( expr );
                     x = p->alloc< xec_stmt_return >( token->sloc, expr );
                     p->destroy( token );
                 }
@@ -1390,11 +1464,13 @@ stmt_common(x)  ::= token_yield(token) SEMICOLON .
                 }
 stmt_common(x)  ::= token_yield(token) expr_list(expr) SEMICOLON .
                 {
+                    expr = p->resolve( expr );
                     x = p->alloc< xec_expr_yield >( token->sloc, expr );
                     p->destroy( token );
                 }
 stmt_common(x)  ::= THROW(token) expr_value(expr) SEMICOLON .
                 {
+                    expr = p->resolve( expr );
                     x = p->alloc< xec_stmt_throw >( token->sloc, expr );
                     p->destroy( token );
                 }
@@ -1439,6 +1515,7 @@ scope_for(x)    ::= FOR(token) .
 stmt_foreach(x) ::= scope_for(forscope) LPN
                         expr_lbody(lval) COLON expr_value(expr) RPN .
                 {
+                    expr = p->resolve( expr );
                     x = p->alloc< xec_stmt_foreach >( forscope.token->sloc );
                     forscope.scope->node = x;
                     x->scope    = forscope.scope;
@@ -1449,6 +1526,7 @@ stmt_foreach(x) ::= scope_for(forscope) LPN
 stmt_foreach(x) ::= scope_for(forscope) LPN
                         expr_lbody(lval) EACHKEY expr_value(expr) RPN .
                 {
+                    expr = p->resolve( expr );
                     x = p->alloc< xec_stmt_foreach >( forscope.token->sloc );
                     forscope.scope->node = x;
                     x->scope    = forscope.scope;
@@ -1460,23 +1538,23 @@ stmt_foreach(x) ::= scope_for(forscope) LPN
 stmt_foreach(x) ::= scope_for(forscope) LPN
                         VAR varname_list(varnames) COLON expr_value(expr) RPN .
                 {
+                    expr = p->resolve( expr );
                     x = p->alloc< xec_stmt_foreach >( forscope.token->sloc );
                     forscope.scope->node = x;
                     x->scope    = forscope.scope;
+                    p->declare_local_list( varnames, &x->lvalues );
                     x->list     = expr;
-                    p->declare_list( varnames, &x->names );
-                    x->declare  = true;
                     p->destroy( forscope.token );
                 }
 stmt_foreach(x) ::= scope_for(forscope) LPN VAR varname_list(varnames)
                                 EACHKEY expr_value(expr) RPN .
                 {
+                    expr = p->resolve( expr );
                     x = p->alloc< xec_stmt_foreach >( forscope.token->sloc );
                     forscope.scope->node = x;
                     x->scope    = forscope.scope;
+                    p->declare_local_list( varnames, &x->lvalues );
                     x->list     = expr;
-                    p->declare_list( varnames, &x->names );
-                    x->declare  = true;
                     x->eachkey  = true;
                     p->destroy( forscope.token );
                 }
@@ -1511,12 +1589,12 @@ stmt_try(x)     ::= try_catch(stmt) . [TRY]
                 }
 stmt_try(x)     ::= try_catch(stmt) FINALLY stmt(block) . [TRY]
                 {
-                    stmt->fstmt = p->nodecl( block );
+                    stmt->fstmt = block;
                     x = stmt;
                 }
 stmt_try(x)     ::= try_block(stmt) FINALLY stmt(block) . [TRY]
                 {
-                    stmt->fstmt = p->nodecl( block );
+                    stmt->fstmt = block;
                     x = stmt;
                 }
 
@@ -1528,14 +1606,14 @@ try_block(x)    ::= TRY(token) stmt(tstmt) .
 
 try_catch(x)    ::= try_block(stmt) stmt_catch(cstmt) stmt_reuse(block) .
                 {
-                    cstmt->body = p->nodecl( block );
+                    cstmt->body = block;
                     p->close_scope( cstmt->scope );
                     stmt->clist.push_back( cstmt );
                     x = stmt;
                 }
 try_catch(x)    ::= try_catch(stmt) stmt_catch(cstmt) stmt_reuse(block) .
                 {
-                    cstmt->body = p->nodecl(block);
+                    cstmt->body = block;
                     p->close_scope( cstmt->scope );
                     stmt->clist.push_back( cstmt );
                     x = stmt;
@@ -1549,6 +1627,7 @@ scope_catch(x)  ::= CATCH(token) .
 
 stmt_catch(x)   ::= scope_catch(cscope) LPN COLON expr_simple(cproto) RPN .
                 {
+                    cproto = p->resolve( cproto );
                     x = p->alloc< xec_stmt_catch >( cscope.token->sloc );
                     cscope.scope->node = x;
                     x->proto    = cproto;
@@ -1557,20 +1636,22 @@ stmt_catch(x)   ::= scope_catch(cscope) LPN COLON expr_simple(cproto) RPN .
 stmt_catch(x)   ::= scope_catch(cscope) LPN
                         expr_value(lval) COLON expr_simple(cproto) RPN .
                 {
+                    lval = p->resolve( lval );
+                    cproto = p->resolve( cproto );
                     x = p->alloc< xec_stmt_catch >( cscope.token->sloc );
                     cscope.scope->node = x;
-                    x->lvalue   = lval;
+                    x->lvalue   = p->lvalue( lval );
                     x->proto    = cproto;
                     p->destroy( cscope.token );
                 }
 stmt_catch(x)   ::= scope_catch(cscope) LPN
                         VAR varname(varname) COLON expr_simple(cproto) RPN .
                 {
+                    cproto = p->resolve( cproto );
                     x = p->alloc< xec_stmt_catch >( cscope.token->sloc );
                     cscope.scope->node = x;
+                    x->lvalue   = p->declare_local( varname );
                     x->proto    = cproto;
-                    x->name     = p->declare( varname );
-                    x->declare  = true;
                     p->destroy( cscope.token );
                 }
 

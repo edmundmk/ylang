@@ -22,11 +22,83 @@ xec_ast_scope::xec_ast_scope( xec_ast_scope_kind kind,
 }
 
 
+xec_ast_name::xec_ast_name( int sloc, xec_ast_scope* scope, const char* name )
+    :   sloc( sloc )
+    ,   scope( scope )
+    ,   name( name )
+    ,   superthis( NULL )
+    ,   prototype( NULL )
+    ,   upval( false )
+{
+}
+
+
+xec_ast_prototype::xec_ast_prototype( int sloc )
+    :   sloc( sloc )
+    ,   varargs( false )
+    ,   coroutine( false )
+{
+}
+
+
+xec_ast_upval::xec_ast_upval( xec_ast_name* name )
+    :   kind( XEC_UPVAL_LOCAL )
+    ,   local( name )
+{
+}
+
+xec_ast_upval::xec_ast_upval( xec_new_object* object )
+    :   kind( XEC_UPVAL_OBJECT )
+    ,   object( object )
+{
+}
+
+xec_ast_upval::xec_ast_upval( int upval )
+    :   kind( XEC_UPVAL_UPVAL )
+    ,   upval( upval )
+{
+}
+
+bool xec_ast_upval::operator == ( const xec_ast_upval& b ) const
+{
+    if ( kind == b.kind )
+    {
+        switch ( kind )
+        {
+        case XEC_UPVAL_LOCAL:   return local == b.local;
+        case XEC_UPVAL_OBJECT:  return object == b.object;
+        case XEC_UPVAL_UPVAL:   return upval == b.upval;
+        }
+    }
+    
+    return false;
+}
+
+bool xec_ast_upval::operator != ( const xec_ast_upval& b ) const
+{
+    return !( *this == b );
+}
+
+
 
 
 xec_ast_node::xec_ast_node( xec_ast_node_kind kind, int sloc )
     :   kind( kind )
     ,   sloc( sloc )
+{
+}
+
+
+
+xec_ast_func::xec_ast_func( int sloc )
+    :   xec_ast_node( XEC_AST_FUNC, sloc )
+    ,   funcname( "" )
+    ,   scope( NULL )
+    ,   memberof( NULL )
+    ,   thisname( NULL )
+    ,   block( NULL )
+    ,   varargs( false )
+    ,   coroutine( false )
 {
 }
 
@@ -59,6 +131,36 @@ xec_expr_string::xec_expr_string( int sloc, const char* string, size_t length )
     ,   length( length )
 {
 }
+
+
+xec_expr_local::xec_expr_local( int sloc, xec_ast_name* name )
+    :   xec_ast_node( XEC_EXPR_LOCAL, sloc )
+    ,   name( name )
+{
+}
+
+
+xec_expr_global::xec_expr_global( int sloc, const char* name, bool gexplicit )
+    :   xec_ast_node( XEC_EXPR_GLOBAL, sloc )
+    ,   name( name )
+    ,   gexplicit( gexplicit )
+{
+}
+
+
+xec_expr_upref::xec_expr_upref( int sloc, int index )
+    :   xec_ast_node( XEC_EXPR_UPREF, sloc )
+    ,   index( index )
+{
+}
+
+
+xec_expr_objref::xec_expr_objref( int sloc, xec_new_object* object )
+    :   xec_ast_node( XEC_EXPR_OBJREF, sloc )
+    ,   object( object )
+{
+}
+
 
 
 xec_expr_key::xec_expr_key( int sloc, xec_ast_node* object, const char* key )
@@ -162,6 +264,7 @@ xec_new_object::xec_new_object( int sloc, xec_ast_node* proto )
     :   xec_ast_node( XEC_NEW_OBJECT, sloc )
     ,   scope( NULL )
     ,   proto( proto )
+    ,   upval( false )
 {
 }
 
@@ -233,23 +336,9 @@ xec_expr_list::xec_expr_list( int sloc )
 
 
 
-xec_ast_declare::xec_ast_declare( int sloc )
-    :   xec_ast_node( XEC_AST_DECLARE, sloc )
-    ,   name( NULL )
-    ,   value( NULL )
-{
-}
 
-xec_ast_declare_list::xec_ast_declare_list( int sloc )
-    :   xec_ast_node( XEC_AST_DECLARE_LIST, sloc )
-    ,   values( NULL )
-{
-}
-
-
-
-xec_ast_assign::xec_ast_assign( int sloc, xec_token_kind assignop )
-    :   xec_ast_node( XEC_AST_ASSIGN, sloc )
+xec_expr_assign::xec_expr_assign( int sloc, xec_token_kind assignop )
+    :   xec_ast_node( XEC_EXPR_ASSIGN, sloc )
     ,   assignop( assignop )
     ,   lvalue( NULL )
     ,   rvalue( NULL )
@@ -257,8 +346,8 @@ xec_ast_assign::xec_ast_assign( int sloc, xec_token_kind assignop )
 }
 
 
-xec_ast_assign_list::xec_ast_assign_list( int sloc, xec_token_kind assignop )
-    :   xec_ast_node( XEC_AST_ASSIGN_LIST, sloc )
+xec_expr_assign_list::xec_expr_assign_list( int sloc, xec_token_kind assignop )
+    :   xec_ast_node( XEC_EXPR_ASSIGN_LIST, sloc )
     ,   rvalues( NULL )
 {
 }
@@ -309,7 +398,6 @@ xec_stmt_foreach::xec_stmt_foreach( int sloc )
     ,   scope( NULL )
     ,   list( NULL )
     ,   body( NULL )
-    ,   declare( false )
     ,   eachkey( false )
 {
 }
@@ -344,7 +432,6 @@ xec_stmt_catch::xec_stmt_catch( int sloc )
     ,   lvalue( NULL )
     ,   proto( NULL )
     ,   body( NULL )
-    ,   declare( false )
 {
 }
 
@@ -389,6 +476,15 @@ xec_stmt_throw::xec_stmt_throw( int sloc, xec_ast_node* value )
 
 xec_unqual_name::xec_unqual_name( int sloc, const char* name )
     :   xec_ast_node( XEC_UNQUAL_NAME, sloc )
+    ,   name( name )
+{
+}
+
+
+xec_unqual_qual::xec_unqual_qual(
+                int sloc, xec_ast_node* scope, const char* name )
+    :   xec_ast_node( XEC_UNQUAL_QUAL, sloc )
+    ,   scope( scope )
     ,   name( name )
 {
 }

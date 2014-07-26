@@ -18,7 +18,7 @@ int main( int argc, char* argv[] )
 {
     xec_script script;
     const char* script_arguments[] = { "argv0", "..." };
-    script.arguments( 2, script_arguments );
+    script.parameters( 2, script_arguments );
     script.parse( argv[ 1 ] );
     
     for ( size_t i = 0; i < script.diagnostic_count(); ++i )

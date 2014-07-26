@@ -12,12 +12,12 @@
 
 
 xec_script::xec_script()
-    :   scope( NULL )
-    ,   script( NULL )
+    :   script( NULL )
 {
 }
 
 xec_script::xec_script( const char* filename )
+    :   script( NULL )
 {
     parse( filename );
 }
@@ -27,34 +27,64 @@ xec_script::~xec_script()
 }
 
 
-void xec_script::arguments( size_t argc, const char* argv[] )
+void xec_script::parameters( size_t argc, const char* argv[] )
 {
-/*
-    xec_expression_list* params = new xec_expression_list();
+    assert( script == NULL );
+    
+
+    // Set up global scope, script function, and script scope.
+    script = new ( alloc ) xec_ast_func( -1 );
+    script->scope = new ( alloc )
+            xec_ast_scope( XEC_SCOPE_SCRIPT, NULL, script, script );
+    script->block = new ( alloc ) xec_stmt_block( -1 );
+    script->scope->block = script->block;
+    
+  
+    // Declare parameters.
     for ( size_t i = 0; i < argc; ++i )
     {
         if ( strcmp( argv[ i ], "..." ) != 0 )
         {
-            xec_token* token = make_token(
-                XEC_TOKEN_IDENTIFIER, -1, argv[ i ], strlen( argv[ i ] ) );
-            params->append_expression(
-                    new xec_expression_identifier( token ) );
+            const char* param = copy_string( argv[ i ] );
+        
+            // Check for duplicated parameters.
+            if ( script->scope->names.find( param )
+                            != script->scope->names.end() )
+            {
+                assert( ! "duplicate parameter" );
+            }
+            
+            // Add name.
+            xec_ast_name* name = new ( alloc )
+                            xec_ast_name( -1, script->scope, param );
+            script->scope->names.emplace( param, name );
+            script->parameters.push_back( name );
         }
         else
         {
-            assert( i == argc - 1 );
-            xec_token* token = make_token( XEC_TOKEN_ELLIPSIS, -1, "...", 3 );
-            params->append_final( new xec_expression_varargs( token ) );
+            // Varargs indicator.
+            assert( i == argc - 1 && "varargs must be at the end" );
+            script->varargs = true;
         }
     }
-    
-    global_scope.reset( new xec_scope() );
-    script.reset( new xec_constructor_function( params ) );
-*/
 }
+
 
 bool xec_script::parse( const char* filename )
 {
+    // Default parameters.
+    if ( ! script )
+    {
+        const char* argv[] = { "..." };
+        parameters( 1, argv );
+    }
+
+
+    // Set function name.
+    script->funcname = copy_string( filename );
+    
+    
+    // Actually parse function.
     xec_parser parser( this );
     return parser.parse( filename );
 }
@@ -116,19 +146,31 @@ const char* xec_script::diagnostic( size_t index )
 }
 
 
-/*
-xec_scope* xec_parser::get_global_scope()
+
+xec_ast_func* xec_script::get_script()
 {
-    return global_scope.get();
+    return script;
 }
 
-xec_constructor_function* xec_parser::get_script()
+size_t xec_script::get_function_count()
 {
-    return script.get();
+    return functions.size();
+}
+
+xec_ast_func* xec_script::get_function( size_t index )
+{
+    return functions.at( index );
 }
 
 
-*/
+
+
+const char* xec_script::copy_string( const char* s )
+{
+    char* c = (char*)alloc.malloc( strlen( s ) + 1 );
+    strcpy( c, s );
+    return c;
+}
 
 
 

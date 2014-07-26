@@ -20,18 +20,19 @@
 struct xec_ast_scope;
 struct xec_ast_name;
 struct xec_ast_prototype;
+struct xec_ast_upval;
 struct xec_ast_node;
 struct xec_ast_func;
+struct xec_new_object;
 struct xec_expr_list;
 struct xec_stmt_block;
-struct xec_key_value;
 struct xec_unqual_name;
+struct xec_key_value;
 
 
 
 enum xec_ast_scope_kind
 {
-    XEC_SCOPE_GLOBAL,
     XEC_SCOPE_SCRIPT,
     XEC_SCOPE_BLOCK,
     XEC_SCOPE_OBJECT,
@@ -53,7 +54,8 @@ enum xec_ast_node_kind
     // Names.
     XEC_EXPR_LOCAL,
     XEC_EXPR_GLOBAL,
-    XEC_EXPR_UPVAL,
+    XEC_EXPR_UPREF,
+    XEC_EXPR_OBJREF,
     
     // Lookup.
     XEC_EXPR_KEY,
@@ -86,13 +88,9 @@ enum xec_ast_node_kind
     XEC_EXPR_UNPACK,
     XEC_EXPR_LIST,
     
-    // Declaration.
-    XEC_AST_DECLARE,
-    XEC_AST_DECLARE_LIST,
-
     // Assignment.
-    XEC_AST_ASSIGN,
-    XEC_AST_ASSIGN_LIST,
+    XEC_EXPR_ASSIGN,
+    XEC_EXPR_ASSIGN_LIST,
 
     // Statements with scopes.
     XEC_STMT_BLOCK,
@@ -114,11 +112,20 @@ enum xec_ast_node_kind
     XEC_STMT_RETURN,
     XEC_STMT_THROW,
     
-    // Unresolved and unqualified.
+    // Unresolved and unqualified (should not appear in final AST).
     XEC_UNQUAL_NAME,
+    XEC_UNQUAL_QUAL,
     XEC_UNQUAL_LIST,
     XEC_UNQUAL_PROTO,
 
+};
+
+
+enum xec_ast_upval_kind
+{
+    XEC_UPVAL_LOCAL,
+    XEC_UPVAL_OBJECT,
+    XEC_UPVAL_UPVAL,
 };
 
 
@@ -133,8 +140,26 @@ typedef std::deque< xec_token_kind,
     region_allocator< xec_token_kind > > xec_opkind_list;
 typedef std::deque< xec_key_value,
     region_allocator< xec_key_value > > xec_key_value_list;
-typedef std::unordered_map< symkey, xec_ast_name*,
-    region_allocator< std::pair< symbol, xec_ast_name* > > > xec_ast_name_map;
+typedef std::unordered_map
+        <
+            symkey,
+            xec_ast_name*,
+            std::hash< symkey >,
+            std::equal_to< symkey >,
+            region_allocator< std::pair< const symkey, xec_ast_name* > >
+        >
+        xec_ast_name_map;
+typedef std::unordered_map
+        <
+            symkey,
+            xec_ast_scope*,
+            std::hash< symkey >,
+            std::equal_to< symkey >,
+            region_allocator< std::pair< const symkey, xec_ast_scope* > >
+        >
+        xec_ast_imply_map;
+typedef std::deque< xec_ast_upval,
+    region_allocator< xec_ast_upval > > xec_ast_upval_list;
 
 
 
@@ -154,26 +179,56 @@ struct xec_ast_scope
     xec_ast_func*       func;
     xec_stmt_block*     block;
     xec_ast_name_map    names;
-    xec_ast_node_list   decls;
-    xec_ast_node_list   usings;
+    xec_ast_imply_map   implied;
+    xec_ast_name_list   decls;
 };
 
 
 struct xec_ast_name
 {
+    xec_ast_name( int sloc, xec_ast_scope* scope, const char* name );
+
+    int                 sloc;
     xec_ast_scope*      scope;
     const char*         name;
-    xec_ast_scope*      implied;
+    xec_ast_name*       superthis;
     xec_ast_prototype*  prototype;
-    bool                constant;
     bool                upval;
 };
 
 
 struct xec_ast_prototype
 {
-    xec_ast_node_list   parameters;
+    xec_ast_prototype( int sloc );
+
+    int                 sloc;
+    xec_unqual_name_list parameters;
+    bool                varargs;
     bool                coroutine;
+};
+
+
+
+/*
+    Upvals are used when accessing variables in outer scopes.
+*/
+
+struct xec_ast_upval
+{
+    xec_ast_upval( xec_ast_name* name );
+    xec_ast_upval( xec_new_object* object );
+    xec_ast_upval( int upval );
+
+    bool operator == ( const xec_ast_upval& b ) const;
+    bool operator != ( const xec_ast_upval& b ) const;
+
+    xec_ast_upval_kind  kind;
+    union
+    {
+        xec_ast_name*   local;
+        xec_new_object* object;
+        int             upval;
+    };
 };
 
 
@@ -199,11 +254,16 @@ struct xec_ast_node
 
 struct xec_ast_func : public xec_ast_node
 {
+    xec_ast_func( int sloc );
+
     const char*         funcname;
     xec_ast_scope*      scope;
-    xec_ast_node_list   upvals;
-    xec_ast_node_list   parameters;
-    xec_ast_node*       stmt;
+    xec_ast_upval_list  upvals;
+    xec_new_object*     memberof;
+    xec_ast_name*       thisname;
+    xec_ast_name_list   parameters;
+    xec_stmt_block*     block;
+    bool                varargs;
     bool                coroutine;
 };
 
@@ -249,20 +309,34 @@ struct xec_expr_string : public xec_ast_node
 
 struct xec_expr_local : public xec_ast_node
 {
+    xec_expr_local( int sloc, xec_ast_name* name );
+
     xec_ast_name*       name;
 };
 
 
 struct xec_expr_global : public xec_ast_node
 {
+    xec_expr_global( int sloc, const char* name, bool gexplicit );
+
     const char*         name;
     bool                gexplicit;
 };
 
 
-struct xec_expr_upval : public xec_ast_node
+struct xec_expr_upref : public xec_ast_node
 {
+    xec_expr_upref( int sloc, int index );
+
     int                 index;
+};
+
+
+struct xec_expr_objref : public xec_ast_node
+{
+    xec_expr_objref( int sloc, xec_new_object* object );
+    
+    xec_new_object*     object;
 };
 
 
@@ -392,6 +466,7 @@ struct xec_new_object : public xec_ast_node
     xec_ast_scope*      scope;
     xec_ast_node*       proto;
     xec_ast_node_list   members;
+    bool                upval;
 };
 
 
@@ -497,35 +572,14 @@ struct xec_expr_list : public xec_ast_node
 };
 
 
-/*
-    Declaration.
-*/
-
-struct xec_ast_declare : public xec_ast_node
-{
-    xec_ast_declare( int sloc );
-
-    xec_ast_name*       name;
-    xec_ast_node*       value;
-};
-
-
-struct xec_ast_declare_list : public xec_ast_node
-{
-    xec_ast_declare_list( int sloc );
-
-    xec_ast_name_list   names;
-    xec_ast_node*       values;
-};
-
 
 /*
     Assignment.
 */
 
-struct xec_ast_assign : public xec_ast_node
+struct xec_expr_assign : public xec_ast_node
 {
-    xec_ast_assign( int sloc, xec_token_kind assignop );
+    xec_expr_assign( int sloc, xec_token_kind assignop );
 
     xec_token_kind      assignop;
     xec_ast_node*       lvalue;
@@ -533,9 +587,9 @@ struct xec_ast_assign : public xec_ast_node
 };
 
 
-struct xec_ast_assign_list : public xec_ast_node
+struct xec_expr_assign_list : public xec_ast_node
 {
-    xec_ast_assign_list( int sloc, xec_token_kind assignop );
+    xec_expr_assign_list( int sloc, xec_token_kind assignop );
 
     xec_token_kind      assignop;
     xec_ast_node_list   lvalues;
@@ -602,11 +656,9 @@ struct xec_stmt_foreach : public xec_ast_node
     xec_stmt_foreach( int sloc );
 
     xec_ast_scope*      scope;
-    xec_ast_name_list   names;
     xec_ast_node_list   lvalues;
     xec_ast_node*       list;
     xec_ast_node*       body;
-    bool                declare;
     bool                eachkey;
 };
 
@@ -647,11 +699,9 @@ struct xec_stmt_catch : public xec_ast_node
     xec_stmt_catch( int sloc );
 
     xec_ast_scope*      scope;
-    xec_ast_name*       name;
     xec_ast_node*       lvalue;
     xec_ast_node*       proto;
     xec_ast_node*       body;
-    bool                declare;
 };
 
 
@@ -716,6 +766,15 @@ struct xec_unqual_name : public xec_ast_node
 {
     xec_unqual_name( int sloc, const char* name );
     
+    const char*         name;
+};
+
+
+struct xec_unqual_qual : public xec_ast_node
+{
+    xec_unqual_qual( int sloc, xec_ast_node* scope, const char* name );
+    
+    xec_ast_node*       scope;
     const char*         name;
 };
 

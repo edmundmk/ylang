@@ -16,7 +16,7 @@
 #include <region.h>
 
 
-struct xec_scope;
+struct xec_ast_scope;
 struct xec_ast_func;
 
 
@@ -28,7 +28,7 @@ public:
     explicit xec_script( const char* filename );
     ~xec_script();
 
-    void                arguments( size_t argc, const char* argv[] );
+    void                parameters( size_t argc, const char* argv[] );
     bool                parse( const char* filename );
 
     const char*         get_filename();
@@ -39,7 +39,6 @@ public:
     size_t              diagnostic_count();
     const char*         diagnostic( size_t index );
 
-    xec_scope*          get_scope();
     xec_ast_func*       get_script();
     size_t              get_function_count();
     xec_ast_func*       get_function( size_t index );
@@ -47,13 +46,14 @@ public:
 
 private:
 
-    friend class xec_parser;    
+    friend class xec_parser;
+    
+    const char*         copy_string( const char* s );
 
     region                      alloc;
     std::string                 filename;
     std::deque< int >           newlines;
     std::deque< const char* >   diagnostics;
-    xec_scope*                  scope;
     xec_ast_func*               script;
     std::deque< xec_ast_func* > functions;
 

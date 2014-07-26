@@ -392,12 +392,8 @@ bool xec_parser::parse( const char* path )
     region_scope rscope( script->alloc );
 
 
-    // Default arguments.
-    if ( ! script->script )
-    {
-        const char* argv[] = { "..." };
-        script->arguments( 1, argv );
-    }
+    // Push function scope.
+    scopes.push_back( script->get_script()->scope );
 
     
     // Open file.
