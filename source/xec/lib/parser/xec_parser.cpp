@@ -123,20 +123,80 @@ xec_new_object* xec_parser::object(
     xec_new_object* object = alloc< xec_new_object >( sloc, proto );
     object->scope = alloc< xec_ast_scope >(
                     XEC_SCOPE_OBJECT, outer, object, outer->func );
-    object->scope->node = object;
 
-
-    // Declare.
-
+    // Declare or assign.
+    declname( sloc, name, object );
 
     // Imply scope.
-    
+    if ( name )
+    {
+        xec_ast_scope* scope = NULL;
+        const char* s = NULL;
+        
+        if ( name->kind == XEC_UNQUAL_NAME )
+        {
+            xec_unqual_name* qual = (xec_unqual_name*)name;
+            scope = outer;
+            s = qual->name;
+        }
+        else if ( name->kind == XEC_UNQUAL_QUAL )
+        {
+            xec_unqual_qual* qual = (xec_unqual_qual*)name;
+            scope = imply( outer, qual->scope, true );
+            s = qual->name;
+        }
+
+        scope->implied.erase( s );
+        scope->implied.emplace( s, object->scope );
+    }
     
     
     // Enter object scope and return the object.
     scopes.push_back( object->scope );
     return object;
 }
+
+
+xec_ast_scope* xec_parser::imply(
+                xec_ast_scope* scope, xec_ast_node* name, bool create )
+{
+    // Each scope tracks object declarations in 'implied' scopes (even for
+    // compound names).  Implied scopes are either truly implied or are
+    // object scopes.  This allows us to bind function definitions to the
+    // corresponding prototypes.
+
+    const char* s = NULL;
+    if ( name->kind == XEC_UNQUAL_NAME )
+    {
+        xec_unqual_name* qual = (xec_unqual_name*)name;
+        s = qual->name;
+    }
+    else if ( name->kind == XEC_UNQUAL_QUAL )
+    {
+        xec_unqual_qual* qual = (xec_unqual_qual*)name;
+        scope = imply( scope, qual->scope, create );
+        if ( ! scope )
+            return NULL;
+        s = qual->name;
+    }
+    
+    auto i = scope->implied.find( s );
+    if ( i != scope->implied.end() )
+        return i->second;
+    
+    if ( create )
+    {
+        xec_ast_scope* implied = alloc< xec_ast_scope >(
+                    XEC_SCOPE_IMPLIED, scope, nullptr, scope->func );
+        scope->implied.emplace( s, implied );
+        return implied;
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
 
 
 void xec_parser::prototype( int sloc, xec_unqual_proto* proto )
@@ -154,22 +214,35 @@ void xec_parser::prototype( int sloc, xec_unqual_proto* proto )
     xec_ast_name* n = declare( (xec_unqual_name*)proto->name );
     n->prototype = alloc< xec_ast_prototype >( proto->sloc );
 
-    for ( size_t i = 0; i < proto->params->values.size(); ++i )
+    if ( proto->params )
     {
-        xec_ast_node* param = proto->params->values[ i ];
-        if ( param->kind == XEC_UNQUAL_NAME )
-            n->prototype->parameters.push_back( (xec_unqual_name*)param );
-        else
-            script->diagnostic( param->sloc, "invalid parameter declaration" );
-    }
+        for ( size_t i = 0; i < proto->params->values.size(); ++i )
+        {
+            xec_ast_node* param = proto->params->values[ i ];
+            if ( param->kind == XEC_UNQUAL_NAME )
+            {
+                n->prototype->parameters.push_back( (xec_unqual_name*)param );
+            }
+            else
+            {
+                script->diagnostic( param->sloc,
+                                "invalid parameter declaration" );
+            }
+        }
 
-    if ( proto->params->final )
-    {
-        xec_ast_node* param = proto->params->final;
-        if ( param->kind == XEC_EXPR_VARARG )
-            n->prototype->varargs = true;
-        else
-            script->diagnostic( param->sloc, "invalid parameter declaration" );
+        if ( proto->params->final )
+        {
+            xec_ast_node* param = proto->params->final;
+            if ( param->kind == XEC_EXPR_VARARG )
+            {
+                n->prototype->varargs = true;
+            }
+            else
+            {
+                script->diagnostic( param->sloc,
+                                "invalid parameter declaration" );
+            }
+        }
     }
 
     n->prototype->coroutine = proto->coroutine;
@@ -179,19 +252,309 @@ void xec_parser::prototype( int sloc, xec_unqual_proto* proto )
 xec_ast_func* xec_parser::function( int sloc, xec_ast_node* name,
                 xec_ast_node* params, bool coroutine, bool thisdot )
 {
-    return NULL;
+    // Convert parameters to unqual list.
+    xec_unqual_list* list = alloc< xec_unqual_list >( sloc );
+    bool varargs = false;
+    if ( params )
+    {
+        if ( params->kind == XEC_EXPR_LIST )
+        {
+            xec_expr_list* l = (xec_expr_list*)params;
+            
+            for ( size_t i = 0; i < l->values.size(); ++i )
+            {
+                xec_ast_node* value = l->values[ i ];
+                if ( value->kind == XEC_UNQUAL_NAME )
+                {
+                    list->names.push_back( (xec_unqual_name*)value );
+                }
+                else
+                {
+                    script->diagnostic( value->sloc,
+                                    "invalid parameter declaration" );
+                }
+            }
+            
+            if ( l->final )
+            {
+                if ( l->final->kind == XEC_EXPR_VARARG )
+                {
+                    varargs = true;
+                }
+                else
+                {
+                    script->diagnostic( l->final->sloc,
+                                    "invalid parameter declaration" );
+                }
+            }
+        }
+        else if ( params->kind == XEC_UNQUAL_NAME )
+        {
+            list->names.push_back( (xec_unqual_name*)params );
+        }
+        else
+        {
+            script->diagnostic( params->sloc, "invalid parameter declaration" );
+        }
+    }
+
+
+    // Attempt to match with prototype.
+    xec_ast_scope* outer = get_scope();
+    outer = match_prototype( sloc, outer, name, list, varargs, coroutine );
+
+
+    // Create function.
+    xec_ast_func* func = alloc< xec_ast_func >( sloc );
+    func->scope = alloc< xec_ast_scope >( XEC_SCOPE_BLOCK, outer, func, func );
+    
+    if ( outer->kind == XEC_SCOPE_OBJECT )
+    {
+        // Function is a member of an object (so has implicit-this).
+        assert( outer->node->kind == XEC_NEW_OBJECT );
+        func->memberof = (xec_new_object*)outer->node;
+    }
+    
+    
+    // Enter function scope to declare parameters.
+    scopes.push_back( func->scope );
+
+    if ( outer->kind == XEC_SCOPE_OBJECT || thisdot )
+    {
+        // Function has automatic this parameter (and super).
+        xec_unqual_name* thisl = alloc< xec_unqual_name >( sloc, "this" );
+        xec_unqual_name* super = alloc< xec_unqual_name >( sloc, "super" );
+        
+        func->thisname = declare( thisl );
+        func->parameters.push_back( func->thisname );
+        
+        xec_ast_name* supername = declare( super );
+        supername->superthis = func->thisname;
+    }
+    
+    for ( size_t i = 0; i < list->names.size(); ++i )
+    {
+        xec_ast_name* paramname = declare( list->names[ i ] );
+        func->parameters.push_back( paramname );
+    }
+    
+    func->varargs = varargs;
+    func->coroutine = coroutine;
+    
+    scopes.pop_back();
+    
+    
+    // Declare or assign.
+    declname( sloc, name, func );
+
+
+    // Get function name.
+    if ( name )
+    {
+        if ( name->kind == XEC_UNQUAL_NAME )
+            func->funcname = ( (xec_unqual_name*)name )->name;
+        else if ( name->kind == XEC_UNQUAL_QUAL )
+            func->funcname = ( (xec_unqual_qual*)name )->name;
+    }
+    else
+    {
+        if ( thisdot )
+            func->funcname = ".?";
+        else
+            func->funcname = "?";
+    }
+    
+    
+    // Enter function scope and return the function.
+    scopes.push_back( func->scope );
+    return func;
+}
+
+
+xec_ast_scope* xec_parser::match_prototype( int sloc,
+                xec_ast_scope* outer, xec_ast_node* name,
+                        xec_unqual_list* params, bool varargs, bool coroutine )
+{
+    if ( ! name )
+    {
+        return outer;
+    }
+    
+    xec_ast_scope* scope = NULL;
+    const char* s = NULL;
+    
+    if ( name->kind == XEC_UNQUAL_NAME )
+    {
+        xec_unqual_name* qual = (xec_unqual_name*)name;
+        scope = outer;
+        s = qual->name;
+    }
+    else if ( name->kind == XEC_UNQUAL_QUAL )
+    {
+        xec_unqual_qual* qual = (xec_unqual_qual*)name;
+        scope = imply( outer, qual->scope, false );
+        s = qual->name;
+    }
+    
+    if ( ! scope || scope->kind != XEC_SCOPE_OBJECT )
+    {
+        return outer;
+    }
+    
+    auto i = scope->names.find( s );
+    if ( i == scope->names.end() )
+    {
+        return outer;
+    }
+    
+    xec_ast_prototype* proto = i->second->prototype;
+    if ( ! proto )
+    {
+        script->diagnostic( sloc, "function overrides non-prototype" );
+        return outer;
+    }
+    
+    if ( proto->parameters.size() != params->names.size()
+            || proto->varargs != varargs
+            || proto->coroutine != coroutine )
+    {
+        script->diagnostic( sloc, "function does not match prototype" );
+        return outer;
+    }
+    
+    for ( size_t i = 0; i < proto->parameters.size(); ++i )
+    {
+        xec_unqual_name* a = proto->parameters[ i ];
+        xec_unqual_name* b = params->names[ i ];
+        if ( strcmp( a->name, b->name ) != 0 )
+        {
+            script->diagnostic( sloc,
+                "prototype parameter mismatch '%s' vs '%s'", a->name, b->name );
+            return outer;
+        }
+    }
+    
+    return scope;
+}
+
+
+void xec_parser::declname( int sloc, xec_ast_node* name, xec_ast_node* decl )
+{
+    if ( ! name )
+    {
+        return;
+    }
+
+    // Single names declare things.
+    if ( name->kind == XEC_UNQUAL_NAME )
+    {
+        declare( (xec_unqual_name*)name );
+    }
+    
+    
+    // Resolve and create lvalue to assign to.
+    xec_expr_assign* assign =
+                    alloc< xec_expr_assign >( sloc, XEC_TOKEN_ASSIGN );
+    assign->lvalue = lvalue( resolve( name ) );
+    assign->rvalue = decl;
+    
+    xec_ast_scope* scope = get_scope();
+    if ( scope->kind == XEC_SCOPE_OBJECT )
+    {
+        assert( scope->node->kind == XEC_NEW_OBJECT );
+        xec_new_object* object = (xec_new_object*)scope->node;
+        object->members.push_back( assign );
+    }
+    else
+    {
+        scope->block->stmts.push_back( assign );
+    }
 }
 
 
 
 void xec_parser::var( int sloc, xec_unqual_name* lval, xec_ast_node* rval )
 {
+    xec_ast_scope* scope = get_scope();
+    if ( scope->kind == XEC_SCOPE_OBJECT )
+    {
+        // Declare.
+        declare( lval );
+
+        if ( ! rval )
+        {
+            // var with no assignment inside an object - declare only.
+            return;
+        }
+        
+        // Assign.
+        xec_expr_assign* assign =
+                    alloc< xec_expr_assign >( sloc, XEC_TOKEN_ASSIGN );
+        assign->lvalue = resolve( lval );
+        assign->rvalue = rval;
+        
+        xec_new_object* object = (xec_new_object*)scope->node;
+        object->members.push_back( assign );
+    }
+    else
+    {
+        if ( ! rval )
+        {
+            // initialize with null.
+            rval = alloc< xec_expr_null >( sloc );
+        }
+        
+        // Assign.
+        xec_expr_assign* assign =
+                    alloc< xec_expr_assign >( sloc, XEC_TOKEN_ASSIGN );
+        assign->lvalue = declare_local( lval );
+        assign->rvalue = rval;
+        scope->block->stmts.push_back( assign );
+    }
 }
 
 
 void xec_parser::var_list(
                 int sloc, xec_unqual_list* lvals, xec_ast_node* rvals )
 {
+    xec_ast_scope* scope = get_scope();
+    if ( scope->kind == XEC_SCOPE_OBJECT )
+    {
+        // Declare.
+        for ( size_t i = 0; i < lvals->names.size(); ++i )
+            declare( lvals->names[ i ] );
+
+        if ( ! rvals )
+        {
+            // var with no assignment inside an object - declare only.
+            return;
+        }
+        
+        // Assign.
+        xec_expr_assign_list* assign =
+                    alloc< xec_expr_assign_list >( sloc, XEC_TOKEN_ASSIGN );
+        for ( size_t i = 0; i < lvals->names.size(); ++i )
+            assign->lvalues.push_back( resolve( lvals->names[ i ] ) );
+        assign->rvalues = rvals;
+        
+        xec_new_object* object = (xec_new_object*)scope->node;
+        object->members.push_back( assign );
+    }
+    else
+    {
+        if ( ! rvals )
+        {
+            // initialize with null.
+            rvals = alloc< xec_expr_null >( sloc );
+        }
+        
+        // Assign.
+        xec_expr_assign_list* assign =
+                    alloc< xec_expr_assign_list >( sloc, XEC_TOKEN_ASSIGN );
+        declare_local_list( lvals, &assign->lvalues );
+        assign->rvalues = rvals;
+        scope->block->stmts.push_back( assign );
+    }
 }
 
 
@@ -259,6 +622,11 @@ xec_ast_node* xec_parser::resolve( xec_ast_node* name )
     // a prototype (with parameter declarations), in which case it must
     // be left alone.  Or, it may be used in an expression, in which case
     // names must be resolved with lookup (for both lvalues and rvalues).
+ 
+    if ( ! name )
+    {
+        return NULL;
+    }
     
     if ( name->kind == XEC_EXPR_LIST )
     {
@@ -495,6 +863,11 @@ xec_ast_node* xec_parser::final( xec_ast_node* list, xec_ast_node* expr )
 
 xec_expr_list* xec_parser::list( xec_ast_node* list )
 {
+    if ( ! list )
+    {
+        return NULL;
+    }
+
     if ( list->kind == XEC_EXPR_LIST )
     {
         return (xec_expr_list*)list;

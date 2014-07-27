@@ -161,10 +161,19 @@ name(x)         ::= name(name) PERIOD IDENTIFIER(token) .
                                     token->sloc, name, token->text );
                 }
 
-proto(x)        ::= name(name) LPN expr_list(params) RPN .
+proto(x)        ::= name(name) expr_paren(params) .
                 {
                     x = p->alloc< xec_unqual_proto >(
                                     name->sloc, name, p->list( params ) );
+                }
+
+expr_paren(x)   ::= LPN RPN .
+                {
+                    x = nullptr;
+                }
+expr_paren(x)   ::= LPN expr_list(list) RPN .
+                {
+                    x = list;
                 }
 
 
@@ -359,6 +368,12 @@ expr_index(x)   ::= expr_index(expr) LSQ expr_value(index) RSQ .
 
 // 'yield' expression - looks like a call but isn't.
 expr_yield(x)   ::= YIELD(token) LPN /* shift in preference to token_yield */
+                                    RPN .
+                {
+                    x = p->alloc< xec_expr_yield >( token->sloc, nullptr );
+                    p->destroy( token );
+                }
+expr_yield(x)   ::= YIELD(token) LPN /* shift in preference to token_yield */
                                 expr_list(args) RPN .
                 {
                     x = p->alloc< xec_expr_yield >(
@@ -367,14 +382,14 @@ expr_yield(x)   ::= YIELD(token) LPN /* shift in preference to token_yield */
                 }
 
 // 'new' constructor - looks like a call but isn't.
-expr_new(x)     ::= NEW(token) name(proto) LPN expr_list(args) RPN .
+expr_new(x)     ::= NEW(token) name(proto) expr_paren(args) .
                 {
                     proto = p->resolve( proto );
                     x = p->alloc< xec_new_new >(
                             token->sloc, proto, p->list( p->resolve( args ) ) );
                     p->destroy( token );
                 }
-expr_new(x)     ::= NEW(token) expr_index(proto) LPN expr_list(args) RPN.
+expr_new(x)     ::= NEW(token) expr_index(proto) expr_paren(args) .
                 {
                     x = p->alloc< xec_new_new >(
                             token->sloc, proto, p->list( p->resolve( args ) ) );
@@ -382,33 +397,33 @@ expr_new(x)     ::= NEW(token) expr_index(proto) LPN expr_list(args) RPN.
                 }
 
 // All call expressions that aren't bare prototypes.
-expr_call(x)    ::= proto(expr) LPN expr_list(args) RPN .
+expr_call(x)    ::= proto(expr) expr_paren(args) .
                 {
                     xec_expr_call* call = p->resolve( expr );
                     x = p->alloc< xec_expr_call >(
                             call->sloc, call, p->list( p->resolve( args ) ) );
                 }
-expr_call(x)    ::= expr_index(expr) LPN expr_list(args) RPN .
+expr_call(x)    ::= expr_index(expr) expr_paren(args) .
                 {
                     x = p->alloc< xec_expr_call >(
                             expr->sloc, expr, p->list( p->resolve( args ) ) );
                 }
-expr_call(x)    ::= expr_yield(expr) LPN expr_list(args) RPN .
+expr_call(x)    ::= expr_yield(expr) expr_paren(args) .
                 {
                     x = p->alloc< xec_expr_call >(
                             expr->sloc, expr, p->list( p->resolve( args ) ) );
                 }
-expr_call(x)    ::= expr_new(expr) LPN expr_list(args) RPN .
+expr_call(x)    ::= expr_new(expr) expr_paren(args) .
                 {
                     x = p->alloc< xec_expr_call >(
                             expr->sloc, expr, p->list( p->resolve( args ) ) );
                 }
-expr_call(x)    ::= expr_call(expr) LPN expr_list(args) RPN .
+expr_call(x)    ::= expr_call(expr) expr_paren(args) .
                 {
                     x = p->alloc< xec_expr_call >(
                             expr->sloc, expr, p->list( p->resolve( args ) ) );
                 }
-expr_call(x)    ::= expr_postfix(expr) LPN expr_list(args) RPN .
+expr_call(x)    ::= expr_postfix(expr) expr_paren(args) .
                 {
                     x = p->alloc< xec_expr_call >(
                             expr->sloc, expr, p->list( p->resolve( args ) ) );
@@ -938,25 +953,25 @@ newobj_lbr(x)   ::= COLON(token) expr_simple(proto) LBR .
                     p->destroy( token );
                 }
 
-newfunc_lbr(x)  ::= QMARK(token) LPN expr_list(params) RPN LBR .
+newfunc_lbr(x)  ::= QMARK(token) expr_paren(params) LBR .
                 {
                     x = p->function( token->sloc,
                                     nullptr, params, false, false );
                     p->destroy( token );
                 }
-newfunc_lbr(x)  ::= PERIOD(token) QMARK LPN expr_list(params) RPN LBR .
+newfunc_lbr(x)  ::= PERIOD(token) QMARK expr_paren(params) LBR .
                 {
                     x = p->function( token->sloc,
                                     nullptr, params, false, true );
                     p->destroy( token );
                 }
-newfunc_lbr(x)  ::= QMARK(token) LPN expr_list(params) RPN YIELD LBR .
+newfunc_lbr(x)  ::= QMARK(token) expr_paren(params) YIELD LBR .
                 {
                     x = p->function( token->sloc,
                                     nullptr, params, true, false );
                     p->destroy( token );
                 }
-newfunc_lbr(x)  ::= PERIOD(token) QMARK LPN expr_list(params) RPN YIELD LBR .
+newfunc_lbr(x)  ::= PERIOD(token) QMARK expr_paren(params) YIELD LBR .
                 {
                     x = p->function( token->sloc,
                                     nullptr, params, true, true );
