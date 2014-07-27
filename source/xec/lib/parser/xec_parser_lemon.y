@@ -1550,6 +1550,17 @@ stmt_foreach(x) ::= scope_for(forscope) LPN
                     p->destroy( forscope.token );
                 }
 stmt_foreach(x) ::= scope_for(forscope) LPN
+                        VAR varname(varname) COLON expr_value(expr) RPN .
+                {
+                    expr = p->resolve( expr );
+                    x = p->alloc< xec_stmt_foreach >( forscope.token->sloc );
+                    forscope.scope->node = x;
+                    x->scope    = forscope.scope;
+                    x->lvalues.push_back( p->declare_local( varname ) );
+                    x->list     = expr;
+                    p->destroy( forscope.token );
+                }
+stmt_foreach(x) ::= scope_for(forscope) LPN
                         VAR varname_list(varnames) COLON expr_value(expr) RPN .
                 {
                     expr = p->resolve( expr );
@@ -1558,6 +1569,18 @@ stmt_foreach(x) ::= scope_for(forscope) LPN
                     x->scope    = forscope.scope;
                     p->declare_local_list( varnames, &x->lvalues );
                     x->list     = expr;
+                    p->destroy( forscope.token );
+                }
+stmt_foreach(x) ::= scope_for(forscope) LPN VAR varname(varname)
+                                EACHKEY expr_value(expr) RPN .
+                {
+                    expr = p->resolve( expr );
+                    x = p->alloc< xec_stmt_foreach >( forscope.token->sloc );
+                    forscope.scope->node = x;
+                    x->scope    = forscope.scope;
+                    x->lvalues.push_back( p->declare_local( varname ) );
+                    x->list     = expr;
+                    x->eachkey  = true;
                     p->destroy( forscope.token );
                 }
 stmt_foreach(x) ::= scope_for(forscope) LPN VAR varname_list(varnames)
