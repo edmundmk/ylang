@@ -30,8 +30,9 @@ xec_script::~xec_script()
 void xec_script::parameters( size_t argc, const char* argv[] )
 {
     assert( script == NULL );
+    region_scope rscope( alloc );
     
-
+    
     // Set up global scope, script function, and script scope.
     script = new ( alloc ) xec_ast_func( -1 );
     script->scope = new ( alloc )

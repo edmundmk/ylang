@@ -102,7 +102,6 @@ void xec_parser::destroy( xec_token* token )
 
 %default_destructor
 {
-    delete $$;
 }
 
 %token_destructor

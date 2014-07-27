@@ -316,6 +316,11 @@ xec_ast_func* xec_parser::function( int sloc, xec_ast_node* name,
     }
     
     
+    // Create function block.
+    func->block = alloc< xec_stmt_block >( sloc );
+    func->scope->block = func->block;
+    
+    
     // Enter function scope to declare parameters.
     scopes.push_back( func->scope );
 
