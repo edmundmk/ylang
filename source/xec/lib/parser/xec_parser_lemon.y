@@ -398,7 +398,7 @@ expr_new(x)     ::= NEW(token) expr_index(proto) expr_paren(args) .
 // All call expressions that aren't bare prototypes.
 expr_call(x)    ::= proto(expr) expr_paren(args) .
                 {
-                    xec_expr_call* call = p->resolve( expr );
+                    xec_expr_call* call = p->resolve_proto( expr );
                     x = p->alloc< xec_expr_call >(
                             call->sloc, call, p->list( p->resolve( args ) ) );
                 }
@@ -431,21 +431,21 @@ expr_call(x)    ::= expr_postfix(expr) expr_paren(args) .
 // All lookups after the first call parenthesis.
 expr_postfix(x) ::= proto(expr) PERIOD IDENTIFIER(token) .
                 {
-                    xec_expr_call* call = p->resolve( expr );
+                    xec_expr_call* call = p->resolve_proto( expr );
                     x = p->alloc< xec_expr_key >(
                              call->sloc, call, token->text );
                     p->destroy( token );
                 }
 expr_postfix(x) ::= proto(expr) PERIOD LSQ expr_value(index) RSQ .
                 {
-                    xec_expr_call* call = p->resolve( expr );
+                    xec_expr_call* call = p->resolve_proto( expr );
                     index = p->resolve( index );
                     x = p->alloc< xec_expr_inkey >(
                              call->sloc, call, index );
                 }
 expr_postfix(x) ::= proto(expr) LSQ expr_value(index) RSQ .
                 {
-                    xec_expr_call* call = p->resolve( expr );
+                    xec_expr_call* call = p->resolve_proto( expr );
                     index = p->resolve( index );
                     x = p->alloc< xec_expr_index >(
                              call->sloc, call, index );
@@ -536,7 +536,7 @@ expr_simple(x)  ::= name(expr) .
                 }
 expr_simple(x)  ::= proto(expr) .
                 {
-                    x = p->resolve( expr );
+                    x = p->resolve_proto( expr );
                 }
 expr_simple(x)  ::= expr_index(expr) .
                 {
@@ -560,7 +560,7 @@ expr_simple(x)  ::= expr_postfix(expr) .
                 }
 expr_simple(x)  ::= proto(expr) YIELD .
                 {
-                    xec_expr_call* call = p->resolve( expr );
+                    xec_expr_call* call = p->resolve_proto( expr );
                     call->yieldcall = true;
                     x = call;
                 }
@@ -1013,7 +1013,7 @@ expr_final(x)   ::= ELLIPSIS(token) .
                 }
 expr_final(x)   ::= proto(expr) ELLIPSIS .
                 {
-                    xec_expr_call* call = p->resolve( expr );
+                    xec_expr_call* call = p->resolve_proto( expr );
                     call->unpack = true;
                     x = call;
                 }
@@ -1029,7 +1029,7 @@ expr_final(x)   ::= expr_yield(expr) ELLIPSIS .
                 }
 expr_final(x)   ::= proto(expr) YIELD ELLIPSIS .
                 {
-                    xec_expr_call* call = p->resolve( expr );
+                    xec_expr_call* call = p->resolve_proto( expr );
                     call->yieldcall = true;
                     call->unpack = true;
                     x = call;
@@ -1047,7 +1047,7 @@ expr_final(x)   ::= name(expr) LSQ RSQ ELLIPSIS .
                 }
 expr_final(x)   ::= proto(expr) LSQ RSQ ELLIPSIS .
                 {
-                    xec_expr_call* call = p->resolve( expr );
+                    xec_expr_call* call = p->resolve_proto( expr );
                     x = p->alloc< xec_expr_unpack >( call->sloc, call );
                 }
 expr_final(x)   ::= expr_index(expr) LSQ RSQ ELLIPSIS .
@@ -1275,7 +1275,7 @@ condition(x)    ::= VAR(token) varname(varname) ASSIGN expr_list(rval) .
                 {
                     rval = p->resolve( rval );
                     xec_expr_assign* assign = p->alloc< xec_expr_assign >(
-                                    token->sloc, XEC_TOKEN_ASSIGN );
+                                    token->sloc, XEC_KEYWORD_VAR );
                     assign->lvalue = p->declare_local( varname );
                     assign->rvalue = rval;
                     x = assign;
@@ -1286,7 +1286,7 @@ condition(x)    ::= VAR(token) varname_list(varnames) ASSIGN expr_list(rvals) .
                     rvals = p->resolve( rvals );
                     xec_expr_assign_list* assign =
                             p->alloc< xec_expr_assign_list >(
-                                    token->sloc, XEC_TOKEN_ASSIGN );
+                                    token->sloc, XEC_KEYWORD_VAR );
                     p->declare_local_list( varnames, &assign->lvalues );
                     assign->rvalues = rvals;
                     x = assign;
@@ -1558,6 +1558,7 @@ stmt_foreach(x) ::= scope_for(forscope) LPN
                     x->scope    = forscope.scope;
                     x->lvalues.push_back( p->declare_local( varname ) );
                     x->list     = expr;
+                    x->declare  = true;
                     p->destroy( forscope.token );
                 }
 stmt_foreach(x) ::= scope_for(forscope) LPN
@@ -1569,6 +1570,7 @@ stmt_foreach(x) ::= scope_for(forscope) LPN
                     x->scope    = forscope.scope;
                     p->declare_local_list( varnames, &x->lvalues );
                     x->list     = expr;
+                    x->declare  = true;
                     p->destroy( forscope.token );
                 }
 stmt_foreach(x) ::= scope_for(forscope) LPN VAR varname(varname)
@@ -1581,6 +1583,7 @@ stmt_foreach(x) ::= scope_for(forscope) LPN VAR varname(varname)
                     x->lvalues.push_back( p->declare_local( varname ) );
                     x->list     = expr;
                     x->eachkey  = true;
+                    x->declare  = true;
                     p->destroy( forscope.token );
                 }
 stmt_foreach(x) ::= scope_for(forscope) LPN VAR varname_list(varnames)
@@ -1593,6 +1596,7 @@ stmt_foreach(x) ::= scope_for(forscope) LPN VAR varname_list(varnames)
                     p->declare_local_list( varnames, &x->lvalues );
                     x->list     = expr;
                     x->eachkey  = true;
+                    x->declare  = true;
                     p->destroy( forscope.token );
                 }
 
@@ -1689,6 +1693,7 @@ stmt_catch(x)   ::= scope_catch(cscope) LPN
                     cscope.scope->node = x;
                     x->lvalue   = p->declare_local( varname );
                     x->proto    = cproto;
+                    x->declare  = true;
                     p->destroy( cscope.token );
                 }
 

@@ -77,7 +77,7 @@ public:
 
 
     xec_ast_node*   resolve( xec_ast_node* unqual );
-    xec_expr_call*  resolve( xec_unqual_proto* proto );
+    xec_expr_call*  resolve_proto( xec_unqual_proto* proto );
     int             upval( xec_ast_func* func, xec_ast_upval uv );
     xec_ast_node*   compare( xec_token* op,
                         xec_ast_node* lhs, xec_ast_node* rhs );

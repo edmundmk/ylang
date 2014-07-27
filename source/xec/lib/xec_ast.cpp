@@ -399,6 +399,7 @@ xec_stmt_foreach::xec_stmt_foreach( int sloc )
     ,   list( NULL )
     ,   body( NULL )
     ,   eachkey( false )
+    ,   declare( false )
 {
 }
 
@@ -432,6 +433,7 @@ xec_stmt_catch::xec_stmt_catch( int sloc )
     ,   lvalue( NULL )
     ,   proto( NULL )
     ,   body( NULL )
+    ,   declare( false )
 {
 }
 

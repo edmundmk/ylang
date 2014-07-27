@@ -450,20 +450,53 @@ void xec_parser::declname( int sloc, xec_ast_node* name, xec_ast_node* decl )
         return;
     }
 
-    // Single names declare things.
-    if ( name->kind == XEC_UNQUAL_NAME )
-    {
-        declare( (xec_unqual_name*)name );
-    }
-    
-    
+
     // Resolve and create lvalue to assign to.
     xec_expr_assign* assign =
                     alloc< xec_expr_assign >( sloc, XEC_TOKEN_ASSIGN );
-    assign->lvalue = lvalue( resolve( name ) );
-    assign->rvalue = decl;
     
     xec_ast_scope* scope = get_scope();
+    if ( name->kind == XEC_UNQUAL_NAME )
+    {
+        // Single names declare things.
+        xec_ast_name* declname = declare( (xec_unqual_name*)name );
+        assign->assignop = XEC_KEYWORD_VAR;
+        
+        if ( scope->kind == XEC_SCOPE_OBJECT )
+        {
+            assert( scope->node->kind == XEC_NEW_OBJECT );
+            xec_expr_objref* objref = alloc< xec_expr_objref >(
+                            sloc, (xec_new_object*)scope->node );
+            assign->lvalue = alloc< xec_expr_key >(
+                            sloc, objref, declname->name );
+        }
+        else
+        {
+            assign->lvalue = alloc< xec_expr_local >( sloc, declname );
+        }
+    }
+    else if ( name->kind == XEC_UNQUAL_QUAL )
+    {
+        // Qualified names don't declare anything.
+        if ( scope->kind == XEC_SCOPE_OBJECT )
+        {
+            // Declarations inside objects don't do full name lookup.  In
+            // particular, outer scopes are not searched.
+            
+            // TODO.
+
+        }
+        else
+        {
+            // Do a normal resolve.
+            assign->lvalue = lvalue( resolve( name ) );
+        }
+    }
+    
+    assign->rvalue = decl;
+
+
+    // Add declaration to object or to statement block.
     if ( scope->kind == XEC_SCOPE_OBJECT )
     {
         assert( scope->node->kind == XEC_NEW_OBJECT );
@@ -483,8 +516,11 @@ void xec_parser::var( int sloc, xec_unqual_name* lval, xec_ast_node* rval )
     xec_ast_scope* scope = get_scope();
     if ( scope->kind == XEC_SCOPE_OBJECT )
     {
+        assert( scope->node->kind == XEC_NEW_OBJECT );
+        xec_new_object* object = (xec_new_object*)scope->node;
+
         // Declare.
-        declare( lval );
+        xec_ast_name* declname = declare( lval );
 
         if ( ! rval )
         {
@@ -494,11 +530,12 @@ void xec_parser::var( int sloc, xec_unqual_name* lval, xec_ast_node* rval )
         
         // Assign.
         xec_expr_assign* assign =
-                    alloc< xec_expr_assign >( sloc, XEC_TOKEN_ASSIGN );
-        assign->lvalue = resolve( lval );
+                    alloc< xec_expr_assign >( sloc, XEC_KEYWORD_VAR );
+
+        xec_expr_objref* objref = alloc< xec_expr_objref >( sloc, object );
+        assign->lvalue = alloc< xec_expr_key >( sloc, objref, declname->name );
         assign->rvalue = rval;
         
-        xec_new_object* object = (xec_new_object*)scope->node;
         object->members.push_back( assign );
     }
     else
@@ -511,7 +548,7 @@ void xec_parser::var( int sloc, xec_unqual_name* lval, xec_ast_node* rval )
         
         // Assign.
         xec_expr_assign* assign =
-                    alloc< xec_expr_assign >( sloc, XEC_TOKEN_ASSIGN );
+                    alloc< xec_expr_assign >( sloc, XEC_KEYWORD_VAR );
         assign->lvalue = declare_local( lval );
         assign->rvalue = rval;
         scope->block->stmts.push_back( assign );
@@ -525,9 +562,15 @@ void xec_parser::var_list(
     xec_ast_scope* scope = get_scope();
     if ( scope->kind == XEC_SCOPE_OBJECT )
     {
+        assert( scope->node->kind == XEC_NEW_OBJECT );
+        xec_new_object* object = (xec_new_object*)scope->node;
+        
+    
         // Declare.
         for ( size_t i = 0; i < lvals->names.size(); ++i )
+        {
             declare( lvals->names[ i ] );
+        }
 
         if ( ! rvals )
         {
@@ -537,12 +580,18 @@ void xec_parser::var_list(
         
         // Assign.
         xec_expr_assign_list* assign =
-                    alloc< xec_expr_assign_list >( sloc, XEC_TOKEN_ASSIGN );
+                    alloc< xec_expr_assign_list >( sloc, XEC_KEYWORD_VAR );
+        
         for ( size_t i = 0; i < lvals->names.size(); ++i )
-            assign->lvalues.push_back( resolve( lvals->names[ i ] ) );
+        {
+            const char* n = lvals->names[ i ]->name;
+            xec_expr_objref* objref = alloc< xec_expr_objref >( sloc, object );
+            xec_expr_key* key = alloc< xec_expr_key >( sloc, objref, n );
+            assign->lvalues.push_back( key );
+        }
+        
         assign->rvalues = rvals;
         
-        xec_new_object* object = (xec_new_object*)scope->node;
         object->members.push_back( assign );
     }
     else
@@ -555,7 +604,7 @@ void xec_parser::var_list(
         
         // Assign.
         xec_expr_assign_list* assign =
-                    alloc< xec_expr_assign_list >( sloc, XEC_TOKEN_ASSIGN );
+                    alloc< xec_expr_assign_list >( sloc, XEC_KEYWORD_VAR );
         declare_local_list( lvals, &assign->lvalues );
         assign->rvalues = rvals;
         scope->block->stmts.push_back( assign );
@@ -758,7 +807,7 @@ xec_ast_node* xec_parser::resolve( xec_ast_node* name )
 }
 
 
-xec_expr_call* xec_parser::resolve( xec_unqual_proto* proto )
+xec_expr_call* xec_parser::resolve_proto( xec_unqual_proto* proto )
 {
     // Replace a proto used as an expression with a true call expression.
     assert( ! proto->coroutine );
@@ -766,7 +815,6 @@ xec_expr_call* xec_parser::resolve( xec_unqual_proto* proto )
     xec_expr_list* args = list( resolve( proto->params ) );
     return alloc< xec_expr_call >( expr->sloc, expr, args );
 }
-
 
 
 int xec_parser::upval( xec_ast_func* func, xec_ast_upval uv )

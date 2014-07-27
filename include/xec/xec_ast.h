@@ -660,6 +660,7 @@ struct xec_stmt_foreach : public xec_ast_node
     xec_ast_node*       list;
     xec_ast_node*       body;
     bool                eachkey;
+    bool                declare;
 };
 
 
@@ -702,6 +703,7 @@ struct xec_stmt_catch : public xec_ast_node
     xec_ast_node*       lvalue;
     xec_ast_node*       proto;
     xec_ast_node*       body;
+    bool                declare;
 };
 
 
