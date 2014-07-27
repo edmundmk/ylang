@@ -104,6 +104,7 @@ private:
                     xec_ast_node* name, xec_unqual_list* params,
                         bool varargs, bool coroutine );
     void declname( int sloc, xec_ast_node* name, xec_ast_node* decl );
+    xec_ast_node* resolve_objdecl( xec_ast_node* name );
 
     xec_script*                     script;
     std::deque< void* >             recycle_tokens;

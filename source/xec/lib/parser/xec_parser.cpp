@@ -451,24 +451,31 @@ void xec_parser::declname( int sloc, xec_ast_node* name, xec_ast_node* decl )
     }
 
 
+    // Find object.
+    xec_ast_scope* scope = get_scope();
+    xec_new_object* object = NULL;
+    if ( scope->kind == XEC_SCOPE_OBJECT )
+    {
+        assert( scope->node->kind == XEC_NEW_OBJECT );
+        object = (xec_new_object*)scope->node;
+    }
+
+
     // Resolve and create lvalue to assign to.
     xec_expr_assign* assign =
                     alloc< xec_expr_assign >( sloc, XEC_TOKEN_ASSIGN );
     
-    xec_ast_scope* scope = get_scope();
     if ( name->kind == XEC_UNQUAL_NAME )
     {
         // Single names declare things.
         xec_ast_name* declname = declare( (xec_unqual_name*)name );
         assign->assignop = XEC_KEYWORD_VAR;
         
-        if ( scope->kind == XEC_SCOPE_OBJECT )
+        if ( object )
         {
-            assert( scope->node->kind == XEC_NEW_OBJECT );
-            xec_expr_objref* objref = alloc< xec_expr_objref >(
-                            sloc, (xec_new_object*)scope->node );
-            assign->lvalue = alloc< xec_expr_key >(
-                            sloc, objref, declname->name );
+            const char* s = declname->name;
+            xec_expr_objref* objref = alloc< xec_expr_objref >( sloc, object );
+            assign->lvalue = alloc< xec_expr_key >( sloc, objref, s );
         }
         else
         {
@@ -478,13 +485,11 @@ void xec_parser::declname( int sloc, xec_ast_node* name, xec_ast_node* decl )
     else if ( name->kind == XEC_UNQUAL_QUAL )
     {
         // Qualified names don't declare anything.
-        if ( scope->kind == XEC_SCOPE_OBJECT )
+        if ( object )
         {
             // Declarations inside objects don't do full name lookup.  In
             // particular, outer scopes are not searched.
-            
-            // TODO.
-
+            assign->lvalue = resolve_objdecl( name );
         }
         else
         {
@@ -497,16 +502,53 @@ void xec_parser::declname( int sloc, xec_ast_node* name, xec_ast_node* decl )
 
 
     // Add declaration to object or to statement block.
-    if ( scope->kind == XEC_SCOPE_OBJECT )
-    {
-        assert( scope->node->kind == XEC_NEW_OBJECT );
-        xec_new_object* object = (xec_new_object*)scope->node;
+    if ( object )
         object->members.push_back( assign );
-    }
     else
-    {
         scope->block->stmts.push_back( assign );
+}
+
+
+xec_ast_node* xec_parser::resolve_objdecl( xec_ast_node* name )
+{
+    // Construct resolved lvalue for a declaration in an object scope.  Doesn't
+    // look up names in outer scopes.
+
+    if ( name->kind == XEC_UNQUAL_QUAL )
+    {
+        xec_unqual_qual* qual = (xec_unqual_qual*)name;
+        xec_ast_node* scope = resolve_objdecl( qual->scope );
+        return alloc< xec_expr_key >( scope->sloc, scope, qual->name );
     }
+    
+    if ( name->kind == XEC_UNQUAL_NAME )
+    {
+        xec_unqual_name* unqual = (xec_unqual_name*)name;
+        xec_ast_scope* objscope = get_scope();
+
+        assert( objscope->kind == XEC_SCOPE_OBJECT );
+        assert( objscope->node->kind == XEC_NEW_OBJECT );
+        xec_new_object* object = (xec_new_object*)objscope->node;
+        
+
+        // Lookup name in local scope only.
+        auto i = objscope->names.find( unqual->name );
+        if ( i == objscope->names.end() )
+        {
+            script->diagnostic( unqual->sloc,
+                            "undeclared identifier '%s'", unqual->name );
+            return NULL;
+        }
+        
+        
+        // Construct ref.
+        xec_expr_objref* objref =
+                    alloc< xec_expr_objref >( unqual->sloc, object );
+        return alloc< xec_expr_key >( unqual->sloc, objref, unqual->name );
+    }
+    
+    assert( ! "invalid name in object declaration" );
+    return NULL;
 }
 
 
