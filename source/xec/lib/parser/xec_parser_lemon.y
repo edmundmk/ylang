@@ -319,8 +319,6 @@ expr_index(x)   ::= LPN expr_assign(expr) RPN .
                     case XEC_EXPR_KEY:
                     case XEC_EXPR_INKEY:
                     case XEC_EXPR_CALL:
-                    case XEC_EXPR_CALLKEY:
-                    case XEC_EXPR_CALLINKEY:
                     case XEC_EXPR_YIELD:
                     case XEC_EXPR_VARARG:
                     case XEC_EXPR_UNPACK:

@@ -81,8 +81,6 @@ enum xec_ast_node_kind
     // Unpack.
     XEC_EXPR_MONO,
     XEC_EXPR_CALL,
-    XEC_EXPR_CALLKEY,
-    XEC_EXPR_CALLINKEY,
     XEC_EXPR_YIELD,
     XEC_EXPR_VARARG,
     XEC_EXPR_UNPACK,
@@ -514,26 +512,6 @@ struct xec_expr_call : public xec_ast_node
     xec_expr_call( int sloc, xec_ast_node* function, xec_expr_list* args );
 
     xec_ast_node*       function;
-    xec_expr_list*      arguments;
-    bool                yieldcall;
-    bool                unpack;
-};
-
-
-struct xec_expr_callkey : public xec_ast_node
-{
-    xec_ast_node*        object;
-    const char*         key;
-    xec_expr_list*      arguments;
-    bool                yieldcall;
-    bool                unpack;
-};
-
-
-struct xec_expr_callinkey : public xec_ast_node
-{
-    xec_ast_node*       object;
-    xec_ast_node*       index;
     xec_expr_list*      arguments;
     bool                yieldcall;
     bool                unpack;
