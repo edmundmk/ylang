@@ -215,8 +215,8 @@ void  XecParseFree( void* p, void (*free)( void* ) );
         |   '..'   >ts %{ MTOKEN( XEC_TOKEN_CONCATENATE, sloc, "..", 2 ); }
 
         |   '<<'   >ts %{ MTOKEN( XEC_TOKEN_LSHIFT, sloc, "<<", 2 ); }
-        |   '>>'   >ts %{ MTOKEN( XEC_TOKEN_RSHIFT, sloc, ">>", 2 ); }
-        |   '>>>'  >ts %{ MTOKEN( XEC_TOKEN_URSHIFT, sloc, ">>>", 3 ); }
+        |   '>>'   >ts %{ MTOKEN( XEC_TOKEN_LRSHIFT, sloc, ">>", 2 ); }
+        |   '~>>'  >ts %{ MTOKEN( XEC_TOKEN_ARSHIFT, sloc, "~>>", 3 ); }
 
         |   '!='   >ts %{ MTOKEN( XEC_TOKEN_NOTEQUAL, sloc, "!=", 2 ); }
         |   '<='   >ts %{ MTOKEN( XEC_TOKEN_LESSEQUAL, sloc, "<=", 2 ); }
@@ -235,8 +235,8 @@ void  XecParseFree( void* p, void (*free)( void* ) );
         |   '|='   >ts %{ MTOKEN( XEC_TOKEN_BITORASSIGN, sloc, "|=", 2 ); }
         |   '~='   >ts %{ MTOKEN( XEC_TOKEN_INTDIVASSIGN, sloc, "~=", 2 ); }
         |   '<<='  >ts %{ MTOKEN( XEC_TOKEN_LSHIFTASSIGN, sloc, "<<=", 3 ); }
-        |   '>>='  >ts %{ MTOKEN( XEC_TOKEN_RSHIFTASSIGN, sloc, ">>=", 3 ); }
-        |   '>>>=' >ts %{ MTOKEN( XEC_TOKEN_URSHIFTASSIGN, sloc, ">>>=", 4 ); }
+        |   '>>='  >ts %{ MTOKEN( XEC_TOKEN_LRSHIFTASSIGN, sloc, ">>=", 3 ); }
+        |   '~>>=' >ts %{ MTOKEN( XEC_TOKEN_ARSHIFTASSIGN, sloc, "~>>=", 4 ); }
 
         |   '&&'   >ts %{ MTOKEN( XEC_TOKEN_LOGICAND, sloc, "&&", 2 ); }
         |   '^^'   >ts %{ MTOKEN( XEC_TOKEN_LOGICXOR, sloc, "^^", 2 ); }

@@ -348,6 +348,7 @@ xec_expr_assign::xec_expr_assign( int sloc, xec_token_kind assignop )
 
 xec_expr_assign_list::xec_expr_assign_list( int sloc, xec_token_kind assignop )
     :   xec_ast_node( XEC_EXPR_ASSIGN_LIST, sloc )
+    ,   assignop( assignop )
     ,   rvalues( NULL )
 {
 }

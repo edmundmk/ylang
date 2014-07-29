@@ -103,8 +103,8 @@ void xec_token::debug_print()
     case XEC_TOKEN_CONCATENATE:     kind_name = "CONCATENATE";      break;
     
     case XEC_TOKEN_LSHIFT:          kind_name = "LSHIFT";           break;
-    case XEC_TOKEN_RSHIFT:          kind_name = "RSHIFT";           break;
-    case XEC_TOKEN_URSHIFT:         kind_name = "URSHIFT";          break;
+    case XEC_TOKEN_LRSHIFT:         kind_name = "LRSHIFT";           break;
+    case XEC_TOKEN_ARSHIFT:         kind_name = "ARSHIFT";          break;
     
     case XEC_TOKEN_NOTEQUAL:        kind_name = "NOTEQUAL";         break;
     case XEC_TOKEN_LESSEQUAL:       kind_name = "LESSEQUAL";        break;
@@ -125,8 +125,8 @@ void xec_token::debug_print()
     case XEC_TOKEN_BITORASSIGN:     kind_name = "BITORASSIGN";      break;
     case XEC_TOKEN_INTDIVASSIGN:    kind_name = "INTDIVASSIGN";     break;
     case XEC_TOKEN_LSHIFTASSIGN:    kind_name = "LSHIFTASSIGN";     break;
-    case XEC_TOKEN_RSHIFTASSIGN:    kind_name = "RSHIFTASSIGN";     break;
-    case XEC_TOKEN_URSHIFTASSIGN:   kind_name = "URSHIFTASSIGN";    break;
+    case XEC_TOKEN_LRSHIFTASSIGN:   kind_name = "LRSHIFTASSIGN";    break;
+    case XEC_TOKEN_ARSHIFTASSIGN:   kind_name = "ARSHIFTASSIGN";    break;
     
     case XEC_TOKEN_LOGICAND:        kind_name = "LOGICAND";         break;
     case XEC_TOKEN_LOGICXOR:        kind_name = "LOGICXOR";         break;

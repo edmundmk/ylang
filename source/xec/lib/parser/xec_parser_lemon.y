@@ -740,7 +740,7 @@ expr_shift(x)   ::= expr_shift(lhs) LSHIFT(token) expr_add(rhs) .
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
                 }
-expr_shift(x)   ::= expr_shift(lhs) RSHIFT(token) expr_add(rhs) .
+expr_shift(x)   ::= expr_shift(lhs) LRSHIFT(token) expr_add(rhs) .
                 {
                     lhs = p->resolve( lhs );
                     rhs = p->resolve( rhs );
@@ -748,7 +748,7 @@ expr_shift(x)   ::= expr_shift(lhs) RSHIFT(token) expr_add(rhs) .
                                     lhs->sloc, token->kind, lhs, rhs );
                     p->destroy( token );
                 }
-expr_shift(x)   ::= expr_shift(lhs) URSHIFT(token) expr_add(rhs) .
+expr_shift(x)   ::= expr_shift(lhs) ARSHIFT(token) expr_add(rhs) .
                 {
                     lhs = p->resolve( lhs );
                     rhs = p->resolve( rhs );
@@ -1128,11 +1128,11 @@ assign_op(x)    ::= LSHIFTASSIGN(token) .
                 {
                     x = token;
                 }
-assign_op(x)    ::= RSHIFTASSIGN(token) .
+assign_op(x)    ::= LRSHIFTASSIGN(token) .
                 {
                     x = token;
                 }
-assign_op(x)    ::= URSHIFTASSIGN(token) .
+assign_op(x)    ::= ARSHIFTASSIGN(token) .
                 {
                     x = token;
                 }
@@ -1708,6 +1708,24 @@ stmt_catch(x)   ::= scope_catch(cscope) LPN
                     cscope.scope->node = x;
                     x->lvalue   = p->declare_local( varname );
                     x->proto    = cproto;
+                    x->declare  = true;
+                    p->destroy( cscope.token );
+                }
+stmt_catch(x)   ::= scope_catch(cscope) LPN expr_value(lval) RPN .
+                {
+                    lval = p->resolve( lval );
+                    x = p->alloc< xec_stmt_catch >( cscope.token->sloc );
+                    cscope.scope->node = x;
+                    x->lvalue   = p->lvalue( lval );
+                    x->proto    = nullptr;
+                    p->destroy( cscope.token );
+                }
+stmt_catch(x)   ::= scope_catch(cscope) LPN VAR varname(varname) RPN .
+                {
+                    x = p->alloc< xec_stmt_catch >( cscope.token->sloc );
+                    cscope.scope->node = x;
+                    x->lvalue   = p->declare_local( varname );
+                    x->proto    = nullptr;
                     x->declare  = true;
                     p->destroy( cscope.token );
                 }

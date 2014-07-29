@@ -33,8 +33,8 @@
 #define LEMON_SOLIDUS                        33
 #define LEMON_PERCENT                        34
 #define LEMON_LSHIFT                         35
-#define LEMON_RSHIFT                         36
-#define LEMON_URSHIFT                        37
+#define LEMON_LRSHIFT                        36
+#define LEMON_ARSHIFT                        37
 #define LEMON_AMPERSAND                      38
 #define LEMON_CARET                          39
 #define LEMON_VBAR                           40
@@ -61,8 +61,8 @@
 #define LEMON_ADDASSIGN                      61
 #define LEMON_SUBASSIGN                      62
 #define LEMON_LSHIFTASSIGN                   63
-#define LEMON_RSHIFTASSIGN                   64
-#define LEMON_URSHIFTASSIGN                  65
+#define LEMON_LRSHIFTASSIGN                  64
+#define LEMON_ARSHIFTASSIGN                  65
 #define LEMON_BITANDASSIGN                   66
 #define LEMON_BITXORASSIGN                   67
 #define LEMON_BITORASSIGN                    68
