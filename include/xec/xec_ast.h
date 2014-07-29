@@ -76,7 +76,6 @@ enum xec_ast_node_kind
     XEC_NEW_OBJECT,
     XEC_NEW_LIST,
     XEC_NEW_TABLE,
-    XEC_NEW_CLOSURE,
     
     // Unpack.
     XEC_EXPR_MONO,
@@ -176,8 +175,8 @@ struct xec_ast_scope
     xec_ast_node*       node;
     xec_ast_func*       func;
     xec_stmt_block*     block;
-    xec_ast_name_map    names;
     xec_ast_imply_map   implied;
+    xec_ast_name_map    names;
     xec_ast_name_list   decls;
 };
 
@@ -605,7 +604,7 @@ struct xec_stmt_switch : public xec_ast_node
     
     xec_ast_scope*      scope;
     xec_ast_node*       value;
-    xec_ast_node*       body;
+    xec_stmt_block*     body;
 };
 
 

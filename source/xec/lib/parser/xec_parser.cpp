@@ -936,9 +936,14 @@ xec_ast_node* xec_parser::append( xec_ast_node* list, xec_ast_node* expr )
 {
     xec_expr_list* l;
     if ( list->kind != XEC_EXPR_LIST )
+    {
         l = alloc< xec_expr_list >( list->sloc );
+        l->values.push_back( list );
+    }
     else
+    {
         l = (xec_expr_list*)list;
+    }
     l->values.push_back( expr );
     return l;
 }

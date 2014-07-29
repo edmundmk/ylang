@@ -1352,8 +1352,7 @@ stmt_reuse(x)   ::= stmt_common(stmt) .
 stmt_lbr_ru(x)  ::= LBR(token) .
                 {
                     x = p->alloc< xec_stmt_block >( token->sloc );
-                    x->scope = p->get_scope();
-                    x->scope->block = x;
+                    p->get_scope()->block = x;
                     p->destroy( token );
                 }
 
@@ -1599,9 +1598,9 @@ stmt_foreach(x) ::= scope_for(forscope) LPN VAR varname_list(varnames)
                 }
 
 stmt_for(x)     ::= scope_for(forscope) LPN
-                        condition(einit) SEMICOLON
-                            expr_assign(expr) SEMICOLON
-                                expr_assign(eupdate) RPN .
+                        for_cond(einit) SEMICOLON
+                            for_expr(expr) SEMICOLON
+                                for_expr(eupdate) RPN .
                 {
                     x = p->alloc< xec_stmt_for >( forscope.token->sloc );
                     forscope.scope->node = x;
@@ -1610,6 +1609,24 @@ stmt_for(x)     ::= scope_for(forscope) LPN
                     x->condition    = expr;
                     x->update       = eupdate;
                     p->destroy( forscope.token );
+                }
+
+for_cond(x)     ::= .
+                {
+                    x = nullptr;
+                }
+for_cond(x)     ::= condition(cond) .
+                {
+                    x = cond;
+                }
+
+for_expr(x)     ::= .
+                {
+                    x = nullptr;
+                }
+for_expr(x)     ::= expr_assign(expr) .
+                {
+                    x = expr;
                 }
 
 stmt_using(x)   ::= USING(token) .
