@@ -723,7 +723,7 @@ xec_ast_node* xec_parser::resolve( xec_ast_node* name )
     {
         return NULL;
     }
-    
+ 
     if ( name->kind == XEC_EXPR_LIST )
     {
         xec_expr_list* l = (xec_expr_list*)name;
@@ -762,7 +762,7 @@ xec_ast_node* xec_parser::resolve( xec_ast_node* name )
     {
         xec_unqual_name* unqual = (xec_unqual_name*)name;
         xec_ast_scope* local = get_scope();
-    
+        
         // Perform lookup.
         xec_ast_name* name = NULL;
         for ( xec_ast_scope* scope = local; scope != NULL; scope = scope->outer )
@@ -771,6 +771,7 @@ xec_ast_node* xec_parser::resolve( xec_ast_node* name )
             if ( i != scope->names.end() )
             {
                 name = i->second;
+                break;
             }
         }
         
