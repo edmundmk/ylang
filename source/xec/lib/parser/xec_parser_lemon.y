@@ -67,6 +67,7 @@ inline xec_token_scope make_token_scope(
 
 %type varname       { xec_unqual_name* }
 %type varname_list  { xec_unqual_list* }
+%type mname_list    { xec_unqual_list* }
 
 %type compare_op    { xec_token_operator }
 %type assign_op     { xec_token_operator }
@@ -225,10 +226,13 @@ object_decl     ::= decl_func .
 object_decl     ::= decl_proto SEMICOLON .
                 {
                 }
+object_decl     ::= decl_noinit SEMICOLON .
+                {
+                }
 object_decl     ::= decl_var SEMICOLON .
                 {
                 }
-object_decl     ::= decl_noinit SEMICOLON .
+object_decl     ::= decl_member SEMICOLON .
                 {
                 }
 
@@ -266,6 +270,17 @@ func_lbr(x)     ::= proto(proto) YIELD LBR .
 
 
 // variable declarations.
+decl_noinit     ::= VAR(token) varname(varname) .
+                {
+                    p->var( token->sloc, varname, nullptr );
+                    p->destroy( token );
+                }
+decl_noinit     ::= VAR(token) varname_list(varnames) .
+                {
+                    p->var_list( token->sloc, varnames, nullptr );
+                    p->destroy( token );
+                }
+
 decl_var        ::= VAR(token) varname(varname) ASSIGN expr_list(rval) .
                 {
                     p->var( token->sloc, varname, p->resolve( rval ) );
@@ -277,15 +292,25 @@ decl_var        ::= VAR(token) varname_list(varnames) ASSIGN expr_list(rvals) .
                     p->destroy( token );
                 }
 
-decl_noinit     ::= VAR(token) varname(varname) .
+
+// members without 'var'.
+decl_member     ::= name(varname) .
                 {
-                    p->var( token->sloc, varname, nullptr );
-                    p->destroy( token );
+                    p->var( varname->sloc, p->unqual( varname ), nullptr );
                 }
-decl_noinit     ::= VAR(token) varname_list(varnames) .
+decl_member     ::= mname_list(varnames) .
                 {
-                    p->var_list( token->sloc, varnames, nullptr );
-                    p->destroy( token );
+                    p->var_list( varnames->sloc, varnames, nullptr );
+                }
+decl_member     ::= name(varname) ASSIGN expr_list(rval) .
+                {
+                    rval = p->resolve( rval );
+                    p->var( varname->sloc, p->unqual( varname ), rval );
+                }
+decl_member     ::= mname_list(varnames) ASSIGN expr_list(rvals) .
+                {
+                    rvals = p->resolve( rvals );
+                    p->var_list( varnames->sloc, varnames, rvals );
                 }
 
 
@@ -308,6 +333,17 @@ varname_list(x) ::= varname_list(list) COMMA varname(name) .
                     x->names.push_back( name );
                 }
 
+mname_list(x)   ::= name(a) COMMA varname(b) .
+                {
+                    x = p->alloc< xec_unqual_list >( a->sloc );
+                    x->names.push_back( p->unqual( a ) );
+                    x->names.push_back( b );
+                }
+mname_list(x)   ::= mname_list(list) COMMA varname(name) .
+                {
+                    x = list;
+                    x->names.push_back( name );
+                }
 
 
 

@@ -76,6 +76,7 @@ public:
     xec_ast_node*   break_target( int sloc );
 
 
+    xec_unqual_name* unqual( xec_ast_node* unqual );
     xec_ast_node*   resolve( xec_ast_node* unqual );
     xec_expr_call*  resolve_proto( xec_unqual_proto* proto );
     int             upval( xec_ast_func* func, xec_ast_upval uv );

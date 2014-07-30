@@ -14,16 +14,19 @@ var DAYS_PER_YEAR = 365.24;
 
 body
 {
-    var x, y, z;
-    var vx, vy, vz;
-    var mass;
-    
-    this( _x, _y, _z, _vx, _vy, _vz, _mass )
-    {
-        x, y, z     = _x, _y, _z;
-        vx, vy, vz  = _vx, _vy, _vz;
-        mass        = _mass;
-    }
+    this( x, y, z, vx, vy, vz, mass );
+
+    x, y, z;
+    vx, vy, vz;
+    mass;
+}
+
+
+body.this( x, y, z, vx, vy, vz, mass )
+{
+    this.x, this.y, this.z = x, y, z;
+    this.vx, this.vy, this.vz = vx, vy, vz;
+    this.mass = mass;
 }
 
 

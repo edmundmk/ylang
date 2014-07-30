@@ -519,7 +519,10 @@ xec_ast_node* xec_parser::resolve_objdecl( xec_ast_node* name )
     {
         xec_unqual_qual* qual = (xec_unqual_qual*)name;
         xec_ast_node* scope = resolve_objdecl( qual->scope );
-        return alloc< xec_expr_key >( scope->sloc, scope, qual->name );
+        if ( scope )
+            return alloc< xec_expr_key >( scope->sloc, scope, qual->name );
+        else
+            return NULL;
     }
     
     if ( name->kind == XEC_UNQUAL_NAME )
@@ -710,6 +713,18 @@ xec_ast_node* xec_parser::break_target( int sloc )
 }
 
 
+
+
+xec_unqual_name* xec_parser::unqual( xec_ast_node* unqual )
+{
+    if ( unqual->kind != XEC_UNQUAL_NAME )
+    {
+        script->diagnostic( unqual->sloc, "expected single name" );
+        return NULL;
+    }
+
+    return (xec_unqual_name*)unqual;
+}
 
 
 
