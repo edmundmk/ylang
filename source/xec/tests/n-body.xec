@@ -12,17 +12,17 @@ var DAYS_PER_YEAR = 365.24;
 
 
 
-body
+object body
 {
-    this( x, y, z, vx, vy, vz, mass );
+    function this( x, y, z, vx, vy, vz, mass );
 
-    x, y, z;
-    vx, vy, vz;
-    mass;
+    var x, y, z;
+    var vx, vy, vz;
+    var mass;
 }
 
 
-body.this( x, y, z, vx, vy, vz, mass )
+function body.this( x, y, z, vx, vy, vz, mass )
 {
     this.x, this.y, this.z = x, y, z;
     this.vx, this.vy, this.vz = vx, vy, vz;
@@ -86,7 +86,7 @@ var bodies =
 
 
 
-advance( bodies, dt )
+function advance( bodies, dt )
 {
     for ( var bi : bodies )
     {
@@ -113,7 +113,7 @@ advance( bodies, dt )
 }
 
 
-energy( bodies )
+function energy( bodies )
 {
     var e = 0;
     for ( var bi : bodies )
@@ -130,7 +130,7 @@ energy( bodies )
 }
 
 
-offset_momentum( bodies )
+function offset_momentum( bodies )
 {
     var px, py, pz = 0, 0, 0;
     for ( var bi : bodies )
@@ -147,7 +147,7 @@ offset_momentum( bodies )
 
 
 
-main( n )
+function main( n )
 {
     n = atoi( n, 1000 );
     offset_momentum( bodies );

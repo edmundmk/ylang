@@ -24,19 +24,12 @@
 #include "xec_ast.h"
 
 
+
 struct xec_token_scope
 {
     xec_token*          token;
     xec_ast_scope*      scope;
 };
-
-
-struct xec_token_operator
-{
-    xec_token*          token;
-    xec_operator_kind   op;
-};
-
 
 inline xec_token_scope make_token_scope(
                 xec_token* token, xec_ast_scope* scope )
@@ -44,6 +37,22 @@ inline xec_token_scope make_token_scope(
     xec_token_scope result;
     result.token = token;
     result.scope = scope;
+    return result;
+}
+
+
+struct xec_token_op
+{
+    xec_token*          token;
+    xec_operator_kind   op;
+};
+
+inline xec_token_op make_token_op(
+                xec_token* token, xec_operator_kind op )
+{
+    xec_token_op result;
+    result.token = token;
+    result.op = op;
     return result;
 }
 
@@ -69,8 +78,8 @@ inline xec_token_scope make_token_scope(
 %type varname_list  { xec_unqual_list* }
 %type mname_list    { xec_unqual_list* }
 
-%type compare_op    { xec_token_operator }
-%type assign_op     { xec_token_operator }
+%type compare_op    { xec_token_op }
+%type assign_op     { xec_token_op }
 %type value_lbody   { xec_new_list* }
 %type value_list    { xec_new_list* }
 %type keyval_lbody  { xec_new_table* }
@@ -144,6 +153,9 @@ void xec_parser::destroy( xec_token* token )
 
 
 
+//
+//  scripts.
+//
 
 script          ::= stmt_list .
                 {
@@ -864,55 +876,45 @@ expr_compare(x) ::= expr_compare(lhs) compare_op(tokenop) expr_concat(rhs) .
                     p->destroy( tokenop.token );
                 }
 
-compare_op(x)   ::= EQUAL(optoken) .
+compare_op(x)   ::= EQUAL(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_EQUAL;
+                    x = make_token_op( token, XEC_OPERATOR_EQUAL );
                 }
-compare_op(x)   ::= NOTEQUAL(optoken) .
+compare_op(x)   ::= NOTEQUAL(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_NOTEQUAL;
+                    x = make_token_op( token, XEC_OPERATOR_NOTEQUAL );
                 }
-compare_op(x)   ::= LESS(optoken) .
+compare_op(x)   ::= LESS(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_LESS;
+                    x = make_token_op( token, XEC_OPERATOR_LESS );
                 }
-compare_op(x)   ::= GREATER(optoken) .
+compare_op(x)   ::= GREATER(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_GREATER;
+                    x = make_token_op( token, XEC_OPERATOR_GREATER );
                 }
-compare_op(x)   ::= LESSEQUAL(optoken) .
+compare_op(x)   ::= LESSEQUAL(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_LESSEQUAL;
+                    x = make_token_op( token, XEC_OPERATOR_LESSEQUAL );
                 }
-compare_op(x)   ::= GREATEREQUAL(optoken) .
+compare_op(x)   ::= GREATEREQUAL(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_GREATEREQUAL;
+                    x = make_token_op( token, XEC_OPERATOR_GREATEREQUAL );
                 }
-compare_op(x)   ::= IN(optoken) .
+compare_op(x)   ::= IN(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_IN;
+                    x = make_token_op( token, XEC_OPERATOR_IN );
                 }
-compare_op(x)   ::= NOTIN(optoken) .
+compare_op(x)   ::= NOTIN(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_NOTIN;
+                    x = make_token_op( token, XEC_OPERATOR_NOTIN );
                 }
-compare_op(x)   ::= IS(optoken) .
+compare_op(x)   ::= IS(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_IS;
+                    x = make_token_op( token, XEC_OPERATOR_IS );
                 }
-compare_op(x)   ::= NOTIS(optoken) .
+compare_op(x)   ::= NOTIS(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_NOTIS;
+                    x = make_token_op( token, XEC_OPERATOR_NOTIS );
                 }
 
 
@@ -1149,70 +1151,57 @@ expr_assign(x)  ::= expr_lbody(lv) assign_op(tokenop) expr_assign(rv) .
                 }
 
 // Assignment operators.
-assign_op(x)    ::= ASSIGN(optoken) .
+assign_op(x)    ::= ASSIGN(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_ASSIGN;
+                    x = make_token_op( token, XEC_OPERATOR_ASSIGN );
                 }
-assign_op(x)    ::= MULASSIGN(optoken) .
+assign_op(x)    ::= MULASSIGN(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_MULASSIGN;
+                    x = make_token_op( token, XEC_OPERATOR_MULASSIGN );
                 }
-assign_op(x)    ::= DIVASSIGN(optoken) .
+assign_op(x)    ::= DIVASSIGN(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_DIVASSIGN;
+                    x = make_token_op( token, XEC_OPERATOR_DIVASSIGN );
                 }
-assign_op(x)    ::= MODASSIGN(optoken) .
+assign_op(x)    ::= MODASSIGN(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_MODASSIGN;
+                    x = make_token_op( token, XEC_OPERATOR_MODASSIGN );
                 }
-assign_op(x)    ::= INTDIVASSIGN(optoken) .
+assign_op(x)    ::= INTDIVASSIGN(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_INTDIVASSIGN;
+                    x = make_token_op( token, XEC_OPERATOR_INTDIVASSIGN );
                 }
-assign_op(x)    ::= ADDASSIGN(optoken) .
+assign_op(x)    ::= ADDASSIGN(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_ADDASSIGN;
+                    x = make_token_op( token, XEC_OPERATOR_ADDASSIGN );
                 }
-assign_op(x)    ::= SUBASSIGN(optoken) .
+assign_op(x)    ::= SUBASSIGN(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_SUBASSIGN;
+                    x = make_token_op( token, XEC_OPERATOR_SUBASSIGN );
                 }
-assign_op(x)    ::= LSHIFTASSIGN(optoken) .
+assign_op(x)    ::= LSHIFTASSIGN(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_LSHIFTASSIGN;
+                    x = make_token_op( token, XEC_OPERATOR_LSHIFTASSIGN );
                 }
-assign_op(x)    ::= LRSHIFTASSIGN(optoken) .
+assign_op(x)    ::= LRSHIFTASSIGN(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_LRSHIFTASSIGN;
+                    x = make_token_op( token, XEC_OPERATOR_LRSHIFTASSIGN );
                 }
-assign_op(x)    ::= ARSHIFTASSIGN(optoken) .
+assign_op(x)    ::= ARSHIFTASSIGN(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_ARSHIFTASSIGN;
+                    x = make_token_op( token, XEC_OPERATOR_ARSHIFTASSIGN );
                 }
-assign_op(x)    ::= BITANDASSIGN(optoken) .
+assign_op(x)    ::= BITANDASSIGN(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_BITANDASSIGN;
+                    x = make_token_op( token, XEC_OPERATOR_BITANDASSIGN );
                 }
-assign_op(x)    ::= BITXORASSIGN(optoken) .
+assign_op(x)    ::= BITXORASSIGN(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_BITXORASSIGN;
+                    x = make_token_op( token, XEC_OPERATOR_BITXORASSIGN );
                 }
-assign_op(x)    ::= BITORASSIGN(optoken) .
+assign_op(x)    ::= BITORASSIGN(token) .
                 {
-                    x.token = optoken;
-                    x.op = XEC_OPERATOR_BITORASSIGN;
+                    x = make_token_op( token, XEC_OPERATOR_BITORASSIGN );
                 }
 
 // Non-empty lists for list [ ... ] constructors.
