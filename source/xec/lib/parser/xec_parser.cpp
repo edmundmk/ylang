@@ -7,7 +7,7 @@
 
 
 #include "xec_parser.h"
-
+#include "xec_token.h"
 
 
 xec_parser::xec_parser( xec_script* script )
@@ -463,13 +463,13 @@ void xec_parser::declname( int sloc, xec_ast_node* name, xec_ast_node* decl )
 
     // Resolve and create lvalue to assign to.
     xec_expr_assign* assign =
-                    alloc< xec_expr_assign >( sloc, XEC_TOKEN_ASSIGN );
+                    alloc< xec_expr_assign >( sloc, XEC_OPERATOR_ASSIGN );
     
     if ( name->kind == XEC_UNQUAL_NAME )
     {
         // Single names declare things.
         xec_ast_name* declname = declare( (xec_unqual_name*)name );
-        assign->assignop = XEC_KEYWORD_VAR;
+        assign->assignop = XEC_OPERATOR_DECLARE;
         
         if ( object )
         {
@@ -572,7 +572,7 @@ void xec_parser::var( int sloc, xec_unqual_name* lval, xec_ast_node* rval )
         
         // Assign.
         xec_expr_assign* assign =
-                    alloc< xec_expr_assign >( sloc, XEC_KEYWORD_VAR );
+                    alloc< xec_expr_assign >( sloc, XEC_OPERATOR_DECLARE );
 
         xec_expr_objref* objref = alloc< xec_expr_objref >( sloc, object );
         assign->lvalue = alloc< xec_expr_key >( sloc, objref, declname->name );
@@ -590,7 +590,7 @@ void xec_parser::var( int sloc, xec_unqual_name* lval, xec_ast_node* rval )
         
         // Assign.
         xec_expr_assign* assign =
-                    alloc< xec_expr_assign >( sloc, XEC_KEYWORD_VAR );
+                    alloc< xec_expr_assign >( sloc, XEC_OPERATOR_DECLARE );
         assign->lvalue = declare_local( lval );
         assign->rvalue = rval;
         scope->block->stmts.push_back( assign );
@@ -622,7 +622,7 @@ void xec_parser::var_list(
         
         // Assign.
         xec_expr_assign_list* assign =
-                    alloc< xec_expr_assign_list >( sloc, XEC_KEYWORD_VAR );
+                    alloc< xec_expr_assign_list >( sloc, XEC_OPERATOR_DECLARE );
         
         for ( size_t i = 0; i < lvals->names.size(); ++i )
         {
@@ -646,7 +646,7 @@ void xec_parser::var_list(
         
         // Assign.
         xec_expr_assign_list* assign =
-                    alloc< xec_expr_assign_list >( sloc, XEC_KEYWORD_VAR );
+                    alloc< xec_expr_assign_list >( sloc, XEC_OPERATOR_DECLARE );
         declare_local_list( lvals, &assign->lvalues );
         assign->rvalues = rvals;
         scope->block->stmts.push_back( assign );
@@ -915,8 +915,8 @@ int xec_parser::upval( xec_ast_func* func, xec_ast_upval uv )
 
 
 
-xec_ast_node* xec_parser::compare(
-        xec_token* token, xec_ast_node* lhs, xec_ast_node* rhs )
+xec_ast_node* xec_parser::compare( xec_token* token,
+                xec_operator_kind op, xec_ast_node* lhs, xec_ast_node* rhs )
 {
     // Build a compare expression.
     xec_expr_compare* c;
@@ -925,7 +925,7 @@ xec_ast_node* xec_parser::compare(
     else
         c = alloc< xec_expr_compare >( lhs->sloc, lhs );
     
-    c->opkinds.push_back( token->kind );
+    c->opkinds.push_back( op );
     c->terms.push_back( rhs );
 
     return c;
@@ -1084,13 +1084,13 @@ void xec_parser::delval_list(
 
 
 
-xec_ast_node* xec_parser::assign(
-        xec_token* op, xec_ast_node* lv, xec_ast_node* rv )
+xec_ast_node* xec_parser::assign( xec_token* token,
+                xec_operator_kind op, xec_ast_node* lv, xec_ast_node* rv )
 {
     if ( lv->kind == XEC_EXPR_LIST )
     {
         xec_expr_assign_list* a;
-        a = alloc< xec_expr_assign_list >( lv->sloc, op->kind );
+        a = alloc< xec_expr_assign_list >( lv->sloc, op );
         lvalue_list( (xec_expr_list*)lv, &a->lvalues );
         a->rvalues = rv;
         return a;
@@ -1098,7 +1098,7 @@ xec_ast_node* xec_parser::assign(
     else
     {
         xec_expr_assign* a;
-        a = alloc< xec_expr_assign >( lv->sloc, op->kind );
+        a = alloc< xec_expr_assign >( lv->sloc, op );
         a->lvalue = lvalue( lv );
         a->rvalue = rv;
         return a;

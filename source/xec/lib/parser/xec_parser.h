@@ -59,7 +59,7 @@ public:
     xec_ast_name*   declare( xec_unqual_name* name );
     xec_expr_local* declare_local( xec_unqual_name* name );
     void            declare_local_list(
-                        xec_unqual_list* list, xec_ast_node_list* lvalues );
+                            xec_unqual_list* list, xec_ast_node_list* lvalues );
 
 
     xec_new_object* object( int sloc, xec_ast_node* name, xec_ast_node* proto );
@@ -68,7 +68,7 @@ public:
                         xec_ast_node* params, bool coroutine, bool thisdot );
     void            var( int sloc, xec_unqual_name* lval, xec_ast_node* rval );
     void            var_list( int sloc,
-                        xec_unqual_list* lvals, xec_ast_node* rvals );
+                            xec_unqual_list* lvals, xec_ast_node* rvals );
 
 
     void            statement( xec_ast_node* stmt );
@@ -79,8 +79,8 @@ public:
     xec_ast_node*   resolve( xec_ast_node* unqual );
     xec_expr_call*  resolve_proto( xec_unqual_proto* proto );
     int             upval( xec_ast_func* func, xec_ast_upval uv );
-    xec_ast_node*   compare( xec_token* op,
-                        xec_ast_node* lhs, xec_ast_node* rhs );
+    xec_ast_node*   compare( xec_token* token, xec_operator_kind op,
+                            xec_ast_node* lhs, xec_ast_node* rhs );
     xec_ast_node*   append( xec_ast_node* list, xec_ast_node* expr );
     xec_ast_node*   final( xec_ast_node* list, xec_ast_node* final );
     xec_expr_list*  list( xec_ast_node* list );
@@ -90,7 +90,8 @@ public:
     xec_ast_node*   delval( xec_ast_node* delval );
     void            delval_list( xec_ast_node* list,
                             xec_ast_node_list* delvals );
-    xec_ast_node*   assign( xec_token* op, xec_ast_node* lv, xec_ast_node* rv );
+    xec_ast_node*   assign( xec_token* token, xec_operator_kind op,
+                            xec_ast_node* lv, xec_ast_node* rv );
     
     
 private:
