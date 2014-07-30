@@ -4032,7 +4032,7 @@ static void yy_reduce(
 #line 1197 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy87 = p->alloc< xec_new_list >( -1 );
-                    yygotominor.yy87->unpack = yymsp[0].minor.yy259;
+                    yygotominor.yy87->final = yymsp[0].minor.yy259;
                 }
 #line 4038 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
@@ -4040,7 +4040,7 @@ static void yy_reduce(
 #line 1202 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy87 = p->alloc< xec_new_list >( -1 );
-                    yygotominor.yy87->unpack = yymsp[-1].minor.yy259;
+                    yygotominor.yy87->final = yymsp[-1].minor.yy259;
                   yy_destructor(yypParser,17,&yymsp[0].minor);
 }
 #line 4047 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
@@ -4064,7 +4064,7 @@ static void yy_reduce(
 #line 1215 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy87 = yymsp[-2].minor.yy87;
-                    yygotominor.yy87->unpack = yymsp[0].minor.yy259;
+                    yygotominor.yy87->final = yymsp[0].minor.yy259;
                   yy_destructor(yypParser,17,&yymsp[-1].minor);
 }
 #line 4071 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"

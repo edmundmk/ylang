@@ -306,6 +306,7 @@ xec_ast_func* xec_parser::function( int sloc, xec_ast_node* name,
 
     // Create function.
     xec_ast_func* func = alloc< xec_ast_func >( sloc );
+    script->functions.push_back( func );
     func->scope = alloc< xec_ast_scope >( XEC_SCOPE_BLOCK, outer, func, func );
     
     if ( outer->kind == XEC_SCOPE_OBJECT )

@@ -531,7 +531,7 @@ struct xec_new_list : public xec_ast_node
     xec_new_list( int sloc );
 
     xec_ast_node_list   values;
-    xec_ast_node*       unpack;
+    xec_ast_node*       final;
 };
 
 

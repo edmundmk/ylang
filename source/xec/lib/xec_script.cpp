@@ -35,6 +35,7 @@ void xec_script::parameters( size_t argc, const char* argv[] )
     
     // Set up global scope, script function, and script scope.
     script = new ( alloc ) xec_ast_func( -1 );
+    functions.push_back( script );
     script->scope = new ( alloc )
             xec_ast_scope( XEC_SCOPE_SCRIPT, NULL, script, script );
     script->block = new ( alloc ) xec_stmt_block( -1 );

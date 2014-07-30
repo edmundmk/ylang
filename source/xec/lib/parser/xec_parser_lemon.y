@@ -1196,12 +1196,12 @@ value_lbody(x)  ::= value_lbody(list) COMMA expr_value(expr) .
 value_list(x)   ::= expr_final(expr) .
                 {
                     x = p->alloc< xec_new_list >( -1 );
-                    x->unpack = expr;
+                    x->final = expr;
                 }
 value_list(x)   ::= expr_final(expr) COMMA .
                 {
                     x = p->alloc< xec_new_list >( -1 );
-                    x->unpack = expr;
+                    x->final = expr;
                 }
 value_list(x)   ::= value_lbody(list) .
                 {
@@ -1214,7 +1214,7 @@ value_list(x)   ::= value_lbody(list) COMMA .
 value_list(x)   ::= value_lbody(list) COMMA expr_final(expr) .
                 {
                     x = list;
-                    x->unpack = expr;
+                    x->final = expr;
                 }
 
 // Non-empty key -> value lists for { ... } constructors.

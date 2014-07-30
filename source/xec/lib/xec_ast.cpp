@@ -271,7 +271,7 @@ xec_new_object::xec_new_object( int sloc, xec_ast_node* proto )
 
 xec_new_list::xec_new_list( int sloc )
     :   xec_ast_node( XEC_NEW_LIST, sloc )
-    ,   unpack( NULL )
+    ,   final( NULL )
 {
 }
 
