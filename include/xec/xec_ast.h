@@ -25,7 +25,8 @@ struct xec_ast_func;
 struct xec_new_object;
 struct xec_expr_list;
 struct xec_stmt_block;
-struct xec_unqual_name;
+struct xec_name_name;
+struct xec_name_list;
 struct xec_key_value;
 
 
@@ -73,7 +74,7 @@ enum xec_ast_node_kind
     // New.
     XEC_NEW_NEW,
     XEC_NEW_OBJECT,
-    XEC_NEW_LIST,
+    XEC_NEW_ARRAY,
     XEC_NEW_TABLE,
     
     // Unpack.
@@ -109,10 +110,9 @@ enum xec_ast_node_kind
     XEC_STMT_THROW,
     
     // Unresolved and unqualified (should not appear in final AST).
-    XEC_UNQUAL_NAME,
-    XEC_UNQUAL_QUAL,
-    XEC_UNQUAL_LIST,
-    XEC_UNQUAL_PROTO,
+    XEC_NAME_NAME,
+    XEC_NAME_LIST,
+    XEC_NAME_QUAL,
 
 };
 
@@ -190,8 +190,8 @@ typedef std::deque< xec_ast_node*,
     region_allocator< xec_ast_node* > > xec_ast_node_list;
 typedef std::deque< xec_ast_name*,
     region_allocator< xec_ast_name* > > xec_ast_name_list;
-typedef std::deque< xec_unqual_name*,
-    region_allocator< xec_unqual_name* > > xec_unqual_name_list;
+typedef std::deque< xec_name_name*,
+    region_allocator< xec_name_name* > > xec_name_name_list;
 typedef std::deque< xec_operator_kind,
     region_allocator< xec_operator_kind > > xec_opkind_list;
 typedef std::deque< xec_key_value,
@@ -258,8 +258,7 @@ struct xec_ast_prototype
     xec_ast_prototype( int sloc );
 
     int                 sloc;
-    xec_unqual_name_list parameters;
-    bool                varargs;
+    xec_name_list*      parameters;
     bool                coroutine;
 };
 
@@ -526,9 +525,9 @@ struct xec_new_object : public xec_ast_node
 };
 
 
-struct xec_new_list : public xec_ast_node
+struct xec_new_array : public xec_ast_node
 {
-    xec_new_list( int sloc );
+    xec_new_array( int sloc );
 
     xec_ast_node_list   values;
     xec_ast_node*       final;
@@ -567,7 +566,8 @@ struct xec_expr_mono : public xec_ast_node
 
 struct xec_expr_call : public xec_ast_node
 {
-    xec_expr_call( int sloc, xec_ast_node* function, xec_expr_list* args );
+    xec_expr_call( int sloc, xec_ast_node* function,
+                    xec_expr_list* args, bool yieldcall );
 
     xec_ast_node*       function;
     xec_expr_list*      arguments;
@@ -800,39 +800,32 @@ struct xec_stmt_throw : public xec_ast_node
     Unresolved and unqualified.
 */
 
-struct xec_unqual_name : public xec_ast_node
+struct xec_name_name : public xec_ast_node
 {
-    xec_unqual_name( int sloc, const char* name );
+    xec_name_name( int sloc, const char* name );
     
     const char*         name;
 };
 
 
-struct xec_unqual_qual : public xec_ast_node
+struct xec_name_qual : public xec_ast_node
 {
-    xec_unqual_qual( int sloc, xec_ast_node* scope, const char* name );
+    xec_name_qual( int sloc, xec_ast_node* scope, const char* name );
     
     xec_ast_node*       scope;
     const char*         name;
 };
 
 
-struct xec_unqual_list : public xec_ast_node
+struct xec_name_list : public xec_ast_node
 {
-    xec_unqual_list( int sloc );
+    xec_name_list( int sloc );
     
-    xec_unqual_name_list names;
+    xec_name_name_list  names;
+    bool                varargs;
 };
 
 
-struct xec_unqual_proto : public xec_ast_node
-{
-    xec_unqual_proto( int sloc, xec_ast_node* name, xec_expr_list* params );
-
-    xec_ast_node*       name;
-    xec_expr_list*      params;
-    bool                coroutine;
-};
 
 
 /*

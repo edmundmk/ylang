@@ -1171,31 +1171,33 @@ struct xec_keywords
     
     xec_keywords()
     {
-        emplace( symkey( "break" ),    XEC_KEYWORD_BREAK );
-        emplace( symkey( "case" ),     XEC_KEYWORD_CASE );
-        emplace( symkey( "catch" ),    XEC_KEYWORD_CATCH );
-        emplace( symkey( "continue" ), XEC_KEYWORD_CONTINUE );
-        emplace( symkey( "default" ),  XEC_KEYWORD_DEFAULT );
-        emplace( symkey( "delete" ),   XEC_KEYWORD_DELETE );
-        emplace( symkey( "do" ),       XEC_KEYWORD_DO );
-        emplace( symkey( "else" ),     XEC_KEYWORD_ELSE );
-        emplace( symkey( "false" ),    XEC_KEYWORD_FALSE );
-        emplace( symkey( "finally" ),  XEC_KEYWORD_FINALLY );
-        emplace( symkey( "for" ),      XEC_KEYWORD_FOR );
-        emplace( symkey( "if" ),       XEC_KEYWORD_IF );
-        emplace( symkey( "new" ),      XEC_KEYWORD_NEW );
-        emplace( symkey( "null" ),     XEC_KEYWORD_NULL );
-        emplace( symkey( "return" ),   XEC_KEYWORD_RETURN );
-        emplace( symkey( "switch" ),   XEC_KEYWORD_SWITCH );
-        emplace( symkey( "throw" ),    XEC_KEYWORD_THROW );
-        emplace( symkey( "true" ),     XEC_KEYWORD_TRUE );
-        emplace( symkey( "try" ),      XEC_KEYWORD_TRY );
-        emplace( symkey( "using" ),    XEC_KEYWORD_USING );
-        emplace( symkey( "var" ),      XEC_KEYWORD_VAR );
-        emplace( symkey( "while" ),    XEC_KEYWORD_WHILE );
-        emplace( symkey( "yield" ),    XEC_KEYWORD_YIELD );
-        emplace( symkey( "in" ),       XEC_TOKEN_IN );
-        emplace( symkey( "is" ),       XEC_TOKEN_IS );
+        emplace( symkey( "break" ),     XEC_KEYWORD_BREAK );
+        emplace( symkey( "case" ),      XEC_KEYWORD_CASE );
+        emplace( symkey( "catch" ),     XEC_KEYWORD_CATCH );
+        emplace( symkey( "continue" ),  XEC_KEYWORD_CONTINUE );
+        emplace( symkey( "default" ),   XEC_KEYWORD_DEFAULT );
+        emplace( symkey( "delete" ),    XEC_KEYWORD_DELETE );
+        emplace( symkey( "do" ),        XEC_KEYWORD_DO );
+        emplace( symkey( "else" ),      XEC_KEYWORD_ELSE );
+        emplace( symkey( "false" ),     XEC_KEYWORD_FALSE );
+        emplace( symkey( "finally" ),   XEC_KEYWORD_FINALLY );
+        emplace( symkey( "for" ),       XEC_KEYWORD_FOR );
+        emplace( symkey( "function" ),  XEC_KEYWORD_FUNCTION );
+        emplace( symkey( "if" ),        XEC_KEYWORD_IF );
+        emplace( symkey( "new" ),       XEC_KEYWORD_NEW );
+        emplace( symkey( "null" ),      XEC_KEYWORD_NULL );
+        emplace( symkey( "object" ),    XEC_KEYWORD_OBJECT );
+        emplace( symkey( "return" ),    XEC_KEYWORD_RETURN );
+        emplace( symkey( "switch" ),    XEC_KEYWORD_SWITCH );
+        emplace( symkey( "throw" ),     XEC_KEYWORD_THROW );
+        emplace( symkey( "true" ),      XEC_KEYWORD_TRUE );
+        emplace( symkey( "try" ),       XEC_KEYWORD_TRY );
+        emplace( symkey( "using" ),     XEC_KEYWORD_USING );
+        emplace( symkey( "var" ),       XEC_KEYWORD_VAR );
+        emplace( symkey( "while" ),     XEC_KEYWORD_WHILE );
+        emplace( symkey( "yield" ),     XEC_KEYWORD_YIELD );
+        emplace( symkey( "in" ),        XEC_TOKEN_IN );
+        emplace( symkey( "is" ),        XEC_TOKEN_IS );
     }
     
 };
@@ -1309,12 +1311,12 @@ bool xec_parser::parse( const char* path )
     int cs;
     
     
-#line 1313 "xec_parser_ragel.cpp"
+#line 1315 "xec_parser_ragel.cpp"
 	{
 	cs = lexer_start;
 	}
 
-#line 429 "../../toolbox/source/xec/lib/parser/xec_parser_ragel.rl"
+#line 431 "../../toolbox/source/xec/lib/parser/xec_parser_ragel.rl"
     
     
     // Perform lexing.
@@ -1350,7 +1352,7 @@ bool xec_parser::parse( const char* path )
         const unsigned char* eof    = iseof ? pe : NULL;
 
         
-#line 1354 "xec_parser_ragel.cpp"
+#line 1356 "xec_parser_ragel.cpp"
 	{
 	int _klen;
 	unsigned int _trans;
@@ -1835,7 +1837,7 @@ _match:
 #line 252 "../../toolbox/source/xec/lib/parser/xec_parser_ragel.rl"
 	{ {cs = 29; goto _again;} }
 	break;
-#line 1839 "xec_parser_ragel.cpp"
+#line 1841 "xec_parser_ragel.cpp"
 		}
 	}
 
@@ -2118,7 +2120,7 @@ _again:
 #line 252 "../../toolbox/source/xec/lib/parser/xec_parser_ragel.rl"
 	{ {cs = 29; goto _again;} }
 	break;
-#line 2122 "xec_parser_ragel.cpp"
+#line 2124 "xec_parser_ragel.cpp"
 		}
 	}
 	}
@@ -2126,7 +2128,7 @@ _again:
 	_out: {}
 	}
 
-#line 464 "../../toolbox/source/xec/lib/parser/xec_parser_ragel.rl"
+#line 466 "../../toolbox/source/xec/lib/parser/xec_parser_ragel.rl"
         
         offset += read;
     }

@@ -35,7 +35,7 @@ xec_ast_name::xec_ast_name( int sloc, xec_ast_scope* scope, const char* name )
 
 xec_ast_prototype::xec_ast_prototype( int sloc )
     :   sloc( sloc )
-    ,   varargs( false )
+    ,   parameters( NULL )
     ,   coroutine( false )
 {
 }
@@ -96,8 +96,8 @@ xec_ast_func::xec_ast_func( int sloc )
     ,   scope( NULL )
     ,   memberof( NULL )
     ,   thisname( NULL )
+    ,   parameters( NULL )
     ,   block( NULL )
-    ,   varargs( false )
     ,   coroutine( false )
 {
 }
@@ -269,8 +269,8 @@ xec_new_object::xec_new_object( int sloc, xec_ast_node* proto )
 }
 
 
-xec_new_list::xec_new_list( int sloc )
-    :   xec_ast_node( XEC_NEW_LIST, sloc )
+xec_new_array::xec_new_array( int sloc )
+    :   xec_ast_node( XEC_NEW_ARRAY, sloc )
     ,   final( NULL )
 {
 }
@@ -295,12 +295,12 @@ xec_expr_mono::xec_expr_mono( int sloc, xec_ast_node* expr )
 }
 
 
-xec_expr_call::xec_expr_call(
-                int sloc, xec_ast_node* function, xec_expr_list* args )
+xec_expr_call::xec_expr_call( int sloc,
+                xec_ast_node* function, xec_expr_list* args, bool yieldcall )
     :   xec_ast_node( XEC_EXPR_CALL, sloc )
     ,   function( function )
     ,   arguments( args )
-    ,   yieldcall( false )
+    ,   yieldcall( yieldcall )
     ,   unpack( false )
 {
 }
@@ -477,34 +477,24 @@ xec_stmt_throw::xec_stmt_throw( int sloc, xec_ast_node* value )
 
 
 
-xec_unqual_name::xec_unqual_name( int sloc, const char* name )
-    :   xec_ast_node( XEC_UNQUAL_NAME, sloc )
+xec_name_name::xec_name_name( int sloc, const char* name )
+    :   xec_ast_node( XEC_NAME_NAME, sloc )
     ,   name( name )
 {
 }
 
 
-xec_unqual_qual::xec_unqual_qual(
-                int sloc, xec_ast_node* scope, const char* name )
-    :   xec_ast_node( XEC_UNQUAL_QUAL, sloc )
+xec_name_qual::xec_name_qual( int sloc, xec_ast_node* scope, const char* name )
+    :   xec_ast_node( XEC_NAME_QUAL, sloc )
     ,   scope( scope )
     ,   name( name )
 {
 }
 
 
-xec_unqual_list::xec_unqual_list( int sloc )
-    :   xec_ast_node( XEC_UNQUAL_LIST, sloc )
-{
-}
-
-
-xec_unqual_proto::xec_unqual_proto(
-                int sloc, xec_ast_node* name, xec_expr_list* params )
-    :   xec_ast_node( XEC_UNQUAL_PROTO, sloc )
-    ,   name( name )
-    ,   params( params )
-    ,   coroutine( false )
+xec_name_list::xec_name_list( int sloc )
+    :   xec_ast_node( XEC_NAME_LIST, sloc )
+    ,   varargs( false )
 {
 }
 
@@ -543,6 +533,7 @@ const char* xec_operator_name( xec_operator_kind op )
     
     case XEC_OPERATOR_MULTIPLY:         return "*";
     case XEC_OPERATOR_DIVIDE:           return "/";
+    case XEC_OPERATOR_MODULUS:          return "%";
     case XEC_OPERATOR_INTDIV:           return "~";
     case XEC_OPERATOR_ADD:              return "+";
     case XEC_OPERATOR_SUBTRACT:         return "-";
@@ -552,6 +543,7 @@ const char* xec_operator_name( xec_operator_kind op )
     case XEC_OPERATOR_BITAND:           return "&";
     case XEC_OPERATOR_BITXOR:           return "^";
     case XEC_OPERATOR_BITOR:            return "|";
+    case XEC_OPERATOR_CONCATENATE:      return "..";
     
     case XEC_OPERATOR_EQUAL:            return "==";
     case XEC_OPERATOR_NOTEQUAL:         return "!=";

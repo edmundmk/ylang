@@ -65,7 +65,7 @@ public:
         { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
     return_t visit( xec_new_object* node, arguments_t ... arguments )
         { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
-    return_t visit( xec_new_list* node, arguments_t ... arguments )
+    return_t visit( xec_new_array* node, arguments_t ... arguments )
         { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
     return_t visit( xec_new_table* node, arguments_t ... arguments )
         { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
@@ -117,13 +117,11 @@ public:
         { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
     return_t visit( xec_stmt_throw* node, arguments_t ... arguments )
         { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
-    return_t visit( xec_unqual_name* node, arguments_t ... arguments )
+    return_t visit( xec_name_name* node, arguments_t ... arguments )
         { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
-    return_t visit( xec_unqual_qual* node, arguments_t ... arguments )
+    return_t visit( xec_name_qual* node, arguments_t ... arguments )
         { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
-    return_t visit( xec_unqual_list* node, arguments_t ... arguments )
-        { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
-    return_t visit( xec_unqual_proto* node, arguments_t ... arguments )
+    return_t visit( xec_name_list* node, arguments_t ... arguments )
         { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
 
 
@@ -164,7 +162,7 @@ return_t xec_ast_visitor< visitor_t, return_t, arguments_t ... >::
         &visitor_t::template dispatch< xec_expr_qmark >,
         &visitor_t::template dispatch< xec_new_new >,
         &visitor_t::template dispatch< xec_new_object >,
-        &visitor_t::template dispatch< xec_new_list >,
+        &visitor_t::template dispatch< xec_new_array >,
         &visitor_t::template dispatch< xec_new_table >,
         &visitor_t::template dispatch< xec_expr_mono >,
         &visitor_t::template dispatch< xec_expr_call >,
@@ -190,10 +188,9 @@ return_t xec_ast_visitor< visitor_t, return_t, arguments_t ... >::
         &visitor_t::template dispatch< xec_stmt_break >,
         &visitor_t::template dispatch< xec_stmt_return >,
         &visitor_t::template dispatch< xec_stmt_throw >,
-        &visitor_t::template dispatch< xec_unqual_name >,
-        &visitor_t::template dispatch< xec_unqual_qual >,
-        &visitor_t::template dispatch< xec_unqual_list >,
-        &visitor_t::template dispatch< xec_unqual_proto >
+        &visitor_t::template dispatch< xec_name_name >,
+        &visitor_t::template dispatch< xec_name_qual >,
+        &visitor_t::template dispatch< xec_name_list >,
     };
     
     return ( this->*( dispatch[ node->kind ] ) )( node, arguments ... );

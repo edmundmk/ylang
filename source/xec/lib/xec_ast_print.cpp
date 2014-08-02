@@ -44,7 +44,7 @@ public:
     void visit( xec_expr_qmark* node, int indent );
     void visit( xec_new_new* node, int indent );
     void visit( xec_new_object* node, int indent );
-    void visit( xec_new_list* node, int indent );
+    void visit( xec_new_array* node, int indent );
     void visit( xec_new_table* node, int indent );
     void visit( xec_expr_mono* node, int indent );
     void visit( xec_expr_call* node, int indent );
@@ -70,10 +70,9 @@ public:
     void visit( xec_stmt_break* node, int indent );
     void visit( xec_stmt_return* node, int indent );
     void visit( xec_stmt_throw* node, int indent );
-    void visit( xec_unqual_name* node, int indent );
-    void visit( xec_unqual_qual* node, int indent );
-    void visit( xec_unqual_list* node, int indent );
-    void visit( xec_unqual_proto* node, int indent );
+    void visit( xec_name_name* node, int indent );
+    void visit( xec_name_qual* node, int indent );
+    void visit( xec_name_list* node, int indent );
 
     void print_scope( xec_ast_scope* scope, int indent );
     void print_name( xec_ast_name* name );
@@ -297,7 +296,7 @@ void xec_ast_printer::visit( xec_new_object* node, int indent )
     indent -= INDENT;
 }
 
-void xec_ast_printer::visit( xec_new_list* node, int indent ) 
+void xec_ast_printer::visit( xec_new_array* node, int indent )
 {
     printf( "%*slist:\n", indent, "" );
     for ( size_t i = 0; i < node->values.size(); ++i )
@@ -571,33 +570,25 @@ void xec_ast_printer::visit( xec_stmt_throw* node, int indent )
     visit( node->value, indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_unqual_name* node, int indent ) 
+void xec_ast_printer::visit( xec_name_name* node, int indent )
 {
     printf( "%*s[!!] '%s'\n", indent, "", node->name );
 }
 
-void xec_ast_printer::visit( xec_unqual_qual* node, int indent ) 
+void xec_ast_printer::visit( xec_name_qual* node, int indent )
 {
     printf( "%*s[!!] qual:\n", indent, "" );
     visit( node->scope, indent + INDENT );
     printf( "%*s'%s'\n", indent + INDENT, "", node->name );
 }
 
-void xec_ast_printer::visit( xec_unqual_list* node, int indent ) 
+void xec_ast_printer::visit( xec_name_list* node, int indent )
 {
     printf( "%*s[!!] list:\n", indent, "" );
     for ( size_t i = 0; i < node->names.size(); ++i )
         visit( node->names[ i ], indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_unqual_proto* node, int indent ) 
-{
-    printf( "%*s[!!] proto:\n", indent, "" );
-    visit( node->name, indent + INDENT );
-    visit( node->params, indent + INDENT );
-    if ( node->coroutine )
-        printf( "%*scoroutine: true\n", indent + INDENT, "" );
-}
 
 
 
@@ -678,22 +669,26 @@ void xec_ast_printer::print_name( xec_ast_name* name )
     if ( name->prototype )
     {
         xec_ast_prototype* proto = name->prototype;
+        xec_name_list* params = proto->parameters;
         printf( "(" );
-        for ( size_t i = 0; i < proto->parameters.size(); ++i )
+        if ( params )
         {
-            xec_unqual_name* unqual = proto->parameters[ i ];
-            if ( i > 0 )
-                printf( "," );
-            printf( " %s", unqual->name );
+            for ( size_t i = 0; i < params->names.size(); ++i )
+            {
+                xec_name_name* unqual = params->names[ i ];
+                if ( i > 0 )
+                    printf( "," );
+                printf( " %s", unqual->name );
+            }
+            if ( params->varargs )
+            {
+                if ( params->names.size() )
+                    printf( "," );
+                printf( " ..." );
+            }
+            if ( params->names.size() || params->varargs )
+                printf( " " );
         }
-        if ( proto->varargs )
-        {
-            if ( proto->parameters.size() )
-                printf( "," );
-            printf( " ..." );
-        }
-        if ( proto->parameters.size() || proto->varargs )
-            printf( " " );
         printf( ")" );
         
         if ( proto->coroutine )

@@ -55,9 +55,11 @@ void xec_token::debug_print()
     case XEC_KEYWORD_FALSE:         kind_name = "FALSE";            break;
     case XEC_KEYWORD_FINALLY:       kind_name = "FINALLY";          break;
     case XEC_KEYWORD_FOR:           kind_name = "FOR";              break;
+    case XEC_KEYWORD_FUNCTION:      kind_name = "FUNCTION";         break;
     case XEC_KEYWORD_IF:            kind_name = "IF";               break;
     case XEC_KEYWORD_NEW:           kind_name = "NEW";              break;
     case XEC_KEYWORD_NULL:          kind_name = "NULL";             break;
+    case XEC_KEYWORD_OBJECT:        kind_name = "OBJECT";           break;
     case XEC_KEYWORD_RETURN:        kind_name = "RETURN";           break;
     case XEC_KEYWORD_SWITCH:        kind_name = "SWITCH";           break;
     case XEC_KEYWORD_THROW:         kind_name = "THROW";            break;
