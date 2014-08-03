@@ -95,8 +95,8 @@ void region::_free( void* p, size_t old_size )
 
 
 
-region_buffer::region_buffer( class region* region )
-    :   region( region )
+region_buffer::region_buffer( class region& region )
+    :   region( &region )
     ,   buffer( NULL )
     ,   capacity( 0 )
     ,   index( 0 )

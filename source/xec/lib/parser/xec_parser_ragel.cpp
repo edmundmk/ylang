@@ -1279,7 +1279,7 @@ bool xec_parser::parse( const char* path )
     region_scope rscope( root->alloc );
 
     // Allocate strings and identifiers in the script's region.
-    region_buffer data( &root->script->alloc );
+    region_buffer data( root->script->alloc );
 
 
 

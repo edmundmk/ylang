@@ -76,7 +76,7 @@ class region_buffer
 {
 public:
 
-    explicit region_buffer( region* region );
+    explicit region_buffer( region& region );
     ~region_buffer();
 
     void    clear();
