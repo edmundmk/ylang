@@ -16,6 +16,8 @@
 #include "symbol.h"
 
 
+class xec_script;
+
 struct xec_ast_scope;
 struct xec_ast_name;
 struct xec_ast_prototype;
@@ -216,6 +218,26 @@ typedef std::unordered_map
         xec_ast_imply_map;
 typedef std::deque< xec_ast_upval,
     region_allocator< xec_ast_upval > > xec_ast_upval_list;
+
+
+
+/*
+    A script file parsed into an AST.
+*/
+
+
+struct xec_ast
+{
+    xec_ast();
+    ~xec_ast();
+
+    region              alloc;
+    xec_script*         script;
+    xec_ast_func*       function;
+    std::deque< xec_ast_func* > functions;
+
+};
+
 
 
 

@@ -7,89 +7,12 @@
 
 
 #include "xec_script.h"
+#include <stringf.h>
 #include "xec_parser.h"
 
 
 
-xec_script::xec_script()
-    :   script( NULL )
-{
-}
 
-xec_script::xec_script( const char* filename )
-    :   script( NULL )
-{
-    parse( filename );
-}
-
-xec_script::~xec_script()
-{
-}
-
-
-void xec_script::parameters( size_t argc, const char* argv[] )
-{
-    assert( script == NULL );
-    region_scope rscope( alloc );
-    
-    
-    // Set up global scope, script function, and script scope.
-    script = new ( alloc ) xec_ast_func( -1 );
-    functions.push_back( script );
-    script->scope = new ( alloc )
-            xec_ast_scope( XEC_SCOPE_SCRIPT, NULL, script, script );
-    script->block = new ( alloc ) xec_stmt_block( -1 );
-    script->scope->block = script->block;
-    
-  
-    // Declare parameters.
-    for ( size_t i = 0; i < argc; ++i )
-    {
-        if ( strcmp( argv[ i ], "..." ) != 0 )
-        {
-            const char* param = copy_string( argv[ i ] );
-        
-            // Check for duplicated parameters.
-            if ( script->scope->names.find( param )
-                            != script->scope->names.end() )
-            {
-                assert( ! "duplicate parameter" );
-            }
-            
-            // Add name.
-            xec_ast_name* name = new ( alloc )
-                            xec_ast_name( -1, script->scope, param );
-            script->scope->names.emplace( param, name );
-            script->parameters.push_back( name );
-        }
-        else
-        {
-            // Varargs indicator.
-            assert( i == argc - 1 && "varargs must be at the end" );
-            script->varargs = true;
-        }
-    }
-}
-
-
-bool xec_script::parse( const char* filename )
-{
-    // Default parameters.
-    if ( ! script )
-    {
-        const char* argv[] = { "..." };
-        parameters( 1, argv );
-    }
-
-
-    // Set function name.
-    script->funcname = copy_string( filename );
-    
-    
-    // Actually parse function.
-    xec_parser parser( this );
-    return parser.parse( filename );
-}
 
 
 
@@ -115,64 +38,34 @@ int xec_script::get_column( int sloc )
 
 
 
-void xec_script::diagnostic( int sloc, const char* format, ... )
+void xec_script::error( int sloc, const char* format, ... )
 {
     va_list arguments;
     va_list vlist;
     va_start( arguments, format );
 
-    int bufsize = snprintf( NULL, 0, "%s:%d:%d: ",
-            get_filename(), get_line( sloc ), get_column( sloc ) );
-    va_copy( vlist, arguments );
-    bufsize += vsnprintf( NULL, 0, format, vlist );
+    std::string error;
+    error += stringf( "%s:%d:%d: ",
+                    get_filename(), get_line( sloc ), get_column( sloc ) );
+    error += vstringf( format, arguments );
+    errors.push_back( error );
+
     va_end( vlist );
-    
-    char* buffer = (char*)alloc.malloc( bufsize + 1 );
-    int printsize = snprintf( buffer, bufsize, "%s:%d:%d ",
-            get_filename(), get_line( sloc ), get_column( sloc ) );
-    va_copy( vlist, arguments );
-    vsnprintf( buffer + printsize, bufsize - printsize, format, vlist );
-    va_end( vlist );
-
-    diagnostics.push_back( buffer );
 }
 
-size_t xec_script::diagnostic_count()
+size_t xec_script::error_count()
 {
-    return diagnostics.size();
+    return errors.size();
 }
 
-const char* xec_script::diagnostic( size_t index )
+const char* xec_script::error( size_t index )
 {
-    return diagnostics[ index ];
-}
-
-
-
-xec_ast_func* xec_script::get_script()
-{
-    return script;
-}
-
-size_t xec_script::get_function_count()
-{
-    return functions.size();
-}
-
-xec_ast_func* xec_script::get_function( size_t index )
-{
-    return functions.at( index );
+    return errors.at( index ).c_str();
 }
 
 
 
 
-const char* xec_script::copy_string( const char* s )
-{
-    char* c = (char*)alloc.malloc( strlen( s ) + 1 );
-    strcpy( c, s );
-    return c;
-}
 
 
 

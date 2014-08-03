@@ -10,6 +10,16 @@
 
 
 
+xec_ast::xec_ast()
+    :   script( NULL )
+    ,   function( NULL )
+{
+}
+
+xec_ast::~xec_ast()
+{
+}
+
 
 xec_ast_scope::xec_ast_scope( xec_ast_scope_kind kind,
                 xec_ast_scope* outer, xec_ast_node* node, xec_ast_func* func )

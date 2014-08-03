@@ -58,6 +58,9 @@ public:
 
 private:
 
+    region( const region& );
+    region& operator = ( const region& );
+
     void*   _malloc( size_t new_size );
     void*   _realloc( void* p, size_t old_size, size_t new_size );
     void    _free( void* p, size_t old_size );
@@ -69,27 +72,11 @@ private:
 };
 
 
-
-class region_scope
-{
-public:
-
-    region_scope( region& region );
-    ~region_scope();
-
-private:
-
-    region* previous;
-
-};
-
-
-
 class region_buffer
 {
 public:
 
-    region_buffer();
+    explicit region_buffer( region* region );
     ~region_buffer();
 
     void    clear();
@@ -106,9 +93,34 @@ private:
 
     void    _expand( size_t new_capacity );
 
+    region* region;
     char*   buffer;
     size_t  capacity;
     size_t  index;
+
+};
+
+
+
+void* operator new ( size_t size, region& region );
+void  operator delete ( void* p, region& region );
+
+
+
+
+
+
+
+class region_scope
+{
+public:
+
+    region_scope( region& region );
+    ~region_scope();
+
+private:
+
+    region* previous;
 
 };
 
@@ -129,11 +141,7 @@ public:
 };
 
 
-void* region_malloc( size_t size );
-void  region_free( void* p );
 
-void* operator new ( size_t size, region& region );
-void  operator delete ( void* p, region& region );
 
 
 
@@ -202,17 +210,6 @@ inline void region::free( void* p, size_t old_size )
 
 
 
-inline region_scope::region_scope( region& region )
-    :   previous( region_current )
-{
-    region_current = &region;
-}
-
-inline region_scope::~region_scope()
-{
-    region_current = previous;
-}
-
 
 
 inline void region_buffer::clear()
@@ -263,6 +260,32 @@ inline void* region_buffer::get()
 }
 
 
+inline void* operator new ( size_t size, region& region )
+{
+    return region.malloc( size );
+}
+
+inline void operator delete ( void* p, region& region )
+{
+    // don't know the size so can't free.
+}
+
+
+
+
+
+inline region_scope::region_scope( region& region )
+    :   previous( region_current )
+{
+    region_current = &region;
+}
+
+inline region_scope::~region_scope()
+{
+    region_current = previous;
+}
+
+
 
 template < typename T >
 inline T* region_allocator< T >::allocate( size_t n )
@@ -277,28 +300,6 @@ inline void region_allocator< T >::deallocate( T* p, size_t n )
 }
 
 
-
-inline void* region_malloc( size_t size )
-{
-    return region_current->malloc( size );
-}
-
-inline void region_free( void* p )
-{
-}
-
-
-
-
-inline void* operator new ( size_t size, region& region )
-{
-    return region.malloc( size );
-}
-
-inline void operator delete ( void* p, region& region )
-{
-    // don't know the size so can't free.
-}
 
 
 

@@ -33,9 +33,11 @@ class xec_parser
 {
 public:
 
-    explicit xec_parser( xec_script* script );
+    explicit xec_parser( xec_ast* root );
+    ~xec_parser();
     
-    xec_script*         get_script();
+    
+    xec_ast*            get_root();
     template < typename object_t, typename ... arguments_t >
         object_t*       alloc( arguments_t ... arguments );
     
@@ -98,8 +100,8 @@ public:
     
 private:
 
-    static const size_t BUFFER_SIZE         = 4 * 1024 * 1024;
-    static const size_t DIAGNOSTIC_LIMIT    = 25;
+    static const size_t BUFFER_SIZE = 4 * 1024 * 1024;
+    static const size_t ERROR_LIMIT = 25;
 
     xec_ast_name*       declare( int sloc, const char* name );
     xec_ast_node*       declare( xec_ast_node* name );
@@ -120,12 +122,11 @@ private:
     xec_ast_node*       delval( xec_ast_node* dv );
     
 
-    xec_script*                     script;
+    xec_ast*                        root;
     std::deque< void* >             recycle_tokens;
-    std::unordered_set< symkey >    identifiers;
     std::deque< xec_ast_scope* >    scopes;
     
-
+    
 };
 
 
@@ -133,7 +134,7 @@ private:
 template < typename object_t, typename ... arguments_t >
 object_t* xec_parser::alloc( arguments_t ... arguments )
 {
-    return new ( script->alloc ) object_t( arguments ... );
+    return new ( root->alloc ) object_t( arguments ... );
 }
 
 

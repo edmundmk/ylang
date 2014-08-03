@@ -95,8 +95,9 @@ void region::_free( void* p, size_t old_size )
 
 
 
-region_buffer::region_buffer()
-    :   buffer( NULL )
+region_buffer::region_buffer( class region* region )
+    :   region( region )
+    ,   buffer( NULL )
     ,   capacity( 0 )
     ,   index( 0 )
 {
@@ -104,7 +105,7 @@ region_buffer::region_buffer()
 
 region_buffer::~region_buffer()
 {
-    region_current->free( buffer, capacity );
+    region->free( buffer, capacity );
 }
 
 void region_buffer::shrink()
@@ -113,14 +114,14 @@ void region_buffer::shrink()
     // is useful if we are going to allocate something else from the region
     // but this buffer is not yet finished - it will force a copy on the next
     // buffer realloc, but avoids consuming the entirety of a block.
-    buffer = (char*)region_current->realloc( buffer, capacity, index );
+    buffer = (char*)region->realloc( buffer, capacity, index );
     capacity = index;
 }
 
 void* region_buffer::tearoff()
 {
     // Reallocate the buffer.
-    buffer = (char*)region_current->realloc( buffer, capacity, index );
+    buffer = (char*)region->realloc( buffer, capacity, index );
 
     // Return the memory.
     void* p = buffer;
@@ -135,15 +136,15 @@ void region_buffer::_expand( size_t new_capacity )
     assert( new_capacity > capacity );
 
     // Find a new capacity larger than the current capacity.
-    if ( new_capacity <= region_current->maxalloc() )
-        new_capacity = region_current->maxalloc();
+    if ( new_capacity <= region->maxalloc() )
+        new_capacity = region->maxalloc();
     else if ( new_capacity <= region::BLOCK_SIZE )
         new_capacity = region::BLOCK_SIZE;
     else if ( new_capacity <= capacity * 2 )
         new_capacity = capacity * 2;
 
     // Reallocate.
-    buffer = (char*)region_current->realloc( buffer, capacity, new_capacity );
+    buffer = (char*)region->realloc( buffer, capacity, new_capacity );
     capacity = new_capacity;
 }
 

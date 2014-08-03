@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <xec/xec_script.h>
+#include <xec/xec_ast.h>
 #include <xec/xec_ast_print.h>
 
 
@@ -16,21 +17,23 @@
 
 int main( int argc, char* argv[] )
 {
-    xec_script script;
+    xec_script  script;
+    xec_ast     ast;
 
-    const char* script_arguments[] = { "argv0", "..." };
-    script.parameters( 2, script_arguments );
-
-    if ( script.parse( argv[ 1 ] ) )
-    {
-        xec_ast_print( script.get_script() );
-    }
+    const char* sargv[] = { "argv0", "..." };
+    if ( ! xec_parse( &script, &ast, argv[ 1 ], 2, sargv ) )
+        goto error;
     
-    for ( size_t i = 0; i < script.diagnostic_count(); ++i )
-    {
-        fprintf( stderr, "%s\n", script.diagnostic( i ) );
-    }
-    
+    xec_ast_print( &ast );
     
     return EXIT_SUCCESS;
+    
+error:
+
+    for ( size_t i = 0; i < script.error_count(); ++i )
+    {
+        fprintf( stderr, "%s\n", script.error( i ) );
+    }
+    
+    return EXIT_FAILURE;
 }

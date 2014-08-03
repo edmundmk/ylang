@@ -1446,7 +1446,7 @@ token_yield(x)  ::= YIELD(token) .
 
 %syntax_error
 {
-    p->get_script()->diagnostic( TOKEN->sloc,
+    p->get_root()->script->error( TOKEN->sloc,
             "unexpected %s", TOKEN->get_spelling().c_str() );
 }
 

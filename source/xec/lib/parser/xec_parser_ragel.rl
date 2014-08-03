@@ -40,7 +40,7 @@ void  XecParseFree( void* p, void (*free)( void* ) );
     {
         data.shrink();
         int sloc = (int)( offset + ( p - buffer ) );
-        script->diagnostic( sloc, "unexpected end of file" );
+        root->script->error( sloc, "unexpected end of file" );
         fbreak;
     }
     
@@ -49,10 +49,10 @@ void  XecParseFree( void* p, void (*free)( void* ) );
         data.shrink();
         int sloc = (int)( offset + ( p - buffer ) );
         if ( fc >= 0x20 && fc <= 0x7E )
-            script->diagnostic( sloc, "unexpected character '%c'", fc );
+            root->script->error( sloc, "unexpected character '%c'", fc );
         else
-            script->diagnostic( sloc, "unexpected character '\\x%02X'", fc );
-        if ( script->diagnostic_count() >= DIAGNOSTIC_LIMIT )
+            root->script->error( sloc, "unexpected character '\\x%02X'", fc );
+        if ( root->script->error_count() >= ERROR_LIMIT )
             goto error;
     }
 
@@ -99,10 +99,6 @@ void  XecParseFree( void* p, void (*free)( void* ) );
             | [A-F] @ { data.append( (char)( temp | fc - 'A' + 0x0A ) ); }
             )
         |   '\\u'
-                >
-                {
-                    uloc = (int)( offset + ( p - buffer ) );
-                }
             ( [0-9] @ { temp = ( fc - '0' ) << 20; }
             | [a-f] @ { temp = ( fc - 'a' + 0x0A ) << 20; }
             | [A-F] @ { temp = ( fc - 'A' + 0x0A ) << 20; }
@@ -131,9 +127,9 @@ void  XecParseFree( void* p, void (*free)( void* ) );
                 {
                     if ( ! encode_utf8( &data, temp ) )
                     {
-                        script->diagnostic(
+                        root->script->error(
                                 sloc, "invalid codepoint U+%04" PRIX32, temp );
-                        if ( script->diagnostic_count() >= DIAGNOSTIC_LIMIT )
+                        if ( root->script->error_count() >= ERROR_LIMIT )
                             goto error;
                     }
                 }
@@ -260,7 +256,7 @@ void  XecParseFree( void* p, void (*free)( void* ) );
 
 void xec_parser::newline( int sloc )
 {
-    script->newlines.push_back( sloc );
+    root->script->newlines.push_back( sloc );
 }
 
 
@@ -268,16 +264,17 @@ void xec_parser::newline( int sloc )
 template < typename ... arguments_t >
 xec_token* xec_parser::make_token( arguments_t ... arguments )
 {
+    void* p = NULL;
     if ( recycle_tokens.size() )
     {
-        void* p = recycle_tokens.back();
+        p = recycle_tokens.back();
         recycle_tokens.pop_back();
-        return new ( p ) xec_token( arguments ... );
     }
     else
     {
-        return alloc< xec_token >( arguments ... );
+        p = malloc( sizeof( xec_token ) );
     }
+    return new ( p ) xec_token( arguments ... );
 }
 
 
@@ -337,8 +334,8 @@ xec_token* xec_parser::make_identifier( int sloc, region_buffer* data )
     }
     
     // Check for existing identifier.
-    auto j = identifiers.find( key );
-    if ( j != identifiers.end() )
+    auto j = root->script->identifiers.find( key );
+    if ( j != root->script->identifiers.end() )
     {
         return make_token( XEC_TOKEN_IDENTIFIER, sloc, j->c_str(), j->size() );
     }
@@ -346,7 +343,7 @@ xec_token* xec_parser::make_identifier( int sloc, region_buffer* data )
     // New identifier.
     data->append( '\0' );
     identifier = (const char*)data->tearoff();
-    identifiers.emplace( key.hash(), identifier, length );
+    root->script->identifiers.emplace( key.hash(), identifier, length );
     return make_token( XEC_TOKEN_IDENTIFIER, sloc, identifier, length );
 
 }
@@ -391,19 +388,24 @@ static bool encode_utf8( region_buffer* data, uint32_t cp )
 
 bool xec_parser::parse( const char* path )
 {
-    region_scope rscope( script->alloc );
+    // Implicit allocations (for std::deque) from AST region.
+    region_scope rscope( root->alloc );
+
+    // Allocate strings and identifiers in the script's region.
+    region_buffer data( &root->script->alloc );
+
 
 
     // Push function scope.
-    scopes.push_back( script->get_script()->scope );
+    scopes.push_back( root->function->scope );
 
     
     // Open file.
-    script->filename = path;
+    root->script->filename = path;
     FILE* file = fopen( path, "r" );
     if ( ! file )
     {
-        script->diagnostic( 0, "unable to open file" );
+        root->script->error( 0, "unable to open file" );
         return false;
     }
     
@@ -415,8 +417,6 @@ bool xec_parser::parse( const char* path )
     
     // Token state.
     int sloc = -1;
-    int uloc = -1;
-    region_buffer data;
     uint32_t temp;
 
 
@@ -434,14 +434,14 @@ bool xec_parser::parse( const char* path )
 #define TOKEN( token ) \
     { \
         XecParse( parser, token->kind, token, this ); \
-        if ( script->diagnostic_count() >= DIAGNOSTIC_LIMIT ) \
+        if ( root->script->error_count() >= ERROR_LIMIT ) \
             goto error; \
     }
 #define MTOKEN( ... ) \
     { \
         xec_token* token = make_token( __VA_ARGS__ ); \
         XecParse( parser, token->kind, token, this ); \
-        if ( script->diagnostic_count() >= DIAGNOSTIC_LIMIT ) \
+        if ( root->script->error_count() >= ERROR_LIMIT ) \
             goto error; \
     }
 
@@ -454,7 +454,7 @@ bool xec_parser::parse( const char* path )
         if ( iseof && ferror( file ) )
         {
             data.shrink();
-            script->diagnostic( offset, "error reading file" );
+            root->script->error( offset, "error reading file" );
             goto error;
         }
 
@@ -487,7 +487,7 @@ error:
 
 
     // Check if there were errors.
-    return script->diagnostic_count() == 0;
+    return root->script->error_count() == 0;
 }
 
 

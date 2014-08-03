@@ -10,16 +10,87 @@
 #include "xec_token.h"
 
 
-xec_parser::xec_parser( xec_script* script )
-    :   script( script )
+
+
+
+bool xec_parse( xec_script* script, xec_ast* ast,
+            const char* filename, size_t argc, const char* const* argv )
 {
+    region_scope rscope( ast->alloc );
+
+    // Associate AST with script.
+    assert( ast->script == NULL );
+    ast->script = script;
+
+    // Set up root function and scope.
+    ast->function = new ( ast->alloc ) xec_ast_func( -1 );
+    ast->functions.push_back( ast->function );
+    ast->function->scope = new ( ast->alloc ) xec_ast_scope(
+                    XEC_SCOPE_SCRIPT, NULL, ast->function, ast->function );
+    ast->function->block = new ( ast->alloc ) xec_stmt_block( -1 );
+    ast->function->scope->block = ast->function->block;
+    
+    // Declare parameters.
+    for ( size_t i = 0; i < argc; ++i )
+    {
+        if ( strcmp( argv[ i ], "..." ) != 0 )
+        {
+            char* param = (char*)ast->alloc.malloc( strlen( argv[ i ] ) + 1 );
+            strcpy( param, argv[ i ] );
+        
+            // Check for duplicated parameters.
+            if ( ast->function->scope->names.find( param )
+                            != ast->function->scope->names.end() )
+            {
+                assert( ! "duplicate parameter" );
+            }
+            
+            // Add name.
+            xec_ast_name* name = new ( ast->alloc )
+                            xec_ast_name( -1, ast->function->scope, param );
+            ast->function->scope->names.emplace( param, name );
+            ast->function->parameters.push_back( name );
+        }
+        else
+        {
+            // Varargs indicator.
+            assert( i == argc - 1 && "varargs must be at the end" );
+            ast->function->varargs = true;
+        }
+    }
+
+    
+    
+    // Parse.
+    xec_parser parser( ast );
+    return parser.parse( filename );
 }
 
 
 
-xec_script* xec_parser::get_script()
+
+
+
+
+
+xec_parser::xec_parser( xec_ast* root )
+    :   root( root )
 {
-    return script;
+}
+
+
+xec_parser::~xec_parser()
+{
+    for ( auto i = recycle_tokens.begin(); i != recycle_tokens.end();
+                    i = recycle_tokens.erase( i ) )
+        free( *i );
+}
+
+
+
+xec_ast* xec_parser::get_root()
+{
+    return root;
 }
 
 
@@ -31,12 +102,12 @@ double xec_parser::parse_number( xec_token* token )
     double number = strtod( token->text, &endp );
     if ( endp[ 0 ] != '\0' )
     {
-        script->diagnostic(
+        root->script->error(
             token->sloc, "unable to parse number '%s'", token->text );
     }
     else if ( number == HUGE_VAL || number == -HUGE_VAL )
     {
-        script->diagnostic(
+        root->script->error(
             token->sloc, "number out of range '%s'", token->text );
     }
     return number;
@@ -127,7 +198,7 @@ void xec_parser::prototype( int sloc,
     // Prototypes must sit directly in an object scope.
     if ( name->kind != XEC_NAME_NAME )
     {
-        script->diagnostic( sloc, "invalid prototype name" );
+        root->script->error( sloc, "invalid prototype name" );
         return;
     }
     
@@ -151,7 +222,7 @@ xec_ast_func* xec_parser::function( int sloc, xec_ast_node* name,
 
     // Create function.
     xec_ast_func* func = alloc< xec_ast_func >( sloc );
-    script->functions.push_back( func );
+    root->functions.push_back( func );
     func->scope = alloc< xec_ast_scope >( XEC_SCOPE_BLOCK, outer, func, func );
     
     if ( outer->kind == XEC_SCOPE_OBJECT )
@@ -231,7 +302,8 @@ xec_ast_func* xec_parser::function( int sloc, xec_ast_node* name,
             }
         }
         
-        char* s = (char*)script->alloc.malloc( funcname.size() + 1 );
+        // Allocate function name from script's region, it can outlive the AST.
+        char* s = (char*)root->script->alloc.malloc( funcname.size() + 1 );
         strcpy( s, funcname.c_str() );
         func->funcname = s;
     }
@@ -341,7 +413,7 @@ xec_ast_node* xec_parser::continue_target( int sloc )
             break;
     }
     
-    script->diagnostic( sloc, "continue outside loop" );
+    root->script->error( sloc, "continue outside loop" );
     return NULL;
 }
 
@@ -362,7 +434,7 @@ xec_ast_node* xec_parser::break_target( int sloc )
             break;
     }
     
-    script->diagnostic( sloc, "break outside loop or switch" );
+    root->script->error( sloc, "break outside loop or switch" );
     return NULL;
 }
 
@@ -526,7 +598,7 @@ xec_ast_node* xec_parser::unpack( xec_ast_node* expr )
     }
     
     default:
-        script->diagnostic( expr->sloc, "invalid unpack expression" );
+        root->script->error( expr->sloc, "invalid unpack expression" );
         break;
     }
     
@@ -670,7 +742,7 @@ void xec_parser::check_vararg( int sloc )
     xec_ast_scope* scope = get_scope();
     if ( ! scope->func->varargs )
     {
-        script->diagnostic( sloc, "varargs used outside vararg function" );
+        root->script->error( sloc, "varargs used outside vararg function" );
     }
 }
 
@@ -679,7 +751,7 @@ void xec_parser::check_yield( int sloc )
     xec_ast_scope* scope = get_scope();
     if ( ! scope->func->coroutine )
     {
-        script->diagnostic( sloc, "yield used outside coroutine" );
+        root->script->error( sloc, "yield used outside coroutine" );
     }
 }
 
@@ -696,7 +768,7 @@ xec_ast_name* xec_parser::declare( int sloc, const char* name )
     auto i = scope->names.find( name );
     if ( i != scope->names.end() )
     {
-        script->diagnostic( sloc, "'%s' is already declared", name );
+        root->script->error( sloc, "'%s' is already declared", name );
     }
     
     // Declare in scope.
@@ -842,6 +914,10 @@ xec_ast_scope* xec_parser::imply(
             return NULL;
         s = q->name;
     }
+    else
+    {
+        assert( ! "invalid declaration name" );
+    }
     
     // Lookup.
     auto i = scope->implied.find( s );
@@ -900,7 +976,7 @@ xec_ast_scope* xec_parser::lookup_prototype( int sloc,
     xec_ast_prototype* proto = i->second->prototype;
     if ( ! proto )
     {
-        script->diagnostic( sloc, "function overrides non-prototype" );
+        root->script->error( sloc, "function overrides non-prototype" );
         return outer;
     }
     
@@ -910,11 +986,18 @@ xec_ast_scope* xec_parser::lookup_prototype( int sloc,
         return scope;
     }
     
+    if ( proto->parameters == NULL || params == NULL )
+    {
+        // Non-matching parameter list (one is empty).
+        root->script->error( sloc, "function does not match prototype" );
+        return outer;
+    }
+    
     if ( proto->parameters->names.size() != params->names.size()
             || proto->parameters->varargs != params->varargs
             || proto->coroutine != yield )
     {
-        script->diagnostic( sloc, "function does not match prototype" );
+        root->script->error( sloc, "function does not match prototype" );
         return outer;
     }
     
@@ -924,7 +1007,7 @@ xec_ast_scope* xec_parser::lookup_prototype( int sloc,
         xec_name_name* b = params->names[ i ];
         if ( strcmp( a->name, b->name ) != 0 )
         {
-            script->diagnostic( sloc,
+            root->script->error( sloc,
                 "prototype parameter mismatch '%s' vs '%s'", a->name, b->name );
             return outer;
         }
@@ -1012,7 +1095,7 @@ xec_ast_node* xec_parser::lvalue( xec_ast_node* lvalue )
         xec_expr_global* g = (xec_expr_global*)lvalue;
         if ( ! g->gexplicit )
         {
-            script->diagnostic( g->sloc,
+            root->script->error( g->sloc,
                             "undeclared identifier '%s'", g->name );
         }
         break;
@@ -1020,7 +1103,7 @@ xec_ast_node* xec_parser::lvalue( xec_ast_node* lvalue )
     
     default:
     {
-        script->diagnostic( lvalue->sloc, "invalid lvalue" );
+        root->script->error( lvalue->sloc, "invalid lvalue" );
         break;
     }
     }
@@ -1059,7 +1142,7 @@ xec_ast_node* xec_parser::delval( xec_ast_node* delval )
         break;
     
     default:
-        script->diagnostic( delval->sloc, "expression is not deletable" );
+        root->script->error( delval->sloc, "expression is not deletable" );
         break;
     }
     

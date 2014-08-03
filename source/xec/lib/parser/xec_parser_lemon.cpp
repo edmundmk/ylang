@@ -3879,7 +3879,7 @@ static void yy_syntax_error(
 #define TOKEN (yyminor.yy0)
 #line 1448 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 
-    p->get_script()->diagnostic( TOKEN->sloc,
+    p->get_root()->script->error( TOKEN->sloc,
             "unexpected %s", TOKEN->get_spelling().c_str() );
 #line 3885 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
   XecParseARG_STORE; /* Suppress warning about unused %extra_argument variable */

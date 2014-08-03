@@ -14,88 +14,126 @@
 #include <unordered_map>
 #include <string>
 #include <deque>
-#include "xec_opcodes.h"
+#include <region.h>
 
 
-typedef int xec_ssavalue;
-typedef int xec_ssaname;
 
-struct xec_ssaop;
-struct xec_ssafunc;
-struct xec_ssastring;
+struct xec_ssa_func;
+struct xec_ssa_name;
+struct xec_ssa_block;
+struct xec_ssa_node;
+struct xec_ssa_bool;
+struct xec_ssa_number;
+struct xec_ssa_string;
+struct xec_ssa_operand;
 
 
 
 /*
-    SSA instructions.  For debugging, each instruction has the source location
-    it came from and the original variable name it defines (if any).  There
-    are several forms of instructions:
-    
-        -   Literals.
-        -   Opcodes with one or two operands inline.
-        -   With multiple operands, and producing perhaps multiple results.
-        -   Jumps, where operandb is actually a jump target.
-
-    Operands for instructions with more than two operands (or with mutliple
-    results) are stored out of line in a second array.
+    SSA form for scripts,.
 */
 
-struct xec_ssaop
+
+enum xec_ssa_opcode
 {
-    xec_opcode              opcode      : 8;
-    xec_ssaname             name        : 24;
-    int                     sloc;
+    XEC_SSA_PHI,
+    XEC_SSA_PARAM,
+    
+    XEC_SSA_NULL,
+    XEC_SSA_BOOL,
+    XEC_SSA_NUMBER,
+    XEC_SSA_STRING,
+};
+
+
+typedef std::deque< xec_ssa_func*,
+    region_allocator< xec_ssa_func* > > xec_ssa_func_list;
+typedef std::deque< xec_ssa_node*,
+    region_allocator< xec_ssa_node* > > xec_ssa_node_list;
+
+
+
+struct xec_ssa
+{
+    region              alloc;
+    xec_script*         script;
+    xec_ssa_func*       function;
+    std::deque< xec_ssa_func* > functions;
+};
+
+
+struct xec_ssa_func
+{
+    int                 sloc;
+    const char*         funcname;
+    xec_ssa_block*      block;
+    int                 upvalcount;
+    int                 paramcount;
+    bool                varargs;
+    bool                coroutine;
+};
+
+
+struct xec_ssa_name
+{
+    int                 sloc;
+    const char*         name;
+};
+
+
+
+struct xec_ssa_block
+{
+    xec_ssa_block*      prev;
+    xec_ssa_node*       node;
+    xec_ssa_node*       condition;
     union
     {
-        // Literals.
-        double              number;
-        bool                boolean;
-        xec_ssastring*      string;
-        
-        // One or two-operand instructions.
+        xec_ssa_block*  next;
         struct
         {
-            xec_ssavalue    operanda;
-            xec_ssavalue    operandb;
-        };
-        
-        // Multi-operand instructions producing multiple values.
-        struct
-        {
-            int             valcount    : 20;
-            int             oolindex    : 20;
-            int             oolcount    : 20;
+        xec_ssa_block*  iftrue;
+        xec_ssa_block*  iffalse;
         };
     };
 };
 
 
-
-/*
-    A function in SSA form.
-*/
-
-struct xec_ssafunc
+struct xec_ssa_node
 {
-    const char*                 funcname;
-    int                         upvalcount;
-    std::deque< xec_ssaop >     ops;
-    std::deque< xec_ssavalue >  ool;
-    std::unordered_map< xec_ssaname, const char* > names;
-    std::deque< std::unique_ptr< xec_ssastring > > strings;
+    int                 sloc;
+    xec_ssa_opcode      opcode;
+    xec_ssa_node*       next;
+    xec_ssa_name*       name;
+    
+    size_t              operand_count();
+    xec_ssa_node*       operand( size_t index );
+
+    xec_ssa_bool*       as_bool();
+    xec_ssa_number*     as_number();
+    xec_ssa_string*     as_string();
+    
 };
 
 
-
-/*
-    Literal strings must have length in case they contain \0s.
-*/
-
-struct xec_ssastring
+struct xec_ssa_bool : public xec_ssa_node
 {
-    size_t          length;
-    const char*     string;
+    bool                value;
 };
+
+
+struct xec_ssa_number : public xec_ssa_node
+{
+    double              value;
+};
+
+
+struct xec_ssa_string : public xec_ssa_node
+{
+    const char*         string;
+    size_t              length;
+};
+
 
 
 

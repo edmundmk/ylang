@@ -81,10 +81,10 @@ public:
 
 
 
-void xec_ast_print( xec_ast_func* script )
+void xec_ast_print( xec_ast* root )
 {
     xec_ast_printer printer;
-    printer.visit( script, 0 );
+    printer.visit( root->function, 0 );
 }
 
 
@@ -253,8 +253,6 @@ void xec_ast_printer::visit( xec_expr_compare* node, int indent )
         printf( "%*s%s\n", indent, "", opname );
         visit( node->terms[ i ], indent );
     }
-    
-    indent -= INDENT;
 }
 
 void xec_ast_printer::visit( xec_expr_logical* node, int indent ) 
@@ -293,7 +291,6 @@ void xec_ast_printer::visit( xec_new_object* node, int indent )
     printf( "%*smembers:\n", indent, "" );
     for ( size_t i = 0; i < node->members.size(); ++i )
         visit( node->members[ i ], indent + INDENT );
-    indent -= INDENT;
 }
 
 void xec_ast_printer::visit( xec_new_array* node, int indent )
@@ -315,7 +312,6 @@ void xec_ast_printer::visit( xec_new_table* node, int indent )
         visit( node->elements[ i ].key, indent + INDENT );
         visit( node->elements[ i ].value, indent + INDENT );
     }
-    indent -= INDENT;
 }
 
 void xec_ast_printer::visit( xec_expr_mono* node, int indent ) 
@@ -334,7 +330,6 @@ void xec_ast_printer::visit( xec_expr_call* node, int indent )
         printf( "%*sunpack: true\n", indent, "" );
     visit( node->function, indent );
     visit( node->arguments, indent );
-    indent -= INDENT;
 }
 
 void xec_ast_printer::visit( xec_expr_yield* node, int indent ) 
@@ -344,7 +339,6 @@ void xec_ast_printer::visit( xec_expr_yield* node, int indent )
     if ( node->unpack )
         printf( "%*sunpack: true\n", indent, "" );
     visit( node->arguments, indent );
-    indent -= INDENT;
 }
 
 void xec_ast_printer::visit( xec_expr_vararg* node, int indent ) 
@@ -382,7 +376,6 @@ void xec_ast_printer::visit( xec_expr_assign_list* node, int indent )
     for ( size_t i = 0; i < node->lvalues.size(); ++i )
         visit( node->lvalues[ i ], indent + INDENT );
     visit( node->rvalues, indent );
-    indent -= INDENT;
 }
 
 void xec_ast_printer::visit( xec_stmt_block* node, int indent ) 
@@ -399,8 +392,6 @@ void xec_ast_printer::visit( xec_stmt_block* node, int indent )
     {
         visit( node->stmts[ i ], indent );
     }
-    
-    indent -= INDENT;
 }
 
 void xec_ast_printer::visit( xec_stmt_if* node, int indent ) 
@@ -412,7 +403,6 @@ void xec_ast_printer::visit( xec_stmt_if* node, int indent )
     visit( node->iftrue, indent );
     if ( node->iffalse )
         visit( node->iffalse, indent );
-    indent -= INDENT;
 }
 
 void xec_ast_printer::visit( xec_stmt_switch* node, int indent ) 
@@ -422,7 +412,6 @@ void xec_ast_printer::visit( xec_stmt_switch* node, int indent )
     print_scope( node->scope, indent );
     visit( node->value, indent );
     visit( node->body, indent );
-    indent -= INDENT;
 }
 
 void xec_ast_printer::visit( xec_stmt_while* node, int indent ) 
@@ -432,7 +421,6 @@ void xec_ast_printer::visit( xec_stmt_while* node, int indent )
     print_scope( node->scope, indent );
     visit( node->condition, indent );
     visit( node->body, indent );
-    indent -= INDENT;
 }
 
 void xec_ast_printer::visit( xec_stmt_do* node, int indent ) 
@@ -442,7 +430,6 @@ void xec_ast_printer::visit( xec_stmt_do* node, int indent )
     print_scope( node->scope, indent );
     visit( node->body, indent );
     visit( node->condition, indent );
-    indent -= INDENT;
 }
 
 void xec_ast_printer::visit( xec_stmt_foreach* node, int indent ) 
@@ -461,7 +448,6 @@ void xec_ast_printer::visit( xec_stmt_foreach* node, int indent )
     printf( "%*s%s:\n", indent, "", node->eachkey ? "eachkey" : "eachindex" );
     visit( node->list, indent + INDENT );
     visit( node->body, indent );
-    indent -= INDENT;
 }
 
 void xec_ast_printer::visit( xec_stmt_for* node, int indent ) 
@@ -482,7 +468,6 @@ void xec_ast_printer::visit( xec_stmt_for* node, int indent )
     else
         printf( "%*s[no update]\n", indent, "" );
     visit( node->body, indent );
-    indent -= INDENT;
 }
 
 void xec_ast_printer::visit( xec_stmt_using* node, int indent ) 
@@ -492,7 +477,6 @@ void xec_ast_printer::visit( xec_stmt_using* node, int indent )
     print_scope( node->scope, indent );
     visit( node->uvalue, indent );
     visit( node->body, indent );
-    indent -= INDENT;
 }
 
 void xec_ast_printer::visit( xec_stmt_try* node, int indent ) 
@@ -525,8 +509,6 @@ void xec_ast_printer::visit( xec_stmt_catch* node, int indent )
         printf( "%*s[no prototype]\n", indent, "" );
     indent -= INDENT;
     visit( node->body, indent );
-    
-    indent -= INDENT;
 }
 
 void xec_ast_printer::visit( xec_stmt_delete* node, int indent ) 
@@ -657,7 +639,6 @@ void xec_ast_printer::print_scope( xec_ast_scope* scope, int indent )
             print_name( scope->decls[ i ] );
             printf( "\n" );
         }
-        indent -= INDENT;
     }
 }
 

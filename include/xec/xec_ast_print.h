@@ -10,10 +10,10 @@
 #define XEC_AST_PRINT_H
 
 
-struct xec_ast_func;
+struct xec_ast;
 
 
-void xec_ast_print( xec_ast_func* script );
+void xec_ast_print( xec_ast* root );
 
 
 
