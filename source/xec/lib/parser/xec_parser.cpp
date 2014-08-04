@@ -344,7 +344,7 @@ void xec_parser::var( int sloc, xec_ast_node* names, xec_ast_node* rvals )
                 return;
             
             xec_expr_assign* assign = alloc< xec_expr_assign >(
-                            sloc, XEC_OPERATOR_DECLARE );
+                            sloc, XEC_ASTOP_DECLARE );
             xec_expr_objref* objref = alloc< xec_expr_objref >( sloc, object );
             assign->lvalue = alloc< xec_expr_key> ( sloc, objref, n->name );
             assign->rvalue = rvals;
@@ -363,7 +363,7 @@ void xec_parser::var( int sloc, xec_ast_node* names, xec_ast_node* rvals )
                 return;
          
             xec_expr_assign_list* assign = alloc< xec_expr_assign_list >(
-                            sloc, XEC_OPERATOR_DECLARE );
+                            sloc, XEC_ASTOP_DECLARE );
             for ( size_t i = 0; i < l->names.size(); ++i )
             {
                 xec_name_name* n = l->names[ i ];
@@ -525,6 +525,63 @@ xec_ast_node* xec_parser::lookup( int sloc, const char* identifier, bool outer )
 }
 
 
+xec_ast_node* xec_parser::lvalue( xec_ast_node* lvalue )
+{
+    // The expression must be a single lvalue.  Only a restricted set of
+    // expressions are lvalues, and global variables must be scoped using
+    // 'global.'
+    
+    switch ( lvalue->kind )
+    {
+    case XEC_EXPR_LOCAL:
+    case XEC_EXPR_UPREF:
+    case XEC_EXPR_KEY:
+    case XEC_EXPR_INKEY:
+    case XEC_EXPR_INDEX:
+    {
+        break;
+    }
+    
+    case XEC_EXPR_GLOBAL:
+    {
+        xec_expr_global* g = (xec_expr_global*)lvalue;
+        if ( ! g->gexplicit )
+        {
+            root->script->error( g->sloc,
+                            "undeclared identifier '%s'", g->name );
+        }
+        break;
+    }
+    
+    default:
+    {
+        root->script->error( lvalue->sloc, "invalid lvalue" );
+        break;
+    }
+    }
+
+    return lvalue;
+}
+
+
+void xec_parser::lvalue_list(
+        xec_ast_node* list, xec_ast_node_list* lvalues )
+{
+    if ( list->kind == XEC_EXPR_LIST )
+    {
+        xec_expr_list* l = (xec_expr_list*)list;
+        for ( size_t i = 0; i < l->values.size(); ++l )
+            lvalues->push_back( lvalue( l->values[ i ] ) );
+        if ( l->final )
+            lvalues->push_back( lvalue( l->final ) );
+    }
+    else
+    {
+        lvalues->push_back( lvalue( list ) );
+    }
+}
+
+
 
 xec_name_list* xec_parser::name_list( xec_ast_node* list )
 {
@@ -608,7 +665,7 @@ xec_ast_node* xec_parser::unpack( xec_ast_node* expr )
 
 
 xec_ast_node* xec_parser::compare( int sloc,
-                xec_operator_kind op, xec_ast_node* lhs, xec_ast_node* rhs )
+                xec_ast_opkind op, xec_ast_node* lhs, xec_ast_node* rhs )
 {
     // Build a compare expression.
     xec_expr_compare* c;
@@ -630,7 +687,7 @@ xec_ast_node* xec_parser::compare( int sloc,
 
 
 xec_ast_node* xec_parser::assign( int sloc,
-                xec_operator_kind op, xec_ast_node* lv, xec_ast_node* rv )
+                xec_ast_opkind op, xec_ast_node* lv, xec_ast_node* rv )
 {
     if ( lv->kind == XEC_EXPR_LIST )
     {
@@ -664,7 +721,7 @@ xec_ast_node* xec_parser::varstmt(
     if ( names->kind == XEC_NAME_NAME )
     {
         xec_expr_assign* assign =
-                alloc< xec_expr_assign >( sloc, XEC_OPERATOR_DECLARE );
+                alloc< xec_expr_assign >( sloc, XEC_ASTOP_DECLARE );
         assign->lvalue = declare( names );
         assign->rvalue = rvals;
         return assign;
@@ -672,7 +729,7 @@ xec_ast_node* xec_parser::varstmt(
     else if ( names->kind == XEC_NAME_LIST )
     {
         xec_expr_assign_list* assign = alloc< xec_expr_assign_list >(
-                        sloc, XEC_OPERATOR_DECLARE );
+                        sloc, XEC_ASTOP_DECLARE );
         declare_list( names, &assign->lvalues );
         assign->rvalues = rvals;
         return assign;
@@ -836,14 +893,14 @@ void xec_parser::declname( int sloc, xec_ast_node* name, xec_ast_node* decl )
 
     // Resolve and create lvalue to assign to.
     xec_expr_assign* assign =
-                    alloc< xec_expr_assign >( sloc, XEC_OPERATOR_ASSIGN );
+                    alloc< xec_expr_assign >( sloc, XEC_ASTOP_ASSIGN );
     
     if ( name->kind == XEC_NAME_NAME )
     {
         // Single names declare things.
         xec_name_name* n = (xec_name_name*)name;
         xec_ast_name* declname = declare( n->sloc, n->name );
-        assign->assignop = XEC_OPERATOR_DECLARE;
+        assign->assignop = XEC_ASTOP_DECLARE;
         
         if ( object )
         {
@@ -1072,62 +1129,6 @@ int xec_parser::upval( xec_ast_func* func, xec_ast_upval uv )
 }
 
 
-
-xec_ast_node* xec_parser::lvalue( xec_ast_node* lvalue )
-{
-    // The expression must be a single lvalue.  Only a restricted set of
-    // expressions are lvalues, and global variables must be scoped using
-    // 'global.'
-    
-    switch ( lvalue->kind )
-    {
-    case XEC_EXPR_LOCAL:
-    case XEC_EXPR_UPREF:
-    case XEC_EXPR_KEY:
-    case XEC_EXPR_INKEY:
-    case XEC_EXPR_INDEX:
-    {
-        break;
-    }
-    
-    case XEC_EXPR_GLOBAL:
-    {
-        xec_expr_global* g = (xec_expr_global*)lvalue;
-        if ( ! g->gexplicit )
-        {
-            root->script->error( g->sloc,
-                            "undeclared identifier '%s'", g->name );
-        }
-        break;
-    }
-    
-    default:
-    {
-        root->script->error( lvalue->sloc, "invalid lvalue" );
-        break;
-    }
-    }
-
-    return lvalue;
-}
-
-
-void xec_parser::lvalue_list(
-        xec_ast_node* list, xec_ast_node_list* lvalues )
-{
-    if ( list->kind == XEC_EXPR_LIST )
-    {
-        xec_expr_list* l = (xec_expr_list*)list;
-        for ( size_t i = 0; i < l->values.size(); ++l )
-            lvalues->push_back( lvalue( l->values[ i ] ) );
-        if ( l->final )
-            lvalues->push_back( lvalue( l->final ) );
-    }
-    else
-    {
-        lvalues->push_back( lvalue( list ) );
-    }
-}
 
 
 

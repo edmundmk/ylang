@@ -200,7 +200,7 @@ xec_expr_index::xec_expr_index(
 
 
 xec_expr_preop::xec_expr_preop(
-                int sloc, xec_operator_kind opkind, xec_ast_node* lvalue )
+                int sloc, xec_ast_opkind opkind, xec_ast_node* lvalue )
     :   xec_ast_node( XEC_EXPR_PREOP, sloc )
     ,   opkind( opkind )
     ,   lvalue( lvalue )
@@ -209,7 +209,7 @@ xec_expr_preop::xec_expr_preop(
 
 
 xec_expr_postop::xec_expr_postop(
-                int sloc, xec_operator_kind opkind, xec_ast_node* lvalue )
+                int sloc, xec_ast_opkind opkind, xec_ast_node* lvalue )
     :   xec_ast_node( XEC_EXPR_POSTOP, sloc )
     ,   opkind( opkind )
     ,   lvalue( lvalue )
@@ -218,7 +218,7 @@ xec_expr_postop::xec_expr_postop(
 
 
 xec_expr_unary::xec_expr_unary(
-                int sloc, xec_operator_kind opkind, xec_ast_node* operand )
+                int sloc, xec_ast_opkind opkind, xec_ast_node* operand )
     :   xec_ast_node( XEC_EXPR_UNARY, sloc )
     ,   opkind( opkind )
     ,   operand( operand )
@@ -226,7 +226,7 @@ xec_expr_unary::xec_expr_unary(
 }
 
 xec_expr_binary::xec_expr_binary( int sloc,
-                xec_operator_kind opkind, xec_ast_node* lhs, xec_ast_node* rhs )
+                xec_ast_opkind opkind, xec_ast_node* lhs, xec_ast_node* rhs )
     :   xec_ast_node( XEC_EXPR_BINARY, sloc )
     ,   opkind( opkind )
     ,   lhs( lhs )
@@ -243,7 +243,7 @@ xec_expr_compare::xec_expr_compare( int sloc, xec_ast_node* first )
 
 
 xec_expr_logical::xec_expr_logical( int sloc,
-                xec_operator_kind opkind, xec_ast_node* lhs, xec_ast_node* rhs )
+                xec_ast_opkind opkind, xec_ast_node* lhs, xec_ast_node* rhs )
     :   xec_ast_node( XEC_EXPR_LOGICAL, sloc )
     ,   opkind( opkind )
     ,   lhs( lhs )
@@ -347,7 +347,7 @@ xec_expr_list::xec_expr_list( int sloc )
 
 
 
-xec_expr_assign::xec_expr_assign( int sloc, xec_operator_kind assignop )
+xec_expr_assign::xec_expr_assign( int sloc, xec_ast_opkind assignop )
     :   xec_ast_node( XEC_EXPR_ASSIGN, sloc )
     ,   assignop( assignop )
     ,   lvalue( NULL )
@@ -356,7 +356,7 @@ xec_expr_assign::xec_expr_assign( int sloc, xec_operator_kind assignop )
 }
 
 
-xec_expr_assign_list::xec_expr_assign_list( int sloc, xec_operator_kind assignop )
+xec_expr_assign_list::xec_expr_assign_list( int sloc, xec_ast_opkind assignop )
     :   xec_ast_node( XEC_EXPR_ASSIGN_LIST, sloc )
     ,   assignop( assignop )
     ,   rvalues( NULL )
@@ -510,65 +510,65 @@ xec_name_list::xec_name_list( int sloc )
 
 
 
-const char* xec_operator_name( xec_operator_kind op )
+const char* xec_operator_name( xec_ast_opkind op )
 {
     switch ( op )
     {
-    case XEC_OPERATOR_DECLARE:          return "[declare]";
+    case XEC_ASTOP_DECLARE:          return "[declare]";
 
-    case XEC_OPERATOR_ASSIGN:           return "=";
-    case XEC_OPERATOR_MULASSIGN:        return "*=";
-    case XEC_OPERATOR_DIVASSIGN:        return "/=";
-    case XEC_OPERATOR_MODASSIGN:        return "%=";
-    case XEC_OPERATOR_INTDIVASSIGN:     return "~=";
-    case XEC_OPERATOR_ADDASSIGN:        return "+=";
-    case XEC_OPERATOR_SUBASSIGN:        return "-=";
-    case XEC_OPERATOR_LSHIFTASSIGN:     return "<<=";
-    case XEC_OPERATOR_LRSHIFTASSIGN:    return ">>=";
-    case XEC_OPERATOR_ARSHIFTASSIGN:    return "~>>=";
-    case XEC_OPERATOR_BITANDASSIGN:     return "&=";
-    case XEC_OPERATOR_BITXORASSIGN:     return "^=";
-    case XEC_OPERATOR_BITORASSIGN:      return "|=";
+    case XEC_ASTOP_ASSIGN:           return "=";
+    case XEC_ASTOP_MULASSIGN:        return "*=";
+    case XEC_ASTOP_DIVASSIGN:        return "/=";
+    case XEC_ASTOP_MODASSIGN:        return "%=";
+    case XEC_ASTOP_INTDIVASSIGN:     return "~=";
+    case XEC_ASTOP_ADDASSIGN:        return "+=";
+    case XEC_ASTOP_SUBASSIGN:        return "-=";
+    case XEC_ASTOP_LSHIFTASSIGN:     return "<<=";
+    case XEC_ASTOP_LRSHIFTASSIGN:    return ">>=";
+    case XEC_ASTOP_ARSHIFTASSIGN:    return "~>>=";
+    case XEC_ASTOP_BITANDASSIGN:     return "&=";
+    case XEC_ASTOP_BITXORASSIGN:     return "^=";
+    case XEC_ASTOP_BITORASSIGN:      return "|=";
     
-    case XEC_OPERATOR_PREINC:           return "++[preop]";
-    case XEC_OPERATOR_PREDEC:           return "--[preop]";
+    case XEC_ASTOP_PREINC:           return "++[preop]";
+    case XEC_ASTOP_PREDEC:           return "--[preop]";
     
-    case XEC_OPERATOR_POSTINC:          return "[postop]++";
-    case XEC_OPERATOR_POSTDEC:          return "[postop]--";
+    case XEC_ASTOP_POSTINC:          return "[postop]++";
+    case XEC_ASTOP_POSTDEC:          return "[postop]--";
 
-    case XEC_OPERATOR_POSITIVE:         return "+[unary]";
-    case XEC_OPERATOR_NEGATIVE:         return "-[unary]";
-    case XEC_OPERATOR_LOGICNOT:         return "![unary]";
-    case XEC_OPERATOR_BITNOT:           return "~[unary]";
+    case XEC_ASTOP_POSITIVE:         return "+[unary]";
+    case XEC_ASTOP_NEGATIVE:         return "-[unary]";
+    case XEC_ASTOP_LOGICNOT:         return "![unary]";
+    case XEC_ASTOP_BITNOT:           return "~[unary]";
     
-    case XEC_OPERATOR_MULTIPLY:         return "*";
-    case XEC_OPERATOR_DIVIDE:           return "/";
-    case XEC_OPERATOR_MODULUS:          return "%";
-    case XEC_OPERATOR_INTDIV:           return "~";
-    case XEC_OPERATOR_ADD:              return "+";
-    case XEC_OPERATOR_SUBTRACT:         return "-";
-    case XEC_OPERATOR_LSHIFT:           return "<<";
-    case XEC_OPERATOR_LRSHIFT:          return ">>";
-    case XEC_OPERATOR_ARSHIFT:          return "~>>";
-    case XEC_OPERATOR_BITAND:           return "&";
-    case XEC_OPERATOR_BITXOR:           return "^";
-    case XEC_OPERATOR_BITOR:            return "|";
-    case XEC_OPERATOR_CONCATENATE:      return "..";
+    case XEC_ASTOP_MULTIPLY:         return "*";
+    case XEC_ASTOP_DIVIDE:           return "/";
+    case XEC_ASTOP_MODULUS:          return "%";
+    case XEC_ASTOP_INTDIV:           return "~";
+    case XEC_ASTOP_ADD:              return "+";
+    case XEC_ASTOP_SUBTRACT:         return "-";
+    case XEC_ASTOP_LSHIFT:           return "<<";
+    case XEC_ASTOP_LRSHIFT:          return ">>";
+    case XEC_ASTOP_ARSHIFT:          return "~>>";
+    case XEC_ASTOP_BITAND:           return "&";
+    case XEC_ASTOP_BITXOR:           return "^";
+    case XEC_ASTOP_BITOR:            return "|";
+    case XEC_ASTOP_CONCATENATE:      return "..";
     
-    case XEC_OPERATOR_EQUAL:            return "==";
-    case XEC_OPERATOR_NOTEQUAL:         return "!=";
-    case XEC_OPERATOR_LESS:             return "<";
-    case XEC_OPERATOR_GREATER:          return ">";
-    case XEC_OPERATOR_LESSEQUAL:        return "<=";
-    case XEC_OPERATOR_GREATEREQUAL:     return ">=";
-    case XEC_OPERATOR_IN:               return "in";
-    case XEC_OPERATOR_NOTIN:            return "!in";
-    case XEC_OPERATOR_IS:               return "is";
-    case XEC_OPERATOR_NOTIS:            return "!is";
+    case XEC_ASTOP_EQUAL:            return "==";
+    case XEC_ASTOP_NOTEQUAL:         return "!=";
+    case XEC_ASTOP_LESS:             return "<";
+    case XEC_ASTOP_GREATER:          return ">";
+    case XEC_ASTOP_LESSEQUAL:        return "<=";
+    case XEC_ASTOP_GREATEREQUAL:     return ">=";
+    case XEC_ASTOP_IN:               return "in";
+    case XEC_ASTOP_NOTIN:            return "!in";
+    case XEC_ASTOP_IS:               return "is";
+    case XEC_ASTOP_NOTIS:            return "!is";
     
-    case XEC_OPERATOR_LOGICAND:         return "&&";
-    case XEC_OPERATOR_LOGICXOR:         return "^^";
-    case XEC_OPERATOR_LOGICOR:          return "||";
+    case XEC_ASTOP_LOGICAND:         return "&&";
+    case XEC_ASTOP_LOGICXOR:         return "^^";
+    case XEC_ASTOP_LOGICOR:          return "||";
     }
     
     return "??";

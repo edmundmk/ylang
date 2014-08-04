@@ -119,63 +119,63 @@ enum xec_ast_node_kind
 };
 
 
-enum xec_operator_kind
+enum xec_ast_opkind
 {
-    XEC_OPERATOR_DECLARE,
+    XEC_ASTOP_DECLARE,
 
-    XEC_OPERATOR_ASSIGN,
-    XEC_OPERATOR_MULASSIGN,
-    XEC_OPERATOR_DIVASSIGN,
-    XEC_OPERATOR_MODASSIGN,
-    XEC_OPERATOR_INTDIVASSIGN,
-    XEC_OPERATOR_ADDASSIGN,
-    XEC_OPERATOR_SUBASSIGN,
-    XEC_OPERATOR_LSHIFTASSIGN,
-    XEC_OPERATOR_LRSHIFTASSIGN,
-    XEC_OPERATOR_ARSHIFTASSIGN,
-    XEC_OPERATOR_BITANDASSIGN,
-    XEC_OPERATOR_BITXORASSIGN,
-    XEC_OPERATOR_BITORASSIGN,
+    XEC_ASTOP_ASSIGN,
+    XEC_ASTOP_MULASSIGN,
+    XEC_ASTOP_DIVASSIGN,
+    XEC_ASTOP_MODASSIGN,
+    XEC_ASTOP_INTDIVASSIGN,
+    XEC_ASTOP_ADDASSIGN,
+    XEC_ASTOP_SUBASSIGN,
+    XEC_ASTOP_LSHIFTASSIGN,
+    XEC_ASTOP_LRSHIFTASSIGN,
+    XEC_ASTOP_ARSHIFTASSIGN,
+    XEC_ASTOP_BITANDASSIGN,
+    XEC_ASTOP_BITXORASSIGN,
+    XEC_ASTOP_BITORASSIGN,
     
-    XEC_OPERATOR_PREINC,
-    XEC_OPERATOR_PREDEC,
+    XEC_ASTOP_PREINC,
+    XEC_ASTOP_PREDEC,
     
-    XEC_OPERATOR_POSTINC,
-    XEC_OPERATOR_POSTDEC,
+    XEC_ASTOP_POSTINC,
+    XEC_ASTOP_POSTDEC,
 
-    XEC_OPERATOR_POSITIVE,
-    XEC_OPERATOR_NEGATIVE,
-    XEC_OPERATOR_LOGICNOT,
-    XEC_OPERATOR_BITNOT,
+    XEC_ASTOP_POSITIVE,
+    XEC_ASTOP_NEGATIVE,
+    XEC_ASTOP_LOGICNOT,
+    XEC_ASTOP_BITNOT,
     
-    XEC_OPERATOR_MULTIPLY,
-    XEC_OPERATOR_DIVIDE,
-    XEC_OPERATOR_MODULUS,
-    XEC_OPERATOR_INTDIV,
-    XEC_OPERATOR_ADD,
-    XEC_OPERATOR_SUBTRACT,
-    XEC_OPERATOR_LSHIFT,
-    XEC_OPERATOR_LRSHIFT,
-    XEC_OPERATOR_ARSHIFT,
-    XEC_OPERATOR_BITAND,
-    XEC_OPERATOR_BITXOR,
-    XEC_OPERATOR_BITOR,
-    XEC_OPERATOR_CONCATENATE,
+    XEC_ASTOP_MULTIPLY,
+    XEC_ASTOP_DIVIDE,
+    XEC_ASTOP_MODULUS,
+    XEC_ASTOP_INTDIV,
+    XEC_ASTOP_ADD,
+    XEC_ASTOP_SUBTRACT,
+    XEC_ASTOP_LSHIFT,
+    XEC_ASTOP_LRSHIFT,
+    XEC_ASTOP_ARSHIFT,
+    XEC_ASTOP_BITAND,
+    XEC_ASTOP_BITXOR,
+    XEC_ASTOP_BITOR,
+    XEC_ASTOP_CONCATENATE,
     
-    XEC_OPERATOR_EQUAL,
-    XEC_OPERATOR_NOTEQUAL,
-    XEC_OPERATOR_LESS,
-    XEC_OPERATOR_GREATER,
-    XEC_OPERATOR_LESSEQUAL,
-    XEC_OPERATOR_GREATEREQUAL,
-    XEC_OPERATOR_IN,
-    XEC_OPERATOR_NOTIN,
-    XEC_OPERATOR_IS,
-    XEC_OPERATOR_NOTIS,
+    XEC_ASTOP_EQUAL,
+    XEC_ASTOP_NOTEQUAL,
+    XEC_ASTOP_LESS,
+    XEC_ASTOP_GREATER,
+    XEC_ASTOP_LESSEQUAL,
+    XEC_ASTOP_GREATEREQUAL,
+    XEC_ASTOP_IN,
+    XEC_ASTOP_NOTIN,
+    XEC_ASTOP_IS,
+    XEC_ASTOP_NOTIS,
     
-    XEC_OPERATOR_LOGICAND,
-    XEC_OPERATOR_LOGICXOR,
-    XEC_OPERATOR_LOGICOR,
+    XEC_ASTOP_LOGICAND,
+    XEC_ASTOP_LOGICXOR,
+    XEC_ASTOP_LOGICOR,
 };
 
 
@@ -194,8 +194,8 @@ typedef std::deque< xec_ast_name*,
     region_allocator< xec_ast_name* > > xec_ast_name_list;
 typedef std::deque< xec_name_name*,
     region_allocator< xec_name_name* > > xec_name_name_list;
-typedef std::deque< xec_operator_kind,
-    region_allocator< xec_operator_kind > > xec_opkind_list;
+typedef std::deque< xec_ast_opkind,
+    region_allocator< xec_ast_opkind > > xec_opkind_list;
 typedef std::deque< xec_key_value,
     region_allocator< xec_key_value > > xec_key_value_list;
 typedef std::unordered_map
@@ -454,27 +454,27 @@ struct xec_expr_index : public xec_ast_node
 
 struct xec_expr_preop : public xec_ast_node
 {
-    xec_expr_preop( int sloc, xec_operator_kind opkind, xec_ast_node* lvalue );
+    xec_expr_preop( int sloc, xec_ast_opkind opkind, xec_ast_node* lvalue );
 
-    xec_operator_kind   opkind;
+    xec_ast_opkind   opkind;
     xec_ast_node*       lvalue;
 };
 
 
 struct xec_expr_postop : public xec_ast_node
 {
-    xec_expr_postop( int sloc, xec_operator_kind opkind, xec_ast_node* lvalue );
+    xec_expr_postop( int sloc, xec_ast_opkind opkind, xec_ast_node* lvalue );
 
-    xec_operator_kind   opkind;
+    xec_ast_opkind   opkind;
     xec_ast_node*       lvalue;
 };
 
 
 struct xec_expr_unary : public xec_ast_node
 {
-    xec_expr_unary( int sloc, xec_operator_kind opkind, xec_ast_node* operand );
+    xec_expr_unary( int sloc, xec_ast_opkind opkind, xec_ast_node* operand );
 
-    xec_operator_kind   opkind;
+    xec_ast_opkind   opkind;
     xec_ast_node*       operand;
 };
 
@@ -482,9 +482,9 @@ struct xec_expr_unary : public xec_ast_node
 struct xec_expr_binary : public xec_ast_node
 {
     xec_expr_binary( int sloc,
-            xec_operator_kind opkind, xec_ast_node* lhs, xec_ast_node* rhs );
+            xec_ast_opkind opkind, xec_ast_node* lhs, xec_ast_node* rhs );
 
-    xec_operator_kind   opkind;
+    xec_ast_opkind   opkind;
     xec_ast_node*       lhs;
     xec_ast_node*       rhs;
 };
@@ -503,9 +503,9 @@ struct xec_expr_compare : public xec_ast_node
 struct xec_expr_logical : public xec_ast_node
 {
     xec_expr_logical( int sloc,
-            xec_operator_kind opkind, xec_ast_node* lhs, xec_ast_node* rhs );
+            xec_ast_opkind opkind, xec_ast_node* lhs, xec_ast_node* rhs );
 
-    xec_operator_kind   opkind;
+    xec_ast_opkind   opkind;
     xec_ast_node*       lhs;
     xec_ast_node*       rhs;
 };
@@ -637,9 +637,9 @@ struct xec_expr_list : public xec_ast_node
 
 struct xec_expr_assign : public xec_ast_node
 {
-    xec_expr_assign( int sloc, xec_operator_kind assignop );
+    xec_expr_assign( int sloc, xec_ast_opkind assignop );
 
-    xec_operator_kind   assignop;
+    xec_ast_opkind   assignop;
     xec_ast_node*       lvalue;
     xec_ast_node*       rvalue;
 };
@@ -647,9 +647,9 @@ struct xec_expr_assign : public xec_ast_node
 
 struct xec_expr_assign_list : public xec_ast_node
 {
-    xec_expr_assign_list( int sloc, xec_operator_kind assignop );
+    xec_expr_assign_list( int sloc, xec_ast_opkind assignop );
 
-    xec_operator_kind   assignop;
+    xec_ast_opkind   assignop;
     xec_ast_node_list   lvalues;
     xec_ast_node*       rvalues;
 };
@@ -854,7 +854,7 @@ struct xec_name_list : public xec_ast_node
     Operator names.
 */
 
-const char* xec_operator_name( xec_operator_kind op );
+const char* xec_operator_name( xec_ast_opkind op );
 
 
 

@@ -75,14 +75,17 @@ public:
 
     xec_ast_node*       lookup( int sloc, const char* identifier, bool outer );
 
+    xec_ast_node*       lvalue( xec_ast_node* lv );
+    void                lvalue_list(
+                                xec_ast_node* list, xec_ast_node_list* lv );
 
     xec_name_list*      name_list( xec_ast_node* list );
     xec_expr_list*      expr_list( xec_ast_node* list );
     xec_ast_node*       mono( xec_ast_node* expr );
     xec_ast_node*       unpack( xec_ast_node* expr );
-    xec_ast_node*       compare( int sloc, xec_operator_kind op,
+    xec_ast_node*       compare( int sloc, xec_ast_opkind op,
                                 xec_ast_node* lhs, xec_ast_node* rhs );
-    xec_ast_node*       assign( int sloc, xec_operator_kind op,
+    xec_ast_node*       assign( int sloc, xec_ast_opkind op,
                                 xec_ast_node* lv, xec_ast_node* rv );
     xec_ast_node*       varstmt( int sloc, xec_ast_node* names,
                                 xec_ast_node* rvals );
@@ -116,9 +119,6 @@ private:
                                 xec_ast_scope* outer, xec_ast_node* name,
                                         xec_name_list* params, bool yield );
     int                 upval( xec_ast_func* func, xec_ast_upval uv );
-    xec_ast_node*       lvalue( xec_ast_node* lv );
-    void                lvalue_list(
-                                xec_ast_node* list, xec_ast_node_list* lv );
     xec_ast_node*       delval( xec_ast_node* dv );
     
 
