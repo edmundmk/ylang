@@ -13,6 +13,25 @@
 
 
 /*
+    Simple and Efficient Construction of Static Single Assignment Form
+        Braun, Sebastian Buchwald, et al.
+
+    http://www.cdl.uni-saarland.de/papers/bbhlmz13cc.pdf
+*/
+
+
+
+template < typename containera_t, typename containerb_t >
+static inline void extend( containera_t* a, const containerb_t& b )
+{
+    a->insert( a->end(), b.begin(), b.end() );
+}
+
+
+
+
+
+/*
     xec_ssa_lvalue
 */
 
@@ -30,6 +49,27 @@ struct xec_ssa_lvalue
 
 
 
+
+/*
+    xec_ssa_valist
+*/
+
+struct xec_ssa_valist
+{
+    xec_ssa_valist();
+
+    std::deque< xec_ssa_node* > values;
+    xec_ssa_node*   unpacked;
+};
+
+
+xec_ssa_valist::xec_ssa_valist()
+    :   unpacked( NULL )
+{
+}
+
+
+
 /*
     xec_ssa_build_expr
 */
@@ -37,6 +77,50 @@ struct xec_ssa_lvalue
 xec_ssa_build_expr::xec_ssa_build_expr( xec_ssa_builder* b )
     :   b( b )
 {
+}
+
+xec_ssa_node* xec_ssa_build_expr::fallback( xec_ast_node* node )
+{
+    assert( ! "expected expression" );
+}
+
+xec_ssa_node* xec_ssa_build_expr::visit( xec_ast_func* node )
+{
+    // Build SSA of function recursively.
+    xec_ssa_func* func = b->func( node );
+    
+    // Construct closure and bind upvals.
+    xec_ssa_expand* closure = b->expand( node->sloc, XEC_SSA_CLOSURE, func );
+    for ( size_t i = 0 ; i < node->upvals.size(); ++i )
+    {
+        const xec_ast_upval& upval = node->upvals.at( i );
+        switch ( upval.kind )
+        {
+        case XEC_UPVAL_LOCAL:
+        {
+            xec_ssa_node* local = b->lookup( upval.local );
+            closure->operands.push_back( local );
+            break;
+        }
+        
+        case XEC_UPVAL_OBJECT:
+        {
+            xec_ssa_node* object = b->lookup( upval.object );
+            closure->operands.push_back( object );
+            break;
+        }
+        
+        case XEC_UPVAL_UPVAL:
+        {
+            xec_ssa_node* uv = b->node( b->packed(
+                        node->sloc, XEC_SSA_UPREF, nullptr, upval.upval ) );
+            closure->operands.push_back( uv );
+            break;
+        }
+        }
+    }
+    
+    return b->node( closure );
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_null* node )
@@ -67,12 +151,14 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_local* node )
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_global* node )
 {
-    return b->node( b->packed( node->sloc, XEC_SSA_GLOBAL, NULL, node->name ) );
+    return b->node( b->packed( node->sloc,
+                XEC_SSA_GLOBAL, nullptr, node->name ) );
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_upref* node )
 {
-    return b->node( b->packed( node->sloc, XEC_SSA_UPREF, NULL, node->index ) );
+    return b->node( b->packed( node->sloc,
+                XEC_SSA_UPREF, nullptr, node->index ) );
                 
 }
 
@@ -122,8 +208,7 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_preop* node )
     
     xec_ssa_node* updated = b->node( b->packed(
                 node->sloc, opcode, value, literal ) );
-    b->lvalue_assign( &lvalue, updated );
-    return updated;
+    return b->lvalue_assign( &lvalue, updated );
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_postop* node )
@@ -322,7 +407,20 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_qmark* node )
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_new_new* node )
 {
-    return NULL;
+    // Get prototype.
+    xec_ssa_node* proto = visit( node->proto );
+
+    // Get arguments (unpacked).
+    xec_ssa_valist arguments;
+    b->unpack( &arguments, node->arguments, -1 );
+
+    // SSA instruction has both prototype and arguments as operands.
+    xec_ssa_expand* newval = b->expand( node->sloc, XEC_SSA_NEW, 1 );
+    newval->operands.push_back( proto );
+    extend( &newval->operands, arguments.values );
+    newval->unpacked = arguments.unpacked;
+
+    return b->node( newval );
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_new_object* node )
@@ -341,19 +439,53 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_new_object* node )
         visit( node->members.at( i ) );
     }
     
-    // !! TODO: close upvals in scope.
+    // !! TODO: close upvals in scope (if object is an upval, close it...)
     
     return object;
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_new_array* node )
 {
-    return NULL;
+    // Construct array.
+    xec_ssa_node* array = b->node( b->packed( node->sloc,
+                    XEC_SSA_ARRAY, nullptr, (int)node->values.size() ) );
+    
+    // Append all values.
+    for ( size_t i = 0; i < node->values.size(); ++i )
+    {
+        xec_ssa_node* value = visit( node->values.at( i ) );
+        b->node( b->packed( value->sloc, XEC_SSA_APPEND, array, value ) );
+    }
+    if ( node->final )
+    {
+        // Unpack final values and extend the array with them.
+        xec_ssa_valist values;
+        b->unpack( &values, node->final, -1 );
+        xec_ssa_expand* final = b->expand( node->sloc, XEC_SSA_EXTEND, 0 );
+        extend( &final->operands, values.values );
+        final->unpacked = values.unpacked;
+        b->node( final );
+    }
+
+    return array;
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_new_table* node )
 {
-    return NULL;
+    // Construct table.
+    xec_ssa_node* table = b->node( b->packed( node->sloc,
+                    XEC_SSA_TABLE, nullptr, (int)node->elements.size() ) );
+    
+    // Add elements.
+    for ( size_t i = 0; i < node->elements.size(); ++i )
+    {
+        const xec_key_value& e = node->elements.at( i );
+        xec_ssa_node* key   = visit( e.key );
+        xec_ssa_node* value = visit( e.value );
+        b->node( b->triple( node->sloc, XEC_SSA_SETKEY, table, key, value ) );
+    }
+    
+    return table;
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_mono* node )
@@ -363,185 +495,287 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_mono* node )
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_call* node )
 {
-    return NULL;
+    xec_ssa_valist values;
+    b->unpack( &values, node, 1 );
+    return values.values.front();
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_yield* node )
 {
-    return NULL;
+    xec_ssa_valist values;
+    b->unpack( &values, node, 1 );
+    return values.values.front();
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_vararg* node )
 {
-    return NULL;
+    // Fetch the first variable argument.
+    return b->node( b->packed( node->sloc, XEC_SSA_VARARG, nullptr, 0 ) );
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_unpack* node )
 {
-    return NULL;
+    xec_ssa_valist values;
+    b->unpack( &values, node, 1 );
+    return values.values.front();
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_list* node )
 {
-    return NULL;
+    xec_ssa_valist values;
+    b->unpack( &values, node, 1 );
+    return values.values.front();
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_assign* node )
 {
-    return NULL;
+    xec_ssa_lvalue lvalue;
+    b->lvalue( &lvalue, node->lvalue );
+    xec_ssa_node* rvalue = visit( node->rvalue );
+    return b->lvalue_assign( &lvalue, rvalue );
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_assign_list* node )
 {
-    return NULL;
-}
-
-
-
-
-#if 0
-
-#include "xec_buildssa.h"
-#include <deque>
-
-
-
-/*
-    Simple and Efficient Construction of Static Single Assignment Form
-        Braun, Sebastian Buchwald, et al.
-
-    http://www.cdl.uni-saarland.de/papers/bbhlmz13cc.pdf
-*/
-
-
-
-
-struct xec_buildssa_block
-{
-    std::deque< xec_buildssa_block* > predecessors;
-    std::unordered_map< xec_ssaname, xec_ssavalue > definitions;
-    std::unordered_map< xec_ssaname, xec_ssavalue > proxy_definitions;
-    bool sealed;
-};
-
-
-
-
-
-/*
-
-xec_buildssa::xec_buildssa()
-    :   next_name( 0 )
-    ,   block( NULL )
-{
-}
-
-
-xec_ssaname xec_buildssa::declare( const char* text )
-{
-    xec_ssaname name = next_name;
-    next_name += 1;
-    names.emplace( name, text );
-    active_names.insert( name );
-    return name;
-}
-
-void xec_buildssa::retire( xec_ssaname name )
-{
-    active_names.erase( name );
-}
-
-
-
-
-void xec_buildssa::write( xec_ssaname name, xec_ssavalue value )
-{
-}
-
-xec_ssavalue xec_buildssa::read( xec_ssaname name )
-{
+    xec_ssa_valist values;
+    b->unpack( &values, node, 1 );
+    return values.values.front();
 }
 
 
 
 
 
-void xec_buildssa::loop_begin()
+xec_ssa_build_unpack::xec_ssa_build_unpack( xec_ssa_builder* b )
+    :   b(b )
 {
+}
+
+void xec_ssa_build_unpack::fallback(
+                xec_ast_node* node, xec_ssa_valist* values, int valcount )
+{
+    // Expression produces only one value.
+    values->values.push_back( b->expr( node ) );
+}
+
+void xec_ssa_build_unpack::visit(
+                xec_expr_call* node, xec_ssa_valist* values, int valcount )
+{
+    // Get function and this value.
+    xec_ssa_node* function = NULL;
+    xec_ssa_node* thisval  = NULL;
+    switch ( node->function->kind )
+    {
+    case XEC_EXPR_KEY:
+    {
+        xec_expr_key* key = (xec_expr_key*)node->function;
+        thisval = b->expr( key->object );
+        function = b->node( b->packed(
+                        key->sloc, XEC_SSA_KEY, thisval, key->key ) );
+        break;
+    }
     
+    case XEC_EXPR_INKEY:
+    {
+        xec_expr_inkey* inkey = (xec_expr_inkey*)node->function;
+        thisval = b->expr( inkey->object );
+        xec_ssa_node* key = b->expr( inkey->key );
+        function = b->node( b->packed(
+                        inkey->sloc, XEC_SSA_INKEY, thisval, key ) );
+        break;
+    }
+    
+    case XEC_EXPR_INDEX:
+    {
+        xec_expr_index* index = (xec_expr_index*)node->function;
+        thisval = b->expr( index->object );
+        xec_ssa_node* idxval = b->expr( index->index );
+        function = b->node( b->packed(
+                        index->sloc, XEC_SSA_INDEX, thisval, idxval ) );
+        break;
+    }
+    
+    default:
+    {
+        // Call function without implicit this.
+        function = b->expr( node->function );
+        break;
+    }
+    }
+
+    // Get arguments (unpacked).
+    xec_ssa_valist arguments;
+    b->unpack( &arguments, node->arguments, -1 );
+
+    // Construct call.
+    xec_ssa_expand* call = b->expand( node->sloc, XEC_SSA_CALL, valcount );
+    call->operands.push_back( function );
+    if ( thisval )
+        call->operands.push_back( thisval );
+    extend( &call->operands, arguments.values );
+    call->unpacked = arguments.unpacked;
+    xec_ssa_node* result = b->node( call );
+    
+    // If we requested a finite number of values, select them.
+    if ( valcount != -1 )
+    {
+        for ( int i = 0; i < valcount; ++i )
+        {
+            xec_ssa_node* value = b->node( b->packed(
+                            node->sloc, XEC_SSA_SELECT, result, i ) );
+            values->values.push_back( value );
+        }
+    }
+    else
+    {
+        values->unpacked = result;
+    }
 }
 
-void xec_buildssa::loop_break()
+void xec_ssa_build_unpack::visit(
+                xec_expr_yield* node, xec_ssa_valist* values, int valcount )
 {
+    // Get arguments (unpacked).
+    xec_ssa_valist arguments;
+    b->unpack( &arguments, node->arguments, -1 );
+    
+    // Construct yield.
+    xec_ssa_expand* yield = b->expand( node->sloc, XEC_SSA_YIELD, valcount );
+    extend( &yield->operands, arguments.values );
+    yield->unpacked = arguments.unpacked;
+    xec_ssa_node* result = b->node( yield );
+
+    // If we requested a finite number of values, select them.
+    if ( valcount != -1 )
+    {
+        for ( int i = 0; i < valcount; ++i )
+        {
+            xec_ssa_node* value = b->node( b->packed(
+                            node->sloc, XEC_SSA_SELECT, result, i ) );
+            values->values.push_back( value );
+        }
+    }
+    else
+    {
+        values->unpacked = result;
+    }
 }
 
-void xec_buildssa::loop_continue()
+void xec_ssa_build_unpack::visit(
+                xec_expr_vararg* node, xec_ssa_valist* values, int valcount )
 {
+    if ( valcount != -1 )
+    {
+        for ( int i = 0; i < valcount; ++i )
+        {
+            xec_ssa_node* value = b->node( b->packed(
+                            node->sloc, XEC_SSA_VARARG, nullptr, i ) );
+            values->values.push_back( value );
+        }
+    }
+    else
+    {
+        values->unpacked = b->node( b->packed(
+                        node->sloc, XEC_SSA_VARARG, nullptr, -1 ) );
+    }
 }
 
-void xec_buildssa::loop_end()
+void xec_ssa_build_unpack::visit(
+                xec_expr_unpack* node, xec_ssa_valist* values, int valcount )
 {
+    xec_ssa_node* array = b->expr( node->array );
+    if ( valcount != -1 )
+    {
+        for ( int i = 0; i < valcount; ++i )
+        {
+            xec_ssa_node* value = b->node( b->packed(
+                            node->sloc, XEC_SSA_UNPACK, array, i ) );
+            values->values.push_back( value );
+        }
+    }
+    else
+    {
+        values->unpacked = b->node( b->packed(
+                        node->sloc, XEC_SSA_UNPACK, array, -1 ) );
+    }
 }
 
-void xec_buildssa::if_true( xec_ssavalue condition )
+void xec_ssa_build_unpack::visit(
+                xec_expr_list* node, xec_ssa_valist* values, int valcount )
 {
+    // Only assign as many values as were requested.
+    for ( size_t i = 0; i < node->values.size(); ++i )
+    {
+        xec_ssa_node* value = b->expr( node->values.at( i ) );
+        if ( valcount == -1 || (int)i < valcount )
+        {
+            values->values.push_back( value );
+        }
+    }
+    
+    // And unpack the final values.
+    if ( node->final )
+    {
+        int required;
+        if ( valcount != -1 )
+        {
+            required = valcount - (int)node->values.size();
+            required = required > 0 ? required : 0;
+        }
+        else
+        {
+            required = -1;
+        }
+    
+        xec_ssa_valist final;
+        visit( node->final, &final, required );
+        extend( &values->values, final.values );
+        values->unpacked = final.unpacked;
+    }
 }
 
-void xec_buildssa::if_false( xec_ssavalue condition )
+void xec_ssa_build_unpack::visit(
+            xec_expr_assign_list* node, xec_ssa_valist* values, int valcount )
 {
-}
+    // Evaluate lvalues ready for assignment.
+    std::deque< xec_ssa_lvalue > lvalues;
+    for ( size_t i = 0; i < node->lvalues.size(); ++i )
+    {
+        xec_ssa_lvalue lvalue;
+        b->lvalue( &lvalue, node->lvalues.at( i ) );
+        lvalues.push_back( lvalue );
+    }
 
-void xec_buildssa::if_else()
-{
-}
-
-void xec_buildssa::if_end()
-{
-}
-
-
-
-
-xec_ssavalue xec_buildssa::null()
-{
-}
-
-xec_ssavalue xec_buildssa::literal( bool boolean )
-{
-}
-
-xec_ssavalue xec_buildssa::literal( double number )
-{
-}
-
-xec_ssavalue xec_buildssa::literal( const char* string, size_t length )
-{
-}
-
-xec_ssavalue xec_buildssa::emit( int opcode, xec_ssavalue a )
-{
-}
-
-xec_ssavalue xec_buildssa::emit( int opcode, xec_ssavalue a, xec_ssavalue b )
-{
-}
-
-void xec_buildssa::parameter( xec_ssavalue a )
-{
-}
-
-xec_ssavalue xec_buildssa::multiple( int opcode, int count )
-{
-}
-
-xec_ssavalue xec_buildssa::result( xec_ssavalue v, int n )
-{
+    // Evaluate exactly the number of rvalues we require.
+    xec_ssa_valist rvalues;
+    b->unpack( &rvalues, node->rvalues, (int)lvalues.size() );
+    
+    // An assignment list only has a maximum number of values.
+    for ( int i = 0; i < lvalues.size(); ++i )
+    {
+        xec_ssa_lvalue lvalue = lvalues.at( i );
+        xec_ssa_node* v = b->lvalue_assign( &lvalue, rvalues.values.at( i ) );
+        if ( valcount != -1 && (int)i < valcount )
+        {
+            values->values.push_back( v );
+        }
+    }
+    
+    // And fill in the rest with null.
+    if ( valcount != -1 && valcount > (int)lvalues.size() )
+    {
+        int required = valcount - (int)lvalues.size();
+        xec_ssa_node* null = b->node( b->packed( node->sloc, XEC_SSA_NULL ) );
+        for ( int i = 0; i < required; ++i )
+        {
+            values->values.push_back( null );
+        }
+    }
 }
 
 
-*/
 
-#endif
+
 
 
 

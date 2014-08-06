@@ -24,6 +24,7 @@ struct xec_ssa_block;
 struct xec_ssa_node;
 struct xec_ssa_packed;
 struct xec_ssa_triple;
+struct xec_ssa_expand;
 
 
 
@@ -36,7 +37,16 @@ enum xec_ssa_opcode
 {
     XEC_SSA_NOP,
 
-    XEC_SSA_PHI,
+    XEC_SSA_PHI,        // SSA ɸ-functions.
+
+    XEC_SSA_CLOSURE,
+
+    XEC_SSA_CALL,
+    XEC_SSA_YIELD,
+    
+    XEC_SSA_SELECT,     // Select one of the results of a function call.
+    XEC_SSA_VARARG,     // One of varargs, or unpack all varargs.
+    XEC_SSA_UNPACK,     // An array element selected by immediate, or unpack.
     
     XEC_SSA_NULL,
     XEC_SSA_BOOL,
@@ -50,6 +60,13 @@ enum xec_ssa_opcode
     XEC_SSA_KEY,
     XEC_SSA_INKEY,
     XEC_SSA_INDEX,
+    
+    XEC_SSA_SETKEY,
+    XEC_SSA_SETINKEY,
+    XEC_SSA_SETINDEX,
+    
+    XEC_SSA_SETUPVAL,
+    XEC_SSA_SETGLOBAL,
     
     XEC_SSA_POS,
     XEC_SSA_NEG,
@@ -77,11 +94,14 @@ enum xec_ssa_opcode
     
     XEC_SSA_XOR,
     
+    XEC_SSA_NEW,
     XEC_SSA_OBJECT,
     XEC_SSA_TABLE,
     XEC_SSA_ARRAY,
-    XEC_SSA_APPEND,
     
+    XEC_SSA_APPEND,     // Append to an array.
+    XEC_SSA_EXTEND,     // Append unpacked values to an array.
+
 };
 
 
@@ -150,6 +170,8 @@ struct xec_ssa_node
     xec_ssa_node*       operand( size_t index );
 
     xec_ssa_packed*     as_packed();
+    xec_ssa_triple*     as_triple();
+    xec_ssa_expand*     as_expand();
 };
 
 
@@ -198,6 +220,11 @@ struct xec_ssa_packed : public xec_ssa_node
 
 struct xec_ssa_triple : public xec_ssa_node
 {
+    xec_ssa_triple( int sloc, xec_ssa_opcode opcode,
+                xec_ssa_node* object, xec_ssa_node* index, xec_ssa_node* v );
+    xec_ssa_triple( int sloc, xec_ssa_opcode opcode,
+                xec_ssa_node* object, const char* key, xec_ssa_node* v );
+
     xec_ssa_node*       object;
     union
     {
@@ -205,6 +232,26 @@ struct xec_ssa_triple : public xec_ssa_node
     xec_ssa_node*       index;
     };
     xec_ssa_node*       value;
+};
+
+
+
+
+struct xec_ssa_expand : public xec_ssa_node
+{
+    xec_ssa_expand( int sloc, xec_ssa_opcode opcode, int valcount );
+    xec_ssa_expand( int sloc, xec_ssa_opcode opcode, xec_ssa_func* func );
+
+    xec_ssa_node_list   operands;
+    union
+    {
+        struct
+        {
+    xec_ssa_node*       unpacked;
+    int                 valcount;
+        };
+    xec_ssa_func*       func;
+    };
 };
 
 

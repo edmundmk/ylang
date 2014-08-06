@@ -349,7 +349,7 @@ void xec_ast_printer::visit( xec_expr_vararg* node, int indent )
 void xec_ast_printer::visit( xec_expr_unpack* node, int indent ) 
 {
     printf( "%*sunpack:\n", indent, "" );
-    visit( node->list, indent + INDENT );
+    visit( node->array, indent + INDENT );
 }
 
 void xec_ast_printer::visit( xec_expr_list* node, int indent ) 

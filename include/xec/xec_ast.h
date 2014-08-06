@@ -617,7 +617,7 @@ struct xec_expr_unpack : public xec_ast_node
 {
     xec_expr_unpack( int sloc, xec_ast_node* list );
 
-    xec_ast_node*       list;
+    xec_ast_node*       array;
 };
 
 

@@ -331,9 +331,9 @@ xec_expr_vararg::xec_expr_vararg( int sloc )
 {
 }
 
-xec_expr_unpack::xec_expr_unpack( int sloc, xec_ast_node* list )
+xec_expr_unpack::xec_expr_unpack( int sloc, xec_ast_node* array )
     :   xec_ast_node( XEC_EXPR_UNPACK, sloc )
-    ,   list( list )
+    ,   array( array )
 {
 }
 

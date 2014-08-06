@@ -17,6 +17,7 @@
 class xec_ssa_builder;
 class xec_ssa_build_expr;
 struct xec_ssa_lvalue;
+struct xec_ssa_valist;
 
 
 
@@ -29,10 +30,13 @@ class xec_ssa_build_expr
 {
 public:
 
-    xec_ssa_build_expr( xec_ssa_builder* b );
+    explicit xec_ssa_build_expr( xec_ssa_builder* b );
 
     using xec_ast_visitor< xec_ssa_build_expr, xec_ssa_node* >::visit;
 
+    xec_ssa_node* fallback( xec_ast_node* node );
+    
+    xec_ssa_node* visit( xec_ast_func* node );
     xec_ssa_node* visit( xec_expr_null* node );
     xec_ssa_node* visit( xec_expr_bool* node );
     xec_ssa_node* visit( xec_expr_number* node );
@@ -74,6 +78,36 @@ private:
 
 
 /*
+    Visit AST expression nodes that unpack to multiple values.
+*/
+
+class xec_ssa_build_unpack
+    :   public xec_ast_visitor< xec_ssa_build_unpack, void, xec_ssa_valist*, int >
+{
+public:
+
+    explicit xec_ssa_build_unpack( xec_ssa_builder* b );
+
+    using xec_ast_visitor< xec_ssa_build_unpack, void, xec_ssa_valist*, int >::visit;
+
+    void fallback( xec_ast_node* node, xec_ssa_valist* values, int valcount );
+    
+    void visit( xec_expr_call* node, xec_ssa_valist* values, int valcount );
+    void visit( xec_expr_yield* node, xec_ssa_valist* values, int valcount );
+    void visit( xec_expr_vararg* node, xec_ssa_valist* values, int valcount );
+    void visit( xec_expr_unpack* node, xec_ssa_valist* values, int valcount );
+    void visit( xec_expr_list* node, xec_ssa_valist* values, int valcount );
+    void visit( xec_expr_assign_list* node, xec_ssa_valist* values, int valcount );
+
+
+private:
+
+    xec_ssa_builder* b;
+
+};
+
+
+/*
     Visit AST statements and generate SSA form.
 */
 
@@ -109,7 +143,11 @@ public:
     bool            build( xec_ast* ast );
     
     template< typename ... arguments_t >
-    xec_ssa_node*   packed( arguments_t ... arguments );
+    xec_ssa_packed* packed( arguments_t ... arguments );
+    template< typename ... arguments_t >
+    xec_ssa_triple* triple( arguments_t ... arguments );
+    template< typename ... arguments_t >
+    xec_ssa_expand* expand( arguments_t ... arguments );
 
     xec_ssa_node*   node( xec_ssa_node* node );
 
@@ -122,81 +160,45 @@ public:
     void            ifelse();
     void            ifend();
 
-
+    xec_ssa_func*   func( xec_ast_func* func );
     xec_ssa_node*   expr( xec_ast_node* node );
-    void            eval( xec_ast_node* node );
+    void            unpack( xec_ssa_valist* l, xec_ast_node* node, int count );
     
     void            lvalue( xec_ssa_lvalue* lvalue, xec_ast_node* node );
     xec_ssa_node*   lvalue_value( xec_ssa_lvalue* lvalue );
-    void            lvalue_assign( xec_ssa_lvalue* lvalue, xec_ssa_node* node );
+    xec_ssa_node*   lvalue_assign( xec_ssa_lvalue* lvalue, xec_ssa_node* node );
     
     
 private:
 
     xec_ssa* root;
-    xec_ssa_build_expr build_expr;
-    xec_ssa_build_stmt build_stmt;
+    xec_ssa_build_expr   build_expr;
+    xec_ssa_build_unpack build_unpack;
+    xec_ssa_build_stmt   build_stmt;
 
 };
 
-/*
 
 
-x < 3 < 5 < 10
-
-result = x < 3
-if ( result )
-    result = 3 < 5
-    if ( result )
-        result = 5 < 10
-    endif
-endif
-
-
-
-class xec_ssa_builder
+template < typename ... arguments_t >
+inline xec_ssa_packed* xec_ssa_builder::packed( arguments_t ... arguments )
 {
-public:
+    return new ( root->alloc ) xec_ssa_packed( arguments ... );
+}
 
-    
+template < typename ... arguments_t >
+inline xec_ssa_triple* xec_ssa_builder::triple( arguments_t ... arguments )
+{
+    return new ( root->alloc ) xec_ssa_triple( arguments ... );
+}
 
-
-
-
-    xec_buildssa();
-
-    xec_ssaname     declare( const char* text );
-    void            retire( xec_ssaname name );
-
-    void            write( xec_ssaname name, xec_ssavalue value );
-    xec_ssavalue    read( xec_ssaname );
-
-    void            loop_begin();
-    void            loop_break();
-    void            loop_continue();
-    void            loop_end();
-    void            if_true( xec_ssavalue condition );
-    void            if_false( xec_ssavalue condition );
-    void            if_else();
-    void            if_end();
-    
-    xec_ssavalue    null();
-    xec_ssavalue    literal( bool boolean );
-    xec_ssavalue    literal( double number );
-    xec_ssavalue    literal( const char* string, size_t length );
-    xec_ssavalue    emit( int opcode, xec_ssavalue a );
-    xec_ssavalue    emit( int opcode, xec_ssavalue a, xec_ssavalue b );
-    void            parameter( xec_ssavalue a );
-    xec_ssavalue    multiple( int opcode, int count );
-    xec_ssavalue    result( xec_ssavalue v, int n );
-
-
-private:
-
-};
-
-*/
-
+template < typename ... arguments_t >
+inline xec_ssa_expand* xec_ssa_builder::expand( arguments_t ... arguments )
+{
+    return new ( root->alloc ) xec_ssa_expand( arguments ... );
+}
 
 
 #endif
+
+
