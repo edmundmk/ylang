@@ -3519,115 +3519,119 @@ static void yy_reduce(
       case 188: /* stmt_common ::= CONTINUE SEMICOLON */
 #line 1209 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
-                    xec_ast_node* target = p->continue_target( yymsp[-1].minor.yy0->sloc );
-                    yygotominor.yy259 = p->alloc< xec_stmt_continue >( yymsp[-1].minor.yy0->sloc, target );
+                    xec_ast_scope* target = p->continue_target( yymsp[-1].minor.yy0->sloc );
+                    yygotominor.yy259 = p->alloc< xec_stmt_continue >(
+                                yymsp[-1].minor.yy0->sloc, p->get_scope(), target );
                     p->destroy( yymsp[-1].minor.yy0 );
                   yy_destructor(yypParser,17,&yymsp[0].minor);
 }
-#line 3528 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3529 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 189: /* stmt_common ::= BREAK SEMICOLON */
-#line 1215 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1216 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
-                    xec_ast_node* target = p->break_target( yymsp[-1].minor.yy0->sloc );
-                    yygotominor.yy259 = p->alloc< xec_stmt_break >( yymsp[-1].minor.yy0->sloc, target );
+                    xec_ast_scope* target = p->break_target( yymsp[-1].minor.yy0->sloc );
+                    yygotominor.yy259 = p->alloc< xec_stmt_break >(
+                                yymsp[-1].minor.yy0->sloc, p->get_scope(), target );
                     p->destroy( yymsp[-1].minor.yy0 );
                   yy_destructor(yypParser,17,&yymsp[0].minor);
 }
-#line 3538 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3540 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 190: /* stmt_common ::= RETURN SEMICOLON */
-#line 1221 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1223 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
-                    yygotominor.yy259 = p->alloc< xec_stmt_return >( yymsp[-1].minor.yy0->sloc, nullptr );
+                    yygotominor.yy259 = p->alloc< xec_stmt_return >(
+                                yymsp[-1].minor.yy0->sloc, p->get_scope(), nullptr );
                     p->destroy( yymsp[-1].minor.yy0 );
                   yy_destructor(yypParser,17,&yymsp[0].minor);
 }
-#line 3547 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3550 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 191: /* stmt_common ::= RETURN expr_list SEMICOLON */
-#line 1226 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1229 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
-                    yygotominor.yy259 = p->alloc< xec_stmt_return >( yymsp[-2].minor.yy0->sloc, yymsp[-1].minor.yy259 );
+                    yygotominor.yy259 = p->alloc< xec_stmt_return >(
+                                yymsp[-2].minor.yy0->sloc, p->get_scope(), yymsp[-1].minor.yy259 );
                     p->destroy( yymsp[-2].minor.yy0 );
                   yy_destructor(yypParser,17,&yymsp[0].minor);
 }
-#line 3556 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3560 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 192: /* stmt_common ::= token_yield SEMICOLON */
-#line 1231 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1235 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     p->check_yield( yymsp[-1].minor.yy19->sloc );
                     yygotominor.yy259 = p->alloc< xec_expr_yield >( yymsp[-1].minor.yy19->sloc, nullptr );
                     p->destroy( yymsp[-1].minor.yy19 );
                   yy_destructor(yypParser,17,&yymsp[0].minor);
 }
-#line 3566 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3570 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 193: /* stmt_common ::= token_yield expr_list SEMICOLON */
-#line 1237 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1241 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy259 = p->alloc< xec_expr_yield >( yymsp[-2].minor.yy19->sloc, yymsp[-1].minor.yy259 );
                     p->destroy( yymsp[-2].minor.yy19 );
                   yy_destructor(yypParser,17,&yymsp[0].minor);
 }
-#line 3575 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3579 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 194: /* stmt_common ::= THROW expr_value SEMICOLON */
-#line 1242 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1246 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy259 = p->alloc< xec_stmt_throw >( yymsp[-2].minor.yy0->sloc, yymsp[-1].minor.yy259 );
                     p->destroy( yymsp[-2].minor.yy0 );
                   yy_destructor(yypParser,17,&yymsp[0].minor);
 }
-#line 3584 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3588 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 195: /* stmt_if ::= IF */
-#line 1251 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1255 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy188 = p->alloc< xec_stmt_if >( yymsp[0].minor.yy0->sloc );
                     yygotominor.yy188->scope = p->block_scope( yygotominor.yy188 );
                     p->destroy( yymsp[0].minor.yy0 );
                 }
-#line 3593 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3597 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 196: /* stmt_switch ::= SWITCH */
-#line 1258 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1262 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy267 = p->alloc< xec_stmt_switch >( yymsp[0].minor.yy0->sloc );
                     yygotominor.yy267->scope = p->block_scope( yygotominor.yy267 );
                     p->destroy( yymsp[0].minor.yy0 );
                 }
-#line 3602 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3606 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 197: /* stmt_while ::= WHILE */
-#line 1265 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1269 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy278 = p->alloc< xec_stmt_while >( yymsp[0].minor.yy0->sloc );
                     yygotominor.yy278->scope = p->block_scope( yygotominor.yy278 );
                     p->destroy( yymsp[0].minor.yy0 );
                 }
-#line 3611 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3615 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 198: /* stmt_do ::= DO */
-#line 1272 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1276 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy209 = p->alloc< xec_stmt_do >( yymsp[0].minor.yy0->sloc );
                     yygotominor.yy209->scope = p->block_scope( yygotominor.yy209 );
                     p->destroy( yymsp[0].minor.yy0 );
                 }
-#line 3620 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3624 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 199: /* scope_for ::= FOR */
-#line 1279 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1283 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     // open scope before we know the kind of statement.
                     yygotominor.yy218 = make_token_scope( yymsp[0].minor.yy0, p->block_scope( nullptr ) );
                 }
-#line 3628 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3632 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 200: /* stmt_foreach ::= scope_for LPN expr_lbody COLON expr_value RPN */
-#line 1286 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1290 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy237 = p->foreachstmt( yymsp[-5].minor.yy218.token->sloc,
                             yymsp[-5].minor.yy218.scope, yymsp[-3].minor.yy259, yymsp[-1].minor.yy259, false, false );
@@ -3636,10 +3640,10 @@ static void yy_reduce(
   yy_destructor(yypParser,16,&yymsp[-2].minor);
   yy_destructor(yypParser,18,&yymsp[0].minor);
 }
-#line 3640 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3644 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 201: /* stmt_foreach ::= scope_for LPN expr_lbody EACHKEY expr_value RPN */
-#line 1293 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1297 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy237 = p->foreachstmt( yymsp[-5].minor.yy218.token->sloc,
                             yymsp[-5].minor.yy218.scope, yymsp[-3].minor.yy259, yymsp[-1].minor.yy259, false, true );
@@ -3648,10 +3652,10 @@ static void yy_reduce(
   yy_destructor(yypParser,82,&yymsp[-2].minor);
   yy_destructor(yypParser,18,&yymsp[0].minor);
 }
-#line 3652 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3656 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 202: /* stmt_foreach ::= scope_for LPN VAR name_list COLON expr_value RPN */
-#line 1300 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1304 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy237 = p->foreachstmt( yymsp[-6].minor.yy218.token->sloc,
                             yymsp[-6].minor.yy218.scope, yymsp[-3].minor.yy259, yymsp[-1].minor.yy259, true, false );
@@ -3661,10 +3665,10 @@ static void yy_reduce(
   yy_destructor(yypParser,16,&yymsp[-2].minor);
   yy_destructor(yypParser,18,&yymsp[0].minor);
 }
-#line 3665 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3669 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 203: /* stmt_foreach ::= scope_for LPN VAR name_list EACHKEY expr_value RPN */
-#line 1307 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1311 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy237 = p->foreachstmt( yymsp[-6].minor.yy218.token->sloc,
                             yymsp[-6].minor.yy218.scope, yymsp[-3].minor.yy259, yymsp[-1].minor.yy259, true, true );
@@ -3674,10 +3678,10 @@ static void yy_reduce(
   yy_destructor(yypParser,82,&yymsp[-2].minor);
   yy_destructor(yypParser,18,&yymsp[0].minor);
 }
-#line 3678 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3682 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 204: /* stmt_for ::= scope_for LPN for_cond SEMICOLON for_expr SEMICOLON for_expr RPN */
-#line 1317 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1321 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy16 = p->alloc< xec_stmt_for >( yymsp[-7].minor.yy218.token->sloc );
                     yymsp[-7].minor.yy218.scope->node = yygotominor.yy16;
@@ -3691,71 +3695,71 @@ static void yy_reduce(
   yy_destructor(yypParser,17,&yymsp[-2].minor);
   yy_destructor(yypParser,18,&yymsp[0].minor);
 }
-#line 3695 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3699 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 205: /* for_cond ::= */
       case 207: /* for_expr ::= */ yytestcase(yyruleno==207);
-#line 1328 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1332 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy259 = nullptr;
                 }
-#line 3703 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3707 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 209: /* stmt_using ::= USING */
-#line 1346 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1350 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy227 = p->alloc< xec_stmt_using >( yymsp[0].minor.yy0->sloc );
                     yygotominor.yy227->scope = p->block_scope( yygotominor.yy227 );
                     p->destroy( yymsp[0].minor.yy0 );
                 }
-#line 3712 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3716 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 210: /* stmt_try ::= try_catch */
-#line 1356 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1360 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy259 = yymsp[0].minor.yy224;
                 }
-#line 3719 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3723 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 211: /* stmt_try ::= try_catch FINALLY stmt */
       case 212: /* stmt_try ::= try_block FINALLY stmt */ yytestcase(yyruleno==212);
-#line 1360 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1364 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yymsp[-2].minor.yy224->fstmt = yymsp[0].minor.yy259;
                     yygotominor.yy259 = yymsp[-2].minor.yy224;
                   yy_destructor(yypParser,5,&yymsp[-1].minor);
 }
-#line 3729 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3733 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 213: /* try_block ::= TRY stmt */
-#line 1371 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1375 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy224 = p->alloc< xec_stmt_try >( yymsp[-1].minor.yy0->sloc, yymsp[0].minor.yy259 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
-#line 3737 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3741 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 214: /* try_catch ::= try_block stmt_catch stmt_reuse */
       case 215: /* try_catch ::= try_catch stmt_catch stmt_reuse */ yytestcase(yyruleno==215);
-#line 1377 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1381 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yymsp[-1].minor.yy256->body = yymsp[0].minor.yy259;
                     p->close_scope( yymsp[-1].minor.yy256->scope );
                     yymsp[-2].minor.yy224->clist.push_back( yymsp[-1].minor.yy256 );
                     yygotominor.yy224 = yymsp[-2].minor.yy224;
                 }
-#line 3748 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3752 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 216: /* scope_catch ::= CATCH */
-#line 1392 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1396 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     // open scope here ready for declarations.
                     yygotominor.yy218 = make_token_scope( yymsp[0].minor.yy0, p->block_scope( nullptr ) );
                 }
-#line 3756 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3760 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 217: /* stmt_catch ::= scope_catch LPN COLON expr_simple RPN */
-#line 1398 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1402 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy256 = p->catchstmt( yymsp[-4].minor.yy218.token->sloc,
                             yymsp[-4].minor.yy218.scope, nullptr, yymsp[-1].minor.yy259, false );
@@ -3764,10 +3768,10 @@ static void yy_reduce(
   yy_destructor(yypParser,16,&yymsp[-2].minor);
   yy_destructor(yypParser,18,&yymsp[0].minor);
 }
-#line 3768 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3772 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 218: /* stmt_catch ::= scope_catch LPN expr_value COLON expr_simple RPN */
-#line 1405 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1409 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy256 = p->catchstmt( yymsp[-5].minor.yy218.token->sloc,
                             yymsp[-5].minor.yy218.scope, yymsp[-3].minor.yy259, yymsp[-1].minor.yy259, false );
@@ -3776,10 +3780,10 @@ static void yy_reduce(
   yy_destructor(yypParser,16,&yymsp[-2].minor);
   yy_destructor(yypParser,18,&yymsp[0].minor);
 }
-#line 3780 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3784 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 219: /* stmt_catch ::= scope_catch LPN VAR name COLON expr_simple RPN */
-#line 1412 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1416 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy256 = p->catchstmt( yymsp[-6].minor.yy218.token->sloc,
                             yymsp[-6].minor.yy218.scope, yymsp[-3].minor.yy75, yymsp[-1].minor.yy259, true );
@@ -3789,10 +3793,10 @@ static void yy_reduce(
   yy_destructor(yypParser,16,&yymsp[-2].minor);
   yy_destructor(yypParser,18,&yymsp[0].minor);
 }
-#line 3793 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3797 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 220: /* stmt_catch ::= scope_catch LPN expr_value RPN */
-#line 1418 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1422 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy256 = p->catchstmt( yymsp[-3].minor.yy218.token->sloc,
                             yymsp[-3].minor.yy218.scope, yymsp[-1].minor.yy259, nullptr, false );
@@ -3800,10 +3804,10 @@ static void yy_reduce(
                   yy_destructor(yypParser,7,&yymsp[-2].minor);
   yy_destructor(yypParser,18,&yymsp[0].minor);
 }
-#line 3804 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3808 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 221: /* stmt_catch ::= scope_catch LPN VAR name RPN */
-#line 1424 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1428 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy256 = p->catchstmt( yymsp[-4].minor.yy218.token->sloc,
                             yymsp[-4].minor.yy218.scope, yymsp[-1].minor.yy75, nullptr, true );
@@ -3812,14 +3816,14 @@ static void yy_reduce(
   yy_destructor(yypParser,19,&yymsp[-2].minor);
   yy_destructor(yypParser,18,&yymsp[0].minor);
 }
-#line 3816 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3820 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       case 222: /* token_yield ::= YIELD */
-#line 1440 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1444 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 {
                     yygotominor.yy19 = yymsp[0].minor.yy0;
                 }
-#line 3823 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3827 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
         break;
       default:
         break;
@@ -3881,11 +3885,11 @@ static void yy_syntax_error(
 ){
   XecParseARG_FETCH;
 #define TOKEN (yyminor.yy0)
-#line 1452 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
+#line 1456 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.y"
 
     p->get_root()->script->error( TOKEN->sloc,
             "unexpected %s", TOKEN->get_spelling().c_str() );
-#line 3889 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
+#line 3893 "../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp"
   XecParseARG_STORE; /* Suppress warning about unused %extra_argument variable */
 }
 

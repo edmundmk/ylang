@@ -529,17 +529,17 @@ void xec_ast_printer::visit( xec_stmt_case* node, int indent )
 
 void xec_ast_printer::visit( xec_stmt_continue* node, int indent ) 
 {
-    printf( "%*scontinue %p\n", indent, "", node->target );
+    printf( "%*scontinue %p %p\n", indent, "", node->scope, node->target );
 }
 
 void xec_ast_printer::visit( xec_stmt_break* node, int indent ) 
 {
-    printf( "%*sbreak %p\n", indent, "", node->target );
+    printf( "%*sbreak %p %p\n", indent, "", node->scope, node->target );
 }
 
 void xec_ast_printer::visit( xec_stmt_return* node, int indent ) 
 {
-    printf( "%*sreturn:\n", indent, "" );
+    printf( "%*sreturn %p:\n", indent, "", node->scope );
     if ( node->values )
         visit( node->values, indent + INDENT );
     else

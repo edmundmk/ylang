@@ -91,7 +91,8 @@ public:
     using xec_ast_visitor< xec_ssa_build_unpack, void, xec_ssa_valist*, int >::visit;
 
     void fallback( xec_ast_node* node, xec_ssa_valist* values, int valcount );
-    
+
+    void visit( xec_expr_null* node, xec_ssa_valist* values, int valcount );
     void visit( xec_expr_call* node, xec_ssa_valist* values, int valcount );
     void visit( xec_expr_yield* node, xec_ssa_valist* values, int valcount );
     void visit( xec_expr_vararg* node, xec_ssa_valist* values, int valcount );
@@ -179,7 +180,6 @@ public:
     xec_ssa_node*   lookup( xec_new_object* object );
     xec_ssa_node*   lookup( xec_ast_node* temporary );
     
-    void            close_upval( xec_new_object* object );
     void            close_scope( xec_ast_scope* scope );
     
     void            ifthen( xec_ssa_node* condition );
@@ -190,6 +190,13 @@ public:
     void            switchcase( xec_ssa_node* value );
     void            switchbreak();
     void            switchend();
+    
+    void            loopopen();
+    void            loopcontinue();
+    void            loopbreak();
+    void            loopend();
+    
+    void            funcreturn();
 
     xec_ssa_func*   func( xec_ast_func* func );
     xec_ssa_node*   expr( xec_ast_node* node );

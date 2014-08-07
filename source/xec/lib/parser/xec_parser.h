@@ -69,8 +69,8 @@ public:
     
     
     void                statement( xec_ast_node* stmt );
-    xec_ast_node*       continue_target( int sloc );
-    xec_ast_node*       break_target( int sloc );
+    xec_ast_scope*      continue_target( int sloc );
+    xec_ast_scope*      break_target( int sloc );
 
 
     xec_ast_node*       lookup( int sloc, const char* identifier, bool outer );

@@ -461,20 +461,26 @@ xec_stmt_case::xec_stmt_case( int sloc, xec_ast_node* value )
 {
 }
 
-xec_stmt_continue::xec_stmt_continue( int sloc, xec_ast_node* target )
+xec_stmt_continue::xec_stmt_continue(
+                int sloc, xec_ast_scope* scope, xec_ast_scope* target )
     :   xec_ast_node( XEC_STMT_CONTINUE, sloc )
+    ,   scope( scope )
     ,   target( target )
 {
 }
 
-xec_stmt_break::xec_stmt_break( int sloc, xec_ast_node* target )
+xec_stmt_break::xec_stmt_break(
+                int sloc, xec_ast_scope* scope, xec_ast_scope* target )
     :   xec_ast_node( XEC_STMT_CONTINUE, sloc )
+    ,   scope( scope )
     ,   target( target )
 {
 }
 
-xec_stmt_return::xec_stmt_return( int sloc, xec_ast_node* values )
+xec_stmt_return::xec_stmt_return(
+                int sloc, xec_ast_scope* scope, xec_ast_node* values )
     :   xec_ast_node( XEC_STMT_RETURN, sloc )
+    ,   scope( scope )
     ,   values( values )
 {
 }

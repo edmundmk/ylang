@@ -789,24 +789,27 @@ struct xec_stmt_case : public xec_ast_node
 
 struct xec_stmt_continue : public xec_ast_node
 {
-    xec_stmt_continue( int sloc, xec_ast_node* target );
+    xec_stmt_continue( int sloc, xec_ast_scope* scope,  xec_ast_scope* target );
 
-    xec_ast_node*       target;
+    xec_ast_scope*      scope;
+    xec_ast_scope*      target;
 };
 
 
 struct xec_stmt_break : public xec_ast_node
 {
-    xec_stmt_break( int sloc, xec_ast_node* target );
+    xec_stmt_break( int sloc, xec_ast_scope* scope, xec_ast_scope* target );
 
-    xec_ast_node*       target;
+    xec_ast_scope*      scope;
+    xec_ast_scope*      target;
 };
 
 
 struct xec_stmt_return : public xec_ast_node
 {
-    xec_stmt_return( int sloc, xec_ast_node* values );
+    xec_stmt_return( int sloc, xec_ast_scope* scope, xec_ast_node* values );
 
+    xec_ast_scope*      scope;
     xec_ast_node*       values;
 };
 

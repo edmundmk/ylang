@@ -1207,24 +1207,28 @@ stmt_common(x)  ::= DEFAULT(token) COLON .
                 }
 stmt_common(x)  ::= CONTINUE(token) SEMICOLON .
                 {
-                    xec_ast_node* target = p->continue_target( token->sloc );
-                    x = p->alloc< xec_stmt_continue >( token->sloc, target );
+                    xec_ast_scope* target = p->continue_target( token->sloc );
+                    x = p->alloc< xec_stmt_continue >(
+                                token->sloc, p->get_scope(), target );
                     p->destroy( token );
                 }
 stmt_common(x)  ::= BREAK(token) SEMICOLON .
                 {
-                    xec_ast_node* target = p->break_target( token->sloc );
-                    x = p->alloc< xec_stmt_break >( token->sloc, target );
+                    xec_ast_scope* target = p->break_target( token->sloc );
+                    x = p->alloc< xec_stmt_break >(
+                                token->sloc, p->get_scope(), target );
                     p->destroy( token );
                 }
 stmt_common(x)  ::= RETURN(token) SEMICOLON .
                 {
-                    x = p->alloc< xec_stmt_return >( token->sloc, nullptr );
+                    x = p->alloc< xec_stmt_return >(
+                                token->sloc, p->get_scope(), nullptr );
                     p->destroy( token );
                 }
 stmt_common(x)  ::= RETURN(token) expr_list(expr) SEMICOLON .
                 {
-                    x = p->alloc< xec_stmt_return >( token->sloc, expr );
+                    x = p->alloc< xec_stmt_return >(
+                                token->sloc, p->get_scope(), expr );
                     p->destroy( token );
                 }
 stmt_common(x)  ::= token_yield(token) SEMICOLON .

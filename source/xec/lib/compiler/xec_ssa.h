@@ -55,6 +55,10 @@ enum xec_ssa_opcode
     XEC_SSA_VARARG,     // One of varargs, or unpack all varargs.
     XEC_SSA_UNPACK,     // An array element selected by immediate, or unpack.
     
+    XEC_SSA_ITER,       // Construct an iterator.
+    XEC_SSA_EACH,       // Construct an iterator over keys.
+    XEC_SSA_NEXT,       // Return a set of values from an iterator.
+    
     XEC_SSA_NULL,
     XEC_SSA_BOOL,
     XEC_SSA_NUMBER,
@@ -74,6 +78,9 @@ enum xec_ssa_opcode
     XEC_SSA_SETKEY,
     XEC_SSA_SETINKEY,
     XEC_SSA_SETINDEX,
+    
+    XEC_SSA_DELKEY,
+    XEC_SSA_DELINKEY,
     
     XEC_SSA_POS,
     XEC_SSA_NEG,
@@ -109,6 +116,7 @@ enum xec_ssa_opcode
     XEC_SSA_APPEND,     // Append to an array.
     XEC_SSA_EXTEND,     // Append unpacked values to an array.
 
+    XEC_SSA_RETURN,
 };
 
 
@@ -121,6 +129,9 @@ typedef std::deque< xec_ssa_node*,
 
 struct xec_ssa
 {
+    xec_ssa();
+    ~xec_ssa();
+
     region              alloc;
     xec_script*         script;
     xec_ssa_func*       function;
@@ -130,6 +141,9 @@ struct xec_ssa
 
 struct xec_ssa_func
 {
+    xec_ssa_func( int sloc, const char* funcname, xec_ssa_block* block,
+            int upvalcount, int paramcount, bool varargs, bool coroutine );
+
     int                 sloc;
     const char*         funcname;
     xec_ssa_block*      block;
@@ -151,7 +165,8 @@ struct xec_ssa_name
 struct xec_ssa_block
 {
     xec_ssa_block*      prev;
-    xec_ssa_node*       node;
+    xec_ssa_node_list   intro;
+    xec_ssa_node_list   nodes;
     xec_ssa_node*       condition;
     union
     {
@@ -171,11 +186,7 @@ struct xec_ssa_node
 
     int                 sloc;
     xec_ssa_opcode      opcode;
-    xec_ssa_node*       next;
     
-    size_t              operand_count();
-    xec_ssa_node*       operand( size_t index );
-
     xec_ssa_packed*     as_packed();
     xec_ssa_triple*     as_triple();
     xec_ssa_expand*     as_expand();

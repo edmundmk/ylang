@@ -7,17 +7,10 @@
 
 
 #include "xec_ssa_builder.h"
+#include "xec_script.h"
 #include "xec_ssa.h"
 #include "xec_ast_visitor.h"
 
-
-
-/*
-    Simple and Efficient Construction of Static Single Assignment Form
-        Braun, Sebastian Buchwald, et al.
-
-    http://www.cdl.uni-saarland.de/papers/bbhlmz13cc.pdf
-*/
 
 
 
@@ -29,14 +22,10 @@ static inline void extend( containera_t* a, const containerb_t& b )
 
 
 
-
-
-/*
-    xec_ssa_lvalue
-*/
-
 struct xec_ssa_lvalue
 {
+    xec_ssa_lvalue();
+
     xec_ssa_opcode  opcode;
     xec_ssa_node*   object;
     union
@@ -48,11 +37,14 @@ struct xec_ssa_lvalue
 };
 
 
+xec_ssa_lvalue::xec_ssa_lvalue()
+    :   opcode( XEC_SSA_NOP )
+    ,   object( NULL )
+    ,   index( NULL )
+{
+}
 
 
-/*
-    xec_ssa_valist
-*/
 
 struct xec_ssa_valist
 {
@@ -440,11 +432,6 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_new_object* node )
     }
     
     b->close_scope( node->scope );
-    if ( node->upval )
-    {
-        b->close_upval( node );
-    }
-    
     return object;
 }
 
@@ -551,7 +538,7 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_assign_list* node )
 
 
 xec_ssa_build_unpack::xec_ssa_build_unpack( xec_ssa_builder* b )
-    :   b(b )
+    :   b( b )
 {
 }
 
@@ -560,6 +547,25 @@ void xec_ssa_build_unpack::fallback(
 {
     // Expression produces only one value.
     values->values.push_back( b->expr( node ) );
+    
+    // Unpack NULL for remaining values.
+    xec_ssa_node* nullval = b->node( b->packed( node->sloc, XEC_SSA_NULL ) );
+    for ( int i = 1; i < valcount; ++i )
+    {
+        values->values.push_back( nullval );
+    }
+}
+
+void xec_ssa_build_unpack::visit(
+                xec_expr_null* node, xec_ssa_valist* values, int valcount )
+{
+    // Special case to unpack NULL.
+    xec_ssa_node* nullval = b->expr( node );
+    values->values.push_back( nullval );
+    for ( int i = 1; i < valcount; ++i )
+    {
+        values->values.push_back( nullval );
+    }
 }
 
 void xec_ssa_build_unpack::visit(
@@ -718,23 +724,32 @@ void xec_ssa_build_unpack::visit(
     }
     
     // And unpack the final values.
+    int required;
+    if ( valcount != -1 )
+    {
+        required = valcount - (int)node->values.size();
+        required = required > 0 ? required : 0;
+    }
+    else
+    {
+        required = -1;
+    }
+
     if ( node->final )
     {
-        int required;
-        if ( valcount != -1 )
-        {
-            required = valcount - (int)node->values.size();
-            required = required > 0 ? required : 0;
-        }
-        else
-        {
-            required = -1;
-        }
-    
         xec_ssa_valist final;
         visit( node->final, &final, required );
         extend( &values->values, final.values );
         values->unpacked = final.unpacked;
+    }
+    else if ( required > 0 )
+    {
+        // Fill in the rest with null.
+        xec_ssa_node* nullval = b->node( b->packed( node->sloc, XEC_SSA_NULL ) );
+        for ( int i = 0; i < required; ++i )
+        {
+            values->values.push_back( nullval );
+        }
     }
 }
 
@@ -769,10 +784,10 @@ void xec_ssa_build_unpack::visit(
     if ( valcount != -1 && valcount > (int)lvalues.size() )
     {
         int required = valcount - (int)lvalues.size();
-        xec_ssa_node* null = b->node( b->packed( node->sloc, XEC_SSA_NULL ) );
+        xec_ssa_node* nullval = b->node( b->packed( node->sloc, XEC_SSA_NULL ) );
         for ( int i = 0; i < required; ++i )
         {
-            values->values.push_back( null );
+            values->values.push_back( nullval );
         }
     }
 }
@@ -821,23 +836,97 @@ void xec_ssa_build_stmt::visit( xec_stmt_if* node )
 void xec_ssa_build_stmt::visit( xec_stmt_switch* node )
 {
     b->switchopen( b->expr( node->value ) );
-    
+    visit( node->body );
+    b->switchend();
+    b->close_scope( node->scope );
 }
 
 void xec_ssa_build_stmt::visit( xec_stmt_while* node )
 {
+    b->loopopen();
+    b->ifthen( b->expr( node->condition ) );
+    visit( node->body );
+    b->loopcontinue();
+    b->ifelse();
+    b->loopbreak();
+    b->ifend();
+    b->loopend();
+    b->close_scope( node->scope );
 }
 
 void xec_ssa_build_stmt::visit( xec_stmt_do* node )
 {
+    b->loopopen();
+    visit( node->body );
+    b->ifthen( b->expr( node->condition ) );
+    b->loopcontinue();
+    b->ifelse();
+    b->loopbreak();
+    b->loopend();
+    b->close_scope( node->scope );
 }
 
 void xec_ssa_build_stmt::visit( xec_stmt_foreach* node )
 {
+    // Construct iterator.
+    xec_ssa_opcode opcode = node->eachkey ? XEC_SSA_EACH : XEC_SSA_ITER;
+    xec_ssa_node* list = b->expr( node->list );
+    xec_ssa_node* iter = b->node( b->packed( node->sloc, opcode, list ) );
+
+    // Begin loop.
+    b->loopopen();
+    
+    // Get values for this iteration.
+    int request = 1 + (int)node->lvalues.size();
+    xec_ssa_node* next = b->node( b->packed(
+                    node->sloc, XEC_SSA_NEXT, iter, request ) );
+    xec_ssa_node* cond = b->node( b->packed(
+                    node->sloc, XEC_SSA_SELECT, next, 0 ) );
+    for ( size_t i = 0; i < node->lvalues.size(); ++i )
+    {
+        xec_ssa_lvalue lvalue;
+        b->lvalue( &lvalue, node->lvalues.at( i ) );
+        xec_ssa_node* rvalue = b->node( b->packed(
+                        node->sloc, XEC_SSA_SELECT, next, 1 + (int)i ) );
+        b->lvalue_assign( &lvalue, rvalue );
+    }
+    
+    // Loop body.
+    b->ifthen( cond );
+    visit( node->body );
+    b->loopcontinue();
+    b->ifelse();
+    b->loopbreak();
+    b->ifend();
+    
+    // Close scopes.
+    b->close_scope( node->scope );
 }
 
 void xec_ssa_build_stmt::visit( xec_stmt_for* node )
 {
+    if ( node->init )
+    {
+        visit( node->init );
+    }
+    b->loopopen();
+    if ( node->condition )
+    {
+        b->ifthen( b->expr( node->condition ) );
+    }
+    visit( node->body );
+    if ( node->update )
+    {
+        visit( node->update );
+    }
+    b->loopcontinue();
+    if ( node->condition )
+    {
+        b->ifelse();
+        b->loopbreak();
+    }
+    b->loopend();
+    b->close_scope( node->scope );
 }
 
 void xec_ssa_build_stmt::visit( xec_stmt_using* node )
@@ -854,22 +943,95 @@ void xec_ssa_build_stmt::visit( xec_stmt_catch* node )
 
 void xec_ssa_build_stmt::visit( xec_stmt_delete* node )
 {
+    for ( size_t i = 0; i < node->delvals.size(); ++i )
+    {
+        xec_ast_node* delval = node->delvals.at( i );
+        if ( delval->kind == XEC_EXPR_KEY )
+        {
+            xec_expr_key* expr = (xec_expr_key*)node;
+            xec_ssa_node* object = b->expr( expr->object );
+            b->node( b->packed( delval->sloc, XEC_SSA_DELKEY, object, expr->key ) );
+        }
+        else if ( delval->kind == XEC_EXPR_INKEY )
+        {
+            xec_expr_inkey* expr = (xec_expr_inkey*)node;
+            xec_ssa_node* object = b->expr( expr->object );
+            xec_ssa_node* key = b->expr( expr->key );
+            b->node( b->packed( delval->sloc, XEC_SSA_DELINKEY, object, key ) );
+        }
+    }
 }
 
 void xec_ssa_build_stmt::visit( xec_stmt_case* node )
 {
+    xec_ssa_node* value = b->expr( node->value );
+    b->switchcase( value );
 }
 
 void xec_ssa_build_stmt::visit( xec_stmt_continue* node )
 {
+    // If we're in a for loop, update the for before continuing.
+    if ( node->target->node->kind == XEC_STMT_FOR )
+    {
+        xec_stmt_for* forstmt = (xec_stmt_for*)node->target;
+        if ( forstmt->update )
+        {
+            visit( forstmt->update );
+        }
+    }
+    
+    // Close scopes we're exiting.
+    for ( xec_ast_scope* scope = node->scope;
+                    scope != node->target; scope = scope->outer )
+    {
+        b->close_scope( scope );
+    }
+    
+    // Continue with the loop.
+    b->loopcontinue();
 }
 
 void xec_ssa_build_stmt::visit( xec_stmt_break* node )
 {
+    // Close scopes we're exiting.
+    for ( xec_ast_scope* scope = node->scope;
+                    scope != node->target; scope = scope->outer )
+    {
+        b->close_scope( scope );
+    }
+    
+    // Break out of either for loop or switch block.
+    if ( node->target->node->kind == XEC_STMT_SWITCH )
+    {
+        b->switchbreak();
+    }
+    else
+    {
+        b->loopbreak();
+    }
 }
 
 void xec_ssa_build_stmt::visit( xec_stmt_return* node )
 {
+    // Close scopes we're exiting.
+    xec_ast_scope* scope = node->scope;
+    while ( true )
+    {
+        b->close_scope( scope );
+        if ( scope->node->kind == XEC_AST_FUNC )
+            break;
+        scope = scope->outer;
+    }
+    
+    // Evaluate return values.
+    xec_ssa_valist values;
+    b->unpack( &values, node->values, -1 );
+    
+    // Emit return operation.
+    xec_ssa_expand* retstmt = b->expand( node->sloc, XEC_SSA_RETURN, 0 );
+    extend( &retstmt->operands, values.values );
+    retstmt->unpacked = values.unpacked;
+    b->node( retstmt );
 }
 
 void xec_ssa_build_stmt::visit( xec_stmt_throw* node )
@@ -877,6 +1039,206 @@ void xec_ssa_build_stmt::visit( xec_stmt_throw* node )
 }
 
 
+
+
+
+
+
+
+/*
+    Simple and Efficient Construction of Static Single Assignment Form
+        Braun, Sebastian Buchwald, et al.
+
+    http://www.cdl.uni-saarland.de/papers/bbhlmz13cc.pdf
+*/
+
+
+xec_ssa_builder::xec_ssa_builder( xec_ssa* root )
+    :   root( root )
+    ,   build_expr( this )
+    ,   build_unpack( this )
+    ,   build_stmt( this )
+{
+}
+
+bool xec_ssa_builder::build( xec_ast* ast )
+{
+    root->script    = ast->script;
+    root->function  = func( ast->function );
+    return root->script->error_count() == 0;
+}
+
+xec_ssa_node* xec_ssa_builder::node( xec_ssa_node* node )
+{
+    // TODO.
+    return node;
+}
+
+
+void xec_ssa_builder::define( xec_ast_name* name, xec_ssa_node* node )
+{
+}
+
+void xec_ssa_builder::define( xec_new_object* object, xec_ssa_node* node )
+{
+}
+
+void xec_ssa_builder::define( xec_ast_node* temporary, xec_ssa_node* node )
+{
+}
+
+
+xec_ssa_node* xec_ssa_builder::lookup( xec_ast_name* name )
+{
+    return NULL;
+}
+
+xec_ssa_node* xec_ssa_builder::lookup( xec_new_object* object )
+{
+    return NULL;
+}
+
+xec_ssa_node* xec_ssa_builder::lookup( xec_ast_node* temporary )
+{
+    return NULL;
+}
+
+
+void xec_ssa_builder::close_scope( xec_ast_scope* scope )
+{
+    // Close all upvals in scope.
+    for ( auto i = scope->decls.rbegin(); i != scope->decls.rend(); ++i )
+    {
+        xec_ast_name* decl = *i;
+        if ( decl->upval )
+        {
+            // TODO.
+        }
+    }
+    
+    // Close object upval if there is one.
+    if ( scope->node->kind == XEC_NEW_OBJECT )
+    {
+        xec_new_object* object = (xec_new_object*)scope->node;
+        if ( object->upval )
+        {
+            // TODO.
+        }
+    }
+}
+
+
+void xec_ssa_builder::ifthen( xec_ssa_node* condition )
+{
+}
+
+void xec_ssa_builder::ifelse()
+{
+}
+
+void xec_ssa_builder::ifend()
+{
+}
+
+
+void xec_ssa_builder::switchopen( xec_ssa_node* value )
+{
+}
+
+void xec_ssa_builder::switchcase( xec_ssa_node* value )
+{
+}
+
+void xec_ssa_builder::switchbreak()
+{
+}
+
+void xec_ssa_builder::switchend()
+{
+}
+
+
+void xec_ssa_builder::loopopen()
+{
+}
+
+void xec_ssa_builder::loopcontinue()
+{
+}
+
+void xec_ssa_builder::loopbreak()
+{
+}
+
+void xec_ssa_builder::loopend()
+{
+}
+
+
+void xec_ssa_builder::funcreturn()
+{
+}
+
+
+xec_ssa_func* xec_ssa_builder::func( xec_ast_func* func )
+{
+    // Set up function building.
+    xec_ssa_block* block = NULL; // TODO.
+    
+    
+    // Add parameters.
+    // TODO.
+    
+    
+    // Visit function body.
+    build_stmt.visit( func->block );
+    
+    // Close scope and return null.
+    close_scope( func->scope );
+    xec_ssa_node* nullval = node( packed( func->sloc, XEC_SSA_NULL ) );
+    xec_ssa_expand* retstmt = expand( func->sloc, XEC_SSA_RETURN, 0 );
+    retstmt->operands.push_back( nullval );
+    node( retstmt );
+    funcreturn();
+    
+    
+    // Clean up after building.
+    // TODO.
+    
+    
+    // Actually construct function object.
+    xec_ssa_func* ssaf = new ( root->alloc ) xec_ssa_func(
+            func->sloc, func->funcname, block, (int)func->upvals.size(),
+            (int)func->parameters.size(), func->varargs, func->coroutine );
+    root->functions.push_back( ssaf );
+    return ssaf;
+}
+
+xec_ssa_node* xec_ssa_builder::expr( xec_ast_node* node )
+{
+    return build_expr.visit( node );
+}
+
+void xec_ssa_builder::unpack( xec_ssa_valist* l, xec_ast_node* node, int count )
+{
+    build_unpack.visit( node, l, count );
+}
+
+
+
+void xec_ssa_builder::lvalue( xec_ssa_lvalue* lvalue, xec_ast_node* node )
+{
+}
+
+xec_ssa_node* xec_ssa_builder::lvalue_value( xec_ssa_lvalue* lvalue )
+{
+    return NULL;
+}
+
+xec_ssa_node* xec_ssa_builder::lvalue_assign( xec_ssa_lvalue* lvalue, xec_ssa_node* node )
+{
+    return NULL;
+}
 
 
 

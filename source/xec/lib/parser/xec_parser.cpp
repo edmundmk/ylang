@@ -454,7 +454,7 @@ void xec_parser::statement( xec_ast_node* stmt )
         else if ( stmt->kind == XEC_STMT_BREAK )
         {
             // Add the break to the implicit block.
-            assert( ( (xec_stmt_break*)stmt )->target == scope->node );
+            assert( ( (xec_stmt_break*)stmt )->target == scope );
             scope->block->stmts.push_back( stmt );
             
             // Close the block.
@@ -478,7 +478,7 @@ void xec_parser::statement( xec_ast_node* stmt )
 }
 
 
-xec_ast_node* xec_parser::continue_target( int sloc )
+xec_ast_scope* xec_parser::continue_target( int sloc )
 {
     for ( xec_ast_scope* scope = get_scope();
                     scope != NULL; scope = scope->outer )
@@ -487,7 +487,7 @@ xec_ast_node* xec_parser::continue_target( int sloc )
                 || scope->node->kind == XEC_STMT_DO
                 || scope->node->kind == XEC_STMT_FOREACH
                 || scope->node->kind == XEC_STMT_FOR )
-            return scope->node;
+            return scope;
     
         if ( scope->outer && scope->outer->func != scope->func )
             break;
@@ -498,7 +498,7 @@ xec_ast_node* xec_parser::continue_target( int sloc )
 }
 
 
-xec_ast_node* xec_parser::break_target( int sloc )
+xec_ast_scope* xec_parser::break_target( int sloc )
 {
     for ( xec_ast_scope* scope = get_scope();
                     scope != NULL; scope = scope->outer )
@@ -508,7 +508,7 @@ xec_ast_node* xec_parser::break_target( int sloc )
                 || scope->node->kind == XEC_STMT_DO
                 || scope->node->kind == XEC_STMT_FOREACH
                 || scope->node->kind == XEC_STMT_FOR )
-            return scope->node;
+            return scope;
     
         if ( scope->outer && scope->outer->func != scope->func )
             break;
