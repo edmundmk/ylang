@@ -117,8 +117,28 @@ class xec_ssa_build_stmt
 public:
 
     xec_ssa_build_stmt( xec_ssa_builder* b );
+
+    using xec_ast_visitor< xec_ssa_build_stmt, void >::visit;
+
+    void fallback( xec_ast_node* node );
     
-    
+    void visit( xec_stmt_block* node );
+    void visit( xec_stmt_if* node );
+    void visit( xec_stmt_switch* node );
+    void visit( xec_stmt_while* node );
+    void visit( xec_stmt_do* node );
+    void visit( xec_stmt_foreach* node );
+    void visit( xec_stmt_for* node );
+    void visit( xec_stmt_using* node );
+    void visit( xec_stmt_try* node );
+    void visit( xec_stmt_catch* node );
+    void visit( xec_stmt_delete* node );
+    void visit( xec_stmt_case* node );
+    void visit( xec_stmt_continue* node );
+    void visit( xec_stmt_break* node );
+    void visit( xec_stmt_return* node );
+    void visit( xec_stmt_throw* node );
+
 
 private:
 
@@ -152,13 +172,24 @@ public:
     xec_ssa_node*   node( xec_ssa_node* node );
 
     void            define( xec_ast_name* name, xec_ssa_node* node );
-    void            define( void* object, xec_ssa_node* node );
+    void            define( xec_new_object* object, xec_ssa_node* node );
+    void            define( xec_ast_node* temporary, xec_ssa_node* node );
+    
     xec_ssa_node*   lookup( xec_ast_name* name );
-    xec_ssa_node*   lookup( void* object );
-
+    xec_ssa_node*   lookup( xec_new_object* object );
+    xec_ssa_node*   lookup( xec_ast_node* temporary );
+    
+    void            close_upval( xec_new_object* object );
+    void            close_scope( xec_ast_scope* scope );
+    
     void            ifthen( xec_ssa_node* condition );
     void            ifelse();
     void            ifend();
+    
+    void            switchopen( xec_ssa_node* value );
+    void            switchcase( xec_ssa_node* value );
+    void            switchbreak();
+    void            switchend();
 
     xec_ssa_func*   func( xec_ast_func* func );
     xec_ssa_node*   expr( xec_ast_node* node );

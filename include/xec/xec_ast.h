@@ -37,6 +37,8 @@ enum xec_ast_scope_kind
 {
     XEC_SCOPE_SCRIPT,
     XEC_SCOPE_BLOCK,
+    XEC_SCOPE_SWITCH,
+    XEC_SCOPE_IMPLICIT,
     XEC_SCOPE_OBJECT,
     XEC_SCOPE_IMPLIED,
 };

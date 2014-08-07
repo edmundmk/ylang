@@ -580,10 +580,12 @@ void xec_ast_printer::print_scope( xec_ast_scope* scope, int indent )
     const char* kind_name = "??";
     switch ( scope->kind )
     {
-    case XEC_SCOPE_SCRIPT:  kind_name = "SCRIPT";   break;
-    case XEC_SCOPE_BLOCK:   kind_name = "BLOCK";    break;
-    case XEC_SCOPE_OBJECT:  kind_name = "OBJECT";   break;
-    case XEC_SCOPE_IMPLIED: kind_name = "IMPLIED";  break;
+    case XEC_SCOPE_SCRIPT:      kind_name = "SCRIPT";       break;
+    case XEC_SCOPE_BLOCK:       kind_name = "BLOCK";        break;
+    case XEC_SCOPE_SWITCH:      kind_name = "SWITCH";       break;
+    case XEC_SCOPE_IMPLICIT:    kind_name = "IMPLICIT";     break;
+    case XEC_SCOPE_OBJECT:      kind_name = "OBJECT";       break;
+    case XEC_SCOPE_IMPLIED:     kind_name = "IMPLIED";      break;
     }
 
     printf( "%*sscope %s %p:\n", indent, "", kind_name, scope );

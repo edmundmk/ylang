@@ -392,9 +392,89 @@ void xec_parser::statement( xec_ast_node* stmt )
         return;
 
     xec_ast_scope* scope = get_scope();
-    assert( scope->block );
-    assert( scope->kind == XEC_SCOPE_SCRIPT || scope->kind == XEC_SCOPE_BLOCK );
-    scope->block->stmts.push_back( stmt );
+    assert( scope->kind != XEC_SCOPE_OBJECT );
+    assert( scope->kind != XEC_SCOPE_IMPLIED );
+    
+    /*
+        switch statements are made up of case statements and implicit blocks.
+        Each implicit block starts from a non-case statement and ends at a
+        break.  We do it this way to allow declarations inside switch
+        statements without risking skipping declarations.
+    */
+    
+    if ( scope->kind == XEC_SCOPE_SWITCH )
+    {
+        /*
+            In the switch scope, which means the switch has just been opened, or
+            an implicit block has just been closed with a break.
+        */
+        
+        if ( stmt->kind == XEC_STMT_CASE )
+        {
+            // Add case to switch block.
+            scope->block->stmts.push_back( stmt );
+        }
+        else
+        {
+            // It's not a case - make sure there's been at least one case.
+            assert( scope->node->kind == XEC_STMT_SWITCH );
+            xec_stmt_switch* swstmt = (xec_stmt_switch*)scope->node;
+            if ( swstmt->body->stmts.empty() )
+            {
+                root->script->error( stmt->sloc, "expected case" );
+            }
+
+            // Open implicit block.
+            xec_stmt_block* block = alloc< xec_stmt_block >( stmt->sloc );
+            block->scope = alloc< xec_ast_scope >(
+                    XEC_SCOPE_IMPLICIT, scope, block, scope->func );
+            scopes.push_back( block->scope );
+            scope = block->scope;
+            
+            // Add statement to block.
+            scope->block->stmts.push_back( stmt );
+        }
+    }
+    else if ( scope->kind == XEC_SCOPE_IMPLICIT )
+    {
+        /*
+            In an implicit block inside a switch statement.
+        */
+    
+        if ( stmt->kind == XEC_STMT_CASE )
+        {
+            // Close the implicit block (with no break, it will fall-through).
+            close_scope( scope );
+            scope = get_scope();
+
+            // Add the case to the switch scope.
+            assert( scope->kind == XEC_SCOPE_SWITCH );
+            scope->block->stmts.push_back( stmt );
+        }
+        else if ( stmt->kind == XEC_STMT_BREAK )
+        {
+            // Add the break to the implicit block.
+            assert( ( (xec_stmt_break*)stmt )->target == scope->node );
+            scope->block->stmts.push_back( stmt );
+            
+            // Close the block.
+            close_scope( scope );
+        }
+        else
+        {
+            // Add statement to implicit block.
+            scope->block->stmts.push_back( stmt );
+        }
+    }
+    else
+    {
+        // Not in a switch statement.
+        if ( stmt->kind == XEC_STMT_CASE )
+        {
+            root->script->error( stmt->sloc, "case outside switch" );
+        }
+        scope->block->stmts.push_back( stmt );
+    }
 }
 
 

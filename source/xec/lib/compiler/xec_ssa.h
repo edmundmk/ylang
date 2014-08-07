@@ -29,7 +29,13 @@ struct xec_ssa_expand;
 
 
 /*
-    SSA form for scripts,.
+    SSA form for scripts.
+    
+    Both call and yield operations can result in multiple values, which are
+    selected with 'select'.  'vararg' and 'unpack' can either result in a
+    single value, or in an unknown number of values.
+    
+    If a multi-valued operantion returns an 
 */
 
 
@@ -40,6 +46,7 @@ enum xec_ssa_opcode
     XEC_SSA_PHI,        // SSA ɸ-functions.
 
     XEC_SSA_CLOSURE,
+    XEC_SSA_PARAM,      // Declare parameters.
 
     XEC_SSA_CALL,
     XEC_SSA_YIELD,
@@ -53,20 +60,20 @@ enum xec_ssa_opcode
     XEC_SSA_NUMBER,
     XEC_SSA_STRING,
     
-    XEC_SSA_PARAM,
-    XEC_SSA_UPREF,
+    XEC_SSA_NEWUP,      // Create new upval (for locals which are upvals).
+    XEC_SSA_REFUP,      // Get value of upval (both locals and in outer scopes).
+    XEC_SSA_SETUP,      // Set upval (both locals and in outer scopes).
+    XEC_SSA_CLOSE,      // Close a locally-created upval.
+    
     XEC_SSA_GLOBAL,
-
     XEC_SSA_KEY,
     XEC_SSA_INKEY,
     XEC_SSA_INDEX,
     
+    XEC_SSA_SETGLOBAL,
     XEC_SSA_SETKEY,
     XEC_SSA_SETINKEY,
     XEC_SSA_SETINDEX,
-    
-    XEC_SSA_SETUPVAL,
-    XEC_SSA_SETGLOBAL,
     
     XEC_SSA_POS,
     XEC_SSA_NEG,

@@ -113,7 +113,7 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_ast_func* node )
         case XEC_UPVAL_UPVAL:
         {
             xec_ssa_node* uv = b->node( b->packed(
-                        node->sloc, XEC_SSA_UPREF, nullptr, upval.upval ) );
+                        node->sloc, XEC_SSA_REFUP, nullptr, upval.upval ) );
             closure->operands.push_back( uv );
             break;
         }
@@ -158,7 +158,7 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_global* node )
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_upref* node )
 {
     return b->node( b->packed( node->sloc,
-                XEC_SSA_UPREF, nullptr, node->index ) );
+                XEC_SSA_REFUP, nullptr, node->index ) );
                 
 }
 
@@ -439,7 +439,11 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_new_object* node )
         visit( node->members.at( i ) );
     }
     
-    // !! TODO: close upvals in scope (if object is an upval, close it...)
+    b->close_scope( node->scope );
+    if ( node->upval )
+    {
+        b->close_upval( node );
+    }
     
     return object;
 }
@@ -774,6 +778,103 @@ void xec_ssa_build_unpack::visit(
 }
 
 
+
+xec_ssa_build_stmt::xec_ssa_build_stmt( xec_ssa_builder* b )
+    :   b( b )
+{
+}
+
+void xec_ssa_build_stmt::fallback( xec_ast_node* node )
+{
+    assert( ! "expected statement" );
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_block* node )
+{
+    for ( size_t i = 0; i < node->stmts.size(); ++i )
+    {
+        visit( node->stmts.at( i ) );
+    }
+    
+    if ( node->scope )
+    {
+        b->close_scope( node->scope );
+    }
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_if* node )
+{
+    b->ifthen( b->expr( node->condition ) );
+    if ( node->iftrue )
+    {
+        visit( node->iftrue );
+    }
+    if ( node->iffalse )
+    {
+        b->ifelse();
+        visit( node->iffalse );
+    }
+    b->ifend();
+    b->close_scope( node->scope );
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_switch* node )
+{
+    b->switchopen( b->expr( node->value ) );
+    
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_while* node )
+{
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_do* node )
+{
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_foreach* node )
+{
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_for* node )
+{
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_using* node )
+{
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_try* node )
+{
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_catch* node )
+{
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_delete* node )
+{
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_case* node )
+{
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_continue* node )
+{
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_break* node )
+{
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_return* node )
+{
+}
+
+void xec_ssa_build_stmt::visit( xec_stmt_throw* node )
+{
+}
 
 
 
