@@ -10,6 +10,7 @@
 #define XEC_SSA_BUILDER_H
 
 
+#include <unordered_map>
 #include "xec_ssa.h"
 #include "xec_ast_visitor.h"
 
@@ -204,15 +205,19 @@ public:
     
     void            lvalue( xec_ssa_lvalue* lvalue, xec_ast_node* node );
     xec_ssa_node*   lvalue_value( xec_ssa_lvalue* lvalue );
-    xec_ssa_node*   lvalue_assign( xec_ssa_lvalue* lvalue, xec_ssa_node* node );
+    xec_ssa_node*   lvalue_assign( xec_ssa_lvalue* lvalue, xec_ssa_node* val );
     
     
 private:
+
+    void            build_function( xec_ast_func* astf, xec_ssa_func* ssaf );
+
 
     xec_ssa* root;
     xec_ssa_build_expr   build_expr;
     xec_ssa_build_unpack build_unpack;
     xec_ssa_build_stmt   build_stmt;
+    std::unordered_map< xec_ast_func*, xec_ssa_func* > funcmap;
 
 };
 

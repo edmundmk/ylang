@@ -164,7 +164,10 @@ struct xec_ssa_name
 
 struct xec_ssa_block
 {
-    xec_ssa_block*      prev;
+
+    // node -> name map
+
+    xec_ssa_block*      prev; // might need to be a block list?
     xec_ssa_node_list   intro;
     xec_ssa_node_list   nodes;
     xec_ssa_node*       condition;

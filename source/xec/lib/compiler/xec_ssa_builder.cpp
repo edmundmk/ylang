@@ -26,11 +26,13 @@ struct xec_ssa_lvalue
 {
     xec_ssa_lvalue();
 
+    int             sloc;
     xec_ssa_opcode  opcode;
     xec_ssa_node*   object;
     union
     {
     xec_ssa_node*   index;
+    xec_ast_name*   local;
     const char*     literal;
     int             upval;
     };
@@ -38,7 +40,7 @@ struct xec_ssa_lvalue
 
 
 xec_ssa_lvalue::xec_ssa_lvalue()
-    :   opcode( XEC_SSA_NOP )
+    :   opcode( (xec_ssa_opcode)-1 )
     ,   object( NULL )
     ,   index( NULL )
 {
@@ -1063,8 +1065,28 @@ xec_ssa_builder::xec_ssa_builder( xec_ssa* root )
 
 bool xec_ssa_builder::build( xec_ast* ast )
 {
-    root->script    = ast->script;
-    root->function  = func( ast->function );
+    root->script = ast->script;
+    
+    // Construct function objects.
+    for ( size_t i = 0; i < ast->functions.size(); ++i )
+    {
+        xec_ast_func* func = ast->functions.at( i );
+        xec_ssa_func* ssaf = new ( root->alloc ) xec_ssa_func(
+                func->sloc, func->funcname, NULL, (int)func->upvals.size(),
+                (int)func->parameters.size(), func->varargs, func->coroutine );
+        root->functions.push_back( ssaf );
+        funcmap.emplace( func, ssaf );
+    }
+    
+    // Perform AST -> SSA conversion, one function at a time.
+    for ( size_t i = 0; i < ast->functions.size(); ++i )
+    {
+        xec_ast_func* func = ast->functions.at( i );
+        xec_ssa_func* ssaf = funcmap.at( func );
+        build_function( func, ssaf );
+    }
+    
+    root->function = funcmap.at( ast->function );
     return root->script->error_count() == 0;
 }
 
@@ -1182,36 +1204,7 @@ void xec_ssa_builder::funcreturn()
 
 xec_ssa_func* xec_ssa_builder::func( xec_ast_func* func )
 {
-    // Set up function building.
-    xec_ssa_block* block = NULL; // TODO.
-    
-    
-    // Add parameters.
-    // TODO.
-    
-    
-    // Visit function body.
-    build_stmt.visit( func->block );
-    
-    // Close scope and return null.
-    close_scope( func->scope );
-    xec_ssa_node* nullval = node( packed( func->sloc, XEC_SSA_NULL ) );
-    xec_ssa_expand* retstmt = expand( func->sloc, XEC_SSA_RETURN, 0 );
-    retstmt->operands.push_back( nullval );
-    node( retstmt );
-    funcreturn();
-    
-    
-    // Clean up after building.
-    // TODO.
-    
-    
-    // Actually construct function object.
-    xec_ssa_func* ssaf = new ( root->alloc ) xec_ssa_func(
-            func->sloc, func->funcname, block, (int)func->upvals.size(),
-            (int)func->parameters.size(), func->varargs, func->coroutine );
-    root->functions.push_back( ssaf );
-    return ssaf;
+    return funcmap.at( func );
 }
 
 xec_ssa_node* xec_ssa_builder::expr( xec_ast_node* node )
@@ -1228,19 +1221,148 @@ void xec_ssa_builder::unpack( xec_ssa_valist* l, xec_ast_node* node, int count )
 
 void xec_ssa_builder::lvalue( xec_ssa_lvalue* lvalue, xec_ast_node* node )
 {
+    lvalue->sloc = node->sloc;
+
+    switch ( node->kind )
+    {
+    case XEC_EXPR_LOCAL:
+    {
+        xec_expr_local* local = (xec_expr_local*)node;
+        lvalue->opcode = XEC_SSA_NOP;
+        lvalue->local  = local->name;
+        break;
+    }
+    
+    case XEC_EXPR_UPREF:
+    {
+        xec_expr_upref* upref = (xec_expr_upref*)node;
+        lvalue->opcode = XEC_SSA_SETUP;
+        lvalue->upval  = upref->index;
+        break;
+    }
+    
+    case XEC_EXPR_KEY:
+    {
+        xec_expr_key* key = (xec_expr_key*)node;
+        lvalue->opcode = XEC_SSA_SETKEY;
+        lvalue->object = expr( key->object );
+        lvalue->literal = key->key;
+        break;
+    }
+    
+    case XEC_EXPR_INKEY:
+    {
+        xec_expr_inkey* inkey = (xec_expr_inkey*)node;
+        lvalue->opcode = XEC_SSA_SETINKEY;
+        lvalue->object = expr( inkey->object );
+        lvalue->index = expr( inkey->key );
+        break;
+    }
+    
+    case XEC_EXPR_INDEX:
+    {
+        xec_expr_index* index = (xec_expr_index*)node;
+        lvalue->opcode = XEC_SSA_SETINDEX;
+        lvalue->object = expr( index->object );
+        lvalue->index = expr( index->index );
+        break;
+    }
+        
+    default:
+        assert( ! "invalid lvalue" );
+        break;
+    }
 }
 
 xec_ssa_node* xec_ssa_builder::lvalue_value( xec_ssa_lvalue* lvalue )
 {
-    return NULL;
+    switch ( lvalue->opcode )
+    {
+    case XEC_SSA_NOP:
+        return lookup( lvalue->local );
+    
+    case XEC_SSA_SETUP:
+        return node( packed( lvalue->sloc,
+                        XEC_SSA_REFUP, nullptr, lvalue->upval ) );
+    
+    case XEC_SSA_SETKEY:
+        return node( packed( lvalue->sloc,
+                        XEC_SSA_KEY, lvalue->object, lvalue->literal ) );
+    
+    case XEC_SSA_SETINKEY:
+        return node( packed( lvalue->sloc,
+                        XEC_SSA_INKEY, lvalue->object, lvalue->index ) );
+    
+    case XEC_SSA_SETINDEX:
+        return node( packed( lvalue->sloc,
+                        XEC_SSA_INDEX, lvalue->object, lvalue->index ) );
+    
+    default:
+        assert( ! "invalid lvalue" );
+        break;
+    }
 }
 
-xec_ssa_node* xec_ssa_builder::lvalue_assign( xec_ssa_lvalue* lvalue, xec_ssa_node* node )
+xec_ssa_node* xec_ssa_builder::lvalue_assign(
+            xec_ssa_lvalue* lvalue, xec_ssa_node* val )
 {
-    return NULL;
+    switch ( lvalue->opcode )
+    {
+    case XEC_SSA_NOP:
+        define( lvalue->local, val );
+        break;
+        
+    case XEC_SSA_SETUP:
+        node( packed( lvalue->sloc, XEC_SSA_SETUP, val, lvalue->upval ) );
+        break;
+        
+    case XEC_SSA_SETKEY:
+        node( triple( lvalue->sloc,
+                    XEC_SSA_SETKEY, lvalue->object, lvalue->literal, val ) );
+        break;
+        
+    case XEC_SSA_SETINKEY:
+    case XEC_SSA_SETINDEX:
+        node( triple( lvalue->sloc,
+                    lvalue->opcode, lvalue->object, lvalue->index, val ) );
+        break;
+        
+    default:
+        assert( ! "invalid lvalue" );
+    }
+
+    return val;
 }
 
 
+
+
+void xec_ssa_builder::build_function( xec_ast_func* astf, xec_ssa_func* ssaf )
+{
+    // Set up function building.
+    
+    
+    // Add parameters.
+    // TODO.
+    
+    
+    // Visit function body.
+    build_stmt.visit( astf->block );
+    
+    
+    // Close scope and return null.
+    close_scope( astf->scope );
+    xec_ssa_node* nullval = node( packed( astf->sloc, XEC_SSA_NULL ) );
+    xec_ssa_expand* retstmt = expand( astf->sloc, XEC_SSA_RETURN, 0 );
+    retstmt->operands.push_back( nullval );
+    node( retstmt );
+    funcreturn();
+    
+    
+    // Clean up after building.
+    // TODO.
+
+}
 
 
 
