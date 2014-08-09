@@ -1235,14 +1235,42 @@ xec_ssa_node* xec_ssa_builder::node( xec_ssa_node* node )
 
 void xec_ssa_builder::define( xec_ast_name* name, xec_ssa_node* node )
 {
+    if ( b->block )
+    {
+        b->block->defined[ name ] = node;
+        
+        // Also associate definition with a name (for debugging, and?).
+        auto i = namemap.find( name );
+        xec_ssa_name* ssan;
+        if ( i != namemap.end() )
+        {
+            ssan = i->second;
+        }
+        else
+        {
+            ssan = new ( root->alloc ) xec_ssa_name( name->sloc, name->name );
+            namemap.emplace( name, ssan );
+        }
+        
+        b->block->block->names.emplace( node, ssan );
+    }
 }
+    
 
 void xec_ssa_builder::define( xec_new_object* object, xec_ssa_node* node )
 {
+    if ( b->block )
+    {
+        b->block->defined[ object ] = node;
+    }
 }
 
 void xec_ssa_builder::define( xec_ast_node* temporary, xec_ssa_node* node )
 {
+    if ( b->block )
+    {
+        b->block->defined[ temporary ] = node;
+    }
 }
 
 

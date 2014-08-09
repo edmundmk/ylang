@@ -233,7 +233,7 @@ private:
     xec_ssa_build_unpack build_unpack;
     xec_ssa_build_stmt   build_stmt;
     std::unordered_map< xec_ast_func*, xec_ssa_func* > funcmap;
-    std::unordered_map< void*, xec_ssa_name* > namemap;
+    std::unordered_map< xec_ast_name*, xec_ssa_name* > namemap;
     std::unique_ptr< xec_ssa_build_func > b;
 
 };
