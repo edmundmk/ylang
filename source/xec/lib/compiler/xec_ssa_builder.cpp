@@ -980,6 +980,7 @@ void xec_ssa_build_stmt::visit( xec_stmt_delete* node )
 
 void xec_ssa_build_stmt::visit( xec_stmt_case* node )
 {
+    b->switchcase();
     xec_ssa_node* value = b->expr( node->value );
     b->switchcase( value );
 }
@@ -1094,7 +1095,9 @@ struct xec_ssa_build_switch
 {
     xec_ssa_build_switch();
     
+    xec_ssa_node*           value;
     xec_ssa_build_block*    head;
+    xec_ssa_build_block*    prev;
     std::deque< xec_ssa_build_block* > breaks;
 };
 
@@ -1106,7 +1109,17 @@ xec_ssa_build_switch::xec_ssa_build_switch()
 
 struct xec_ssa_build_loop
 {
+    xec_ssa_build_loop();
+    
+    xec_ssa_build_block*    loop;
+    std::deque< xec_ssa_build_block* > breaks;
 };
+
+
+xec_ssa_build_loop::xec_ssa_build_loop()
+    :   loop( NULL )
+{
+}
 
 
 struct xec_ssa_build_func
@@ -1283,21 +1296,14 @@ void xec_ssa_builder::ifthen( xec_ssa_node* condition )
     {
         // Link new block as the iftrue branch from the current block.
         buildif.prev = b->block;
-        assert( ! buildif.prev->block->condition );
-        assert( ! buildif.prev->block->next );
-        buildif.prev->block->condition = condition;
-        buildif.prev->block->iftrue = iftrue->block;
-        
-        // And the new block has one predecessor.
-        iftrue->block->previous.push_back( buildif.prev->block );
-        iftrue->sealed = true;
+        link_iftrue( buildif.prev, condition, iftrue );
     }
     else
     {
         // Unreachable code.
-        iftrue->sealed = true;
     }
     
+    seal_block( iftrue );
     b->block = iftrue;
 }
 
@@ -1316,20 +1322,14 @@ void xec_ssa_builder::ifelse()
     if ( buildif.prev )
     {
         // Link new block as iffalse branch from the block before the if.
-        assert( buildif.prev->block->condition );
-        assert( ! buildif.prev->block->iffalse );
-        buildif.prev->block->iffalse = iffalse->block;
-        
-        // And the new block has one predecessor.
-        iffalse->block->previous.push_back( buildif.prev->block );
-        iffalse->sealed = true;
+        link_iffalse( buildif.prev, iffalse );
     }
     else
     {
         // Unreachable code.
-        iffalse->sealed = true;
     }
     
+    seal_block( iffalse );
     b->block = iffalse;
 }
 
@@ -1341,24 +1341,17 @@ void xec_ssa_builder::ifend()
     if ( buildif.then )
     {
         // Link end of iftrue branch to this block.
-        assert( ! buildif.then->block->condition );
-        assert( ! buildif.then->block->next );
-        buildif.then->block->next = after->block;
-        after->block->previous.push_back( buildif.then->block );
+        link_next( buildif.then, after );
     }
     
     if ( b->block )
     {
         // Current block is the end of the iffalse branch.
-        assert( ! b->block->block->condition );
-        assert( ! b->block->block->next );
-        b->block->block->next = after->block;
-        after->block->previous.push_back( b->block->block );
+        link_next( b->block, after );
     }
     
-    after->sealed = true;
+    seal_block( after );
     b->ifstack.pop_back();
-    
     b->block = after;
 }
 
@@ -1367,53 +1360,232 @@ void xec_ssa_builder::switchopen( xec_ssa_node* value )
 {
     b->switchstack.emplace_back();
     xec_ssa_build_switch& buildswitch = b->switchstack.back();
-    
+    buildswitch.value = value;
+    buildswitch.head = b->block;
+    b->block = NULL;
 }
+
+
+void xec_ssa_builder::switchcase()
+{
+    xec_ssa_build_switch& buildswitch = b->switchstack.back();
+
+    // Remember previous current block (for fallthrough).
+    buildswitch.prev = b->block;
+    
+    if ( buildswitch.head )
+    {
+        if ( buildswitch.head->block->condition )
+        {
+            // There has already been another comparison.
+            xec_ssa_build_block* testblock = make_block();
+            link_iffalse( buildswitch.head, testblock );
+            seal_block( testblock );
+            b->block = testblock;
+        }
+        else
+        {
+            // This is the first comparison.
+            assert( ! buildswitch.head->block->next );
+            b->block = buildswitch.head;
+        }
+    }
+    else
+    {
+        // Unreachable code.
+        b->block = NULL;
+    }
+}
+
 
 void xec_ssa_builder::switchcase( xec_ssa_node* value )
 {
     xec_ssa_build_switch& buildswitch = b->switchstack.back();
-}
+    
+    xec_ssa_build_block* caseblock = NULL;
+    if ( buildswitch.prev )
+    {
+        if ( buildswitch.prev->block->nodes.empty() )
+        {
+            // Reuse empty case block from previous case.
+            assert( ! buildswitch.prev->block->condition );
+            assert( ! buildswitch.prev->block->next );
+            assert( buildswitch.prev->block->phi.empty() );
+            caseblock = buildswitch.prev;
+            
+            // Can only do this because the block is totally empty.
+            caseblock->sealed = false;
+        }
+        else
+        {
+            // Make new case block (with fallthrough).
+            caseblock = make_block();
+            link_next( buildswitch.prev, caseblock );
+        }
+        
+        buildswitch.prev = NULL;
+    }
+    else
+    {
+        // Make new case block (no fallthrough).
+        caseblock = make_block();
+    }
+    
+    
+    // Add comparison.
+    xec_ssa_node* compare = node( packed(
+                value->sloc, XEC_SSA_EQ, buildswitch.value, value ) );
+    
 
-void xec_ssa_builder::switchbreak()
-{
-    xec_ssa_build_switch& buildswitch = b->switchstack.back();
-}
-
-void xec_ssa_builder::switchend()
-{
-    xec_ssa_build_switch& buildswitch = b->switchstack.back();
-}
-
-
-void xec_ssa_builder::loopopen()
-{
-}
-
-void xec_ssa_builder::loopcontinue()
-{
-}
-
-void xec_ssa_builder::loopbreak()
-{
-}
-
-void xec_ssa_builder::loopend()
-{
-}
-
-
-void xec_ssa_builder::funcreturn()
-{
+    // Link case block.
     if ( b->block )
     {
-        // Further statements are unreachable.
-        b->block = NULL;
+        link_iftrue( b->block, compare, caseblock );
     }
     else
     {
         // Unreachable code.
     }
+    
+    
+    // Next case, the head of the switch will be the current block, so
+    // we can chain more cases.
+    buildswitch.head = b->block;
+    
+    
+    // And we want to add statements to the case block.
+    seal_block( caseblock );
+    b->block = caseblock;
+}
+
+void xec_ssa_builder::switchbreak()
+{
+    xec_ssa_build_switch& buildswitch = b->switchstack.back();
+    
+    if ( b->block )
+    {
+        // This block's next block is the one after the switch.
+        buildswitch.breaks.push_back( b->block );
+    }
+    
+    // Further statements are unreachable.
+    b->block = NULL;
+}
+
+void xec_ssa_builder::switchend()
+{
+    xec_ssa_build_switch& buildswitch = b->switchstack.back();
+    xec_ssa_build_block* after = make_block();
+    
+    if ( buildswitch.head )
+    {
+        // Failed comparisons end up outside of the switch.
+        if ( buildswitch.head->block->condition )
+        {
+            link_iffalse( buildswitch.head, after );
+        }
+        else
+        {
+            link_next( buildswitch.head, after );
+        }
+    }
+    
+    for ( size_t i = 0; i < buildswitch.breaks.size(); ++i )
+    {
+        // Each break block jumps to after the switch.
+        xec_ssa_build_block* breakblock = buildswitch.breaks.at( i );
+        link_next( breakblock, after );
+    }
+    
+    seal_block( after );
+    b->switchstack.pop_back();
+    b->block = after;
+}
+
+
+void xec_ssa_builder::loopopen()
+{
+    b->loopstack.emplace_back();
+    xec_ssa_build_loop& buildloop = b->loopstack.back();
+    
+    // The entry to the loop is the only kind of block that isn't
+    // sealed immediately after creation (we don't know how many
+    // continues are going to loop back to it).
+    buildloop.loop = make_block();
+    
+    if ( b->block )
+    {
+        // Loop block follows current block.
+        link_next( b->block, buildloop.loop );
+    }
+    else
+    {
+        // Unreachable code.
+    }
+    
+    b->block = buildloop.loop;
+}
+
+void xec_ssa_builder::loopcontinue()
+{
+    xec_ssa_build_loop& buildloop = b->loopstack.back();
+
+    if ( b->block )
+    {
+        link_next( b->block, buildloop.loop );
+    }
+    else
+    {
+        // Unreachable code.
+    }
+    
+    // Further statements are unreachable.
+    b->block = NULL;
+}
+
+void xec_ssa_builder::loopbreak()
+{
+    xec_ssa_build_loop& buildloop = b->loopstack.back();
+
+    if ( b->block )
+    {
+        // This block's next block is the one after the loop.
+        buildloop.breaks.push_back( b->block );
+    }
+
+    // Further statements are unreachable.
+    b->block = NULL;
+}
+
+void xec_ssa_builder::loopend()
+{
+    xec_ssa_build_loop& buildloop = b->loopstack.back();
+
+    // We should either have broken or continued by now.
+    assert( ! b->block );
+    
+    // No more continues.
+    seal_block( buildloop.loop );
+    
+    // Create after block and link breaks to it.
+    xec_ssa_build_block* after = make_block();
+    for ( size_t i = 0; i < buildloop.breaks.size(); ++i )
+    {
+        // Each break block jumps to after the switch.
+        xec_ssa_build_block* breakblock = buildloop.breaks.at( i );
+        link_next( breakblock, after );
+    }
+    
+    seal_block( after );
+    b->loopstack.pop_back();
+    b->block = after;
+}
+
+
+void xec_ssa_builder::funcreturn()
+{
+    // Further statements are unreachable.
+    b->block = NULL;
 }
 
 
@@ -1608,8 +1780,48 @@ xec_ssa_build_block* xec_ssa_builder::make_block()
 }
 
 
+void xec_ssa_builder::link_next(
+            xec_ssa_build_block* block, xec_ssa_build_block* next )
+{
+    assert( ! block->block->condition );
+    assert( ! block->block->next );
+    assert( ! next->sealed );
+    block->block->next = next->block;
+    next->block->previous.push_back( block->block );
+}
+
+void xec_ssa_builder::link_iftrue( xec_ssa_build_block* block,
+            xec_ssa_node* condition, xec_ssa_build_block* iftrue )
+{
+    assert( ! block->block->condition );
+    assert( ! block->block->next );
+    assert( ! iftrue->sealed );
+    block->block->condition = condition;
+    block->block->iftrue = iftrue->block;
+    iftrue->block->previous.push_back( block->block );
+}
+
+void xec_ssa_builder::link_iffalse(
+            xec_ssa_build_block* block, xec_ssa_build_block* iffalse )
+{
+    assert( block->block->condition );
+    assert( block->block->iftrue );
+    assert( ! block->block->iffalse );
+    assert( ! iffalse->sealed );
+    block->block->iffalse = iffalse->block;
+    iffalse->block->previous.push_back( block->block );
+}
 
 
 
+
+void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
+{
+    assert( ! block->sealed );
+    
+    // TODO: Lookup incomplete phi instructions.
+    
+    block->sealed = true;
+}
 
 

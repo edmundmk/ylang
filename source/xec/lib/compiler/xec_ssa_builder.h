@@ -194,6 +194,7 @@ public:
     void            ifend();
     
     void            switchopen( xec_ssa_node* value );
+    void            switchcase();
     void            switchcase( xec_ssa_node* value );
     void            switchbreak();
     void            switchend();
@@ -218,7 +219,14 @@ private:
 
     void            build_function( xec_ast_func* astf, xec_ssa_func* ssaf );
     xec_ssa_build_block* make_block();
-    bool            unreachable();
+    void            link_next( xec_ssa_build_block* block,
+                        xec_ssa_build_block* next );
+    void            link_iftrue( xec_ssa_build_block* block,
+                        xec_ssa_node* condition, xec_ssa_build_block* iftrue );
+    void            link_iffalse( xec_ssa_build_block* block,
+                        xec_ssa_build_block* iffalse );
+    void            seal_block( xec_ssa_build_block* block );
+    
 
     xec_ssa* root;
     xec_ssa_build_expr   build_expr;
