@@ -1082,7 +1082,6 @@ struct xec_ssa_build_if
     xec_ssa_build_block*    then;
 };
 
-
 xec_ssa_build_if::xec_ssa_build_if()
     :   prev( NULL )
     ,   then( NULL )
@@ -1093,7 +1092,17 @@ xec_ssa_build_if::xec_ssa_build_if()
 
 struct xec_ssa_build_switch
 {
+    xec_ssa_build_switch();
+    
+    xec_ssa_build_block*    head;
+    std::deque< xec_ssa_build_block* > breaks;
 };
+
+xec_ssa_build_switch::xec_ssa_build_switch()
+    :   head( NULL )
+{
+}
+
 
 struct xec_ssa_build_loop
 {
@@ -1266,7 +1275,8 @@ void xec_ssa_builder::close_scope( xec_ast_scope* scope )
 
 void xec_ssa_builder::ifthen( xec_ssa_node* condition )
 {
-    xec_ssa_build_if buildif;
+    b->ifstack.emplace_back();
+    xec_ssa_build_if& buildif = b->ifstack.back();
     xec_ssa_build_block* iftrue = make_block();
     
     if ( b->block )
@@ -1289,7 +1299,6 @@ void xec_ssa_builder::ifthen( xec_ssa_node* condition )
     }
     
     b->block = iftrue;
-    b->ifstack.push_back( buildif );
 }
 
 void xec_ssa_builder::ifelse()
@@ -1356,18 +1365,24 @@ void xec_ssa_builder::ifend()
 
 void xec_ssa_builder::switchopen( xec_ssa_node* value )
 {
+    b->switchstack.emplace_back();
+    xec_ssa_build_switch& buildswitch = b->switchstack.back();
+    
 }
 
 void xec_ssa_builder::switchcase( xec_ssa_node* value )
 {
+    xec_ssa_build_switch& buildswitch = b->switchstack.back();
 }
 
 void xec_ssa_builder::switchbreak()
 {
+    xec_ssa_build_switch& buildswitch = b->switchstack.back();
 }
 
 void xec_ssa_builder::switchend()
 {
+    xec_ssa_build_switch& buildswitch = b->switchstack.back();
 }
 
 
@@ -1392,6 +1407,7 @@ void xec_ssa_builder::funcreturn()
 {
     if ( b->block )
     {
+        // Further statements are unreachable.
         b->block = NULL;
     }
     else

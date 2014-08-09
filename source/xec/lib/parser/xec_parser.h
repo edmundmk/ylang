@@ -56,6 +56,7 @@ public:
     xec_ast_scope*      get_scope();
     xec_ast_scope*      block_scope( xec_ast_node* node );
     void                close_scope( xec_ast_scope* scope );
+    void                close_switch( xec_ast_scope* scope );
 
 
     xec_new_object*     object( int sloc, xec_ast_node* name,

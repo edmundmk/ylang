@@ -138,6 +138,19 @@ void xec_parser::close_scope( xec_ast_scope* scope )
     scopes.pop_back();
 }
 
+void xec_parser::close_switch( xec_ast_scope* scope )
+{
+    if ( scope->kind == XEC_SCOPE_IMPLICIT )
+    {
+        // Fallen through to the end of the switch.
+        root->script->error( scope->node->sloc, "missing break" );
+        close_scope( scope );
+        scope = get_scope();
+    }
+    
+    close_scope( scope );
+}
+
 
 
 

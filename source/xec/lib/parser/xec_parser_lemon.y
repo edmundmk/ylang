@@ -1147,7 +1147,7 @@ stmt_common(x)  ::= stmt_switch(stmt) LPN condition(expr) RPN
                 {
                     stmt->value     = expr;
                     stmt->body      = block;
-                    p->close_scope( stmt->scope );
+                    p->close_switch( stmt->scope );
                     x = stmt;
                 }
 stmt_common(x)  ::= stmt_while(stmt) LPN condition(expr) RPN
