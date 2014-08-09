@@ -122,9 +122,19 @@ enum xec_ssa_opcode
 
 typedef std::deque< xec_ssa_func*,
     region_allocator< xec_ssa_func* > > xec_ssa_func_list;
+typedef std::deque< xec_ssa_block*,
+    region_allocator< xec_ssa_block* > > xec_ssa_block_list;
 typedef std::deque< xec_ssa_node*,
     region_allocator< xec_ssa_node* > > xec_ssa_node_list;
-
+typedef std::unordered_map
+        <
+            xec_ssa_node*,
+            xec_ssa_name*,
+            std::hash< xec_ssa_node* >,
+            std::equal_to< xec_ssa_node* >,
+            region_allocator< std::pair< xec_ssa_node* const, xec_ssa_name* > >
+        >
+        xec_ssa_name_map;
 
 
 struct xec_ssa
@@ -147,6 +157,7 @@ struct xec_ssa_func
     int                 sloc;
     const char*         funcname;
     xec_ssa_block*      block;
+    xec_ssa_block_list  blocks;
     int                 upvalcount;
     int                 paramcount;
     bool                varargs;
@@ -156,6 +167,8 @@ struct xec_ssa_func
 
 struct xec_ssa_name
 {
+    xec_ssa_name( int sloc, const char* name );
+
     int                 sloc;
     const char*         name;
 };
@@ -164,12 +177,12 @@ struct xec_ssa_name
 
 struct xec_ssa_block
 {
+    xec_ssa_block();
 
-    // node -> name map
-
-    xec_ssa_block*      prev; // might need to be a block list?
-    xec_ssa_node_list   intro;
+    xec_ssa_block_list  previous;
+    xec_ssa_node_list   phi;
     xec_ssa_node_list   nodes;
+    xec_ssa_name_map    names;
     xec_ssa_node*       condition;
     union
     {

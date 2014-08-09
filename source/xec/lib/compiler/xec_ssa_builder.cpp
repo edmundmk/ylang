@@ -7,6 +7,7 @@
 
 
 #include "xec_ssa_builder.h"
+#include <make_unique>
 #include "xec_script.h"
 #include "xec_ssa.h"
 #include "xec_ast_visitor.h"
@@ -20,6 +21,11 @@ static inline void extend( containera_t* a, const containerb_t& b )
     a->insert( a->end(), b.begin(), b.end() );
 }
 
+
+
+/*
+    An lvalue is not completely evaluated as it must be assigned to.
+*/
 
 
 struct xec_ssa_lvalue
@@ -48,6 +54,10 @@ xec_ssa_lvalue::xec_ssa_lvalue()
 
 
 
+/*
+    A list of unpacked values.
+*/
+
 struct xec_ssa_valist
 {
     xec_ssa_valist();
@@ -61,6 +71,10 @@ xec_ssa_valist::xec_ssa_valist()
     :   unpacked( NULL )
 {
 }
+
+
+
+
 
 
 
@@ -80,7 +94,7 @@ xec_ssa_node* xec_ssa_build_expr::fallback( xec_ast_node* node )
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_ast_func* node )
 {
-    // Build SSA of function recursively.
+    // Locate (possibly unbuilt) SSA of function.
     xec_ssa_func* func = b->func( node );
     
     // Construct closure and bind upvals.
@@ -1055,6 +1069,90 @@ void xec_ssa_build_stmt::visit( xec_stmt_throw* node )
 */
 
 
+
+/*
+    Information about currently building function.
+*/
+
+struct xec_ssa_build_if
+{
+    xec_ssa_build_if();
+
+    xec_ssa_build_block*    prev;
+    xec_ssa_build_block*    then;
+};
+
+
+xec_ssa_build_if::xec_ssa_build_if()
+    :   prev( NULL )
+    ,   then( NULL )
+{
+}
+
+
+
+struct xec_ssa_build_switch
+{
+};
+
+struct xec_ssa_build_loop
+{
+};
+
+
+struct xec_ssa_build_func
+{
+    explicit xec_ssa_build_func( xec_ssa_func* func );
+
+    xec_ssa_func*                       func;
+    xec_ssa_build_block*                block;
+    std::deque< xec_ssa_build_if >      ifstack;
+    std::deque< xec_ssa_build_switch >  switchstack;
+    std::deque< xec_ssa_build_loop >    loopstack;
+    std::unordered_map< xec_ssa_block*, xec_ssa_build_block* > blockmap;
+    std::deque< std::unique_ptr< xec_ssa_build_block > > blocks;
+};
+
+
+xec_ssa_build_func::xec_ssa_build_func( xec_ssa_func* func )
+    :   func( func )
+    ,   block( NULL )
+{
+}
+
+
+
+/*
+    A block which is being built.
+*/
+
+struct xec_ssa_build_block
+{
+    xec_ssa_build_block();
+
+    xec_ssa_block*                              block;
+    std::unordered_map< void*, xec_ssa_node* >  defined;
+    std::unordered_set< void* >                 incomplete;
+    int                                         visitmark;
+    bool                                        sealed;
+};
+
+
+xec_ssa_build_block::xec_ssa_build_block()
+    :   block( NULL )
+    ,   visitmark( -1 )
+    ,   sealed( false )
+{
+}
+
+
+
+
+/*
+    The SSA builder itself.
+*/
+
+
 xec_ssa_builder::xec_ssa_builder( xec_ssa* root )
     :   root( root )
     ,   build_expr( this )
@@ -1063,8 +1161,16 @@ xec_ssa_builder::xec_ssa_builder( xec_ssa* root )
 {
 }
 
+xec_ssa_builder::~xec_ssa_builder()
+{
+}
+
+
 bool xec_ssa_builder::build( xec_ast* ast )
 {
+    region_scope rscope( root->alloc );
+
+    // Set script.
     root->script = ast->script;
     
     // Construct function objects.
@@ -1092,8 +1198,16 @@ bool xec_ssa_builder::build( xec_ast* ast )
 
 xec_ssa_node* xec_ssa_builder::node( xec_ssa_node* node )
 {
-    // TODO.
-    return node;
+    if ( b->block )
+    {
+        b->block->block->nodes.push_back( node );
+        return node;
+    }
+    else
+    {
+        // Unreachable code.
+        return node;
+    }
 }
 
 
@@ -1152,14 +1266,91 @@ void xec_ssa_builder::close_scope( xec_ast_scope* scope )
 
 void xec_ssa_builder::ifthen( xec_ssa_node* condition )
 {
+    xec_ssa_build_if buildif;
+    xec_ssa_build_block* iftrue = make_block();
+    
+    if ( b->block )
+    {
+        // Link new block as the iftrue branch from the current block.
+        buildif.prev = b->block;
+        assert( ! buildif.prev->block->condition );
+        assert( ! buildif.prev->block->next );
+        buildif.prev->block->condition = condition;
+        buildif.prev->block->iftrue = iftrue->block;
+        
+        // And the new block has one predecessor.
+        iftrue->block->previous.push_back( buildif.prev->block );
+        iftrue->sealed = true;
+    }
+    else
+    {
+        // Unreachable code.
+        iftrue->sealed = true;
+    }
+    
+    b->block = iftrue;
+    b->ifstack.push_back( buildif );
 }
 
 void xec_ssa_builder::ifelse()
 {
+    xec_ssa_build_if& buildif = b->ifstack.back();
+    xec_ssa_build_block* iffalse = make_block();
+    
+    if ( b->block )
+    {
+        // Current block is the end of the iftrue branch, and it will be
+        // linked to the after block.
+        buildif.then = b->block;
+    }
+
+    if ( buildif.prev )
+    {
+        // Link new block as iffalse branch from the block before the if.
+        assert( buildif.prev->block->condition );
+        assert( ! buildif.prev->block->iffalse );
+        buildif.prev->block->iffalse = iffalse->block;
+        
+        // And the new block has one predecessor.
+        iffalse->block->previous.push_back( buildif.prev->block );
+        iffalse->sealed = true;
+    }
+    else
+    {
+        // Unreachable code.
+        iffalse->sealed = true;
+    }
+    
+    b->block = iffalse;
 }
 
 void xec_ssa_builder::ifend()
 {
+    xec_ssa_build_if& buildif = b->ifstack.back();
+    xec_ssa_build_block* after = make_block();
+    
+    if ( buildif.then )
+    {
+        // Link end of iftrue branch to this block.
+        assert( ! buildif.then->block->condition );
+        assert( ! buildif.then->block->next );
+        buildif.then->block->next = after->block;
+        after->block->previous.push_back( buildif.then->block );
+    }
+    
+    if ( b->block )
+    {
+        // Current block is the end of the iffalse branch.
+        assert( ! b->block->block->condition );
+        assert( ! b->block->block->next );
+        b->block->block->next = after->block;
+        after->block->previous.push_back( b->block->block );
+    }
+    
+    after->sealed = true;
+    b->ifstack.pop_back();
+    
+    b->block = after;
 }
 
 
@@ -1199,6 +1390,14 @@ void xec_ssa_builder::loopend()
 
 void xec_ssa_builder::funcreturn()
 {
+    if ( b->block )
+    {
+        b->block = NULL;
+    }
+    else
+    {
+        // Unreachable code.
+    }
 }
 
 
@@ -1215,6 +1414,11 @@ xec_ssa_node* xec_ssa_builder::expr( xec_ast_node* node )
 void xec_ssa_builder::unpack( xec_ssa_valist* l, xec_ast_node* node, int count )
 {
     build_unpack.visit( node, l, count );
+    if ( count != -1 )
+    {
+        assert( (int)l->values.size() == count );
+        assert( l->unpacked = NULL );
+    }
 }
 
 
@@ -1340,12 +1544,22 @@ xec_ssa_node* xec_ssa_builder::lvalue_assign(
 void xec_ssa_builder::build_function( xec_ast_func* astf, xec_ssa_func* ssaf )
 {
     // Set up function building.
+    std::unique_ptr< xec_ssa_build_func > c =
+            std::make_unique< xec_ssa_build_func >( ssaf );
+    std::swap( b, c );
     
     
-    // Add parameters.
-    // TODO.
-    
-    
+    // Open block and add parameters.
+    b->block = make_block();
+    for ( size_t i = 0; i < astf->parameters.size(); ++i )
+    {
+        xec_ast_name* param = astf->parameters.at( i );
+        xec_ssa_node* n = node( packed(
+                        param->sloc, XEC_SSA_PARAM, nullptr, (int)i ) );
+        define( param, n );
+    }
+
+
     // Visit function body.
     build_stmt.visit( astf->block );
     
@@ -1360,9 +1574,25 @@ void xec_ssa_builder::build_function( xec_ast_func* astf, xec_ssa_func* ssaf )
     
     
     // Clean up after building.
-    // TODO.
-
+    ssaf->block = b->block->block;
+    std::swap( b, c );
 }
+
+
+
+xec_ssa_build_block* xec_ssa_builder::make_block()
+{
+    std::unique_ptr< xec_ssa_build_block > block =
+                    std::make_unique< xec_ssa_build_block >();
+    block->block = new ( root->alloc ) xec_ssa_block();
+    b->func->blocks.push_back( block->block );
+    b->blockmap.emplace( block->block, block.get() );
+    b->blocks.push_back( std::move( block ) );
+    return b->blocks.back().get();
+}
+
+
+
 
 
 

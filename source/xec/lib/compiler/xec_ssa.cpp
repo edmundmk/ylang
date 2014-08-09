@@ -39,6 +39,22 @@ xec_ssa_func::xec_ssa_func( int sloc, const char* funcname,
 
 
 
+xec_ssa_name::xec_ssa_name( int sloc, const char* name )
+    :   sloc( sloc )
+    ,   name( name )
+{
+}
+
+
+xec_ssa_block::xec_ssa_block()
+    :   condition( NULL )
+    ,   iftrue( NULL )
+    ,   iffalse( NULL )
+{
+}
+
+
+
 xec_ssa_node::xec_ssa_node( int sloc, xec_ssa_opcode opcode )
     :   sloc( sloc )
     ,   opcode( opcode )

@@ -17,8 +17,13 @@
 
 class xec_ssa_builder;
 class xec_ssa_build_expr;
+class xec_ssa_build_stmt;
+class xec_ssa_build_unpack;
+
 struct xec_ssa_lvalue;
 struct xec_ssa_valist;
+struct xec_ssa_build_func;
+struct xec_ssa_build_block;
 
 
 
@@ -161,6 +166,7 @@ class xec_ssa_builder
 public:
 
     explicit xec_ssa_builder( xec_ssa* root );
+    ~xec_ssa_builder();
     
     bool            build( xec_ast* ast );
     
@@ -211,13 +217,16 @@ public:
 private:
 
     void            build_function( xec_ast_func* astf, xec_ssa_func* ssaf );
-
+    xec_ssa_build_block* make_block();
+    bool            unreachable();
 
     xec_ssa* root;
     xec_ssa_build_expr   build_expr;
     xec_ssa_build_unpack build_unpack;
     xec_ssa_build_stmt   build_stmt;
     std::unordered_map< xec_ast_func*, xec_ssa_func* > funcmap;
+    std::unordered_map< void*, xec_ssa_name* > namemap;
+    std::unique_ptr< xec_ssa_build_func > b;
 
 };
 
