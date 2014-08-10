@@ -45,7 +45,7 @@ void xec_ssa_printer::print_func( xec_ssa_func* func )
     for ( size_t i = 0; i < func->blocks.size(); ++i )
     {
         xec_ssa_block* block = func->blocks.at( i );
-        blockid.emplace( block, (int)i );
+        blockid.emplace( block, (int)i + 1 );
         
         for ( size_t i = 0; i < block->phi.size(); ++i )
         {
@@ -249,7 +249,7 @@ void xec_ssa_printer::print_node( xec_ssa_node* node )
         break;
     
     case XEC_SSA_PACKED_BINARY:
-        printf( ":%04X, :%04X",
+        printf( ":%04X :%04X",
                     nodeid.at( node->as_packed()->operanda ),
                     nodeid.at( node->as_packed()->operandb ) );
         break;
@@ -259,7 +259,7 @@ void xec_ssa_printer::print_node( xec_ssa_node* node )
         break;
         
     case XEC_SSA_PACKED_OPLITERAL:
-        printf( ":%04X, '%s'",
+        printf( ":%04X '%s'",
                     nodeid.at( node->as_packed()->operanda ),
                     node->as_packed()->literal );
         break;
@@ -289,22 +289,44 @@ void xec_ssa_printer::print_node( xec_ssa_node* node )
         break;
         
     case XEC_SSA_TRIPLE:
-        printf( ":%04X, :%04X, :%04X",
+        printf( ":%04X :%04X :%04X",
                     nodeid.at( node->as_triple()->object ),
                     nodeid.at( node->as_triple()->index ),
                     nodeid.at( node->as_triple()->value ) );
         break;
         
     case XEC_SSA_TRIPLE_KEY:
-        printf( ":%04X, '%s', :%04X",
+        printf( ":%04X '%s' :%04X",
                     nodeid.at( node->as_triple()->object ),
                     node->as_triple()->key,
                     nodeid.at( node->as_triple()->value ) );
         break;
         
     case XEC_SSA_EXPAND:
-    case XEC_SSA_EXPAND_FUNC:
+    {
+        xec_ssa_expand* expand = node->as_expand();
+        printf( "$%d", expand->valcount );
+        for ( size_t i = 0; i < expand->operands.size(); ++i )
+        {
+            printf( "\n    :%04X", nodeid.at( expand->operands.at( i ) ) );
+        }
+        if ( expand->unpacked )
+        {
+            printf( "\n    :%04X (unpacked)", nodeid.at( expand->unpacked ) );
+        }
         break;
+    }
+    
+    case XEC_SSA_EXPAND_FUNC:
+    {
+        xec_ssa_expand* expand = node->as_expand();
+        printf( "%p", expand->func );
+        for ( size_t i = 0; i < expand->operands.size(); ++i )
+        {
+            printf( "\n    :%04X", nodeid.at( expand->operands.at( i ) ) );
+        }
+        break;
+    }
     }
     
     printf( "\n" );

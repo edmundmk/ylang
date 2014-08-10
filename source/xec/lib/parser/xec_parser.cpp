@@ -30,12 +30,19 @@ bool xec_parse( xec_script* script, xec_ast* ast,
     ast->function->block = new ( ast->alloc ) xec_stmt_block( -1 );
     ast->function->scope->block = ast->function->block;
     
+    
+    // Preserve function name.
+    char* funcname = (char*)script->alloc.malloc( strlen( filename ) + 1 );
+    strcpy( funcname, filename );
+    ast->function->funcname = funcname;
+    
+    
     // Declare parameters.
     for ( size_t i = 0; i < argc; ++i )
     {
         if ( strcmp( argv[ i ], "..." ) != 0 )
         {
-            char* param = (char*)ast->alloc.malloc( strlen( argv[ i ] ) + 1 );
+            char* param = (char*)script->alloc.malloc( strlen( argv[ i ] ) + 1 );
             strcpy( param, argv[ i ] );
         
             // Check for duplicated parameters.
@@ -663,7 +670,7 @@ void xec_parser::lvalue_list(
     if ( list->kind == XEC_EXPR_LIST )
     {
         xec_expr_list* l = (xec_expr_list*)list;
-        for ( size_t i = 0; i < l->values.size(); ++l )
+        for ( size_t i = 0; i < l->values.size(); ++i )
             lvalues->push_back( lvalue( l->values[ i ] ) );
         if ( l->final )
             lvalues->push_back( lvalue( l->final ) );

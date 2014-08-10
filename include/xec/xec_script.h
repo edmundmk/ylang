@@ -49,6 +49,8 @@ public:
 private:
 
     friend class xec_parser;
+    friend bool xec_parse( xec_script*, xec_ast*,
+                    const char*, size_t, const char* const* );
 
     region                          alloc;
     std::string                     filename;

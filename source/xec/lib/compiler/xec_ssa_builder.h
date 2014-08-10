@@ -10,147 +10,56 @@
 #define XEC_SSA_BUILDER_H
 
 
-#include <unordered_map>
+#include "xec_ssa_build_visitors.h"
 #include "xec_ssa.h"
-#include "xec_ast_visitor.h"
 
 
-class xec_ssa_builder;
-class xec_ssa_build_expr;
-class xec_ssa_build_stmt;
-class xec_ssa_build_unpack;
-
-struct xec_ssa_lvalue;
-struct xec_ssa_valist;
+struct xec_ast;
+struct xec_ast_name;
+struct xec_ast_scope;
+struct xec_ast_node;
+struct xec_ast_func;
+struct xec_new_object;
+struct xec_ssa_follow;
 struct xec_ssa_build_func;
 struct xec_ssa_build_block;
 
 
 
+
 /*
-    Visit AST expression nodes and generate a single value from them.
+    An lvalue is not completely evaluated as it must be assigned to.
 */
 
-class xec_ssa_build_expr
-    :   public xec_ast_visitor< xec_ssa_build_expr, xec_ssa_node* >
+
+struct xec_ssa_lvalue
 {
-public:
+    xec_ssa_lvalue();
 
-    explicit xec_ssa_build_expr( xec_ssa_builder* b );
-
-    using xec_ast_visitor< xec_ssa_build_expr, xec_ssa_node* >::visit;
-
-    xec_ssa_node* fallback( xec_ast_node* node );
-    
-    xec_ssa_node* visit( xec_ast_func* node );
-    xec_ssa_node* visit( xec_expr_null* node );
-    xec_ssa_node* visit( xec_expr_bool* node );
-    xec_ssa_node* visit( xec_expr_number* node );
-    xec_ssa_node* visit( xec_expr_string* node );
-    xec_ssa_node* visit( xec_expr_local* node );
-    xec_ssa_node* visit( xec_expr_global* node );
-    xec_ssa_node* visit( xec_expr_upref* node );
-    xec_ssa_node* visit( xec_expr_objref* node );
-    xec_ssa_node* visit( xec_expr_key* node );
-    xec_ssa_node* visit( xec_expr_inkey* node );
-    xec_ssa_node* visit( xec_expr_index* node );
-    xec_ssa_node* visit( xec_expr_preop* node );
-    xec_ssa_node* visit( xec_expr_postop* node );
-    xec_ssa_node* visit( xec_expr_unary* node );
-    xec_ssa_node* visit( xec_expr_binary* node );
-    xec_ssa_node* visit( xec_expr_compare* node );
-    xec_ssa_node* visit( xec_expr_logical* node );
-    xec_ssa_node* visit( xec_expr_qmark* node );
-    xec_ssa_node* visit( xec_new_new* node );
-    xec_ssa_node* visit( xec_new_object* node );
-    xec_ssa_node* visit( xec_new_array* node );
-    xec_ssa_node* visit( xec_new_table* node );
-    xec_ssa_node* visit( xec_expr_mono* node );
-    xec_ssa_node* visit( xec_expr_call* node );
-    xec_ssa_node* visit( xec_expr_yield* node );
-    xec_ssa_node* visit( xec_expr_vararg* node );
-    xec_ssa_node* visit( xec_expr_unpack* node );
-    xec_ssa_node* visit( xec_expr_list* node );
-    xec_ssa_node* visit( xec_expr_assign* node );
-    xec_ssa_node* visit( xec_expr_assign_list* node );
-
-
-private:
-
-    xec_ssa_builder* b;
-
+    int             sloc;
+    xec_ssa_opcode  opcode;
+    xec_ssa_node*   object;
+    union
+    {
+    xec_ssa_node*   index;
+    xec_ast_name*   local;
+    const char*     literal;
+    int             upval;
+    };
 };
 
 
 
 /*
-    Visit AST expression nodes that unpack to multiple values.
+    A list of unpacked values.
 */
 
-class xec_ssa_build_unpack
-    :   public xec_ast_visitor< xec_ssa_build_unpack, void, xec_ssa_valist*, int >
+struct xec_ssa_valist
 {
-public:
+    xec_ssa_valist();
 
-    explicit xec_ssa_build_unpack( xec_ssa_builder* b );
-
-    using xec_ast_visitor< xec_ssa_build_unpack, void, xec_ssa_valist*, int >::visit;
-
-    void fallback( xec_ast_node* node, xec_ssa_valist* values, int valcount );
-
-    void visit( xec_expr_null* node, xec_ssa_valist* values, int valcount );
-    void visit( xec_expr_call* node, xec_ssa_valist* values, int valcount );
-    void visit( xec_expr_yield* node, xec_ssa_valist* values, int valcount );
-    void visit( xec_expr_vararg* node, xec_ssa_valist* values, int valcount );
-    void visit( xec_expr_unpack* node, xec_ssa_valist* values, int valcount );
-    void visit( xec_expr_list* node, xec_ssa_valist* values, int valcount );
-    void visit( xec_expr_assign_list* node, xec_ssa_valist* values, int valcount );
-
-
-private:
-
-    xec_ssa_builder* b;
-
-};
-
-
-/*
-    Visit AST statements and generate SSA form.
-*/
-
-class xec_ssa_build_stmt
-    :   public xec_ast_visitor< xec_ssa_build_stmt, void >
-{
-public:
-
-    xec_ssa_build_stmt( xec_ssa_builder* b );
-
-    using xec_ast_visitor< xec_ssa_build_stmt, void >::visit;
-
-    void fallback( xec_ast_node* node );
-    
-    void visit( xec_stmt_block* node );
-    void visit( xec_stmt_if* node );
-    void visit( xec_stmt_switch* node );
-    void visit( xec_stmt_while* node );
-    void visit( xec_stmt_do* node );
-    void visit( xec_stmt_foreach* node );
-    void visit( xec_stmt_for* node );
-    void visit( xec_stmt_using* node );
-    void visit( xec_stmt_try* node );
-    void visit( xec_stmt_catch* node );
-    void visit( xec_stmt_delete* node );
-    void visit( xec_stmt_case* node );
-    void visit( xec_stmt_continue* node );
-    void visit( xec_stmt_break* node );
-    void visit( xec_stmt_return* node );
-    void visit( xec_stmt_throw* node );
-
-
-private:
-
-    xec_ssa_builder* b;
-    
+    std::deque< xec_ssa_node* > values;
+    xec_ssa_node*   unpacked;
 };
 
 
@@ -224,12 +133,8 @@ private:
     void            build_function( xec_ast_func* astf, xec_ssa_func* ssaf );
 
     xec_ssa_build_block* make_block();
-    void            link_next( xec_ssa_build_block* block,
-                        xec_ssa_build_block* next );
-    void            link_iftrue( xec_ssa_build_block* block,
-                        xec_ssa_node* condition, xec_ssa_build_block* iftrue );
-    void            link_iffalse( xec_ssa_build_block* block,
-                        xec_ssa_build_block* iffalse );
+    void            link( xec_ssa_follow* follow, xec_ssa_build_block* block );
+    bool            follow_block();
 
     void            define_name( void* name, xec_ssa_node* value );
     xec_ssa_node*   lookup_name( void* name );
