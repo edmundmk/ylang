@@ -576,7 +576,8 @@ void xec_ssa_build_unpack::visit(
     b->unpack( &arguments, node->arguments, -1 );
 
     // Construct call.
-    xec_ssa_expand* call = b->expand( node->sloc, XEC_SSA_CALL, valcount );
+    xec_ssa_opcode opcode = node->yieldcall ? XEC_SSA_YCALL : XEC_SSA_CALL;
+    xec_ssa_expand* call = b->expand( node->sloc, opcode, valcount );
     call->operands.push_back( function );
     if ( thisval )
         call->operands.push_back( thisval );

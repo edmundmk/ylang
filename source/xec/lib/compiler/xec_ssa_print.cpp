@@ -153,6 +153,7 @@ public:
         add( XEC_SSA_CLOSURE,   "closure",      XEC_SSA_EXPAND_FUNC );
         add( XEC_SSA_PARAM,     "param",        XEC_SSA_PACKED_IMMED );
         add( XEC_SSA_CALL,      "call",         XEC_SSA_EXPAND );
+        add( XEC_SSA_YCALL,     "ycall",        XEC_SSA_EXPAND );
         add( XEC_SSA_YIELD,     "yield",        XEC_SSA_EXPAND );
         add( XEC_SSA_SELECT,    "select",       XEC_SSA_PACKED_OPIMMED );
         add( XEC_SSA_VARARG,    "vararg",       XEC_SSA_PACKED_IMMED );

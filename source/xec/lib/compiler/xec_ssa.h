@@ -64,6 +64,7 @@ enum xec_ssa_opcode
     XEC_SSA_PARAM,      // Declare parameters.
 
     XEC_SSA_CALL,
+    XEC_SSA_YCALL,
     XEC_SSA_YIELD,
     
     XEC_SSA_SELECT,     // Select one of the results of a function call.
