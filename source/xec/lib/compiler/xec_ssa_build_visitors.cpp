@@ -884,6 +884,7 @@ void xec_ssa_build_stmt::visit( xec_stmt_for* node )
     {
         b->ifelse();
         b->loopbreak();
+        b->ifend();
     }
     b->loopend();
     b->close_scope( node->scope );
