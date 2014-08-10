@@ -171,7 +171,7 @@ struct xec_ssa_build_func
     std::deque< xec_ssa_build_loop >    loopstack;
     std::deque< std::unique_ptr< xec_ssa_build_block > > blocks;
     std::unordered_map< xec_ssa_block*, xec_ssa_build_block* > blockmap;
-    std::unordered_map< xec_ast_name*, int > upvals;
+    std::unordered_map< void*, int >    upvals;
     int                                 visitmark;
 };
 
@@ -284,8 +284,8 @@ void xec_ssa_builder::define( xec_ast_name* name, xec_ssa_node* value )
         {
             // Create new upval.
             int index = b->func->upvalcount + b->func->localupcount;
-            b->func->localupcount += 1;
             b->upvals.emplace( name, index );
+            b->func->localupcount += 1;
             node( packed( name->sloc, XEC_SSA_NEWUP, value, index ) );
         }
     }
@@ -297,19 +297,22 @@ void xec_ssa_builder::define( xec_ast_name* name, xec_ssa_node* value )
     
     
     // Also associate definition with a name (for debugging).
-    auto i = namemap.find( name );
-    xec_ssa_name* ssan;
-    if ( i != namemap.end() )
+    if ( b->follow.block )
     {
-        ssan = i->second;
+        auto i = namemap.find( name );
+        xec_ssa_name* ssan;
+        if ( i != namemap.end() )
+        {
+            ssan = i->second;
+        }
+        else
+        {
+            ssan = new ( root->alloc ) xec_ssa_name( name->sloc, name->name );
+            namemap.emplace( name, ssan );
+        }
+
+        b->follow.block->block->names.emplace( value, ssan );
     }
-    else
-    {
-        ssan = new ( root->alloc ) xec_ssa_name( name->sloc, name->name );
-        namemap.emplace( name, ssan );
-    }
-    
-    b->follow.block->block->names.emplace( value, ssan );
 }
     
 
@@ -320,6 +323,7 @@ void xec_ssa_builder::define( xec_new_object* object, xec_ssa_node* value )
         // Object upvals are defined once and are read-only, so create an
         // upval but also fall through to define a variable.
         int index = b->func->upvalcount + b->func->localupcount;
+        b->upvals.emplace( object, index );
         b->func->localupcount += 1;
         node( packed( object->sloc, XEC_SSA_NEWUP, value, index ) );
     }
@@ -390,7 +394,8 @@ void xec_ssa_builder::close_scope( xec_ast_scope* scope )
         xec_ast_name* decl = *i;
         if ( decl->upval )
         {
-            // TODO.
+            int upval = b->upvals.at( decl );
+            node( packed( decl->sloc, XEC_SSA_CLOSE, nullptr, upval ) );
         }
     }
     
@@ -400,7 +405,8 @@ void xec_ssa_builder::close_scope( xec_ast_scope* scope )
         xec_new_object* object = (xec_new_object*)scope->node;
         if ( object->upval )
         {
-            // TODO.
+            int upval = b->upvals.at( object );
+            node( packed( object->sloc, XEC_SSA_CLOSE, nullptr, upval ) );
         }
     }
 }
@@ -664,9 +670,15 @@ void xec_ssa_builder::loopend()
     // No more continues.
     seal_block( buildloop.loop );
 
-    // If there were any breaks, then continue from a new block.
-    if ( buildloop.breaks.size() )
+    // If there were any breaks, then code after the loop is reachable.
+    if ( buildloop.breaks.size() == 1 )
     {
+        // Only a single exit point from loop, continue from it.
+        b->follow = buildloop.breaks.front();
+    }
+    else if ( buildloop.breaks.size() > 1 )
+    {
+        // New block joining all breaks.
         xec_ssa_build_block* after = make_block();
         for ( size_t i = 0; i < buildloop.breaks.size(); ++i )
         {

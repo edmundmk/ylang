@@ -993,6 +993,7 @@ void xec_ssa_build_stmt::visit( xec_stmt_return* node )
     extend( &retstmt->operands, values.values );
     retstmt->unpacked = values.unpacked;
     b->node( retstmt );
+    b->funcreturn();
 }
 
 void xec_ssa_build_stmt::visit( xec_stmt_throw* node )
