@@ -966,6 +966,7 @@ bool xec_ssa_builder::follow_block()
         // Make real block and link appropriately.
         xec_ssa_build_block* block = make_block();
         link( &b->follow, block );
+        seal_block( block );
         b->follow.reset( XEC_SSA_FOLLOW_BLOCK, block );
         return true;
     }

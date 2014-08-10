@@ -23,7 +23,7 @@ public:
 
 private:
 
-    void print_node( xec_ssa_node* node );
+    void print_node( xec_ssa_block* block, xec_ssa_node* node );
 
     std::unordered_map< xec_ssa_block*, int > blockid;
     std::unordered_map< xec_ssa_node*, int > nodeid;
@@ -81,12 +81,12 @@ void xec_ssa_printer::print_func( xec_ssa_func* func )
 
         for ( size_t i = 0; i < block->phi.size(); ++i )
         {
-            print_node( block->phi.at( i ) );
+            print_node( block, block->phi.at( i ) );
         }
 
         for ( size_t i = 0; i < block->nodes.size(); ++i )
         {
-            print_node( block->nodes.at( i ) );
+            print_node( block, block->nodes.at( i ) );
         }
         
         if ( block->condition )
@@ -234,9 +234,12 @@ static const xec_ssa_decode decode;
 
 
 
-void xec_ssa_printer::print_node( xec_ssa_node* node )
+void xec_ssa_printer::print_node( xec_ssa_block* block, xec_ssa_node* node )
 {
     const xec_ssa_decode_info& d = decode.lookup( node->opcode );
+    auto i = block->names.find( node );
+    const char* name = i != block->names.end() ? i->second->name : NULL;
+
     printf( ":%04X %-10s", nodeid.at( node ), d.name );
     
     switch ( d.kind )
@@ -306,6 +309,10 @@ void xec_ssa_printer::print_node( xec_ssa_node* node )
     {
         xec_ssa_expand* expand = node->as_expand();
         printf( "$%d", expand->valcount );
+        if ( name )
+        {
+            printf( " (%s)", name );
+        }
         for ( size_t i = 0; i < expand->operands.size(); ++i )
         {
             printf( "\n    :%04X", nodeid.at( expand->operands.at( i ) ) );
@@ -314,19 +321,30 @@ void xec_ssa_printer::print_node( xec_ssa_node* node )
         {
             printf( "\n    :%04X (unpacked)", nodeid.at( expand->unpacked ) );
         }
-        break;
+        printf( "\n" );
+        return;
     }
     
     case XEC_SSA_EXPAND_FUNC:
     {
         xec_ssa_expand* expand = node->as_expand();
         printf( "%p", expand->func );
+        if ( name )
+        {
+            printf( " (%s)", name );
+        }
         for ( size_t i = 0; i < expand->operands.size(); ++i )
         {
             printf( "\n    :%04X", nodeid.at( expand->operands.at( i ) ) );
         }
-        break;
+        printf( "\n" );
+        return;
     }
+    }
+
+    if ( name )
+    {
+        printf( " (%s)", name );
     }
     
     printf( "\n" );
