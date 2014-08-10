@@ -202,7 +202,7 @@ struct xec_ssa_block
     xec_ssa_block_list  previous;
     xec_ssa_node_list   phi;
     xec_ssa_node_list   nodes;
-    xec_ssa_name_map    names;
+    xec_ssa_name_map    names; // TODO: what if a node has multiple names?
     xec_ssa_node*       condition;
     union
     {

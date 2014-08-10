@@ -64,7 +64,7 @@ early type checking
     passed the check when it comes time to run it.  This is because xec
     doesn't have operator overloading - arithmetic operations always
     operate on numbers.
-    
+
 
 */
 
