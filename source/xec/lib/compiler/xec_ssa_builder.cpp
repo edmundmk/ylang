@@ -817,7 +817,8 @@ xec_ssa_build_stmt::xec_ssa_build_stmt( xec_ssa_builder* b )
 
 void xec_ssa_build_stmt::fallback( xec_ast_node* node )
 {
-    assert( ! "expected statement" );
+    // Could be an expression statement.
+    b->expr( node );
 }
 
 void xec_ssa_build_stmt::visit( xec_stmt_block* node )
@@ -1671,7 +1672,7 @@ void xec_ssa_builder::unpack( xec_ssa_valist* l, xec_ast_node* node, int count )
     if ( count != -1 )
     {
         assert( (int)l->values.size() == count );
-        assert( l->unpacked = NULL );
+        assert( l->unpacked == NULL );
     }
 }
 
@@ -1803,9 +1804,13 @@ void xec_ssa_builder::build_function( xec_ast_func* astf, xec_ssa_func* ssaf )
     std::swap( b, c );
     
     
-    // Open block and add parameters.
+    // Open block.
     b->block = make_block();
     b->block->sealed = true;
+    ssaf->block = b->block->block;
+
+
+    // Add parameters.
     for ( size_t i = 0; i < astf->parameters.size(); ++i )
     {
         xec_ast_name* param = astf->parameters.at( i );
@@ -1829,7 +1834,6 @@ void xec_ssa_builder::build_function( xec_ast_func* astf, xec_ssa_func* ssaf )
     
     
     // Clean up after building.
-    ssaf->block = b->block->block;
     std::swap( b, c );
 }
 
@@ -2036,6 +2040,7 @@ void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
 
 
 
+#include "xec_ssa_print.h"
 
 
 bool xec_ssabuild( xec_ast* ast )
@@ -2043,6 +2048,7 @@ bool xec_ssabuild( xec_ast* ast )
     xec_ssa ssa;
     xec_ssa_builder builder( &ssa );
     builder.build( ast );
+    xec_ssa_print( &ssa );
     return ast->script->error_count() == 0;
 }
 

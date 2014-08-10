@@ -22,6 +22,7 @@ public:
 
     using xec_ast_visitor< xec_ast_printer, void, int >::visit;
     
+    void print_func( xec_ast_func* node );
 
     void visit( xec_ast_func* node, int indent );
     void visit( xec_expr_null* node, int indent );
@@ -84,13 +85,18 @@ public:
 void xec_ast_print( xec_ast* root )
 {
     xec_ast_printer printer;
-    printer.visit( root->function, 0 );
+    for ( size_t i = 0; i < root->functions.size(); ++i )
+    {
+        printer.print_func( root->functions.at( i ) );
+    }
 }
 
 
 
-void xec_ast_printer::visit( xec_ast_func* node, int indent )
+void xec_ast_printer::print_func( xec_ast_func* node )
 {
+    int indent = 0;
+    
     printf( "%*sfunction %s %p:\n", indent, "", node->funcname, node );
     indent += INDENT;
 
@@ -152,6 +158,12 @@ void xec_ast_printer::visit( xec_ast_func* node, int indent )
     }
     
     visit( node->block, indent );
+}
+
+
+void xec_ast_printer::visit( xec_ast_func* node, int indent )
+{
+    printf( "%*sfunction %s %p\n", indent, "", node->funcname, node );
 }
 
 void xec_ast_printer::visit( xec_expr_null* node, int indent ) 
