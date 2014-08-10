@@ -35,7 +35,21 @@ struct xec_ssa_expand;
     selected with 'select'.  'vararg' and 'unpack' can either result in a
     single value, or in an unknown number of values.
     
-    If a multi-valued operantion returns an 
+    Exceptions are evil, because they cause all the control-flow to go out of
+    the window.  I don't want to express possible exceptions in the normal
+    control-flow graph or have the possibility of exceptions affect register
+    allocation.  So each block has a link to the catch-finally block that
+    should be executed if an exception is thrown in these blocks.
+    
+    Finally blocks have two possible predecessor blocks - the normal entry,
+    or the entry from the exception-handling block.
+    
+    Instead of ɸ-functions, on entry to the exception-handling block
+    Ψ-functions list every possible source for a variable, depending on
+    where in the block the exception was thrown.  Ψ-functions only appear in
+    exception-handling blocks.  After the exception-handling block, a rethrow
+    instruction will rethrow the exception if it was not caught.
+ 
 */
 
 
@@ -44,6 +58,7 @@ enum xec_ssa_opcode
     XEC_SSA_NOP,
 
     XEC_SSA_PHI,        // SSA ɸ-functions.
+    XEC_SSA_PSI,        // Exception-handling Ψ-functions.
 
     XEC_SSA_CLOSURE,
     XEC_SSA_PARAM,      // Declare parameters.
@@ -64,7 +79,7 @@ enum xec_ssa_opcode
     XEC_SSA_NUMBER,
     XEC_SSA_STRING,
     
-    XEC_SSA_NEWUP,      // Create new upval (for locals which are upvals).
+    XEC_SSA_NEWUP,      // New upval & assign it  (for locals which are upvals).
     XEC_SSA_REFUP,      // Get value of upval (both locals and in outer scopes).
     XEC_SSA_SETUP,      // Set upval (both locals and in outer scopes).
     XEC_SSA_CLOSE,      // Close a locally-created upval.
@@ -117,6 +132,9 @@ enum xec_ssa_opcode
     XEC_SSA_EXTEND,     // Append unpacked values to an array.
 
     XEC_SSA_RETURN,
+
+    XEC_SSA_CATCH,
+    XEC_SSA_RETHROW,
 };
 
 
@@ -159,6 +177,7 @@ struct xec_ssa_func
     xec_ssa_block*      block;
     xec_ssa_block_list  blocks;
     int                 upvalcount;
+    int                 localupcount;
     int                 paramcount;
     bool                varargs;
     bool                coroutine;

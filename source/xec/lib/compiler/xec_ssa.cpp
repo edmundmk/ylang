@@ -31,6 +31,7 @@ xec_ssa_func::xec_ssa_func( int sloc, const char* funcname,
     ,   funcname( funcname )
     ,   block( block )
     ,   upvalcount( upvalcount )
+    ,   localupcount( 0 )
     ,   paramcount( paramcount )
     ,   varargs( varargs )
     ,   coroutine( coroutine )

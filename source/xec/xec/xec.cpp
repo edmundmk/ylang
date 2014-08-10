@@ -26,6 +26,9 @@ int main( int argc, char* argv[] )
     
     xec_ast_print( &ast );
     
+    if ( ! xec_ssabuild( &ast ) )
+        goto error;
+    
     return EXIT_SUCCESS;
     
 error:

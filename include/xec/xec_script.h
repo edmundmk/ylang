@@ -72,6 +72,13 @@ bool xec_parse( xec_script* script, xec_ast* ast,
 
 
 
+/*
+    SSA build (temporary).
+*/
+
+bool xec_ssabuild( xec_ast* ast );
+
+
 
 #endif
 

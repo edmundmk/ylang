@@ -106,7 +106,7 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_ast_func* node )
         {
         case XEC_UPVAL_LOCAL:
         {
-            xec_ssa_node* local = b->lookup( upval.local );
+            xec_ssa_node* local = b->lookup( node->sloc, upval.local );
             closure->operands.push_back( local );
             break;
         }
@@ -154,7 +154,7 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_string* node )
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_local* node )
 {
-    return b->lookup( node->name );
+    return b->lookup( node->sloc, node->name );
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_global* node )
@@ -1131,14 +1131,17 @@ struct xec_ssa_build_func
     std::deque< xec_ssa_build_if >      ifstack;
     std::deque< xec_ssa_build_switch >  switchstack;
     std::deque< xec_ssa_build_loop >    loopstack;
-    std::unordered_map< xec_ssa_block*, xec_ssa_build_block* > blockmap;
     std::deque< std::unique_ptr< xec_ssa_build_block > > blocks;
+    std::unordered_map< xec_ssa_block*, xec_ssa_build_block* > blockmap;
+    std::unordered_map< xec_ast_name*, int > upvals;
+    int                                 visitmark;
 };
 
 
 xec_ssa_build_func::xec_ssa_build_func( xec_ssa_func* func )
     :   func( func )
     ,   block( NULL )
+    ,   visitmark( -1 )
 {
 }
 
@@ -1154,7 +1157,7 @@ struct xec_ssa_build_block
 
     xec_ssa_block*                              block;
     std::unordered_map< void*, xec_ssa_node* >  defined;
-    std::unordered_set< void* >                 incomplete;
+    std::unordered_map< xec_ssa_node*, void* >  incomplete;
     int                                         visitmark;
     bool                                        sealed;
 };
@@ -1233,60 +1236,95 @@ xec_ssa_node* xec_ssa_builder::node( xec_ssa_node* node )
 }
 
 
-void xec_ssa_builder::define( xec_ast_name* name, xec_ssa_node* node )
+void xec_ssa_builder::define( xec_ast_name* name, xec_ssa_node* value )
 {
-    if ( b->block )
+    if ( name->upval )
     {
-        b->block->defined[ name ] = node;
-        
-        // Also associate definition with a name (for debugging, and?).
-        auto i = namemap.find( name );
-        xec_ssa_name* ssan;
-        if ( i != namemap.end() )
+        // Upvals are visible outside the function so are not 'locals'.
+        auto i = b->upvals.find( name );
+        if ( i != b->upvals.end() )
         {
-            ssan = i->second;
+            // Existing upval.
+            node( packed( name->sloc, XEC_SSA_SETUP, value, i->second ) );
         }
         else
         {
-            ssan = new ( root->alloc ) xec_ssa_name( name->sloc, name->name );
-            namemap.emplace( name, ssan );
+            // Create new upval.
+            int index = b->func->upvalcount + b->func->localupcount;
+            b->func->localupcount += 1;
+            b->upvals.emplace( name, index );
+            node( packed( name->sloc, XEC_SSA_NEWUP, value, index ) );
         }
-        
-        b->block->block->names.emplace( node, ssan );
     }
+    else
+    {
+        // It's a normal local variable, remember definition.
+        define_name( name, value );
+    }
+    
+    
+    // Also associate definition with a name (for debugging).
+    auto i = namemap.find( name );
+    xec_ssa_name* ssan;
+    if ( i != namemap.end() )
+    {
+        ssan = i->second;
+    }
+    else
+    {
+        ssan = new ( root->alloc ) xec_ssa_name( name->sloc, name->name );
+        namemap.emplace( name, ssan );
+    }
+    
+    b->block->block->names.emplace( value, ssan );
 }
     
 
-void xec_ssa_builder::define( xec_new_object* object, xec_ssa_node* node )
+void xec_ssa_builder::define( xec_new_object* object, xec_ssa_node* value )
 {
-    if ( b->block )
+    if ( object->upval )
     {
-        b->block->defined[ object ] = node;
+        // Object upvals are defined once and are read-only, so create an
+        // upval but also fall through to define a variable.
+        int index = b->func->upvalcount + b->func->localupcount;
+        b->func->localupcount += 1;
+        node( packed( object->sloc, XEC_SSA_NEWUP, value, index ) );
     }
+
+    define_name( object, value );
 }
 
-void xec_ssa_builder::define( xec_ast_node* temporary, xec_ssa_node* node )
+void xec_ssa_builder::define( xec_ast_node* temporary, xec_ssa_node* value )
 {
-    if ( b->block )
-    {
-        b->block->defined[ temporary ] = node;
-    }
+    define_name( temporary, value );
 }
 
 
-xec_ssa_node* xec_ssa_builder::lookup( xec_ast_name* name )
+xec_ssa_node* xec_ssa_builder::lookup( int sloc, xec_ast_name* name )
 {
-    return NULL;
+    if ( name->upval )
+    {
+        // If this is an upval then construct code to get its value.
+        int index = b->upvals.at( name );
+        return node( packed( sloc, XEC_SSA_REFUP, nullptr, index ) );
+    }
+    else
+    {
+        // Return reference to last definition, or a ɸ-instruction.
+        return lookup_name( name );
+    }
 }
 
 xec_ssa_node* xec_ssa_builder::lookup( xec_new_object* object )
 {
-    return NULL;
+    // Object upvals are defined once and are read-only, so we can just use
+    // the defined value when we want its value locally.
+    return lookup_name( object );
 }
 
 xec_ssa_node* xec_ssa_builder::lookup( xec_ast_node* temporary )
 {
-    return NULL;
+    return lookup_name( temporary );
 }
 
 
@@ -1699,7 +1737,7 @@ xec_ssa_node* xec_ssa_builder::lvalue_value( xec_ssa_lvalue* lvalue )
     switch ( lvalue->opcode )
     {
     case XEC_SSA_NOP:
-        return lookup( lvalue->local );
+        return lookup( lvalue->sloc, lvalue->local );
     
     case XEC_SSA_SETUP:
         return node( packed( lvalue->sloc,
@@ -1767,6 +1805,7 @@ void xec_ssa_builder::build_function( xec_ast_func* astf, xec_ssa_func* ssaf )
     
     // Open block and add parameters.
     b->block = make_block();
+    b->block->sealed = true;
     for ( size_t i = 0; i < astf->parameters.size(); ++i )
     {
         xec_ast_name* param = astf->parameters.at( i );
@@ -1842,14 +1881,172 @@ void xec_ssa_builder::link_iffalse(
 
 
 
+void xec_ssa_builder::define_name( void* name, xec_ssa_node* value )
+{
+    if ( b->block )
+    {
+        b->block->defined[ name ] = value;
+    }
+}
+
+
+
+xec_ssa_node* xec_ssa_builder::lookup_name( void* name )
+{
+    if ( b->block )
+    {
+        // Look it up.
+        b->visitmark += 1;
+        xec_ssa_node* node = lookup_name( b->block, name );
+        if ( ! node )
+        {
+            // All names should have been defined before use.
+            root->script->error( -1, "[!] internal undefined name" );
+        }
+        return node;
+    }
+    else
+    {
+        // Unreachable.
+        return NULL;
+    }
+}
+
+
+
+xec_ssa_node* xec_ssa_builder::lookup_name(
+                        xec_ssa_build_block* block, void* name )
+{
+    // Prevent infinite looping through loops which do not define the name.
+    if ( block->visitmark == b->visitmark )
+        return NULL;
+    block->visitmark = b->visitmark;
+
+
+    // Look for local definition.
+    auto i = block->defined.find( name );
+    if ( i != block->defined.end() )
+    {
+        return i->second;
+    }
+
+
+    if ( block->sealed )
+    {
+        if ( block->block->previous.size() == 0 )
+        {
+            // No predecessors, not found.
+            return NULL;
+        }
+        else if ( block->block->previous.size() == 1 )
+        {
+            // One predecessor, look it up recursively.
+            xec_ssa_block* prev = block->block->previous.at( 0 );
+            return lookup_name( b->blockmap.at( prev ), name );
+        }
+        else
+        {
+            // Multiple predecessors (sealed).
+            std::unordered_set< xec_ssa_node* > defines;
+            for ( size_t i = 0; i < block->block->previous.size(); ++i )
+            {
+                xec_ssa_block* prev = block->block->previous.at( i );
+                xec_ssa_node* d = lookup_name( b->blockmap.at( prev ), name );
+                if ( d )
+                {
+                    defines.emplace( d );
+                }
+            }
+            
+            if ( defines.size() == 0 )
+            {
+                return NULL;
+            }
+            else if ( defines.size() == 1 )
+            {
+                return *defines.begin();
+            }
+            else
+            {
+                // Create ɸ-function.
+                xec_ssa_expand* phi = expand( -1, XEC_SSA_PHI, 1 );
+                for ( auto i = defines.begin(); i != defines.end(); ++i )
+                {
+                    phi->operands.push_back( *i );
+                }
+                block->block->phi.push_back( phi );
+                define_name( name, phi );
+                return phi;
+            }
+            
+        }
+    }
+    else
+    {
+        // This is an unsealed block - create incomplete ɸ-function.
+        xec_ssa_expand* phi = expand( -1, XEC_SSA_PHI, 1 );
+        block->block->phi.push_back( phi );
+        block->incomplete.emplace( phi, name );
+        define_name( name, phi );
+        return phi;
+    }
+
+}
+
 
 void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
 {
     assert( ! block->sealed );
     
-    // TODO: Lookup incomplete phi instructions.
+    // All existing ɸ-functions in the block are incomplete.  Note that this
+    // process may create pointless ɸ-functions which refer only to a single
+    // other name.
+    for ( size_t i = 0; i < block->block->phi.size(); ++i )
+    {
+        xec_ssa_expand* phi = block->block->phi.at( i )->as_expand();
+        void* name = block->incomplete.at( phi );
+        
+        b->visitmark += 1;
+        
+        std::unordered_set< xec_ssa_node* > defines;
+        for ( size_t i = 0; i < block->block->previous.size(); ++i )
+        {
+            xec_ssa_block* prev = block->block->previous.at( i );
+            xec_ssa_node* d = lookup_name( b->blockmap.at( prev ), name );
+            if ( d && d != phi )
+            {
+                defines.emplace( d );
+            }
+        }
+        
+        if ( defines.size() == 0 )
+        {
+            // All names should have been defined before use.
+            root->script->error( -1, "[!] internal undefined name" );
+        }
+        
+        for ( auto i = defines.begin(); i != defines.end(); ++i )
+        {
+            phi->operands.push_back( *i );
+        }
+    }
     
     block->sealed = true;
 }
+
+
+
+
+
+bool xec_ssabuild( xec_ast* ast )
+{
+    xec_ssa ssa;
+    xec_ssa_builder builder( &ssa );
+    builder.build( ast );
+    return ast->script->error_count() == 0;
+}
+
+
+
 
 

@@ -179,11 +179,11 @@ public:
 
     xec_ssa_node*   node( xec_ssa_node* node );
 
-    void            define( xec_ast_name* name, xec_ssa_node* node );
-    void            define( xec_new_object* object, xec_ssa_node* node );
-    void            define( xec_ast_node* temporary, xec_ssa_node* node );
+    void            define( xec_ast_name* name, xec_ssa_node* value );
+    void            define( xec_new_object* object, xec_ssa_node* value );
+    void            define( xec_ast_node* temporary, xec_ssa_node* value );
     
-    xec_ssa_node*   lookup( xec_ast_name* name );
+    xec_ssa_node*   lookup( int sloc, xec_ast_name* name );
     xec_ssa_node*   lookup( xec_new_object* object );
     xec_ssa_node*   lookup( xec_ast_node* temporary );
     
@@ -204,6 +204,10 @@ public:
     void            loopbreak();
     void            loopend();
     
+    void            excepttry();
+    void            exceptcatch();
+    void            exceptfinally();
+    
     void            funcreturn();
 
     xec_ssa_func*   func( xec_ast_func* func );
@@ -218,6 +222,7 @@ public:
 private:
 
     void            build_function( xec_ast_func* astf, xec_ssa_func* ssaf );
+
     xec_ssa_build_block* make_block();
     void            link_next( xec_ssa_build_block* block,
                         xec_ssa_build_block* next );
@@ -225,6 +230,10 @@ private:
                         xec_ssa_node* condition, xec_ssa_build_block* iftrue );
     void            link_iffalse( xec_ssa_build_block* block,
                         xec_ssa_build_block* iffalse );
+
+    void            define_name( void* name, xec_ssa_node* value );
+    xec_ssa_node*   lookup_name( void* name );
+    xec_ssa_node*   lookup_name( xec_ssa_build_block* block, void* name );
     void            seal_block( xec_ssa_build_block* block );
     
 
