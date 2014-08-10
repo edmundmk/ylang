@@ -974,6 +974,10 @@ void xec_ssa_build_stmt::visit( xec_stmt_break* node )
 
 void xec_ssa_build_stmt::visit( xec_stmt_return* node )
 {
+    // Evaluate return values.
+    xec_ssa_valist values;
+    b->unpack( &values, node->values, -1 );
+    
     // Close scopes we're exiting.
     xec_ast_scope* scope = node->scope;
     while ( true )
@@ -983,10 +987,6 @@ void xec_ssa_build_stmt::visit( xec_stmt_return* node )
             break;
         scope = scope->outer;
     }
-    
-    // Evaluate return values.
-    xec_ssa_valist values;
-    b->unpack( &values, node->values, -1 );
     
     // Emit return operation.
     xec_ssa_expand* retstmt = b->expand( node->sloc, XEC_SSA_RETURN, 0 );

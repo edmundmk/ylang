@@ -370,7 +370,10 @@ void xec_ast_printer::visit( xec_expr_list* node, int indent )
     for ( size_t i = 0; i < node->values.size(); ++i )
         visit( node->values[ i ], indent + INDENT );
     if ( node->final )
+    {
+        printf( "%*s  (final)\n", indent, "" );
         visit( node->final, indent + INDENT );
+    }
 }
 
 void xec_ast_printer::visit( xec_expr_assign* node, int indent ) 

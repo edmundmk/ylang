@@ -850,7 +850,9 @@ expr_final(x)   ::= expr_postfix(expr) LSQ RSQ ELLIPSIS .
 
 expr_list(x)    ::= expr_final(expr) .
                 {
-                    x = expr;
+                    xec_expr_list* l;
+                    x = l = p->alloc< xec_expr_list >( expr->sloc );
+                    l->final = expr;
                 }
 expr_list(x)    ::= expr_lbody(expr) .
                 {
