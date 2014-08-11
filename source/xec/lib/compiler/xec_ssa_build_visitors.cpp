@@ -529,6 +529,13 @@ void xec_ssa_build_unpack::visit(
 void xec_ssa_build_unpack::visit(
                 xec_expr_call* node, xec_ssa_valist* values, int valcount )
 {
+    // Only actually return multiple values if this was an unpack call.
+    if ( ! node->unpack && valcount != 1 )
+    {
+        fallback( node, values, valcount );
+        return;
+    }
+
     // Get function and this value.
     xec_ssa_node* function = NULL;
     xec_ssa_node* thisval  = NULL;
@@ -607,6 +614,13 @@ void xec_ssa_build_unpack::visit(
 void xec_ssa_build_unpack::visit(
                 xec_expr_yield* node, xec_ssa_valist* values, int valcount )
 {
+    // Only actually return multiple values if this is an unpack yield.
+    if ( ! node->unpack && valcount != 1 )
+    {
+        fallback( node, values, valcount );
+        return;
+    }
+
     // Get arguments (unpacked).
     xec_ssa_valist arguments;
     if ( node->arguments )
