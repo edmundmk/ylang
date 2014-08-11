@@ -349,7 +349,7 @@ xec_ssa_node* xec_ssa_builder::lookup( int sloc, xec_ast_name* name )
     {
         // Return reference to last definition, or a ɸ-instruction.
         xec_ssa_node* node = lookup_name( name );
-        if ( ! node )
+        if ( b->follow && ! node )
         {
             // All names should have been defined before use.
             root->script->error( sloc,
@@ -364,7 +364,7 @@ xec_ssa_node* xec_ssa_builder::lookup( xec_new_object* object )
     // Object upvals are defined once and are read-only, so we can just use
     // the defined value when we want its value locally.
     xec_ssa_node* node = lookup_name( object );
-    if ( ! node )
+    if ( b->follow && ! node )
     {
         // All names should have been defined before use.
         root->script->error( object->sloc,
@@ -376,7 +376,7 @@ xec_ssa_node* xec_ssa_builder::lookup( xec_new_object* object )
 xec_ssa_node* xec_ssa_builder::lookup( xec_ast_node* temporary )
 {
     xec_ssa_node* node = lookup_name( temporary );
-    if ( ! node )
+    if ( b->follow && ! node )
     {
         // All names should have been defined before use.
         root->script->error( temporary->sloc,
@@ -633,9 +633,17 @@ void xec_ssa_builder::loopopen()
     // The entry to the loop is the only kind of block that isn't
     // sealed immediately after creation (we don't know how many
     // continues are going to loop back to it).
-    buildloop.loop = make_block();
-    link( &b->follow, buildloop.loop );
-    b->follow.reset( XEC_SSA_FOLLOW_BLOCK, buildloop.loop );
+    if ( b->follow )
+    {
+        buildloop.loop = make_block();
+        link( &b->follow, buildloop.loop );
+        b->follow.reset( XEC_SSA_FOLLOW_BLOCK, buildloop.loop );
+    }
+    else
+    {
+        buildloop.loop = NULL;
+    }
+    
 }
 
 void xec_ssa_builder::loopcontinue()
@@ -643,7 +651,10 @@ void xec_ssa_builder::loopcontinue()
     xec_ssa_build_loop& buildloop = b->loopstack.back();
 
     // Link current follow point to the head of the loop.
-    link( &b->follow, buildloop.loop );
+    if ( buildloop.loop )
+    {
+        link( &b->follow, buildloop.loop );
+    }
     
     // Now unreachable.
     b->follow.reset( XEC_SSA_FOLLOW_NONE, NULL );
@@ -668,7 +679,10 @@ void xec_ssa_builder::loopend()
     assert( ! b->follow );
 
     // No more continues.
-    seal_block( buildloop.loop );
+    if ( buildloop.loop )
+    {
+        seal_block( buildloop.loop );
+    }
 
     // If there were any breaks, then code after the loop is reachable.
     if ( buildloop.breaks.size() == 1 )
@@ -991,7 +1005,7 @@ void xec_ssa_builder::define_name( void* name, xec_ssa_node* value )
 
 xec_ssa_node* xec_ssa_builder::lookup_name( void* name )
 {
-    if ( b->follow.block )
+    if ( b->follow )
     {
         // Look it up.
         b->visitmark += 1;
@@ -1092,6 +1106,7 @@ xec_ssa_node* xec_ssa_builder::lookup_name(
 void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
 {
     assert( ! block->sealed );
+    block->sealed = true;
     
     // All existing ɸ-functions in the block are incomplete.  Note that this
     // process may create pointless ɸ-functions which refer only to a single
@@ -1102,8 +1117,6 @@ void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
         void* name = block->incomplete.at( phi );
         
         b->visitmark += 1;
-        block->visitmark = b->visitmark;
-        
         std::unordered_set< xec_ssa_node* > defines;
         for ( size_t i = 0; i < block->block->previous.size(); ++i )
         {
@@ -1127,7 +1140,6 @@ void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
         }
     }
     
-    block->sealed = true;
 }
 
 

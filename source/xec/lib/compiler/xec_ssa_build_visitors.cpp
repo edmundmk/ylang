@@ -573,7 +573,10 @@ void xec_ssa_build_unpack::visit(
 
     // Get arguments (unpacked).
     xec_ssa_valist arguments;
-    b->unpack( &arguments, node->arguments, -1 );
+    if ( node->arguments )
+    {
+        b->unpack( &arguments, node->arguments, -1 );
+    }
 
     // Construct call.
     xec_ssa_opcode opcode = node->yieldcall ? XEC_SSA_YCALL : XEC_SSA_CALL;
@@ -606,7 +609,10 @@ void xec_ssa_build_unpack::visit(
 {
     // Get arguments (unpacked).
     xec_ssa_valist arguments;
-    b->unpack( &arguments, node->arguments, -1 );
+    if ( node->arguments )
+    {
+        b->unpack( &arguments, node->arguments, -1 );
+    }
     
     // Construct yield.
     xec_ssa_expand* yield = b->expand( node->sloc, XEC_SSA_YIELD, valcount );

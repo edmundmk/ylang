@@ -341,7 +341,8 @@ void xec_ast_printer::visit( xec_expr_call* node, int indent )
     if ( node->unpack )
         printf( "%*sunpack: true\n", indent, "" );
     visit( node->function, indent );
-    visit( node->arguments, indent );
+    if ( node->arguments )
+        visit( node->arguments, indent );
 }
 
 void xec_ast_printer::visit( xec_expr_yield* node, int indent ) 
@@ -350,7 +351,8 @@ void xec_ast_printer::visit( xec_expr_yield* node, int indent )
     indent += INDENT;
     if ( node->unpack )
         printf( "%*sunpack: true\n", indent, "" );
-    visit( node->arguments, indent );
+    if ( node->arguments )
+        visit( node->arguments, indent );
 }
 
 void xec_ast_printer::visit( xec_expr_vararg* node, int indent ) 

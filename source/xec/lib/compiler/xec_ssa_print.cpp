@@ -318,7 +318,7 @@ void xec_ssa_printer::print_names( xec_ssa_block* block, xec_ssa_node* node )
     for ( auto i = ii.first; i != ii.second; ++i )
     {
         if ( count == 0 )
-            printf( "( " );
+            printf( " ( " );
         else
             printf( ", " );
         printf( "%s", i->second->name );
