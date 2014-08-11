@@ -24,6 +24,7 @@ public:
 private:
 
     void print_node( xec_ssa_block* block, xec_ssa_node* node );
+    void print_names( xec_ssa_block* block, xec_ssa_node* node );
 
     std::unordered_map< xec_ssa_block*, int > blockid;
     std::unordered_map< xec_ssa_node*, int > nodeid;
@@ -106,189 +107,155 @@ void xec_ssa_printer::print_func( xec_ssa_func* func )
 
 
 
-enum xec_ssa_decode_kind
-{
-    XEC_SSA_PACKED_NULL,
-    XEC_SSA_PACKED_OPERAND,
-    XEC_SSA_PACKED_BINARY,
-    XEC_SSA_PACKED_LITERAL,
-    XEC_SSA_PACKED_OPLITERAL,
-    XEC_SSA_PACKED_IMMED,
-    XEC_SSA_PACKED_OPIMMED,
-    XEC_SSA_PACKED_STRING,
-    XEC_SSA_PACKED_BOOLEAN,
-    XEC_SSA_PACKED_NUMBER,
-    
-    XEC_SSA_TRIPLE,
-    XEC_SSA_TRIPLE_KEY,
-    
-    XEC_SSA_EXPAND,
-    XEC_SSA_EXPAND_FUNC,
-};
 
 
-struct xec_ssa_decode_info
-{
-    xec_ssa_decode_info( const char* name, xec_ssa_decode_kind kind )
-        :   name( name )
-        ,   kind( kind )
-    {
-    }
-    
-    const char* name;
-    xec_ssa_decode_kind kind;
-    
-};
-
-
-class xec_ssa_decode
+class xec_ssa_opnames
 {
 public:
 
-    xec_ssa_decode()
+    xec_ssa_opnames()
     {
-        add( XEC_SSA_NOP,       "nop",          XEC_SSA_PACKED_NULL );
-        add( XEC_SSA_PHI,       "phi",          XEC_SSA_EXPAND );
-        add( XEC_SSA_PSI,       "psi",          XEC_SSA_EXPAND );
-        add( XEC_SSA_CLOSURE,   "closure",      XEC_SSA_EXPAND_FUNC );
-        add( XEC_SSA_PARAM,     "param",        XEC_SSA_PACKED_IMMED );
-        add( XEC_SSA_CALL,      "call",         XEC_SSA_EXPAND );
-        add( XEC_SSA_YCALL,     "ycall",        XEC_SSA_EXPAND );
-        add( XEC_SSA_YIELD,     "yield",        XEC_SSA_EXPAND );
-        add( XEC_SSA_SELECT,    "select",       XEC_SSA_PACKED_OPIMMED );
-        add( XEC_SSA_VARARG,    "vararg",       XEC_SSA_PACKED_IMMED );
-        add( XEC_SSA_UNPACK,    "unpack",       XEC_SSA_PACKED_OPIMMED );
-        add( XEC_SSA_ITER,      "iter",         XEC_SSA_PACKED_OPERAND );
-        add( XEC_SSA_EACH,      "each",         XEC_SSA_PACKED_OPERAND );
-        add( XEC_SSA_NEXT,      "next",         XEC_SSA_PACKED_OPIMMED );
-        add( XEC_SSA_NULL,      "null",         XEC_SSA_PACKED_NULL );
-        add( XEC_SSA_BOOL,      "bool",         XEC_SSA_PACKED_BOOLEAN );
-        add( XEC_SSA_NUMBER,    "number",       XEC_SSA_PACKED_NUMBER );
-        add( XEC_SSA_STRING,    "string",       XEC_SSA_PACKED_STRING );
-        add( XEC_SSA_NEWUP,     "newup",        XEC_SSA_PACKED_OPIMMED );
-        add( XEC_SSA_REFUP,     "refup",        XEC_SSA_PACKED_IMMED );
-        add( XEC_SSA_SETUP,     "setup",        XEC_SSA_PACKED_OPIMMED );
-        add( XEC_SSA_CLOSE,     "close",        XEC_SSA_PACKED_IMMED );
-        add( XEC_SSA_GLOBAL,    "global",       XEC_SSA_PACKED_LITERAL );
-        add( XEC_SSA_KEY,       "key",          XEC_SSA_PACKED_OPLITERAL );
-        add( XEC_SSA_INKEY,     "inkey",        XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_INDEX,     "index",        XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_SETGLOBAL, "setglobal",    XEC_SSA_PACKED_OPLITERAL );
-        add( XEC_SSA_SETKEY,    "setkey",       XEC_SSA_TRIPLE_KEY );
-        add( XEC_SSA_SETINKEY,  "setinkey",     XEC_SSA_TRIPLE );
-        add( XEC_SSA_SETINDEX,  "setindex",     XEC_SSA_TRIPLE );
-        add( XEC_SSA_DELKEY,    "delkey",       XEC_SSA_PACKED_OPLITERAL );
-        add( XEC_SSA_DELINKEY,  "delinkey",     XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_POS,       "pos",          XEC_SSA_PACKED_OPERAND );
-        add( XEC_SSA_NEG,       "neg",          XEC_SSA_PACKED_OPERAND );
-        add( XEC_SSA_NOT,       "not",          XEC_SSA_PACKED_OPERAND );
-        add( XEC_SSA_BITNOT,    "bitnot",       XEC_SSA_PACKED_OPERAND );
-        add( XEC_SSA_MUL,       "mul",          XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_DIV,       "div",          XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_MOD,       "mod",          XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_INTDIV,    "intdiv",       XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_ADD,       "add",          XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_SUB,       "sub",          XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_LSL,       "lsl",          XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_LSR,       "lsr",          XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_ASR,       "asr",          XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_BITAND,    "bitand",       XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_BITXOR,    "bitxor",       XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_BITOR,     "bitor",        XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_CONCAT,    "concat",       XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_EQ,        "eq",           XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_LT,        "lt",           XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_LE,        "le",           XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_IN,        "in",           XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_IS,        "is",           XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_XOR,       "xor",          XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_NEW,       "new",          XEC_SSA_EXPAND );
-        add( XEC_SSA_OBJECT,    "object",       XEC_SSA_PACKED_OPERAND );
-        add( XEC_SSA_TABLE,     "table",        XEC_SSA_PACKED_IMMED );
-        add( XEC_SSA_ARRAY,     "array",        XEC_SSA_PACKED_IMMED );
-        add( XEC_SSA_APPEND,    "append",       XEC_SSA_PACKED_BINARY );
-        add( XEC_SSA_EXTEND,    "extend",       XEC_SSA_EXPAND );
-        add( XEC_SSA_RETURN,    "return",       XEC_SSA_EXPAND );
-        add( XEC_SSA_CATCH,     "catch",        XEC_SSA_PACKED_NULL );
-        add( XEC_SSA_RETHROW,   "rethrow",      XEC_SSA_PACKED_NULL );
+        add( XEC_SSA_NOP,       "nop"       );
+        add( XEC_SSA_MOV,       "mov"       );
+        add( XEC_SSA_PHI,       "phi"       );
+        add( XEC_SSA_PSI,       "psi"       );
+        add( XEC_SSA_CLOSURE,   "closure"   );
+        add( XEC_SSA_PARAM,     "param"     );
+        add( XEC_SSA_CALL,      "call"      );
+        add( XEC_SSA_YCALL,     "ycall"     );
+        add( XEC_SSA_YIELD,     "yield"     );
+        add( XEC_SSA_SELECT,    "select"    );
+        add( XEC_SSA_VARARG,    "vararg"    );
+        add( XEC_SSA_UNPACK,    "unpack"    );
+        add( XEC_SSA_ITER,      "iter"      );
+        add( XEC_SSA_EACH,      "each"      );
+        add( XEC_SSA_NEXT,      "next"      );
+        add( XEC_SSA_NULL,      "null"      );
+        add( XEC_SSA_BOOL,      "bool"      );
+        add( XEC_SSA_NUMBER,    "number"    );
+        add( XEC_SSA_STRING,    "string"    );
+        add( XEC_SSA_NEWUP,     "newup"     );
+        add( XEC_SSA_REFUP,     "refup"     );
+        add( XEC_SSA_SETUP,     "setup"     );
+        add( XEC_SSA_CLOSE,     "close"     );
+        add( XEC_SSA_GLOBAL,    "global"    );
+        add( XEC_SSA_KEY,       "key"       );
+        add( XEC_SSA_INKEY,     "inkey"     );
+        add( XEC_SSA_INDEX,     "index"     );
+        add( XEC_SSA_SETGLOBAL, "setglobal" );
+        add( XEC_SSA_SETKEY,    "setkey"    );
+        add( XEC_SSA_SETINKEY,  "setinkey"  );
+        add( XEC_SSA_SETINDEX,  "setindex"  );
+        add( XEC_SSA_DELKEY,    "delkey"    );
+        add( XEC_SSA_DELINKEY,  "delinkey"  );
+        add( XEC_SSA_POS,       "pos"       );
+        add( XEC_SSA_NEG,       "neg"       );
+        add( XEC_SSA_NOT,       "not"       );
+        add( XEC_SSA_BITNOT,    "bitnot"    );
+        add( XEC_SSA_MUL,       "mul"       );
+        add( XEC_SSA_DIV,       "div"       );
+        add( XEC_SSA_MOD,       "mod"       );
+        add( XEC_SSA_INTDIV,    "intdiv"    );
+        add( XEC_SSA_ADD,       "add"       );
+        add( XEC_SSA_SUB,       "sub"       );
+        add( XEC_SSA_LSL,       "lsl"       );
+        add( XEC_SSA_LSR,       "lsr"       );
+        add( XEC_SSA_ASR,       "asr"       );
+        add( XEC_SSA_BITAND,    "bitand"    );
+        add( XEC_SSA_BITXOR,    "bitxor"    );
+        add( XEC_SSA_BITOR,     "bitor"     );
+        add( XEC_SSA_CONCAT,    "concat"    );
+        add( XEC_SSA_EQ,        "eq"        );
+        add( XEC_SSA_LT,        "lt"        );
+        add( XEC_SSA_LE,        "le"        );
+        add( XEC_SSA_IN,        "in"        );
+        add( XEC_SSA_IS,        "is"        );
+        add( XEC_SSA_XOR,       "xor"       );
+        add( XEC_SSA_NEW,       "new"       );
+        add( XEC_SSA_OBJECT,    "object"    );
+        add( XEC_SSA_TABLE,     "table"     );
+        add( XEC_SSA_ARRAY,     "array"     );
+        add( XEC_SSA_APPEND,    "append"    );
+        add( XEC_SSA_EXTEND,    "extend"    );
+        add( XEC_SSA_RETURN,    "return"    );
+        add( XEC_SSA_CATCH,     "catch"     );
+        add( XEC_SSA_RETHROW,   "rethrow"   );
     }
     
-    const xec_ssa_decode_info& lookup( xec_ssa_opcode o ) const
+    const char* lookup( xec_ssa_opcode o ) const
     {
         return map.at( o );
     }
     
 private:
 
-    void add( xec_ssa_opcode o, const char* n, xec_ssa_decode_kind k )
+    void add( xec_ssa_opcode o, const char* n )
     {
-        map.emplace( o, xec_ssa_decode_info( n, k ) );
+        map.emplace( o, n );
     }
 
-    std::unordered_map< int, xec_ssa_decode_info > map;
+    std::unordered_map< int, const char* > map;
 
 };
 
 
-static const xec_ssa_decode decode;
+static const xec_ssa_opnames opnames;
 
 
 
 
 void xec_ssa_printer::print_node( xec_ssa_block* block, xec_ssa_node* node )
 {
-    const xec_ssa_decode_info& d = decode.lookup( node->opcode );
-    auto i = block->names.find( node );
-    const char* name = i != block->names.end() ? i->second->name : NULL;
+    const char* opname = opnames.lookup( node->opcode );
 
-    printf( ":%04X %-10s", nodeid.at( node ), d.name );
+    printf( ":%04X %-10s", nodeid.at( node ), opname );
     
-    switch ( d.kind )
+    switch ( xec_ssa_decode( node->opcode ) )
     {
-    case XEC_SSA_PACKED_NULL:
+    case XEC_SSA_PACKED:
         break;
         
-    case XEC_SSA_PACKED_OPERAND:
+    case XEC_SSA_PACKED_O:
         printf( ":%04X", nodeid.at( node->as_packed()->operanda ) );
         break;
     
-    case XEC_SSA_PACKED_BINARY:
+    case XEC_SSA_PACKED_OO:
         printf( ":%04X :%04X",
                     nodeid.at( node->as_packed()->operanda ),
                     nodeid.at( node->as_packed()->operandb ) );
         break;
 
-    case XEC_SSA_PACKED_LITERAL:
+    case XEC_SSA_PACKED_L:
         printf( "'%s'", node->as_packed()->literal );
         break;
         
-    case XEC_SSA_PACKED_OPLITERAL:
+    case XEC_SSA_PACKED_OL:
         printf( ":%04X '%s'",
                     nodeid.at( node->as_packed()->operanda ),
                     node->as_packed()->literal );
         break;
         
-    case XEC_SSA_PACKED_IMMED:
+    case XEC_SSA_PACKED_I:
         printf( "$%d", node->as_packed()->immediate );
         break;
         
-    case XEC_SSA_PACKED_OPIMMED:
+    case XEC_SSA_PACKED_OI:
         printf( ":%04X, $%d",
                     nodeid.at( node->as_packed()->operanda ),
                     node->as_packed()->immediate );
         break;
         
-    case XEC_SSA_PACKED_STRING:
+    case XEC_SSA_PACKED_S:
         printf( "\"%*s\"",
                     (int)node->as_packed()->length,
                     node->as_packed()->string );
         break;
         
-    case XEC_SSA_PACKED_BOOLEAN:
+    case XEC_SSA_PACKED_B:
         printf( "%s", node->as_packed()->boolean ? "true" : "false" );
         break;
         
-    case XEC_SSA_PACKED_NUMBER:
+    case XEC_SSA_PACKED_N:
         printf( "%g", node->as_packed()->number );
         break;
         
@@ -299,7 +266,7 @@ void xec_ssa_printer::print_node( xec_ssa_block* block, xec_ssa_node* node )
                     nodeid.at( node->as_triple()->value ) );
         break;
         
-    case XEC_SSA_TRIPLE_KEY:
+    case XEC_SSA_TRIPLE_K:
         printf( ":%04X '%s' :%04X",
                     nodeid.at( node->as_triple()->object ),
                     node->as_triple()->key,
@@ -310,10 +277,7 @@ void xec_ssa_printer::print_node( xec_ssa_block* block, xec_ssa_node* node )
     {
         xec_ssa_expand* expand = node->as_expand();
         printf( "$%d", expand->valcount );
-        if ( name )
-        {
-            printf( " (%s)", name );
-        }
+        print_names( block, node );
         for ( size_t i = 0; i < expand->operands.size(); ++i )
         {
             printf( "\n    :%04X", nodeid.at( expand->operands.at( i ) ) );
@@ -326,14 +290,11 @@ void xec_ssa_printer::print_node( xec_ssa_block* block, xec_ssa_node* node )
         return;
     }
     
-    case XEC_SSA_EXPAND_FUNC:
+    case XEC_SSA_EXPAND_F:
     {
         xec_ssa_expand* expand = node->as_expand();
         printf( "%p", expand->func );
-        if ( name )
-        {
-            printf( " (%s)", name );
-        }
+        print_names( block, node );
         for ( size_t i = 0; i < expand->operands.size(); ++i )
         {
             printf( "\n    :%04X", nodeid.at( expand->operands.at( i ) ) );
@@ -343,16 +304,31 @@ void xec_ssa_printer::print_node( xec_ssa_block* block, xec_ssa_node* node )
     }
     }
 
-    if ( name )
-    {
-        printf( " (%s)", name );
-    }
-    
+
+    print_names( block, node );
     printf( "\n" );
 }
 
 
 
+void xec_ssa_printer::print_names( xec_ssa_block* block, xec_ssa_node* node )
+{
+    auto ii = block->names.equal_range( node );
+    size_t count = 0;
+    for ( auto i = ii.first; i != ii.second; ++i )
+    {
+        if ( count == 0 )
+            printf( "( " );
+        else
+            printf( ", " );
+        printf( "%s", i->second->name );
+        count += 1;
+    }
+    if ( count > 0 )
+    {
+        printf( " )" );
+    }
+}
 
 
 

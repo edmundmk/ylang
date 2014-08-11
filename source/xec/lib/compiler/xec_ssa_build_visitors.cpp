@@ -63,7 +63,7 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_ast_func* node )
         case XEC_UPVAL_UPVAL:
         {
             xec_ssa_node* uv = b->node( b->packed(
-                        node->sloc, XEC_SSA_REFUP, nullptr, upval.upval ) );
+                        node->sloc, XEC_SSA_REFUP, upval.upval ) );
             closure->operands.push_back( uv );
             break;
         }
@@ -102,13 +102,13 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_local* node )
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_global* node )
 {
     return b->node( b->packed( node->sloc,
-                XEC_SSA_GLOBAL, nullptr, node->name ) );
+                XEC_SSA_GLOBAL, node->name ) );
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_upref* node )
 {
     return b->node( b->packed( node->sloc,
-                XEC_SSA_REFUP, nullptr, node->index ) );
+                XEC_SSA_REFUP, node->index ) );
                 
 }
 
@@ -397,7 +397,7 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_new_array* node )
 {
     // Construct array.
     xec_ssa_node* array = b->node( b->packed( node->sloc,
-                    XEC_SSA_ARRAY, nullptr, (int)node->values.size() ) );
+                    XEC_SSA_ARRAY, (int)node->values.size() ) );
     
     // Append all values.
     for ( size_t i = 0; i < node->values.size(); ++i )
@@ -423,7 +423,7 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_new_table* node )
 {
     // Construct table.
     xec_ssa_node* table = b->node( b->packed( node->sloc,
-                    XEC_SSA_TABLE, nullptr, (int)node->elements.size() ) );
+                    XEC_SSA_TABLE, (int)node->elements.size() ) );
     
     // Add elements.
     for ( size_t i = 0; i < node->elements.size(); ++i )
@@ -459,7 +459,7 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_yield* node )
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_vararg* node )
 {
     // Fetch the first variable argument.
-    return b->node( b->packed( node->sloc, XEC_SSA_VARARG, nullptr, 0 ) );
+    return b->node( b->packed( node->sloc, XEC_SSA_VARARG, 0 ) );
 }
 
 xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_unpack* node )
@@ -638,14 +638,14 @@ void xec_ssa_build_unpack::visit(
         for ( int i = 0; i < valcount; ++i )
         {
             xec_ssa_node* value = b->node( b->packed(
-                            node->sloc, XEC_SSA_VARARG, nullptr, i ) );
+                            node->sloc, XEC_SSA_VARARG, i ) );
             values->values.push_back( value );
         }
     }
     else
     {
         values->unpacked = b->node( b->packed(
-                        node->sloc, XEC_SSA_VARARG, nullptr, -1 ) );
+                        node->sloc, XEC_SSA_VARARG, -1 ) );
     }
 }
 

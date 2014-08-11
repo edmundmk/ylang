@@ -123,25 +123,6 @@ xec_ssa_node::xec_ssa_node( int sloc, xec_ssa_opcode opcode )
 {
 }
 
-xec_ssa_packed* xec_ssa_node::as_packed()
-{
-    // TODO: assert that we are the correct type.
-    return (xec_ssa_packed*)this;
-}
-
-xec_ssa_triple* xec_ssa_node::as_triple()
-{
-    // TODO: assert that we are the correct type.
-    return (xec_ssa_triple*)this;
-}
-
-xec_ssa_expand* xec_ssa_node::as_expand()
-{
-    // TODO: assert that we are the correct type.
-    return (xec_ssa_expand*)this;
-}
-
-
 
 
 xec_ssa_packed::xec_ssa_packed( int sloc, xec_ssa_opcode opcode )
@@ -149,6 +130,7 @@ xec_ssa_packed::xec_ssa_packed( int sloc, xec_ssa_opcode opcode )
     ,   operanda( NULL )
     ,   operandb( NULL )
 {
+    assert( xec_ssa_decode( opcode ) == XEC_SSA_PACKED );
 }
 
 xec_ssa_packed::xec_ssa_packed( int sloc,
@@ -157,6 +139,7 @@ xec_ssa_packed::xec_ssa_packed( int sloc,
     ,   operanda( operand )
     ,   operandb( NULL )
 {
+    assert( xec_ssa_decode( opcode ) == XEC_SSA_PACKED_O );
 }
 
 xec_ssa_packed::xec_ssa_packed( int sloc, xec_ssa_opcode opcode,
@@ -165,6 +148,7 @@ xec_ssa_packed::xec_ssa_packed( int sloc, xec_ssa_opcode opcode,
     ,   operanda( operanda )
     ,   operandb( operandb )
 {
+    assert( xec_ssa_decode( opcode ) == XEC_SSA_PACKED_OO );
 }
 
 xec_ssa_packed::xec_ssa_packed( int sloc,
@@ -173,6 +157,16 @@ xec_ssa_packed::xec_ssa_packed( int sloc,
     ,   operanda( operand )
     ,   literal( literal )
 {
+    assert( xec_ssa_decode( opcode ) == XEC_SSA_PACKED_OL );
+}
+
+xec_ssa_packed::xec_ssa_packed( int sloc,
+            xec_ssa_opcode opcode, const char* literal )
+    :   xec_ssa_node( sloc, opcode )
+    ,   operanda( NULL )
+    ,   literal( literal )
+{
+    assert( xec_ssa_decode( opcode ) == XEC_SSA_PACKED_L );
 }
 
 xec_ssa_packed::xec_ssa_packed( int sloc,
@@ -181,6 +175,16 @@ xec_ssa_packed::xec_ssa_packed( int sloc,
     ,   operanda( operand )
     ,   immediate( immediate )
 {
+    assert( xec_ssa_decode( opcode ) == XEC_SSA_PACKED_OI );
+}
+
+xec_ssa_packed::xec_ssa_packed( int sloc,
+            xec_ssa_opcode opcode, int immediate )
+    :   xec_ssa_node( sloc, opcode )
+    ,   operanda( NULL )
+    ,   immediate( immediate )
+{
+    assert( xec_ssa_decode( opcode ) == XEC_SSA_PACKED_I );
 }
 
 xec_ssa_packed::xec_ssa_packed( int sloc,
@@ -189,18 +193,21 @@ xec_ssa_packed::xec_ssa_packed( int sloc,
     ,   string( string )
     ,   length( length )
 {
+    assert( xec_ssa_decode( opcode ) == XEC_SSA_PACKED_S );
 }
 
 xec_ssa_packed::xec_ssa_packed( int sloc, xec_ssa_opcode opcode, bool boolean )
     :   xec_ssa_node( sloc, opcode )
     ,   boolean( boolean )
 {
+    assert( xec_ssa_decode( opcode ) == XEC_SSA_PACKED_B );
 }
 
 xec_ssa_packed::xec_ssa_packed( int sloc, xec_ssa_opcode opcode, double number )
     :   xec_ssa_node( sloc, opcode )
     ,   number( number )
 {
+    assert( xec_ssa_decode( opcode ) == XEC_SSA_PACKED_N );
 }
     
 
@@ -212,6 +219,7 @@ xec_ssa_triple::xec_ssa_triple( int sloc, xec_ssa_opcode opcode,
     ,   index( index )
     ,   value( v )
 {
+    assert( xec_ssa_decode( opcode ) == XEC_SSA_TRIPLE );
 }
 
 xec_ssa_triple::xec_ssa_triple( int sloc, xec_ssa_opcode opcode,
@@ -221,6 +229,7 @@ xec_ssa_triple::xec_ssa_triple( int sloc, xec_ssa_opcode opcode,
     ,   key( key )
     ,   value( v )
 {
+    assert( xec_ssa_decode( opcode ) == XEC_SSA_TRIPLE_K );
 }
 
 
@@ -231,6 +240,7 @@ xec_ssa_expand::xec_ssa_expand( int sloc,
     ,   unpacked( NULL )
     ,   valcount( valcount )
 {
+    assert( xec_ssa_decode( opcode ) == XEC_SSA_EXPAND );
 }
 
 xec_ssa_expand::xec_ssa_expand( int sloc,
@@ -238,6 +248,7 @@ xec_ssa_expand::xec_ssa_expand( int sloc,
     :   xec_ssa_node( sloc, opcode )
     ,   func( func )
 {
+    assert( xec_ssa_decode( opcode ) == XEC_SSA_EXPAND_F );
 }
 
 

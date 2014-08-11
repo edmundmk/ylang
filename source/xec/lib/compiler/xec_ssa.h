@@ -10,6 +10,7 @@
 #define XEC_SSA_H
 
 
+#include <assert.h>
 #include <memory>
 #include <unordered_map>
 #include <string>
@@ -55,88 +56,124 @@ struct xec_ssa_expand;
 
 enum xec_ssa_opcode
 {
-    XEC_SSA_NOP,
-
-    XEC_SSA_PHI,        // SSA ɸ-functions.
-    XEC_SSA_PSI,        // Exception-handling Ψ-functions.
-
-    XEC_SSA_CLOSURE,
-    XEC_SSA_PARAM,      // Declare parameters.
-
-    XEC_SSA_CALL,
-    XEC_SSA_YCALL,
-    XEC_SSA_YIELD,
+    // Opcode packings (makes it fast to decode operations)
+    XEC_SSA_PACKED      = 0x0000,                   //
+    XEC_SSA_PACKED_O    = XEC_SSA_PACKED | 0x0100,  // operand
+    XEC_SSA_PACKED_OO   = XEC_SSA_PACKED | 0x0200,  // operand operand
+    XEC_SSA_PACKED_L    = XEC_SSA_PACKED | 0x0300,  // literal
+    XEC_SSA_PACKED_OL   = XEC_SSA_PACKED | 0x0400,  // operand literal
+    XEC_SSA_PACKED_I    = XEC_SSA_PACKED | 0x0500,  // immediate
+    XEC_SSA_PACKED_OI   = XEC_SSA_PACKED | 0x0600,  // operand immediate
+    XEC_SSA_PACKED_S    = XEC_SSA_PACKED | 0x0700,  // string
+    XEC_SSA_PACKED_B    = XEC_SSA_PACKED | 0x0800,  // boolean
+    XEC_SSA_PACKED_N    = XEC_SSA_PACKED | 0x0900,  // number
+    XEC_SSA_TRIPLE      = 0x1000,                   // operand operand operand
+    XEC_SSA_TRIPLE_K    = XEC_SSA_TRIPLE | 0x0100,  // operand key operand
+    XEC_SSA_EXPAND      = 0x2000,                   // valcount operands ...
+    XEC_SSA_EXPAND_F    = XEC_SSA_EXPAND | 0x0100,  // function operands ...
     
-    XEC_SSA_SELECT,     // Select one of the results of a function call.
-    XEC_SSA_VARARG,     // One of varargs, or unpack all varargs.
-    XEC_SSA_UNPACK,     // An array element selected by immediate, or unpack.
     
-    XEC_SSA_ITER,       // Construct an iterator.
-    XEC_SSA_EACH,       // Construct an iterator over keys.
-    XEC_SSA_NEXT,       // Return a set of values from an iterator.
+    // Opcodes (sorted by packing type, sorry).
     
-    XEC_SSA_NULL,
-    XEC_SSA_BOOL,
-    XEC_SSA_NUMBER,
-    XEC_SSA_STRING,
+    XEC_SSA_NOP         // no-op
+            = XEC_SSA_PACKED,
+    XEC_SSA_NULL,       // null value
+    XEC_SSA_CATCH,      // catch currently unwinding exception
+    XEC_SSA_RETHROW,    // rethrow currently unwinding exception
     
-    XEC_SSA_NEWUP,      // New upval & assign it  (for locals which are upvals).
-    XEC_SSA_REFUP,      // Get value of upval (both locals and in outer scopes).
-    XEC_SSA_SETUP,      // Set upval (both locals and in outer scopes).
-    XEC_SSA_CLOSE,      // Close a locally-created upval.
+    XEC_SSA_MOV         // move
+            = XEC_SSA_PACKED_O,
+    XEC_SSA_ITER,       // make iterator for a list
+    XEC_SSA_EACH,       // make iterator for object keys
+    XEC_SSA_POS,        // unary +
+    XEC_SSA_NEG,        // unary -
+    XEC_SSA_NOT,        // unary !
+    XEC_SSA_BITNOT,     // unary ~
+    XEC_SSA_OBJECT,     // create new object, inheriting from a prototype
     
-    XEC_SSA_GLOBAL,
-    XEC_SSA_KEY,
-    XEC_SSA_INKEY,
-    XEC_SSA_INDEX,
+    XEC_SSA_INKEY       // object.[ key ]
+            = XEC_SSA_PACKED_OO,
+    XEC_SSA_INDEX,      // container[ index ]
+    XEC_SSA_DELINKEY,   // delete object.[ key ]
+    XEC_SSA_MUL,        // *
+    XEC_SSA_DIV,        // /
+    XEC_SSA_MOD,        // %
+    XEC_SSA_INTDIV,     // ~
+    XEC_SSA_ADD,        // +
+    XEC_SSA_SUB,        // -
+    XEC_SSA_LSL,        // <<
+    XEC_SSA_LSR,        // >>
+    XEC_SSA_ASR,        // ~>>
+    XEC_SSA_BITAND,     // &
+    XEC_SSA_BITXOR,     // ^
+    XEC_SSA_BITOR,      // |
+    XEC_SSA_CONCAT,     // ..
+    XEC_SSA_EQ,         // ==
+    XEC_SSA_LT,         // <
+    XEC_SSA_LE,         // <=
+    XEC_SSA_IN,         // in
+    XEC_SSA_IS,         // is
+    XEC_SSA_XOR,        // ^^
+    XEC_SSA_APPEND,     // append to an array
     
-    XEC_SSA_SETGLOBAL,
-    XEC_SSA_SETKEY,
-    XEC_SSA_SETINKEY,
-    XEC_SSA_SETINDEX,
+    XEC_SSA_GLOBAL      // global.key
+             = XEC_SSA_PACKED_L,
     
-    XEC_SSA_DELKEY,
-    XEC_SSA_DELINKEY,
+    XEC_SSA_KEY         // object.key
+             = XEC_SSA_PACKED_OL,
+    XEC_SSA_DELKEY,     // delete object.key
+    XEC_SSA_SETGLOBAL,  // global.key = value
     
-    XEC_SSA_POS,
-    XEC_SSA_NEG,
-    XEC_SSA_NOT,
-    XEC_SSA_BITNOT,
-    XEC_SSA_MUL,
-    XEC_SSA_DIV,
-    XEC_SSA_MOD,
-    XEC_SSA_INTDIV,
-    XEC_SSA_ADD,
-    XEC_SSA_SUB,
-    XEC_SSA_LSL,
-    XEC_SSA_LSR,
-    XEC_SSA_ASR,
-    XEC_SSA_BITAND,
-    XEC_SSA_BITXOR,
-    XEC_SSA_BITOR,
-    XEC_SSA_CONCAT,
+    XEC_SSA_PARAM       // parameter number
+            = XEC_SSA_PACKED_I,
+    XEC_SSA_VARARG,     // vararg number, or unpack all varargs
+    XEC_SSA_REFUP,      // value of upval
+    XEC_SSA_CLOSE,      // close upval
+    XEC_SSA_ARRAY,      // new array
+    XEC_SSA_TABLE,      // new table
     
-    XEC_SSA_EQ,
-    XEC_SSA_LT,
-    XEC_SSA_LE,
-    XEC_SSA_IN,
-    XEC_SSA_IS,
+    XEC_SSA_SELECT      // select a function call result
+             = XEC_SSA_PACKED_OI,
+    XEC_SSA_UNPACK,     // select array element, or unpack all elements
+    XEC_SSA_NEXT,       // produce values from an iterator
+    XEC_SSA_NEWUP,      // create new upval, initialized to value
+    XEC_SSA_SETUP,      // set upval
     
-    XEC_SSA_XOR,
+    XEC_SSA_STRING      // string value
+             = XEC_SSA_PACKED_S,
     
-    XEC_SSA_NEW,
-    XEC_SSA_OBJECT,
-    XEC_SSA_TABLE,
-    XEC_SSA_ARRAY,
+    XEC_SSA_BOOL        // boolean value
+            = XEC_SSA_PACKED_B,
     
-    XEC_SSA_APPEND,     // Append to an array.
-    XEC_SSA_EXTEND,     // Append unpacked values to an array.
-
-    XEC_SSA_RETURN,
-
-    XEC_SSA_CATCH,
-    XEC_SSA_RETHROW,
+    XEC_SSA_NUMBER      // number value
+            = XEC_SSA_PACKED_N,
+    
+    XEC_SSA_SETINKEY    // object.[ key ] = value
+            = XEC_SSA_TRIPLE,
+    XEC_SSA_SETINDEX,   // container[ index ] = value
+    
+    XEC_SSA_SETKEY      // object.key = value
+            = XEC_SSA_TRIPLE_K,
+    
+    XEC_SSA_PHI         // SSA ɸ-functions.
+            = XEC_SSA_EXPAND,
+    XEC_SSA_PSI,        // Ψ-functions locate values used in catch blocks.
+    XEC_SSA_CALL,       // function call
+    XEC_SSA_YCALL,      // yield call
+    XEC_SSA_YIELD,      // yield
+    XEC_SSA_NEW,        // new
+    XEC_SSA_EXTEND,     // extend array with multiple values
+    XEC_SSA_RETURN,     // return possibly multiple values
+    
+    XEC_SSA_CLOSURE     // create function closure
+            = XEC_SSA_EXPAND_F,
 };
+
+
+unsigned int xec_ssa_decode( xec_ssa_opcode opcode );
+unsigned int xec_ssa_optype( xec_ssa_opcode opcode );
+
+
 
 
 typedef std::deque< xec_ssa_func*,
@@ -145,7 +182,7 @@ typedef std::deque< xec_ssa_block*,
     region_allocator< xec_ssa_block* > > xec_ssa_block_list;
 typedef std::deque< xec_ssa_node*,
     region_allocator< xec_ssa_node* > > xec_ssa_node_list;
-typedef std::unordered_map
+typedef std::unordered_multimap
         <
             xec_ssa_node*,
             xec_ssa_name*,
@@ -237,7 +274,11 @@ struct xec_ssa_packed : public xec_ssa_node
     xec_ssa_packed( int sloc, xec_ssa_opcode opcode,
                 xec_ssa_node* operanda, xec_ssa_node* operandb );
     xec_ssa_packed( int sloc, xec_ssa_opcode opcode,
+                const char* literal );
+    xec_ssa_packed( int sloc, xec_ssa_opcode opcode,
                 xec_ssa_node* operand, const char* literal );
+    xec_ssa_packed( int sloc, xec_ssa_opcode opcode,
+                int immediate );
     xec_ssa_packed( int sloc, xec_ssa_opcode opcode,
                 xec_ssa_node* operand, int immediate );
     xec_ssa_packed( int sloc, xec_ssa_opcode opcode,
@@ -307,6 +348,39 @@ struct xec_ssa_expand : public xec_ssa_node
     xec_ssa_func*       func;
     };
 };
+
+
+
+
+
+inline unsigned int xec_ssa_decode( xec_ssa_opcode opcode )
+{
+    return opcode & 0xFF00;
+}
+
+inline unsigned int xec_ssa_optype( xec_ssa_opcode opcode )
+{
+    return opcode & 0xF000;
+}
+
+
+inline xec_ssa_packed* xec_ssa_node::as_packed()
+{
+    assert( xec_ssa_optype( opcode ) == XEC_SSA_PACKED );
+    return (xec_ssa_packed*)this;
+}
+
+inline xec_ssa_triple* xec_ssa_node::as_triple()
+{
+    assert( xec_ssa_optype( opcode ) == XEC_SSA_TRIPLE );
+    return (xec_ssa_triple*)this;
+}
+
+inline xec_ssa_expand* xec_ssa_node::as_expand()
+{
+    assert( xec_ssa_optype( opcode ) == XEC_SSA_EXPAND );
+    return (xec_ssa_expand*)this;
+}
 
 
 

@@ -343,7 +343,7 @@ xec_ssa_node* xec_ssa_builder::lookup( int sloc, xec_ast_name* name )
     {
         // If this is an upval then construct code to get its value.
         int index = b->upvals.at( name );
-        return node( packed( sloc, XEC_SSA_REFUP, nullptr, index ) );
+        return node( packed( sloc, XEC_SSA_REFUP, index ) );
     }
     else
     {
@@ -395,7 +395,7 @@ void xec_ssa_builder::close_scope( xec_ast_scope* scope )
         if ( decl->upval )
         {
             int upval = b->upvals.at( decl );
-            node( packed( decl->sloc, XEC_SSA_CLOSE, nullptr, upval ) );
+            node( packed( decl->sloc, XEC_SSA_CLOSE, upval ) );
         }
     }
     
@@ -406,7 +406,7 @@ void xec_ssa_builder::close_scope( xec_ast_scope* scope )
         if ( object->upval )
         {
             int upval = b->upvals.at( object );
-            node( packed( object->sloc, XEC_SSA_CLOSE, nullptr, upval ) );
+            node( packed( object->sloc, XEC_SSA_CLOSE, upval ) );
         }
     }
 }
@@ -787,7 +787,7 @@ xec_ssa_node* xec_ssa_builder::lvalue_value( xec_ssa_lvalue* lvalue )
     
     case XEC_SSA_SETUP:
         return node( packed( lvalue->sloc,
-                        XEC_SSA_REFUP, nullptr, lvalue->upval ) );
+                        XEC_SSA_REFUP, lvalue->upval ) );
     
     case XEC_SSA_SETKEY:
         return node( packed( lvalue->sloc,
@@ -861,7 +861,7 @@ void xec_ssa_builder::build_function( xec_ast_func* astf, xec_ssa_func* ssaf )
     {
         xec_ast_name* param = astf->parameters.at( i );
         xec_ssa_node* n = node( packed(
-                        param->sloc, XEC_SSA_PARAM, nullptr, (int)i ) );
+                        param->sloc, XEC_SSA_PARAM, (int)i ) );
         define( param, n );
     }
 
