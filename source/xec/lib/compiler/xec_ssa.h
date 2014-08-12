@@ -32,30 +32,104 @@ struct xec_ssa_expand;
 /*
     SSA form for scripts.
     
-    Both call and yield operations can result in multiple values, which are
-    selected with 'select'.  'vararg' and 'unpack' can either result in a
-    single value, or in an unknown number of values.
+    This is an intermediate stage between the AST and VM opcodes.  It might
+    be overkill, but I've chosen to to it this way so that:
     
-    Exceptions are evil, because they cause all the control-flow to go out of
-    the window.  I don't want to express possible exceptions in the normal
-    control-flow graph or have the possibility of exceptions affect register
-    allocation.  So each block has a link to the catch-finally block that
-    should be executed if an exception is thrown in these blocks.
+        -   I can use techniques from 'real' compilers to do register
+            allocation for the VM.  A VM may have effectively an infinite
+            number of registers, but I wasn't getting anywhere trying to
+            allocate registers with an AST walk.
+        -   SSA form makes optimizations easier.  Even compilers for VMs
+            typically do at least a few simple optimizations.
+
+
+    Hyper-efficiency in memory usage wasn't a goal, because the idea is that
+    you'll compile with this SSA once and execute using the VM opcodes.  This
+    isn't a JIT.  However ops do use only as much space as they need:
+ 
+        -   Packed ops are the 'short' form, with enough space for a
+            constant or for two operands.
+        -   Triple ops have space for three operands.
+        -   Expand ops are used for call-like instructions which require
+            an arbitrary number of operands.
+ 
+    The packing type (and 'decode' type, indicating which operands are used
+    and which are literal strings or immediate integers) is encoded into the
+    opcode number itself.
     
-    Finally blocks have two possible predecessor blocks - the normal entry,
-    or the entry from the exception-handling block.
     
-    Instead of ɸ-functions, on entry to the exception-handling block
-    Ψ-functions list every possible source for a variable, depending on
-    where in the block the exception was thrown.  Ψ-functions only appear in
-    exception-handling blocks.  After the exception-handling block, a rethrow
-    instruction will rethrow the exception if it was not caught.
+    ɸ-functions are one of the main features of SSA form.  They appear at the
+    beginning of blocks.  Note that our SSA construction algorithm does _not_
+    produce 'CSSA form' - ɸ-functions can interfere with each other and a
+    block's set of ɸ-functions should be understood to perform their
+    'assignments' simultaneously.  This requires extra care when translating
+    out of SSA form.
+    
+ 
+    xec has destructuring-assignment and multiple-return values, which means
+    some SSA ops consume an unknown number of values or return multiple values.
+    
+    The following ops 'unpack' to an unknown number of values:
+    
+        vararg $-1          // whereas vararg $n selects vararg n
+        unpack :array $-1   // whereas unpack :array $n selects element n
+        call $-1            // unpacks to all return values
+        ycall $-1           // similarly
+        yield $-1           // unpacks to all values passed back to coroutine
+ 
+ 
+    'unpacked' values can only be consumed by the following expand ops.
+    Typically an unpacked values is consumed immediately.
+ 
+        call                // appends unpacked values to end of
+        ycall               //      an argument list
+        yield
+        new
+        extend              // appends unpacked values to the end of an array
+        return              // returns multiple values
+ 
+ 
+    The following ops can return multiple values (though unlike unpacked values
+    the number is fixed at compile time and encoded into the op).  Individual
+    values are selected with a following 'select' op:
+ 
+        next :iterator $n   // next value from iterator, but returns a 'hidden'
+                            //      'done' value, and tables return key, value
+        call $n             // returns exactly n values
+        ycall $n            // similarly
+        yield $n            // the first n values passed back to coroutine
+ 
+ 
+    Upvalues have explicit load and store instructions, as the alternative
+    of forcing every instance of the upval into the same VM register defeats
+    the purpose of SSA.  If we do alias/escape analysis then some of the loads
+    or stores may be proved redundant.
+ 
+    
+    Blocks can have multiple predecessors (including entries from loops), but
+    a maximum of two successors, selected between by a condition as in an if.
+    'switch' statements are currently modelled as a series of tests against the
+    switch value, rather than as a jump table or using special opcodes.  xec
+    does not produce irreducible control flow.
+ 
+        
+    Exception handling is difficult because effectively almost any op could
+    throw an exception due to type mismatch (this may be less of a problem
+    if we do early type-checking), or a null reference.  I do not want
+    finally blocks and catch handlers affecting code generation for normal
+    control flow.
+
+    Ψ-functions (psi-functions) are like ɸ-functions, but they gather _every_
+    possible definition of a particular variable used by a finally block or
+    catch-handler.  At least that is the idea...
+    
  
 */
 
 
 enum xec_ssa_opcode
 {
+
     // Opcode packings (makes it fast to decode operations)
     XEC_SSA_PACKED      = 0x0000,                   //
     XEC_SSA_PACKED_O    = XEC_SSA_PACKED | 0x0100,  // operand
@@ -81,9 +155,8 @@ enum xec_ssa_opcode
     XEC_SSA_CATCH,      // catch currently unwinding exception
     XEC_SSA_RETHROW,    // rethrow currently unwinding exception
     
-    XEC_SSA_MOV         // move
+    XEC_SSA_ITER        // make iterator for a list
             = XEC_SSA_PACKED_O,
-    XEC_SSA_ITER,       // make iterator for a list
     XEC_SSA_EACH,       // make iterator for object keys
     XEC_SSA_POS,        // unary +
     XEC_SSA_NEG,        // unary -
@@ -239,7 +312,7 @@ struct xec_ssa_block
     xec_ssa_block_list  previous;
     xec_ssa_node_list   phi;
     xec_ssa_node_list   nodes;
-    xec_ssa_name_map    names; // TODO: what if a node has multiple names?
+    xec_ssa_name_map    names;
     xec_ssa_node*       condition;
     union
     {
@@ -258,7 +331,10 @@ struct xec_ssa_node
     xec_ssa_node( int sloc, xec_ssa_opcode opcode );
 
     int                 sloc;
-    xec_ssa_opcode      opcode;
+    xec_ssa_opcode      opcode/* : 16;
+    uint16_t            r;              // register allocated to this value
+    uint32_t            addr;           // address of this op when linearized
+    uint32_t            live*/;           // live range of this value
     
     xec_ssa_packed*     as_packed();
     xec_ssa_triple*     as_triple();

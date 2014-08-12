@@ -116,7 +116,6 @@ public:
     xec_ssa_opnames()
     {
         add( XEC_SSA_NOP,       "nop"       );
-        add( XEC_SSA_MOV,       "mov"       );
         add( XEC_SSA_PHI,       "phi"       );
         add( XEC_SSA_PSI,       "psi"       );
         add( XEC_SSA_CLOSURE,   "closure"   );

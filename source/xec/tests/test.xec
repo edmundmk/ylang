@@ -1,0 +1,11 @@
+
+var a;
+var b;
+for (;;)
+{
+    var t = a;
+    a = b;
+    b = t;
+
+}
+
