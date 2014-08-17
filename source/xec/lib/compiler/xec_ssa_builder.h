@@ -12,6 +12,7 @@
 
 #include "xec_ssa_build_visitors.h"
 #include "xec_ssa.h"
+#include <vector>
 
 
 struct xec_ast;
@@ -38,12 +39,12 @@ struct xec_ssa_lvalue
 
     int             sloc;
     xec_ssa_opcode  opcode;
-    xec_ssa_node*   object;
+    xec_ssa_opref   object;
     union
     {
-    xec_ssa_node*   index;
+    xec_ssa_opref   index;
     xec_ast_name*   local;
-    const char*     literal;
+    int             key;
     int             upval;
     };
 };
@@ -58,8 +59,8 @@ struct xec_ssa_valist
 {
     xec_ssa_valist();
 
-    std::deque< xec_ssa_node* > values;
-    xec_ssa_node*   unpacked;
+    std::vector< xec_ssa_opref > values;
+    xec_ssa_opref   unpacked;
 };
 
 
@@ -78,33 +79,32 @@ public:
     ~xec_ssa_builder();
     
     bool            build( xec_ast* ast );
+
+    int             key( const char* key );
+    xec_ssa_string* string( const char* string, size_t length );
+    xec_ssa_lambda* lambda( xec_ssa_func* function );
+    xec_ssa_args*   args( int resultcount );
     
     template< typename ... arguments_t >
-    xec_ssa_packed* packed( arguments_t ... arguments );
-    template< typename ... arguments_t >
-    xec_ssa_triple* triple( arguments_t ... arguments );
-    template< typename ... arguments_t >
-    xec_ssa_expand* expand( arguments_t ... arguments );
+    xec_ssa_opref   op( arguments_t ... arguments );
 
-    xec_ssa_node*   node( xec_ssa_node* node );
-
-    void            define( xec_ast_name* name, xec_ssa_node* value );
-    void            define( xec_new_object* object, xec_ssa_node* value );
-    void            define( xec_ast_node* temporary, xec_ssa_node* value );
+    void            define( xec_ast_name* name, xec_ssa_opref value );
+    void            define( xec_new_object* object, xec_ssa_opref value );
+    void            define( xec_ast_node* temporary, xec_ssa_opref value );
     
-    xec_ssa_node*   lookup( int sloc, xec_ast_name* name );
-    xec_ssa_node*   lookup( xec_new_object* object );
-    xec_ssa_node*   lookup( xec_ast_node* temporary );
+    xec_ssa_opref   lookup( int sloc, xec_ast_name* name );
+    xec_ssa_opref   lookup( xec_new_object* object );
+    xec_ssa_opref   lookup( xec_ast_node* temporary );
     
     void            close_scope( xec_ast_scope* scope );
     
-    void            ifthen( xec_ssa_node* condition );
+    void            ifthen( xec_ssa_opref condition );
     void            ifelse();
     void            ifend();
     
-    void            switchopen( xec_ssa_node* value );
+    void            switchopen( xec_ssa_opref value );
     void            switchcase();
-    void            switchcase( xec_ssa_node* value );
+    void            switchcase( xec_ssa_opref value );
     void            switchbreak();
     void            switchend();
     
@@ -120,15 +120,18 @@ public:
     void            funcreturn();
 
     xec_ssa_func*   func( xec_ast_func* func );
-    xec_ssa_node*   expr( xec_ast_node* node );
+    xec_ssa_opref   expr( xec_ast_node* node );
     void            unpack( xec_ssa_valist* l, xec_ast_node* node, int count );
     
     void            lvalue( xec_ssa_lvalue* lvalue, xec_ast_node* node );
-    xec_ssa_node*   lvalue_value( xec_ssa_lvalue* lvalue );
-    xec_ssa_node*   lvalue_assign( xec_ssa_lvalue* lvalue, xec_ssa_node* val );
+    xec_ssa_opref   lvalue_value( xec_ssa_lvalue* lvalue );
+    xec_ssa_opref   lvalue_assign( xec_ssa_lvalue* lvalue, xec_ssa_opref val );
     
     
 private:
+
+    xec_ssa_opref   addop( xec_ssa_op& op );
+    xec_ssa_opref   addop( xec_ssa_slice* slice, xec_ssa_op& op );
 
     void            build_function( xec_ast_func* astf, xec_ssa_func* ssaf );
 
@@ -136,9 +139,10 @@ private:
     void            link( xec_ssa_follow* follow, xec_ssa_build_block* block );
     bool            follow_block();
 
-    void            define_name( void* name, xec_ssa_node* value );
-    xec_ssa_node*   lookup_name( void* name );
-    xec_ssa_node*   lookup_name( xec_ssa_build_block* block, void* name );
+    void            define_name( void* name, xec_ssa_opref value );
+    xec_ssa_opref   lookup_name( void* name, int sloc, const char* text );
+    xec_ssa_opref   lookup_name( xec_ssa_build_block* block, void* name );
+    xec_ssa_opref   check_single( xec_ssa_opref* defs, size_t size );
     void            seal_block( xec_ssa_build_block* block );
     
 
@@ -146,6 +150,7 @@ private:
     xec_ssa_build_expr   build_expr;
     xec_ssa_build_unpack build_unpack;
     xec_ssa_build_stmt   build_stmt;
+    std::unordered_map< symkey, int > keymap;
     std::unordered_map< xec_ast_func*, xec_ssa_func* > funcmap;
     std::unordered_map< xec_ast_name*, xec_ssa_name* > namemap;
     std::unique_ptr< xec_ssa_build_func > b;
@@ -154,23 +159,29 @@ private:
 
 
 
-template < typename ... arguments_t >
-inline xec_ssa_packed* xec_ssa_builder::packed( arguments_t ... arguments )
+inline xec_ssa_string* xec_ssa_builder::string(
+                const char* string, size_t length )
 {
-    return new ( root->alloc ) xec_ssa_packed( arguments ... );
+    return new ( root->alloc ) xec_ssa_string( string, length );
 }
 
-template < typename ... arguments_t >
-inline xec_ssa_triple* xec_ssa_builder::triple( arguments_t ... arguments )
+inline xec_ssa_lambda* xec_ssa_builder::lambda( xec_ssa_func* function )
 {
-    return new ( root->alloc ) xec_ssa_triple( arguments ... );
+    return new ( root->alloc ) xec_ssa_lambda( function );
 }
 
-template < typename ... arguments_t >
-inline xec_ssa_expand* xec_ssa_builder::expand( arguments_t ... arguments )
+inline xec_ssa_args* xec_ssa_builder::args( int resultcount )
 {
-    return new ( root->alloc ) xec_ssa_expand( arguments ... );
+    return new ( root->alloc ) xec_ssa_args( resultcount );
 }
+
+template< typename ... arguments_t >
+inline xec_ssa_opref xec_ssa_builder::op( arguments_t ... arguments )
+{
+    xec_ssa_op op( arguments ... );
+    return addop( op );
+}
+
 
 
 #endif

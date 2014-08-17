@@ -14,6 +14,13 @@
 
 
 
+template < typename containera_t, typename containerb_t >
+static inline void extend( containera_t* a, const containerb_t& b )
+{
+    a->insert( a->end(), b.begin(), b.end() );
+}
+
+
 
 
 /*
@@ -33,14 +40,14 @@
 
 xec_ssa_lvalue::xec_ssa_lvalue()
     :   opcode( (xec_ssa_opcode)-1 )
-    ,   object( NULL )
-    ,   index( NULL )
+    ,   object( XEC_SSA_INVALID )
+    ,   index( XEC_SSA_INVALID )
 {
 }
 
 
 xec_ssa_valist::xec_ssa_valist()
-    :   unpacked( NULL )
+    :   unpacked( XEC_SSA_INVALID )
 {
 }
 
@@ -122,7 +129,7 @@ struct xec_ssa_build_switch
 {
     xec_ssa_build_switch();
     
-    xec_ssa_node*           value;
+    xec_ssa_opref           value;
     xec_ssa_build_block*    head;
     xec_ssa_build_block*    prev;
     std::deque< xec_ssa_build_block* > breaks;
@@ -193,8 +200,8 @@ struct xec_ssa_build_block
     xec_ssa_build_block();
 
     xec_ssa_block*                              block;
-    std::unordered_map< void*, xec_ssa_node* >  defined;
-    std::unordered_map< xec_ssa_node*, void* >  incomplete;
+    std::unordered_map< void*, xec_ssa_opref >  defined;
+    std::unordered_map< xec_ssa_opref, void* >  incomplete;
     int                                         visitmark;
     bool                                        sealed;
 };
@@ -239,9 +246,14 @@ bool xec_ssa_builder::build( xec_ast* ast )
     for ( size_t i = 0; i < ast->functions.size(); ++i )
     {
         xec_ast_func* func = ast->functions.at( i );
-        xec_ssa_func* ssaf = new ( root->alloc ) xec_ssa_func(
-                func->sloc, func->funcname, NULL, (int)func->upvals.size(),
-                (int)func->parameters.size(), func->varargs, func->coroutine );
+        xec_ssa_func* ssaf = new ( root->alloc )
+                xec_ssa_func( func->sloc, func->funcname );
+        
+        ssaf->upvalcount = (int)func->upvals.size();
+        ssaf->paramcount = (int)func->parameters.size();
+        ssaf->varargs    = func->varargs;
+        ssaf->coroutine  = func->coroutine;
+
         root->functions.push_back( ssaf );
         funcmap.emplace( func, ssaf );
     }
@@ -258,18 +270,22 @@ bool xec_ssa_builder::build( xec_ast* ast )
     return root->script->error_count() == 0;
 }
 
-xec_ssa_node* xec_ssa_builder::node( xec_ssa_node* node )
-{
-    if ( follow_block() )
-    {
-        b->follow.block->block->nodes.push_back( node );
-    }
 
-    return node;
+int xec_ssa_builder::key( const char* key )
+{
+    auto i = keymap.find( key );
+    if ( i != keymap.end() )
+    {
+        return i->second;
+    }
+    int keyval = (int)root->keys.size();
+    root->keys.push_back( key );
+    keymap.emplace( key, keyval );
+    return keyval;
 }
 
 
-void xec_ssa_builder::define( xec_ast_name* name, xec_ssa_node* value )
+void xec_ssa_builder::define( xec_ast_name* name, xec_ssa_opref value )
 {
     if ( name->upval )
     {
@@ -278,7 +294,7 @@ void xec_ssa_builder::define( xec_ast_name* name, xec_ssa_node* value )
         if ( i != b->upvals.end() )
         {
             // Existing upval.
-            node( packed( name->sloc, XEC_SSA_SETUP, value, i->second ) );
+            op( name->sloc, XEC_SSA_SETUP, value, i->second );
         }
         else
         {
@@ -286,7 +302,7 @@ void xec_ssa_builder::define( xec_ast_name* name, xec_ssa_node* value )
             int index = b->func->upvalcount + b->func->localupcount;
             b->upvals.emplace( name, index );
             b->func->localupcount += 1;
-            node( packed( name->sloc, XEC_SSA_NEWUP, value, index ) );
+            op( name->sloc, XEC_SSA_NEWUP, value, index );
         }
     }
     else
@@ -311,12 +327,12 @@ void xec_ssa_builder::define( xec_ast_name* name, xec_ssa_node* value )
             namemap.emplace( name, ssan );
         }
 
-        b->follow.block->block->names.emplace( value, ssan );
+        b->func->names.emplace( value, ssan );
     }
 }
     
 
-void xec_ssa_builder::define( xec_new_object* object, xec_ssa_node* value )
+void xec_ssa_builder::define( xec_new_object* object, xec_ssa_opref value )
 {
     if ( object->upval )
     {
@@ -325,64 +341,43 @@ void xec_ssa_builder::define( xec_new_object* object, xec_ssa_node* value )
         int index = b->func->upvalcount + b->func->localupcount;
         b->upvals.emplace( object, index );
         b->func->localupcount += 1;
-        node( packed( object->sloc, XEC_SSA_NEWUP, value, index ) );
+        op( object->sloc, XEC_SSA_NEWUP, value, index );
     }
 
     define_name( object, value );
 }
 
-void xec_ssa_builder::define( xec_ast_node* temporary, xec_ssa_node* value )
+void xec_ssa_builder::define( xec_ast_node* temporary, xec_ssa_opref value )
 {
     define_name( temporary, value );
 }
 
 
-xec_ssa_node* xec_ssa_builder::lookup( int sloc, xec_ast_name* name )
+xec_ssa_opref xec_ssa_builder::lookup( int sloc, xec_ast_name* name )
 {
     if ( name->upval )
     {
         // If this is an upval then construct code to get its value.
         int index = b->upvals.at( name );
-        return node( packed( sloc, XEC_SSA_REFUP, index ) );
+        return op( sloc, XEC_SSA_REFUP, index ) ;
     }
     else
     {
         // Return reference to last definition, or a ɸ-instruction.
-        xec_ssa_node* node = lookup_name( name );
-        if ( b->follow && ! node )
-        {
-            // All names should have been defined before use.
-            root->script->error( sloc,
-                        "[!] internal undefined '%s'", name->name );
-        }
-        return node;
+        return lookup_name( name, name->sloc, name->name );
     }
 }
 
-xec_ssa_node* xec_ssa_builder::lookup( xec_new_object* object )
+xec_ssa_opref xec_ssa_builder::lookup( xec_new_object* object )
 {
     // Object upvals are defined once and are read-only, so we can just use
     // the defined value when we want its value locally.
-    xec_ssa_node* node = lookup_name( object );
-    if ( b->follow && ! node )
-    {
-        // All names should have been defined before use.
-        root->script->error( object->sloc,
-                        "[!] internal undefined object" );
-    }
-    return node;
+    return lookup_name( object, object->sloc, "object" );
 }
 
-xec_ssa_node* xec_ssa_builder::lookup( xec_ast_node* temporary )
+xec_ssa_opref xec_ssa_builder::lookup( xec_ast_node* temporary )
 {
-    xec_ssa_node* node = lookup_name( temporary );
-    if ( b->follow && ! node )
-    {
-        // All names should have been defined before use.
-        root->script->error( temporary->sloc,
-                        "[!] internal undefined temporary" );
-    }
-    return node;
+    return lookup_name( temporary, temporary->sloc, "temporary" );
 }
 
 
@@ -395,7 +390,7 @@ void xec_ssa_builder::close_scope( xec_ast_scope* scope )
         if ( decl->upval )
         {
             int upval = b->upvals.at( decl );
-            node( packed( decl->sloc, XEC_SSA_CLOSE, upval ) );
+            op( decl->sloc, XEC_SSA_CLOSE, upval );
         }
     }
     
@@ -406,13 +401,13 @@ void xec_ssa_builder::close_scope( xec_ast_scope* scope )
         if ( object->upval )
         {
             int upval = b->upvals.at( object );
-            node( packed( object->sloc, XEC_SSA_CLOSE, upval ) );
+            op( object->sloc, XEC_SSA_CLOSE, upval );
         }
     }
 }
 
 
-void xec_ssa_builder::ifthen( xec_ssa_node* condition )
+void xec_ssa_builder::ifthen( xec_ssa_opref condition )
 {
     b->ifstack.emplace_back();
     xec_ssa_build_if& buildif = b->ifstack.back();
@@ -468,7 +463,7 @@ void xec_ssa_builder::ifend()
 }
 
 
-void xec_ssa_builder::switchopen( xec_ssa_node* value )
+void xec_ssa_builder::switchopen( xec_ssa_opref value )
 {
 /*
     b->switchstack.emplace_back();
@@ -514,7 +509,7 @@ void xec_ssa_builder::switchcase()
 }
 
 
-void xec_ssa_builder::switchcase( xec_ssa_node* value )
+void xec_ssa_builder::switchcase( xec_ssa_opref value )
 {
 /*
     xec_ssa_build_switch& buildswitch = b->switchstack.back();
@@ -550,7 +545,7 @@ void xec_ssa_builder::switchcase( xec_ssa_node* value )
     
     
     // Add comparison.
-    xec_ssa_node* compare = node( packed(
+    xec_ssa_opref compare = node( packed(
                 value->sloc, XEC_SSA_EQ, buildswitch.value, value ) );
     
 
@@ -720,7 +715,7 @@ xec_ssa_func* xec_ssa_builder::func( xec_ast_func* func )
     return funcmap.at( func );
 }
 
-xec_ssa_node* xec_ssa_builder::expr( xec_ast_node* node )
+xec_ssa_opref xec_ssa_builder::expr( xec_ast_node* node )
 {
     return build_expr.visit( node );
 }
@@ -731,7 +726,7 @@ void xec_ssa_builder::unpack( xec_ssa_valist* l, xec_ast_node* node, int count )
     if ( count != -1 )
     {
         assert( (int)l->values.size() == count );
-        assert( l->unpacked == NULL );
+        assert( ! l->unpacked );
     }
 }
 
@@ -761,10 +756,10 @@ void xec_ssa_builder::lvalue( xec_ssa_lvalue* lvalue, xec_ast_node* node )
     
     case XEC_EXPR_KEY:
     {
-        xec_expr_key* key = (xec_expr_key*)node;
+        xec_expr_key* keyexpr = (xec_expr_key*)node;
         lvalue->opcode = XEC_SSA_SETKEY;
-        lvalue->object = expr( key->object );
-        lvalue->literal = key->key;
+        lvalue->object = expr( keyexpr->object );
+        lvalue->key = key( keyexpr->key );
         break;
     }
     
@@ -792,7 +787,7 @@ void xec_ssa_builder::lvalue( xec_ssa_lvalue* lvalue, xec_ast_node* node )
     }
 }
 
-xec_ssa_node* xec_ssa_builder::lvalue_value( xec_ssa_lvalue* lvalue )
+xec_ssa_opref xec_ssa_builder::lvalue_value( xec_ssa_lvalue* lvalue )
 {
     switch ( lvalue->opcode )
     {
@@ -800,20 +795,16 @@ xec_ssa_node* xec_ssa_builder::lvalue_value( xec_ssa_lvalue* lvalue )
         return lookup( lvalue->sloc, lvalue->local );
     
     case XEC_SSA_SETUP:
-        return node( packed( lvalue->sloc,
-                        XEC_SSA_REFUP, lvalue->upval ) );
+        return op( lvalue->sloc, XEC_SSA_REFUP, lvalue->upval );
     
     case XEC_SSA_SETKEY:
-        return node( packed( lvalue->sloc,
-                        XEC_SSA_KEY, lvalue->object, lvalue->literal ) );
+        return op( lvalue->sloc, XEC_SSA_KEY, lvalue->object, lvalue->key );
     
     case XEC_SSA_SETINKEY:
-        return node( packed( lvalue->sloc,
-                        XEC_SSA_INKEY, lvalue->object, lvalue->index ) );
+        return op( lvalue->sloc, XEC_SSA_INKEY, lvalue->object, lvalue->index );
     
     case XEC_SSA_SETINDEX:
-        return node( packed( lvalue->sloc,
-                        XEC_SSA_INDEX, lvalue->object, lvalue->index ) );
+        return op( lvalue->sloc, XEC_SSA_INDEX, lvalue->object, lvalue->index );
     
     default:
         assert( ! "invalid lvalue" );
@@ -821,8 +812,8 @@ xec_ssa_node* xec_ssa_builder::lvalue_value( xec_ssa_lvalue* lvalue )
     }
 }
 
-xec_ssa_node* xec_ssa_builder::lvalue_assign(
-            xec_ssa_lvalue* lvalue, xec_ssa_node* val )
+xec_ssa_opref xec_ssa_builder::lvalue_assign(
+            xec_ssa_lvalue* lvalue, xec_ssa_opref val )
 {
     switch ( lvalue->opcode )
     {
@@ -831,18 +822,16 @@ xec_ssa_node* xec_ssa_builder::lvalue_assign(
         break;
         
     case XEC_SSA_SETUP:
-        node( packed( lvalue->sloc, XEC_SSA_SETUP, val, lvalue->upval ) );
+        op( lvalue->sloc, XEC_SSA_SETUP, val, lvalue->upval );
         break;
         
     case XEC_SSA_SETKEY:
-        node( triple( lvalue->sloc,
-                    XEC_SSA_SETKEY, lvalue->object, lvalue->literal, val ) );
+        op( lvalue->sloc, XEC_SSA_SETKEY, lvalue->object, lvalue->key, val );
         break;
         
     case XEC_SSA_SETINKEY:
     case XEC_SSA_SETINDEX:
-        node( triple( lvalue->sloc,
-                    lvalue->opcode, lvalue->object, lvalue->index, val ) );
+        op( lvalue->sloc, lvalue->opcode, lvalue->object, lvalue->index, val );
         break;
         
     default:
@@ -853,6 +842,29 @@ xec_ssa_node* xec_ssa_builder::lvalue_assign(
 }
 
 
+xec_ssa_opref xec_ssa_builder::addop( xec_ssa_op& op )
+{
+    if ( follow_block() )
+    {
+        // Add to op list.
+        return addop( b->follow.block->block->ops, op );
+    }
+    else
+    {
+        // Unreachable.
+        return XEC_SSA_INVALID;
+    }
+}
+
+
+xec_ssa_opref xec_ssa_builder::addop( xec_ssa_slice* slice, xec_ssa_op& op )
+{
+    xec_ssa_opref opref;
+    opref.slice = slice->index;
+    opref.index = (int)slice->ops.size();
+    slice->ops.push_back( op );
+    return opref;
+}
 
 
 void xec_ssa_builder::build_function( xec_ast_func* astf, xec_ssa_func* ssaf )
@@ -874,8 +886,7 @@ void xec_ssa_builder::build_function( xec_ast_func* astf, xec_ssa_func* ssaf )
     for ( size_t i = 0; i < astf->parameters.size(); ++i )
     {
         xec_ast_name* param = astf->parameters.at( i );
-        xec_ssa_node* n = node( packed(
-                        param->sloc, XEC_SSA_PARAM, (int)i ) );
+        xec_ssa_opref n = op( param->sloc, XEC_SSA_PARAM, (int)i );
         define( param, n );
     }
 
@@ -886,10 +897,10 @@ void xec_ssa_builder::build_function( xec_ast_func* astf, xec_ssa_func* ssaf )
     
     // Close scope and return null.
     close_scope( astf->scope );
-    xec_ssa_node* nullval = node( packed( astf->sloc, XEC_SSA_NULL ) );
-    xec_ssa_expand* retstmt = expand( astf->sloc, XEC_SSA_RETURN, 0 );
-    retstmt->operands.push_back( nullval );
-    node( retstmt );
+    xec_ssa_opref nullval = op( astf->sloc, XEC_SSA_NULL );
+    xec_ssa_args* results = args( 0 );
+    results->args.push_back( nullval );
+    op( astf->sloc, XEC_SSA_RETURN, results );
     funcreturn();
     
     
@@ -904,6 +915,15 @@ xec_ssa_build_block* xec_ssa_builder::make_block()
     std::unique_ptr< xec_ssa_build_block > block =
                     std::make_unique< xec_ssa_build_block >();
     block->block = new ( root->alloc ) xec_ssa_block();
+    block->block->pre = new ( root->alloc )
+                    xec_ssa_slice( (int)b->func->slices.size() );
+    b->func->slices.push_back( block->block->pre );
+    block->block->phi = new ( root->alloc )
+                    xec_ssa_slice( (int)b->func->slices.size() );
+    b->func->slices.push_back( block->block->phi );
+    block->block->ops = new ( root->alloc )
+                    xec_ssa_slice( (int)b->func->slices.size() );
+    b->func->slices.push_back( block->block->ops );
     b->func->blocks.push_back( block->block );
     b->blockmap.emplace( block->block, block.get() );
     b->blocks.push_back( std::move( block ) );
@@ -993,7 +1013,7 @@ bool xec_ssa_builder::follow_block()
 
 
 
-void xec_ssa_builder::define_name( void* name, xec_ssa_node* value )
+void xec_ssa_builder::define_name( void* name, xec_ssa_opref value )
 {
     if ( b->follow.block )
     {
@@ -1003,36 +1023,41 @@ void xec_ssa_builder::define_name( void* name, xec_ssa_node* value )
 
 
 
-xec_ssa_node* xec_ssa_builder::lookup_name( void* name )
+xec_ssa_opref xec_ssa_builder::lookup_name(
+                    void* name, int sloc, const char* text )
 {
     if ( b->follow )
     {
         // Look it up.
         b->visitmark += 1;
-        xec_ssa_node* node = lookup_name( b->follow.block, name );
+        xec_ssa_opref node = lookup_name( b->follow.block, name );
+        if ( node == XEC_SSA_UNDEF )
+        {
+            root->script->error( sloc, "undefined '%s'", text );
+        }
         return node;
     }
     else
     {
         // Unreachable.
-        return NULL;
+        return XEC_SSA_INVALID;
     }
 }
 
 
 
-xec_ssa_node* xec_ssa_builder::lookup_name(
+xec_ssa_opref xec_ssa_builder::lookup_name(
                         xec_ssa_build_block* block, void* name )
 {
     // Prevent infinite looping through loops which do not define the name.
     if ( block->visitmark == b->visitmark )
     {
-        return NULL;
+        return XEC_SSA_INVALID;
     }
     block->visitmark = b->visitmark;
 
 
-    // Look for local definition.
+    // Look for local definition (finds previously built ɸ-functions).
     auto i = block->defined.find( name );
     if ( i != block->defined.end() )
     {
@@ -1045,7 +1070,7 @@ xec_ssa_node* xec_ssa_builder::lookup_name(
         if ( block->block->previous.size() == 0 )
         {
             // No predecessors, not found.
-            return NULL;
+            return XEC_SSA_UNDEF;
         }
         else if ( block->block->previous.size() == 1 )
         {
@@ -1056,50 +1081,77 @@ xec_ssa_node* xec_ssa_builder::lookup_name(
         else
         {
             // Multiple predecessors (sealed).
-            std::unordered_set< xec_ssa_node* > defines;
+            std::vector< xec_ssa_opref > defs;
+            defs.reserve( block->block->previous.size() );
+            
             for ( size_t i = 0; i < block->block->previous.size(); ++i )
             {
                 xec_ssa_block* prev = block->block->previous.at( i );
-                xec_ssa_node* d = lookup_name( b->blockmap.at( prev ), name );
-                if ( d )
+                xec_ssa_build_block* pblock = b->blockmap.at( prev );
+                xec_ssa_opref d = lookup_name( pblock, name );
+                if ( d == XEC_SSA_UNDEF )
                 {
-                    defines.emplace( d );
+                    // Undefined in at least one code path, undefined.
+                    return XEC_SSA_UNDEF;
                 }
+                defs.push_back( d );
             }
             
-            if ( defines.size() == 0 )
+            
+            // If all definitions are the same (apart from recursive
+            // definitions) then the ɸ-function is unecessary.
+            xec_ssa_opref single = check_single( defs.data(), defs.size() );
+            if ( single )
             {
-                return NULL;
-            }
-            else if ( defines.size() == 1 )
-            {
-                return *defines.begin();
-            }
-            else
-            {
-                // Create ɸ-function.
-                xec_ssa_expand* phi = expand( -1, XEC_SSA_PHI, 1 );
-                for ( auto i = defines.begin(); i != defines.end(); ++i )
-                {
-                    phi->operands.push_back( *i );
-                }
-                block->block->phi.push_back( phi );
-                define_name( name, phi );
-                return phi;
+                return single;
             }
             
+            
+            // Otherwise build a ɸ-function.
+            xec_ssa_phi* phi = new ( root->alloc ) xec_ssa_phi();
+            phi->definitions.reserve( defs.size() );
+            extend( &phi->definitions, defs );
+            xec_ssa_op phiop( -1, XEC_SSA_PHI, phi );
+            xec_ssa_opref phiref = addop( block->block->phi, phiop );
+            printf( "EXISTING PHI %04X:%02X\n", phiref.slice, phiref.index );
+            block->defined.emplace( name, phiref );
+            return phiref;
         }
     }
     else
     {
         // This is an unsealed block - create incomplete ɸ-function.
-        xec_ssa_expand* phi = expand( -1, XEC_SSA_PHI, 1 );
-        block->block->phi.push_back( phi );
-        block->incomplete.emplace( phi, name );
-        define_name( name, phi );
-        return phi;
+        xec_ssa_op phiop( -1, XEC_SSA_PHI, (xec_ssa_phi*)NULL );
+        xec_ssa_opref phiref = addop( block->block->phi, phiop );
+        printf( "INCOMPLETE PHI %04X:%02X\n", phiref.slice, phiref.index );
+        block->incomplete.emplace( phiref, name );
+        block->defined.emplace( name, phiref );
+        return phiref;
     }
 
+}
+
+
+xec_ssa_opref xec_ssa_builder::check_single( xec_ssa_opref* defs, size_t size )
+{
+    xec_ssa_opref single = XEC_SSA_INVALID;
+    size_t i = 0;
+    for ( ; i < size; ++i )
+    {
+        if ( defs[ i ] )
+        {
+            single = defs[ i ];
+            break;
+        }
+    }
+    for ( ; i < size; ++i )
+    {
+        if ( defs[ i ] && defs[ i ] != single )
+        {
+            return XEC_SSA_INVALID;
+        }
+    }
+    return single;
 }
 
 
@@ -1107,39 +1159,62 @@ void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
 {
     assert( ! block->sealed );
     block->sealed = true;
-    
+
     // All existing ɸ-functions in the block are incomplete.  Note that this
     // process may create pointless ɸ-functions which refer only to a single
     // other name.
-    for ( size_t i = 0; i < block->block->phi.size(); ++i )
+    xec_ssa_slice* slice = block->block->phi;
+    for ( size_t i = 0; i < slice->ops.size(); ++i )
     {
-        xec_ssa_expand* phi = block->block->phi.at( i )->as_expand();
-        void* name = block->incomplete.at( phi );
+        xec_ssa_op& phiop = slice->ops.at( i );
+        xec_ssa_opref phiref;
+        phiref.slice = slice->index;
+        phiref.index = (int)i;
+        
+        printf( "SEAL %04X:%02X\n", phiref.slice, phiref.index );
+
+        
+        void* name = block->incomplete.at( phiref );
         
         b->visitmark += 1;
-        std::unordered_set< xec_ssa_node* > defines;
+        
+        std::vector< xec_ssa_opref > defs;
+        defs.reserve( block->block->previous.size() );
+        
         for ( size_t i = 0; i < block->block->previous.size(); ++i )
         {
             xec_ssa_block* prev = block->block->previous.at( i );
-            xec_ssa_node* d = lookup_name( b->blockmap.at( prev ), name );
-            if ( d && d != phi )
+            xec_ssa_build_block* pblock = b->blockmap.at( prev );
+            xec_ssa_opref d = lookup_name( pblock, name );
+            if ( d == XEC_SSA_UNDEF )
             {
-                defines.emplace( d );
+                // Undefined in at least one code path, undefined.
+                root->script->error( -1, "undefined" );
+                return;
             }
+            defs.push_back( d );
         }
         
-        if ( defines.size() == 0 )
-        {
-            // All names should have been defined before use.
-            root->script->error( -1, "[!] internal undefined name" );
-        }
         
-        for ( auto i = defines.begin(); i != defines.end(); ++i )
+        // If all definitions are the same (apart from recursive
+        // definitions) then the ɸ-function is unecessary.
+        xec_ssa_opref single = check_single( defs.data(), defs.size() );
+        if ( single )
         {
-            phi->operands.push_back( *i );
+            // Change phiop to a ref.
+            phiop.opcode   = XEC_SSA_REF;
+            phiop.operanda = single;
+            phiop.operandb = XEC_SSA_INVALID;
+        }
+        else
+        {
+            // Otherwise build a ɸ-function.
+            xec_ssa_phi* phi = new ( root->alloc ) xec_ssa_phi();
+            phi->definitions.reserve( defs.size() );
+            extend( &phi->definitions, defs );
+            phiop.phi = phi;
         }
     }
-    
 }
 
 

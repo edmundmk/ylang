@@ -7,8 +7,9 @@
 
 
 #include "xec_ssa_build_visitors.h"
-#include "xec_ssa.h"
 #include "xec_ssa_builder.h"
+#include <vector>
+
 
 
 template < typename containera_t, typename containerb_t >
@@ -16,7 +17,6 @@ static inline void extend( containera_t* a, const containerb_t& b )
 {
     a->insert( a->end(), b.begin(), b.end() );
 }
-
 
 
 
@@ -29,122 +29,112 @@ xec_ssa_build_expr::xec_ssa_build_expr( xec_ssa_builder* b )
 {
 }
 
-xec_ssa_node* xec_ssa_build_expr::fallback( xec_ast_node* node )
+xec_ssa_opref xec_ssa_build_expr::fallback( xec_ast_node* node )
 {
     assert( ! "expected expression" );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_ast_func* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_ast_func* node )
 {
     // Locate (possibly unbuilt) SSA of function.
     xec_ssa_func* func = b->func( node );
     
-    // Construct closure and bind upvals.
-    xec_ssa_expand* closure = b->expand( node->sloc, XEC_SSA_CLOSURE, func );
-    for ( size_t i = 0 ; i < node->upvals.size(); ++i )
+    // Retrieve upvals.
+    xec_ssa_lambda* l = b->lambda( func );
+    l->upvals.reserve( node->upvals.size() );
+    
+    for ( size_t i = 0; i < node->upvals.size(); ++i )
     {
         const xec_ast_upval& upval = node->upvals.at( i );
         switch ( upval.kind )
         {
         case XEC_UPVAL_LOCAL:
-        {
-            xec_ssa_node* local = b->lookup( node->sloc, upval.local );
-            closure->operands.push_back( local );
+            l->upvals.push_back( b->lookup( node->sloc, upval.local ) );
             break;
-        }
         
         case XEC_UPVAL_OBJECT:
-        {
-            xec_ssa_node* object = b->lookup( upval.object );
-            closure->operands.push_back( object );
+            l->upvals.push_back( b->lookup( upval.object ) );
             break;
-        }
         
         case XEC_UPVAL_UPVAL:
-        {
-            xec_ssa_node* uv = b->node( b->packed(
-                        node->sloc, XEC_SSA_REFUP, upval.upval ) );
-            closure->operands.push_back( uv );
+            l->upvals.push_back( b->op(
+                            node->sloc, XEC_SSA_REFUP, upval.upval ) );
             break;
-        }
         }
     }
     
-    return b->node( closure );
+    // Construct closure.
+    return b->op( node->sloc, XEC_SSA_LAMBDA, l );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_null* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_null* node )
 {
-    return b->node( b->packed( node->sloc, XEC_SSA_NULL ) );
+    return b->op( node->sloc, XEC_SSA_NULL );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_bool* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_bool* node )
 {
-    return b->node( b->packed( node->sloc, XEC_SSA_BOOL, node->value ) );
+    return b->op( node->sloc, XEC_SSA_BOOL, node->value );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_number* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_number* node )
 {
-    return b->node( b->packed( node->sloc, XEC_SSA_NUMBER, node->value ) );
+    return b->op( node->sloc, XEC_SSA_NUMBER, node->value );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_string* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_string* node )
 {
-    return b->node( b->packed( node->sloc,
-                XEC_SSA_STRING, node->string, node->length ) );
+    xec_ssa_string* string = b->string( node->string, node->length );
+    return b->op( node->sloc, XEC_SSA_STRING, string );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_local* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_local* node )
 {
     return b->lookup( node->sloc, node->name );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_global* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_global* node )
 {
-    return b->node( b->packed( node->sloc,
-                XEC_SSA_GLOBAL, node->name ) );
+    return b->op( node->sloc, XEC_SSA_GLOBAL, b->key( node->name ) );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_upref* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_upref* node )
 {
-    return b->node( b->packed( node->sloc,
-                XEC_SSA_REFUP, node->index ) );
-                
+    return b->op( node->sloc, XEC_SSA_REFUP, node->index );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_objref* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_objref* node )
 {
     return b->lookup( node->object );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_key* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_key* node )
 {
-    xec_ssa_node* object = visit( node->object );
-    return b->node( b->packed( node->sloc, XEC_SSA_KEY, object, node->key ) );
+    xec_ssa_opref object = visit( node->object );
+    return b->op( node->sloc, XEC_SSA_KEY, object, b->key( node->key ) );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_inkey* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_inkey* node )
 {
-    xec_ssa_node* object = visit( node->object );
-    xec_ssa_node* key    = visit( node->key );
-    return b->node( b->packed( node->sloc, XEC_SSA_INKEY, object, key ) );
+    xec_ssa_opref object = visit( node->object );
+    xec_ssa_opref key    = visit( node->key );
+    return b->op( node->sloc, XEC_SSA_INKEY, object, key );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_index* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_index* node )
 {
-    xec_ssa_node* object = visit( node->object );
-    xec_ssa_node* index  = visit( node->index );
-    return b->node( b->packed( node->sloc, XEC_SSA_INDEX, object, index ) );
+    xec_ssa_opref object = visit( node->object );
+    xec_ssa_opref index  = visit( node->index );
+    return b->op( node->sloc, XEC_SSA_INDEX, object, index );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_preop* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_preop* node )
 {
     xec_ssa_lvalue lvalue;
     b->lvalue( &lvalue, node->lvalue );
 
-    xec_ssa_node* value   = b->lvalue_value( &lvalue );
-    xec_ssa_node* literal = b->node( b->packed(
-                node->sloc, XEC_SSA_NUMBER, 1.0 ) );
+    xec_ssa_opref value   = b->lvalue_value( &lvalue );
+    xec_ssa_opref literal = b->op( node->sloc, XEC_SSA_NUMBER, 1.0 );
     
     xec_ssa_opcode opcode = XEC_SSA_NOP;
     switch ( node->opkind )
@@ -156,19 +146,17 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_preop* node )
         break;
     }
     
-    xec_ssa_node* updated = b->node( b->packed(
-                node->sloc, opcode, value, literal ) );
+    xec_ssa_opref updated = b->op( node->sloc, opcode, value, literal );
     return b->lvalue_assign( &lvalue, updated );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_postop* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_postop* node )
 {
     xec_ssa_lvalue lvalue;
     b->lvalue( &lvalue, node->lvalue );
 
-    xec_ssa_node* value   = b->lvalue_value( &lvalue );
-    xec_ssa_node* literal = b->node( b->packed(
-                node->sloc, XEC_SSA_NUMBER, 1.0 ) );
+    xec_ssa_opref value   = b->lvalue_value( &lvalue );
+    xec_ssa_opref literal = b->op( node->sloc, XEC_SSA_NUMBER, 1.0 );
     
     xec_ssa_opcode opcode = XEC_SSA_NOP;
     switch ( node->opkind )
@@ -178,15 +166,14 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_postop* node )
     default: assert( ! "invalid operator" ); break;
     }
     
-    xec_ssa_node* updated = b->node( b->packed(
-                node->sloc, opcode, value, literal ) );
+    xec_ssa_opref updated = b->op( node->sloc, opcode, value, literal );
     b->lvalue_assign( &lvalue, updated );
     return value;
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_unary* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_unary* node )
 {
-    xec_ssa_node* operand = visit( node->operand );
+    xec_ssa_opref operand = visit( node->operand );
     
     xec_ssa_opcode opcode = XEC_SSA_NOP;
     switch ( node->opkind )
@@ -198,13 +185,13 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_unary* node )
     default: assert( ! "invalid operator" ); break;
     }
     
-    return b->node( b->packed( node->sloc, opcode, operand ) );
+    return b->op( node->sloc, opcode, operand );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_binary* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_binary* node )
 {
-    xec_ssa_node* operanda = visit( node->lhs );
-    xec_ssa_node* operandb = visit( node->rhs );
+    xec_ssa_opref operanda = visit( node->lhs );
+    xec_ssa_opref operandb = visit( node->rhs );
     
     xec_ssa_opcode opcode = XEC_SSA_NOP;
     switch ( node->opkind )
@@ -225,13 +212,13 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_binary* node )
     default: assert( ! "invalid operator" ); break;
     }
     
-    return b->node( b->packed( node->sloc, opcode, operanda, operandb ) );
+    return b->op( node->sloc, opcode, operanda, operandb );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_compare* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_compare* node )
 {
-    xec_ssa_node* lhs = visit( node->first );
-    xec_ssa_node* result = NULL;
+    xec_ssa_opref lhs = visit( node->first );
+    xec_ssa_opref result = XEC_SSA_INVALID;
     
     size_t ifcount = 0;
     for ( size_t i = 0; i < node->opkinds.size(); ++i )
@@ -246,7 +233,7 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_compare* node )
     
         // Evaluate term.
         xec_ast_opkind opkind = node->opkinds.at( i );
-        xec_ssa_node* rhs = visit( node->terms.at( i ) );
+        xec_ssa_opref rhs = visit( node->terms.at( i ) );
         
         /*
             We have a limited set of comparison opcodes:
@@ -275,13 +262,13 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_compare* node )
         }
         
         if ( ! inv )
-            result = b->node( b->packed( node->sloc, opcode, lhs, rhs ) );
+            result = b->op( node->sloc, opcode, lhs, rhs );
         else
-            result = b->node( b->packed( node->sloc, opcode, rhs, lhs ) );
+            result = b->op( node->sloc, opcode, rhs, lhs );
         if ( neg )
-            result = b->node( b->packed( node->sloc, XEC_SSA_NOT, result ) );
+            result = b->op( node->sloc, XEC_SSA_NOT, result );
         
-        // Keep the result in a temporary, as if it is false we shorcut
+        // Keep the result in a temporary, as if it is false we shortcut
         // evaluation of later terms.
         b->define( node, result );
         
@@ -298,17 +285,17 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_compare* node )
     return b->lookup( node );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_logical* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_logical* node )
 {
     switch ( node->opkind )
     {
     case XEC_ASTOP_LOGICAND:
     {
         // Only evaluate rhs if lhs is true.
-        xec_ssa_node* lhs = visit( node->lhs );
+        xec_ssa_opref lhs = visit( node->lhs );
         b->define( node, lhs );
         b->ifthen( lhs );
-        xec_ssa_node* rhs = visit( node->rhs );
+        xec_ssa_opref rhs = visit( node->rhs );
         b->define( node, rhs );
         b->ifend();
         return b->lookup( node );
@@ -317,20 +304,19 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_logical* node )
     case XEC_ASTOP_LOGICXOR:
     {
         // Does not perform shortcut evaluation.
-        xec_ssa_node* lhs = visit( node->lhs );
-        xec_ssa_node* rhs = visit( node->rhs );
-        return b->node( b->packed( node->sloc, XEC_SSA_XOR, lhs, rhs ) );
+        xec_ssa_opref lhs = visit( node->lhs );
+        xec_ssa_opref rhs = visit( node->rhs );
+        return b->op( node->sloc, XEC_SSA_XOR, lhs, rhs );
     }
     
     case XEC_ASTOP_LOGICOR:
     {
         // Only evaluate rhs if the lhs is false.
-        xec_ssa_node* lhs = visit( node->lhs );
+        xec_ssa_opref lhs = visit( node->lhs );
         b->define( node, lhs );
-        xec_ssa_node* invlhs = b->node( b->packed(
-                    node->sloc, XEC_SSA_NOT, lhs ) );
+        xec_ssa_opref invlhs = b->op( node->sloc, XEC_SSA_NOT, lhs );
         b->ifthen( invlhs );
-        xec_ssa_node* rhs = visit( node->rhs );
+        xec_ssa_opref rhs = visit( node->rhs );
         b->define( node, rhs );
         b->ifend();
         return b->lookup( node );
@@ -342,43 +328,42 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_logical* node )
     }
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_qmark* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_qmark* node )
 {
-    xec_ssa_node* condition = visit( node->condition );
+    xec_ssa_opref condition = visit( node->condition );
     b->ifthen( condition );
-    xec_ssa_node* iftrue = visit( node->iftrue );
+    xec_ssa_opref iftrue = visit( node->iftrue );
     b->define( node, iftrue );
     b->ifelse();
-    xec_ssa_node* iffalse = visit( node->iffalse );
+    xec_ssa_opref iffalse = visit( node->iffalse );
     b->define( node, iffalse );
     b->ifend();
     return b->lookup( node );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_new_new* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_new_new* node )
 {
     // Get prototype.
-    xec_ssa_node* proto = visit( node->proto );
+    xec_ssa_opref proto = visit( node->proto );
 
     // Get arguments (unpacked).
     xec_ssa_valist arguments;
     b->unpack( &arguments, node->arguments, -1 );
 
     // SSA instruction has both prototype and arguments as operands.
-    xec_ssa_expand* newval = b->expand( node->sloc, XEC_SSA_NEW, 1 );
-    newval->operands.push_back( proto );
-    extend( &newval->operands, arguments.values );
-    newval->unpacked = arguments.unpacked;
-
-    return b->node( newval );
+    xec_ssa_args* args = b->args( 1 );
+    args->args.reserve( 1 + arguments.values.size() );
+    args->args.push_back( proto );
+    extend( &args->args, arguments.values );
+    args->unpacked = arguments.unpacked;
+    return b->op( node->sloc, XEC_SSA_NEW, args );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_new_object* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_new_object* node )
 {
     // Construct object.
-    xec_ssa_node* proto = node->proto ? visit( node->proto ) : NULL;
-    xec_ssa_node* object = b->node( b->packed(
-                    node->sloc, XEC_SSA_OBJECT, proto ) );
+    xec_ssa_opref proto = node->proto ? visit( node->proto ) : XEC_SSA_INVALID;
+    xec_ssa_opref object = b->op( node->sloc, XEC_SSA_OBJECT, proto );
     
     // Define object so objrefs can find it with lookup.
     b->define( node, object );
@@ -393,98 +378,107 @@ xec_ssa_node* xec_ssa_build_expr::visit( xec_new_object* node )
     return object;
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_new_array* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_new_array* node )
 {
     // Construct array.
-    xec_ssa_node* array = b->node( b->packed( node->sloc,
-                    XEC_SSA_ARRAY, (int)node->values.size() ) );
+    int ecount = (int)node->values.size();
+    xec_ssa_opref array = b->op( node->sloc, XEC_SSA_ARRAY, ecount );
     
     // Append all values.
     for ( size_t i = 0; i < node->values.size(); ++i )
     {
-        xec_ssa_node* value = visit( node->values.at( i ) );
-        b->node( b->packed( value->sloc, XEC_SSA_APPEND, array, value ) );
+        xec_ast_node* elem = node->values.at( i );
+        xec_ssa_opref value = visit( node->values.at( i ) );
+        b->op( elem->sloc, XEC_SSA_APPEND, array, value );
     }
+    
     if ( node->final )
     {
         // Unpack final values and extend the array with them.
         xec_ssa_valist values;
         b->unpack( &values, node->final, -1 );
-        xec_ssa_expand* final = b->expand( node->sloc, XEC_SSA_EXTEND, 0 );
-        extend( &final->operands, values.values );
-        final->unpacked = values.unpacked;
-        b->node( final );
+        
+        for ( size_t i = 0; i < values.values.size(); ++i )
+        {
+            xec_ssa_opref value = values.values.at( i );
+            b->op( node->final->sloc, XEC_SSA_APPEND, array, value );
+        }
+        
+        if ( values.unpacked )
+        {
+            b->op( node->final->sloc, XEC_SSA_EXTEND, array, values.unpacked );
+        }
     }
 
     return array;
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_new_table* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_new_table* node )
 {
     // Construct table.
-    xec_ssa_node* table = b->node( b->packed( node->sloc,
-                    XEC_SSA_TABLE, (int)node->elements.size() ) );
+    int mcount = (int)node->elements.size();
+    xec_ssa_opref table = b->op( node->sloc, XEC_SSA_TABLE, mcount );
     
     // Add elements.
     for ( size_t i = 0; i < node->elements.size(); ++i )
     {
         const xec_key_value& e = node->elements.at( i );
-        xec_ssa_node* key   = visit( e.key );
-        xec_ssa_node* value = visit( e.value );
-        b->node( b->triple( node->sloc, XEC_SSA_SETKEY, table, key, value ) );
+        xec_ssa_opref key   = visit( e.key );
+        xec_ssa_opref value = visit( e.value );
+        b->op( node->sloc, XEC_SSA_SETINDEX, table, key, value );
     }
     
     return table;
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_mono* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_mono* node )
 {
     return visit( node->expr );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_call* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_call* node )
 {
     xec_ssa_valist values;
     b->unpack( &values, node, 1 );
     return values.values.front();
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_yield* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_yield* node )
 {
     xec_ssa_valist values;
     b->unpack( &values, node, 1 );
     return values.values.front();
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_vararg* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_vararg* node )
 {
     // Fetch the first variable argument.
-    return b->node( b->packed( node->sloc, XEC_SSA_VARARG, 0 ) );
+    return b->op( node->sloc, XEC_SSA_VARARG, 0 );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_unpack* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_unpack* node )
 {
     xec_ssa_valist values;
     b->unpack( &values, node, 1 );
     return values.values.front();
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_list* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_list* node )
 {
     xec_ssa_valist values;
     b->unpack( &values, node, 1 );
     return values.values.front();
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_assign* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_assign* node )
 {
     xec_ssa_lvalue lvalue;
     b->lvalue( &lvalue, node->lvalue );
-    xec_ssa_node* rvalue = visit( node->rvalue );
+    xec_ssa_opref rvalue = visit( node->rvalue );
     return b->lvalue_assign( &lvalue, rvalue );
 }
 
-xec_ssa_node* xec_ssa_build_expr::visit( xec_expr_assign_list* node )
+xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_assign_list* node )
 {
     xec_ssa_valist values;
     b->unpack( &values, node, 1 );
@@ -507,10 +501,13 @@ void xec_ssa_build_unpack::fallback(
     values->values.push_back( b->expr( node ) );
     
     // Unpack NULL for remaining values.
-    xec_ssa_node* nullval = b->node( b->packed( node->sloc, XEC_SSA_NULL ) );
-    for ( int i = 1; i < valcount; ++i )
+    if ( valcount > 1 )
     {
-        values->values.push_back( nullval );
+        xec_ssa_opref nullval = b->op( node->sloc, XEC_SSA_NULL );
+        for ( int i = 1; i < valcount; ++i )
+        {
+            values->values.push_back( nullval );
+        }
     }
 }
 
@@ -518,7 +515,7 @@ void xec_ssa_build_unpack::visit(
                 xec_expr_null* node, xec_ssa_valist* values, int valcount )
 {
     // Special case to unpack NULL.
-    xec_ssa_node* nullval = b->expr( node );
+    xec_ssa_opref nullval = b->expr( node );
     values->values.push_back( nullval );
     for ( int i = 1; i < valcount; ++i )
     {
@@ -537,16 +534,15 @@ void xec_ssa_build_unpack::visit(
     }
 
     // Get function and this value.
-    xec_ssa_node* function = NULL;
-    xec_ssa_node* thisval  = NULL;
+    xec_ssa_opref function = XEC_SSA_INVALID;
+    xec_ssa_opref thisval  = XEC_SSA_INVALID;
     switch ( node->function->kind )
     {
     case XEC_EXPR_KEY:
     {
         xec_expr_key* key = (xec_expr_key*)node->function;
         thisval = b->expr( key->object );
-        function = b->node( b->packed(
-                        key->sloc, XEC_SSA_KEY, thisval, key->key ) );
+        function = b->op( key->sloc, XEC_SSA_KEY, thisval, b->key( key->key ) );
         break;
     }
     
@@ -554,9 +550,8 @@ void xec_ssa_build_unpack::visit(
     {
         xec_expr_inkey* inkey = (xec_expr_inkey*)node->function;
         thisval = b->expr( inkey->object );
-        xec_ssa_node* key = b->expr( inkey->key );
-        function = b->node( b->packed(
-                        inkey->sloc, XEC_SSA_INKEY, thisval, key ) );
+        xec_ssa_opref key = b->expr( inkey->key );
+        function = b->op( inkey->sloc, XEC_SSA_INKEY, thisval, key );
         break;
     }
     
@@ -564,9 +559,8 @@ void xec_ssa_build_unpack::visit(
     {
         xec_expr_index* index = (xec_expr_index*)node->function;
         thisval = b->expr( index->object );
-        xec_ssa_node* idxval = b->expr( index->index );
-        function = b->node( b->packed(
-                        index->sloc, XEC_SSA_INDEX, thisval, idxval ) );
+        xec_ssa_opref idxval = b->expr( index->index );
+        function = b->op( index->sloc, XEC_SSA_INDEX, thisval, idxval );
         break;
     }
     
@@ -586,28 +580,34 @@ void xec_ssa_build_unpack::visit(
     }
 
     // Construct call.
-    xec_ssa_opcode opcode = node->yieldcall ? XEC_SSA_YCALL : XEC_SSA_CALL;
-    xec_ssa_expand* call = b->expand( node->sloc, opcode, valcount );
-    call->operands.push_back( function );
+    xec_ssa_args* args = b->args( valcount );
+    args->args.push_back( function );
     if ( thisval )
-        call->operands.push_back( thisval );
-    extend( &call->operands, arguments.values );
-    call->unpacked = arguments.unpacked;
-    xec_ssa_node* result = b->node( call );
+        args->args.push_back( thisval );
+    extend( &args->args, arguments.values );
+    args->unpacked = arguments.unpacked;
     
-    // If we requested a finite number of values, select them.
-    if ( valcount != -1 )
+    xec_ssa_opcode opcode = node->yieldcall ? XEC_SSA_YCALL : XEC_SSA_CALL;
+    xec_ssa_opref call = b->op( node->sloc, opcode, args );
+    
+    if ( valcount == 0 || valcount == 1 )
     {
+        // There's at most one result.
+        values->values.push_back( call );
+    }
+    else if ( valcount != -1 )
+    {
+        // We requested a finite number of values, select them.
         for ( int i = 0; i < valcount; ++i )
         {
-            xec_ssa_node* value = b->node( b->packed(
-                            node->sloc, XEC_SSA_SELECT, result, i ) );
-            values->values.push_back( value );
+            xec_ssa_opref sel = b->op( node->sloc, XEC_SSA_SELECT, call, i );
+            values->values.push_back( sel );
         }
     }
     else
     {
-        values->unpacked = result;
+        // Call unpacked multiple results.
+        values->unpacked = call;
     }
 }
 
@@ -629,24 +629,29 @@ void xec_ssa_build_unpack::visit(
     }
     
     // Construct yield.
-    xec_ssa_expand* yield = b->expand( node->sloc, XEC_SSA_YIELD, valcount );
-    extend( &yield->operands, arguments.values );
-    yield->unpacked = arguments.unpacked;
-    xec_ssa_node* result = b->node( yield );
+    xec_ssa_args* args = b->args( valcount );
+    extend( &args->args, arguments.values );
+    args->unpacked = arguments.unpacked;
+    xec_ssa_opref yield = b->op( node->sloc, XEC_SSA_YIELD, args );
 
-    // If we requested a finite number of values, select them.
-    if ( valcount != -1 )
+    if ( valcount == 0 || valcount == 1 )
     {
+        // At most one value.
+        values->values.push_back( yield );
+    }
+    else if ( valcount != -1 )
+    {
+        // We requested a finite number of values, select them.
         for ( int i = 0; i < valcount; ++i )
         {
-            xec_ssa_node* value = b->node( b->packed(
-                            node->sloc, XEC_SSA_SELECT, result, i ) );
-            values->values.push_back( value );
+            xec_ssa_opref sel = b->op( node->sloc, XEC_SSA_SELECT, yield, i );
+            values->values.push_back( sel );
         }
     }
     else
     {
-        values->unpacked = result;
+        // Unpacked multiple results.
+        values->unpacked = yield;
     }
 }
 
@@ -657,35 +662,31 @@ void xec_ssa_build_unpack::visit(
     {
         for ( int i = 0; i < valcount; ++i )
         {
-            xec_ssa_node* value = b->node( b->packed(
-                            node->sloc, XEC_SSA_VARARG, i ) );
+            xec_ssa_opref value = b->op( node->sloc, XEC_SSA_VARARG, i );
             values->values.push_back( value );
         }
     }
     else
     {
-        values->unpacked = b->node( b->packed(
-                        node->sloc, XEC_SSA_VARARG, -1 ) );
+        values->unpacked = b->op( node->sloc, XEC_SSA_VARARG, -1 );
     }
 }
 
 void xec_ssa_build_unpack::visit(
                 xec_expr_unpack* node, xec_ssa_valist* values, int valcount )
 {
-    xec_ssa_node* array = b->expr( node->array );
+    xec_ssa_opref array = b->expr( node->array );
     if ( valcount != -1 )
     {
         for ( int i = 0; i < valcount; ++i )
         {
-            xec_ssa_node* value = b->node( b->packed(
-                            node->sloc, XEC_SSA_UNPACK, array, i ) );
+            xec_ssa_opref value = b->op( node->sloc, XEC_SSA_UNPACK, array, i );
             values->values.push_back( value );
         }
     }
     else
     {
-        values->unpacked = b->node( b->packed(
-                        node->sloc, XEC_SSA_UNPACK, array, -1 ) );
+        values->unpacked = b->op( node->sloc, XEC_SSA_UNPACK, array, -1 );
     }
 }
 
@@ -695,7 +696,7 @@ void xec_ssa_build_unpack::visit(
     // Only assign as many values as were requested.
     for ( size_t i = 0; i < node->values.size(); ++i )
     {
-        xec_ssa_node* value = b->expr( node->values.at( i ) );
+        xec_ssa_opref value = b->expr( node->values.at( i ) );
         if ( valcount == -1 || (int)i < valcount )
         {
             values->values.push_back( value );
@@ -718,13 +719,14 @@ void xec_ssa_build_unpack::visit(
     {
         xec_ssa_valist final;
         visit( node->final, &final, required );
-        extend( &values->values, final.values );
+        values->values.insert( values->values.end(),
+                    final.values.begin(), final.values.end() );
         values->unpacked = final.unpacked;
     }
     else if ( required > 0 )
     {
         // Fill in the rest with null.
-        xec_ssa_node* nullval = b->node( b->packed( node->sloc, XEC_SSA_NULL ) );
+        xec_ssa_opref nullval = b->op( node->sloc, XEC_SSA_NULL );
         for ( int i = 0; i < required; ++i )
         {
             values->values.push_back( nullval );
@@ -752,7 +754,7 @@ void xec_ssa_build_unpack::visit(
     for ( int i = 0; i < lvalues.size(); ++i )
     {
         xec_ssa_lvalue lvalue = lvalues.at( i );
-        xec_ssa_node* v = b->lvalue_assign( &lvalue, rvalues.values.at( i ) );
+        xec_ssa_opref v = b->lvalue_assign( &lvalue, rvalues.values.at( i ) );
         if ( valcount != -1 && (int)i < valcount )
         {
             values->values.push_back( v );
@@ -763,7 +765,7 @@ void xec_ssa_build_unpack::visit(
     if ( valcount != -1 && valcount > (int)lvalues.size() )
     {
         int required = valcount - (int)lvalues.size();
-        xec_ssa_node* nullval = b->node( b->packed( node->sloc, XEC_SSA_NULL ) );
+        xec_ssa_opref nullval = b->op( node->sloc, XEC_SSA_NULL );
         for ( int i = 0; i < required; ++i )
         {
             values->values.push_back( nullval );
@@ -850,24 +852,21 @@ void xec_ssa_build_stmt::visit( xec_stmt_foreach* node )
 {
     // Construct iterator.
     xec_ssa_opcode opcode = node->eachkey ? XEC_SSA_EACH : XEC_SSA_ITER;
-    xec_ssa_node* list = b->expr( node->list );
-    xec_ssa_node* iter = b->node( b->packed( node->sloc, opcode, list ) );
+    xec_ssa_opref list = b->expr( node->list );
+    xec_ssa_opref iter = b->op( node->sloc, opcode, list );
 
     // Begin loop.
     b->loopopen();
     
     // Get values for this iteration.
     int request = 1 + (int)node->lvalues.size();
-    xec_ssa_node* next = b->node( b->packed(
-                    node->sloc, XEC_SSA_NEXT, iter, request ) );
-    xec_ssa_node* cond = b->node( b->packed(
-                    node->sloc, XEC_SSA_SELECT, next, 0 ) );
-    for ( size_t i = 0; i < node->lvalues.size(); ++i )
+    xec_ssa_opref next = b->op( node->sloc, XEC_SSA_NEXT, iter, request );
+    xec_ssa_opref cond = b->op( node->sloc, XEC_SSA_SELECT, next, 0 );
+    for ( int i = 0; i < node->lvalues.size(); ++i )
     {
         xec_ssa_lvalue lvalue;
         b->lvalue( &lvalue, node->lvalues.at( i ) );
-        xec_ssa_node* rvalue = b->node( b->packed(
-                        node->sloc, XEC_SSA_SELECT, next, 1 + (int)i ) );
+        xec_ssa_opref rvalue = b->op( node->sloc, XEC_SSA_SELECT, next, 1 + i );
         b->lvalue_assign( &lvalue, rvalue );
     }
     
@@ -931,15 +930,15 @@ void xec_ssa_build_stmt::visit( xec_stmt_delete* node )
         if ( delval->kind == XEC_EXPR_KEY )
         {
             xec_expr_key* expr = (xec_expr_key*)node;
-            xec_ssa_node* object = b->expr( expr->object );
-            b->node( b->packed( delval->sloc, XEC_SSA_DELKEY, object, expr->key ) );
+            xec_ssa_opref object = b->expr( expr->object );
+            b->op( delval->sloc, XEC_SSA_DELKEY, object, b->key( expr->key ) );
         }
         else if ( delval->kind == XEC_EXPR_INKEY )
         {
             xec_expr_inkey* expr = (xec_expr_inkey*)node;
-            xec_ssa_node* object = b->expr( expr->object );
-            xec_ssa_node* key = b->expr( expr->key );
-            b->node( b->packed( delval->sloc, XEC_SSA_DELINKEY, object, key ) );
+            xec_ssa_opref object = b->expr( expr->object );
+            xec_ssa_opref key = b->expr( expr->key );
+            b->op( delval->sloc, XEC_SSA_DELINKEY, object, key );
         }
     }
 }
@@ -947,7 +946,7 @@ void xec_ssa_build_stmt::visit( xec_stmt_delete* node )
 void xec_ssa_build_stmt::visit( xec_stmt_case* node )
 {
     b->switchcase();
-    xec_ssa_node* value = b->expr( node->value );
+    xec_ssa_opref value = b->expr( node->value );
     b->switchcase( value );
 }
 
@@ -1011,10 +1010,10 @@ void xec_ssa_build_stmt::visit( xec_stmt_return* node )
     }
     
     // Emit return operation.
-    xec_ssa_expand* retstmt = b->expand( node->sloc, XEC_SSA_RETURN, 0 );
-    extend( &retstmt->operands, values.values );
-    retstmt->unpacked = values.unpacked;
-    b->node( retstmt );
+    xec_ssa_args* args = b->args( 0 );
+    extend( &args->args, values.values );
+    args->unpacked = values.unpacked;
+    b->op( node->sloc, XEC_SSA_RETURN, args );
     b->funcreturn();
 }
 

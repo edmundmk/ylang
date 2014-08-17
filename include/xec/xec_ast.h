@@ -190,6 +190,8 @@ enum xec_ast_upval_kind
 
 
 
+// TODO: replace std::deque with a container with a smaller chunk size
+
 typedef std::deque< xec_ast_node*,
     region_allocator< xec_ast_node* > > xec_ast_node_list;
 typedef std::deque< xec_ast_name*,
