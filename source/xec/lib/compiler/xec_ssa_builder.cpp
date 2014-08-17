@@ -1113,7 +1113,6 @@ xec_ssa_opref xec_ssa_builder::lookup_name(
             extend( &phi->definitions, defs );
             xec_ssa_op phiop( -1, XEC_SSA_PHI, phi );
             xec_ssa_opref phiref = addop( block->block->phi, phiop );
-            printf( "EXISTING PHI %04X:%02X\n", phiref.slice, phiref.index );
             block->defined.emplace( name, phiref );
             return phiref;
         }
@@ -1123,7 +1122,6 @@ xec_ssa_opref xec_ssa_builder::lookup_name(
         // This is an unsealed block - create incomplete ɸ-function.
         xec_ssa_op phiop( -1, XEC_SSA_PHI, (xec_ssa_phi*)NULL );
         xec_ssa_opref phiref = addop( block->block->phi, phiop );
-        printf( "INCOMPLETE PHI %04X:%02X\n", phiref.slice, phiref.index );
         block->incomplete.emplace( phiref, name );
         block->defined.emplace( name, phiref );
         return phiref;
@@ -1170,9 +1168,6 @@ void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
         xec_ssa_opref phiref;
         phiref.slice = slice->index;
         phiref.index = (int)i;
-        
-        printf( "SEAL %04X:%02X\n", phiref.slice, phiref.index );
-
         
         void* name = block->incomplete.at( phiref );
         
