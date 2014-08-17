@@ -294,7 +294,7 @@ void xec_ssa_printer::print_op( xec_ssa_func* func, xec_ssa_op& op )
         for ( size_t i = 0; i < op.string->length; ++i )
         {
             char c = op.string->string[ i ];
-            if ( c > 0x20 && c <= 0x7E )
+            if ( c >= 0x20 && c <= 0x7E )
             {
                 printf( "%c", c );
             }

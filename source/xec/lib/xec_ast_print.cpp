@@ -183,7 +183,28 @@ void xec_ast_printer::visit( xec_expr_number* node, int indent )
 
 void xec_ast_printer::visit( xec_expr_string* node, int indent ) 
 {
-    printf( "%*s\"%.*s\"\n", indent, "", (int)node->length, node->string );
+    printf( "%*s\"", indent, "" );
+    for ( size_t i = 0; i < node->length; ++i )
+    {
+        char c = node->string[ i ];
+        if ( c >= 0x20 && c <= 0x7E )
+        {
+            printf( "%c", c );
+        }
+        else switch ( c )
+        {
+        case 0x07:  printf( "\\a" );        break;
+        case 0x08:  printf( "\\b" );        break;
+        case 0x09:  printf( "\\t" );        break;
+        case 0x0A:  printf( "\\n" );        break;
+        case 0x0B:  printf( "\\v" );        break;
+        case 0x0C:  printf( "\\f" );        break;
+        case 0x0D:  printf( "\\r" );        break;
+        case '"':   printf( "\\\"" );       break;
+        default:    printf( "\\x%02X", c ); break;
+        }
+    }
+    printf( "\"\n" );
 }
 
 void xec_ast_printer::visit( xec_expr_local* node, int indent ) 
