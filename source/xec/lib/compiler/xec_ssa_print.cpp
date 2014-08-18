@@ -17,8 +17,8 @@ class xec_ssa_printer
 public:
 
     explicit xec_ssa_printer( xec_ssa* root );
-    
-    void print_func( xec_ssa_func* func );
+
+    void print( xec_ssa_func* func );
 
 
 private:
@@ -39,13 +39,16 @@ xec_ssa_printer::xec_ssa_printer( xec_ssa* root )
 }
 
 
-void xec_ssa_printer::print_func( xec_ssa_func* func )
+void xec_ssa_printer::print( xec_ssa_func* func )
 {
-    // Build ids.
+    // Build ids (if blocks haven't already been ordered).
     for ( size_t i = 0; i < func->blocks.size(); ++i )
     {
         xec_ssa_block* block = func->blocks.at( i );
-        block->index = (int)i;
+        if ( block->index == -1 )
+        {
+            block->index = (int)i;
+        }
     }
     
     
@@ -63,7 +66,7 @@ void xec_ssa_printer::print_func( xec_ssa_func* func )
         xec_ssa_block* block = func->blocks.at( i );
 
         printf( "\n" );
-        printf( "[%04X]\n", (int)block->index );
+        printf( "[%04X]\n", block->index );
 
         print_slice( func, block->pre );
         print_slice( func, block->phi );
@@ -369,7 +372,7 @@ void xec_ssa_print( xec_ssa* ssa )
     for ( size_t i = 0; i < ssa->functions.size(); ++i )
     {
         xec_ssa_printer printer( ssa );
-        printer.print_func( ssa->functions.at( i ) );
+        printer.print( ssa->functions.at( i ) );
     }
 }
 

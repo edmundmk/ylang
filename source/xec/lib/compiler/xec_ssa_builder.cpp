@@ -1217,6 +1217,7 @@ void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
 
 
 #include "xec_ssa_print.h"
+#include "xec_ssa_liveness.h"
 
 
 bool xec_ssabuild( xec_ast* ast )
@@ -1224,7 +1225,10 @@ bool xec_ssabuild( xec_ast* ast )
     xec_ssa ssa;
     xec_ssa_builder builder( &ssa );
     builder.build( ast );
-    xec_ssa_print( &ssa );
+
+//    xec_ssa_print( &ssa );
+    xec_ssa_liveness( &ssa );
+    
     return ast->script->error_count() == 0;
 }
 
