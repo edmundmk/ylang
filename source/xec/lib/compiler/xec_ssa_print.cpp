@@ -28,7 +28,6 @@ private:
     void print_names( xec_ssa_func* func, xec_ssa_opref opref );
 
     xec_ssa* root;
-    std::unordered_map< xec_ssa_block*, int > blockid;
 
 };
 
@@ -46,13 +45,13 @@ void xec_ssa_printer::print_func( xec_ssa_func* func )
     for ( size_t i = 0; i < func->blocks.size(); ++i )
     {
         xec_ssa_block* block = func->blocks.at( i );
-        blockid.emplace( block, (int)i + 1 );
+        block->index = (int)i;
     }
     
     
     // Print function.
     printf( "function %p %s\n", func, func->funcname );
-    printf( "    block        : [%04X]\n", blockid.at( func->block ) );
+    printf( "    block        : [%04X]\n", (int)func->block->index );
     printf( "    upvalcount   : %d\n", func->upvalcount );
     printf( "    localupcount : %d\n", func->localupcount );
     printf( "    paramcount   : %d\n", func->paramcount );
@@ -64,7 +63,7 @@ void xec_ssa_printer::print_func( xec_ssa_func* func )
         xec_ssa_block* block = func->blocks.at( i );
 
         printf( "\n" );
-        printf( "[%04X]\n", blockid.at( block ) );
+        printf( "[%04X]\n", (int)block->index );
 
         print_slice( func, block->pre );
         print_slice( func, block->phi );
@@ -74,12 +73,12 @@ void xec_ssa_printer::print_func( xec_ssa_func* func )
         {
             printf( "  ?? %04X:%02X\n",
                     block->condition.slice, block->condition.value );
-            printf( "    -> [%04X]\n", blockid.at( block->iftrue ) );
-            printf( "    -> [%04X]\n", blockid.at( block->iffalse ) );
+            printf( "    -> [%04X]\n", block->iftrue->index );
+            printf( "    -> [%04X]\n", block->iffalse->index );
         }
         else if ( block->next )
         {
-            printf( "  -> [%04X]\n", blockid.at( block->next ) );
+            printf( "  -> [%04X]\n", block->next->index );
         }
     }
     

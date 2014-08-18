@@ -142,7 +142,8 @@ private:
     void            define_name( void* name, xec_ssa_opref value );
     xec_ssa_opref   lookup_name( void* name, int sloc, const char* text );
     xec_ssa_opref   lookup_name( xec_ssa_build_block* block, void* name );
-    xec_ssa_opref   check_single( xec_ssa_opref* defs, size_t size );
+    xec_ssa_opref   check_single( xec_ssa_opref phiref,
+                                    xec_ssa_opref* defs, size_t size );
     void            seal_block( xec_ssa_build_block* block );
     
 

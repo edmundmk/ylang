@@ -1100,7 +1100,8 @@ xec_ssa_opref xec_ssa_builder::lookup_name(
             
             // If all definitions are the same (apart from recursive
             // definitions) then the ɸ-function is unecessary.
-            xec_ssa_opref single = check_single( defs.data(), defs.size() );
+            xec_ssa_opref single = check_single(
+                            XEC_SSA_INVALID, defs.data(), defs.size() );
             if ( single )
             {
                 return single;
@@ -1130,13 +1131,14 @@ xec_ssa_opref xec_ssa_builder::lookup_name(
 }
 
 
-xec_ssa_opref xec_ssa_builder::check_single( xec_ssa_opref* defs, size_t size )
+xec_ssa_opref xec_ssa_builder::check_single(
+                xec_ssa_opref phiref, xec_ssa_opref* defs, size_t size )
 {
     xec_ssa_opref single = XEC_SSA_INVALID;
     size_t i = 0;
     for ( ; i < size; ++i )
     {
-        if ( defs[ i ] )
+        if ( defs[ i ] != phiref )
         {
             single = defs[ i ];
             break;
@@ -1144,7 +1146,7 @@ xec_ssa_opref xec_ssa_builder::check_single( xec_ssa_opref* defs, size_t size )
     }
     for ( ; i < size; ++i )
     {
-        if ( defs[ i ] && defs[ i ] != single )
+        if ( defs[ i ] != phiref && defs[ i ] != single )
         {
             return XEC_SSA_INVALID;
         }
@@ -1193,7 +1195,7 @@ void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
         
         // If all definitions are the same (apart from recursive
         // definitions) then the ɸ-function is unecessary.
-        xec_ssa_opref single = check_single( defs.data(), defs.size() );
+        xec_ssa_opref single = check_single( phiref, defs.data(), defs.size() );
         if ( single )
         {
             // Change phiop to a ref.

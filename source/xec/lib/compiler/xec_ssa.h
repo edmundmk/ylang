@@ -475,6 +475,7 @@ struct xec_ssa_block
     xec_ssa_slice*      pre;
     xec_ssa_slice*      phi;
     xec_ssa_slice*      ops;
+    int                 index;
     xec_ssa_opref       condition;
     union
     {

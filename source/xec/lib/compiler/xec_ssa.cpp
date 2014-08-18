@@ -111,7 +111,8 @@ xec_ssa_func::xec_ssa_func( int sloc, const char* funcname )
 
 
 xec_ssa_block::xec_ssa_block()
-    :   condition( XEC_SSA_INVALID )
+    :   index( -1 )
+    ,   condition( XEC_SSA_INVALID )
     ,   pre( NULL )
     ,   phi( NULL )
     ,   ops( NULL )
