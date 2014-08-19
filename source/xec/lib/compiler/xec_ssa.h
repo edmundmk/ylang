@@ -60,16 +60,16 @@ struct xec_ssa_slice;
     Op Packings:
 
     constants
-        [   sloc   |   op/r   ] [   live   |  lnext   ] [        number       ]
-        [   sloc   |   op/r   ] [   live   |  lnext   ] [        boolean      ]
-        [   sloc   |   op/r   ] [   live   |  lnext   ] [        string       ]
+        [   sloc   |   op/r   ] [  until   |  lnext   ] [        number       ]
+        [   sloc   |   op/r   ] [  until   |  lnext   ] [        boolean      ]
+        [   sloc   |   op/r   ] [  until   |  lnext   ] [        string       ]
     complex
-        [   sloc   |   op/r   ] [   live   |  lnext   ] [        lambda       ]
-        [   sloc   |   op/r   ] [   live   |  lnext   ] [         phi         ]
-        [   sloc   |   op/r   ] [   live   |  lnext   ] [         args        ]
+        [   sloc   |   op/r   ] [  until   |  lnext   ] [        lambda       ]
+        [   sloc   |   op/r   ] [  until   |  lnext   ] [         phi         ]
+        [   sloc   |   op/r   ] [  until   |  lnext   ] [         args        ]
     operands
-        [   sloc   |   op/r   ] [   live   |  lnext   ] [ operanda | operandb ]
-        [   sloc   |   op/r   ] [   live   |  lnext   ] [ operanda |  key/imm ]
+        [   sloc   |   op/r   ] [  until   |  lnext   ] [ operanda | operandb ]
+        [   sloc   |   op/r   ] [  until   |  lnext   ] [ operanda |  key/imm ]
     assignments
         [   sloc   |   op/r   ] [ operandv |          ] [ operanda | operandb ]
         [   sloc   |   op/r   ] [ operandv |          ] [ operanda |    key   ]
@@ -236,12 +236,6 @@ enum xec_ssa_opcode
     XEC_SSA_FIRST_SET   = XEC_SSA_SETINKEY,
     XEC_SSA_LAST_SET    = XEC_SSA_SETKEY,
     
-    // phi
-    XEC_SSA_PHI,        // SSA ɸ-function
-    
-    // closures
-    XEC_SSA_LAMBDA,     // create a function closure
-
     // w/args
     XEC_SSA_CALL,       // function call
     XEC_SSA_YCALL,      // yieldable function call
@@ -252,6 +246,15 @@ enum xec_ssa_opcode
     XEC_SSA_FIRST_ARG   = XEC_SSA_CALL,
     XEC_SSA_LAST_ARG    = XEC_SSA_RETURN,
 
+    // closures
+    XEC_SSA_LAMBDA,     // create a function closure
+
+    // phi
+    XEC_SSA_PHI,        // SSA ɸ-function
+    
+    // liveness information.
+    XEC_SSA_LIVE,       // additional live range for value.
+    
 };
 
 
@@ -288,7 +291,8 @@ bool operator == ( const xec_ssa_opref& a, const xec_ssa_opref& b );
 bool operator != ( const xec_ssa_opref& a, const xec_ssa_opref& b );
 
 static const xec_ssa_opref XEC_SSA_INVALID = { 0xFFFFFFFF };
-static const xec_ssa_opref XEC_SSA_UNDEF   = { 0xFFFFFFFE };
+static const xec_ssa_opref XEC_SSA_FOREVER = { 0xFFFFFFFE };
+static const xec_ssa_opref XEC_SSA_UNDEF   = { 0xFFFFFFFD };
 
 
 
@@ -316,6 +320,9 @@ struct xec_ssa_op
     xec_ssa_op( int sloc, xec_ssa_opcode opcode,
                     xec_ssa_opref a, int key, xec_ssa_opref v );
 
+    
+    void get_operands( std::vector< xec_ssa_opref >* operands );
+
 
     // [   sloc   |   op/r   ]
 
@@ -324,13 +331,13 @@ struct xec_ssa_op
     int             r       : 22;
     
 
-    // [   live   |  lnext   ]
+    // [  until   |  lnext   ]
     // [ operandv |          ]
     union
     {
         struct
         {
-    xec_ssa_opref   live;
+    xec_ssa_opref   until;
     xec_ssa_opref   lnext;
         };
     xec_ssa_opref   operandv;
@@ -366,6 +373,7 @@ struct xec_ssa_op
     xec_ssa_args*   args;
 
     };
+
 
 };
 
@@ -474,7 +482,7 @@ struct xec_ssa_block
     xec_ssa_block();
 
     xec_ssa_block_list  previous;
-    xec_ssa_slice*      pre;
+    xec_ssa_slice*      live;
     xec_ssa_slice*      phi;
     xec_ssa_slice*      ops;
     int                 index;
@@ -493,9 +501,10 @@ struct xec_ssa_block
 
 struct xec_ssa_slice
 {
-    explicit xec_ssa_slice( int index );
+    explicit xec_ssa_slice( int index, xec_ssa_block* block );
     
     unsigned            index;
+    xec_ssa_block*      block;
     xec_ssa_op_list     ops;
 };
 
@@ -541,7 +550,7 @@ inline xec_ssa_op::xec_ssa_op( int sloc, xec_ssa_opcode opcode )
     :   sloc( sloc )
     ,   opcode( opcode )
     ,   r( -1 )
-    ,   live( XEC_SSA_INVALID )
+    ,   until( XEC_SSA_INVALID )
     ,   lnext( XEC_SSA_INVALID )
     ,   operanda( XEC_SSA_INVALID )
     ,   operandb( XEC_SSA_INVALID )
@@ -552,7 +561,7 @@ inline xec_ssa_op::xec_ssa_op( int sloc, xec_ssa_opcode opcode, double number )
     :   sloc( sloc )
     ,   opcode( opcode )
     ,   r( -1 )
-    ,   live( XEC_SSA_INVALID )
+    ,   until( XEC_SSA_INVALID )
     ,   lnext( XEC_SSA_INVALID )
     ,   number( number )
 {
@@ -562,7 +571,7 @@ inline xec_ssa_op::xec_ssa_op( int sloc, xec_ssa_opcode opcode, bool boolean )
     :   sloc( sloc )
     ,   opcode( opcode )
     ,   r( -1 )
-    ,   live( XEC_SSA_INVALID )
+    ,   until( XEC_SSA_INVALID )
     ,   lnext( XEC_SSA_INVALID )
     ,   boolean( boolean )
 {
@@ -573,7 +582,7 @@ inline xec_ssa_op::xec_ssa_op( int sloc,
     :   sloc( sloc )
     ,   opcode( opcode )
     ,   r( -1 )
-    ,   live( XEC_SSA_INVALID )
+    ,   until( XEC_SSA_INVALID )
     ,   lnext( XEC_SSA_INVALID )
     ,   string( string )
 {
@@ -584,7 +593,7 @@ inline xec_ssa_op::xec_ssa_op( int sloc,
     :   sloc( sloc )
     ,   opcode( opcode )
     ,   r( -1 )
-    ,   live( XEC_SSA_INVALID )
+    ,   until( XEC_SSA_INVALID )
     ,   lnext( XEC_SSA_INVALID )
     ,   lambda( lambda )
 {
@@ -595,7 +604,7 @@ inline xec_ssa_op::xec_ssa_op( int sloc,
     :   sloc( sloc )
     ,   opcode( opcode )
     ,   r( -1 )
-    ,   live( XEC_SSA_INVALID )
+    ,   until( XEC_SSA_INVALID )
     ,   lnext( XEC_SSA_INVALID )
     ,   phi( phi )
 {
@@ -606,7 +615,7 @@ inline xec_ssa_op::xec_ssa_op( int sloc,
     :   sloc( sloc )
     ,   opcode( opcode )
     ,   r( -1 )
-    ,   live( XEC_SSA_INVALID )
+    ,   until( XEC_SSA_INVALID )
     ,   lnext( XEC_SSA_INVALID )
     ,   args( args )
 {
@@ -616,7 +625,7 @@ inline xec_ssa_op::xec_ssa_op( int sloc, xec_ssa_opcode opcode, int immkey )
     :   sloc( sloc )
     ,   opcode( opcode )
     ,   r( -1 )
-    ,   live( XEC_SSA_INVALID )
+    ,   until( XEC_SSA_INVALID )
     ,   lnext( XEC_SSA_INVALID )
     ,   operanda( XEC_SSA_INVALID )
     ,   immkey( immkey )
@@ -628,7 +637,7 @@ inline xec_ssa_op::xec_ssa_op( int sloc,
     :   sloc( sloc )
     ,   opcode( opcode )
     ,   r( -1 )
-    ,   live( XEC_SSA_INVALID )
+    ,   until( XEC_SSA_INVALID )
     ,   lnext( XEC_SSA_INVALID )
     ,   operanda( operanda )
     ,   operandb( XEC_SSA_INVALID )
@@ -640,7 +649,7 @@ inline xec_ssa_op::xec_ssa_op( int sloc, xec_ssa_opcode opcode,
     :   sloc( sloc )
     ,   opcode( opcode )
     ,   r( -1 )
-    ,   live( XEC_SSA_INVALID )
+    ,   until( XEC_SSA_INVALID )
     ,   lnext( XEC_SSA_INVALID )
     ,   operanda( operanda )
     ,   operandb( operandb )
@@ -652,7 +661,7 @@ inline xec_ssa_op::xec_ssa_op( int sloc, xec_ssa_opcode opcode,
     :   sloc( sloc )
     ,   opcode( opcode )
     ,   r( -1 )
-    ,   live( XEC_SSA_INVALID )
+    ,   until( XEC_SSA_INVALID )
     ,   lnext( XEC_SSA_INVALID )
     ,   operanda( operanda )
     ,   immkey( immkey )

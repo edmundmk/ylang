@@ -73,6 +73,93 @@
 
 
 
+template < typename containera_t, typename containerb_t >
+static inline void extend( containera_t* a, const containerb_t& b )
+{
+    a->insert( a->end(), b.begin(), b.end() );
+}
+
+
+
+void xec_ssa_op::get_operands( std::vector< xec_ssa_opref >* operands )
+{
+    operands->clear();
+    
+    if ( opcode >= XEC_SSA_FIRST_REF
+            && opcode <= XEC_SSA_LAST_REF )
+    {
+        operands->reserve( 2 );
+        if ( operanda )
+        {
+            operands->push_back( operanda );
+        }
+        if ( operandb )
+        {
+            operands->push_back( operandb );
+        }
+    }
+    else if ( opcode >= XEC_SSA_FIRST_KEY
+                && opcode <= XEC_SSA_LAST_KEY )
+    {
+        operands->reserve( 1 );
+        if ( operanda )
+        {
+            operands->push_back( operanda );
+        }
+    }
+    else if ( opcode >= XEC_SSA_FIRST_IMM
+                && opcode <= XEC_SSA_LAST_IMM )
+    {
+        operands->reserve( 1 );
+        if ( operanda )
+        {
+            operands->push_back( operanda );
+        }
+    }
+    else if ( opcode >= XEC_SSA_FIRST_SET
+                && opcode <= XEC_SSA_LAST_SET )
+    {
+        operands->reserve( 3 );
+        if ( operanda )
+        {
+            operands->push_back( operanda );
+        }
+        if ( opcode != XEC_SSA_SETKEY && operandb )
+        {
+            operands->push_back( operandb );
+        }
+        if ( operandv )
+        {
+            operands->push_back( operandv );
+        }
+    }
+    else if ( opcode >= XEC_SSA_FIRST_ARG
+                && opcode <= XEC_SSA_LAST_ARG )
+    {
+        operands->reserve( args->args.size() + 1 );
+        extend( operands, args->args );
+        if ( args->unpacked )
+        {
+            operands->push_back( args->unpacked );
+        }
+    }
+    else if ( opcode == XEC_SSA_PHI )
+    {
+        operands->reserve( phi->definitions.size() );
+        extend( operands, phi->definitions );
+    }
+    else if ( opcode == XEC_SSA_LAMBDA )
+    {
+        operands->reserve( lambda->upvals.size() );
+        extend( operands, lambda->upvals );
+    }
+
+
+
+}
+
+
+
 
 
 xec_ssa_name::xec_ssa_name( int sloc, const char* name )
@@ -113,7 +200,7 @@ xec_ssa_func::xec_ssa_func( int sloc, const char* funcname )
 xec_ssa_block::xec_ssa_block()
     :   index( -1 )
     ,   condition( XEC_SSA_INVALID )
-    ,   pre( NULL )
+    ,   live( NULL )
     ,   phi( NULL )
     ,   ops( NULL )
     ,   iftrue( NULL )
@@ -123,8 +210,9 @@ xec_ssa_block::xec_ssa_block()
 
 
 
-xec_ssa_slice::xec_ssa_slice( int index )
+xec_ssa_slice::xec_ssa_slice( int index, xec_ssa_block* block )
     :   index( index )
+    ,   block( block )
 {
 }
 

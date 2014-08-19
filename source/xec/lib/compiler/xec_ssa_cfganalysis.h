@@ -55,14 +55,15 @@ private:
     a reducible CFG.
 */
 
-struct xec_ssa_loop_node
+struct xec_ssa_loop
 {
-    xec_ssa_loop_node( xec_ssa_block* header );
+    xec_ssa_loop( xec_ssa_block* header );
 
-    xec_ssa_loop_node*  outer;
-    xec_ssa_block*      header;
-    std::unordered_set< xec_ssa_loop_node* > loops;
+    xec_ssa_loop*   outer;
+    xec_ssa_block*  header;
+    std::unordered_set< xec_ssa_loop* > loops;
     std::unordered_set< xec_ssa_block* > blocks;
+    int             last;
 };
 
 
@@ -75,16 +76,17 @@ public:
     void build_forest( xec_ssa_func* func, xec_ssa_dfo* dfo );
     void print();
     
-    xec_ssa_loop_node* loopof( xec_ssa_block* block );
+    xec_ssa_loop* loopof( xec_ssa_block* block );
+    bool inloop( xec_ssa_block* block, xec_ssa_loop* loop );
     
     
 private:
 
-    void print_node( xec_ssa_loop_node* node, int indent );
+    void print_node( xec_ssa_loop* node, int indent );
 
     xec_ssa* root;
-    std::vector< std::unique_ptr< xec_ssa_loop_node > > loops;
-    std::unordered_map< xec_ssa_block*, xec_ssa_loop_node* > loopmap;
+    std::vector< std::unique_ptr< xec_ssa_loop > > loops;
+    std::unordered_map< xec_ssa_block*, xec_ssa_loop* > loopmap;
 
 };
 

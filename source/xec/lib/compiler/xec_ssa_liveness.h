@@ -10,6 +10,8 @@
 #define XEC_SSA_LIVENESS_H
 
 
+#include "xec_ssa.h"
+
 
 /*
     Liveness information for programs in SSA form.  Live ranges are
@@ -43,10 +45,48 @@
 */
 
 
-struct xec_ssa;
+class xec_ssa_dfo;
+class xec_ssa_loop_forest;
+struct xec_ssa_loop;
 
 
-void xec_ssa_liveness( xec_ssa* ssa );
+class xec_ssa_liveness
+{
+public:
+
+    explicit xec_ssa_liveness( xec_ssa* root );
+    
+    void analyze_func( xec_ssa_func* func,
+                xec_ssa_dfo* dfo, xec_ssa_loop_forest* loops );
+
+private:
+
+    struct livespan
+    {
+        livespan( xec_ssa_opref value,
+                        xec_ssa_opref until, xec_ssa_opref lnext );
+    
+        xec_ssa_opref value;
+        xec_ssa_opref until;
+        xec_ssa_opref lnext;
+    };
+
+    typedef std::unordered_map< xec_ssa_opref, livespan > liveset;
+
+    void        analyze_block( xec_ssa_block* block,
+                        xec_ssa_dfo* dfo, xec_ssa_loop_forest* loops );
+    void        add_successor( liveset* live,
+                        xec_ssa_block* block, xec_ssa_block* successor );
+    xec_ssa_op* local_def(
+                        xec_ssa_block* block, xec_ssa_opref value );
+    void        live_loop( livespan* span, xec_ssa_dfo* dfo,
+                        xec_ssa_loop_forest* loops, xec_ssa_loop* loop );
+
+    std::unordered_map< xec_ssa_block*, liveset > livein;
+
+    xec_ssa* root;
+
+};
 
 
 

@@ -915,14 +915,14 @@ xec_ssa_build_block* xec_ssa_builder::make_block()
     std::unique_ptr< xec_ssa_build_block > block =
                     std::make_unique< xec_ssa_build_block >();
     block->block = new ( root->alloc ) xec_ssa_block();
-    block->block->pre = new ( root->alloc )
-                    xec_ssa_slice( (int)b->func->slices.size() );
-    b->func->slices.push_back( block->block->pre );
+    block->block->live = new ( root->alloc )
+                    xec_ssa_slice( (int)b->func->slices.size(), block->block );
+    b->func->slices.push_back( block->block->live );
     block->block->phi = new ( root->alloc )
-                    xec_ssa_slice( (int)b->func->slices.size() );
+                    xec_ssa_slice( (int)b->func->slices.size(), block->block );
     b->func->slices.push_back( block->block->phi );
     block->block->ops = new ( root->alloc )
-                    xec_ssa_slice( (int)b->func->slices.size() );
+                    xec_ssa_slice( (int)b->func->slices.size(), block->block );
     b->func->slices.push_back( block->block->ops );
     b->func->blocks.push_back( block->block );
     b->blockmap.emplace( block->block, block.get() );
@@ -1227,7 +1227,7 @@ bool xec_ssabuild( xec_ast* ast )
     builder.build( ast );
 
 //    xec_ssa_print( &ssa );
-    xec_ssa_liveness( &ssa );
+//    xec_ssa_liveness( &ssa );
     
     return ast->script->error_count() == 0;
 }

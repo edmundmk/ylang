@@ -68,7 +68,7 @@ void xec_ssa_printer::print( xec_ssa_func* func )
         printf( "\n" );
         printf( "[%04X]\n", block->index );
 
-        print_slice( func, block->pre );
+        print_slice( func, block->live );
         print_slice( func, block->phi );
         print_slice( func, block->ops );
         
@@ -161,15 +161,17 @@ public:
         add( XEC_SSA_SETINDEX,  "setindex"  );
         add( XEC_SSA_SETKEY,    "setkey"    );
 
-        add( XEC_SSA_PHI,       "phi"       );
-        
-        add( XEC_SSA_LAMBDA,    "lambda"    );
-        
         add( XEC_SSA_CALL,      "call"      );
         add( XEC_SSA_YCALL,     "ycall"     );
         add( XEC_SSA_YIELD,     "yield"     );
         add( XEC_SSA_NEW,       "new"       );
         add( XEC_SSA_RETURN,    "return"    );
+
+        add( XEC_SSA_LAMBDA,    "lambda"    );
+        
+        add( XEC_SSA_PHI,       "phi"       );
+
+        add( XEC_SSA_LIVE,      "live"      );
     }
     
     const char* lookup( xec_ssa_opcode o ) const
@@ -337,6 +339,9 @@ void xec_ssa_printer::print_op( xec_ssa_func* func, xec_ssa_op& op )
         }
         break;
     }
+    
+    case XEC_SSA_LIVE:
+        break;
     
     default:
         break;
