@@ -1,13 +1,13 @@
 //
-//  xec_ssa_build_visitors.h
+//  xec_ssa_astvisitors.h
 //
 //  Created by Edmund Kapusniak on 10/08/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef XEC_SSA_BUILD_VISITORS_H
-#define XEC_SSA_BUILD_VISITORS_H
+#ifndef XEC_SSA_ASTVISITORS_H
+#define XEC_SSA_ASTVISITORS_H
 
 
 #include "xec_ast_visitor.h"

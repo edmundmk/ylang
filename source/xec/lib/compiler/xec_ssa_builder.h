@@ -10,7 +10,7 @@
 #define XEC_SSA_BUILDER_H
 
 
-#include "xec_ssa_build_visitors.h"
+#include "xec_ssa_astvisitors.h"
 #include "xec_ssa.h"
 #include <vector>
 

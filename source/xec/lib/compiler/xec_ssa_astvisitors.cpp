@@ -1,12 +1,12 @@
 //
-//  xec_ssa_build_visitors.cpp
+//  xec_ssa_astvisitors.cpp
 //
 //  Created by Edmund Kapusniak on 10/08/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "xec_ssa_build_visitors.h"
+#include "xec_ssa_astvisitors.h"
 #include "xec_ssa_builder.h"
 #include <vector>
 
