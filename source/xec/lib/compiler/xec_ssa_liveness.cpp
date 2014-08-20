@@ -53,6 +53,8 @@ xec_ssa_liveness::xec_ssa_liveness( xec_ssa* root )
 void xec_ssa_liveness::analyze_func(
         xec_ssa_func* func, xec_ssa_dfo* dfo, xec_ssa_loop_forest* loops )
 {
+    region_scope rscope( root->alloc );
+
     this->func  = func;
     this->dfo   = dfo;
     this->loops = loops;
@@ -146,7 +148,7 @@ void xec_ssa_liveness::analyze_block( xec_ssa_block* block )
 
     // All values remaining in live are live at the start of the block.  Add
     // live range ops to head of block.
-    for ( auto i = live.begin(); i != live.end(); )
+    for ( auto i = live.begin(); i != live.end(); ++i )
     {
         livespan& span = i->second;
         
