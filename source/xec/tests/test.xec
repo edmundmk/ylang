@@ -14,28 +14,16 @@ for (;;)
 */
 
 
-function advance( bodies, dt )
+function energy( bodies )
 {
+    var e = 0;
     for ( var bi : bodies )
     {
+        e += 0.5 * bi.mass;
         for ( var bj : bodies )
         {
-            var dx, dy, dz = bi.x - bj.x, bi.y - bj.y, bi.z - bj.z;
-            var distance = sqrt( dx * dx + dy * dy + dz * dz );
-            var mag = dt / ( distance * distance * distance );
-            var bim, bjm = bi.mass * mag, bj.mass * mag;
-            bi.vx -= dx * bjm;
-            bi.vy -= dy * bjm;
-            bi.vz -= dz * bjm;
-            bj.vx += dx * bim;
-            bj.vy += dy * bim;
-            bj.vz += dz * bim;
+            e -= bj.mass;
         }
     }
-    for ( var bi : bodies )
-    {
-        bi.x += dt * bi.vx;
-        bi.y += dt * bi.vy;
-        bi.z += dt * bi.vz;
-    }
+    return e;
 }

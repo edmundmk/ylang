@@ -20,6 +20,38 @@ static inline void extend( containera_t* a, const containerb_t& b )
 
 
 
+
+
+/*
+    Common between visitors.
+*/
+
+static xec_ssa_opcode assign_opcode( xec_ast_opkind assignop )
+{
+    switch ( assignop )
+    {
+    case XEC_ASTOP_MULASSIGN:       return XEC_SSA_MUL;
+    case XEC_ASTOP_DIVASSIGN:       return XEC_SSA_DIV;
+    case XEC_ASTOP_MODASSIGN:       return XEC_SSA_MOD;
+    case XEC_ASTOP_INTDIVASSIGN:    return XEC_SSA_INTDIV;
+    case XEC_ASTOP_ADDASSIGN:       return XEC_SSA_ADD;
+    case XEC_ASTOP_SUBASSIGN:       return XEC_SSA_SUB;
+    case XEC_ASTOP_LSHIFTASSIGN:    return XEC_SSA_LSL;
+    case XEC_ASTOP_LRSHIFTASSIGN:   return XEC_SSA_LSR;
+    case XEC_ASTOP_ARSHIFTASSIGN:   return XEC_SSA_ASR;
+    case XEC_ASTOP_BITANDASSIGN:    return XEC_SSA_BITAND;
+    case XEC_ASTOP_BITXORASSIGN:    return XEC_SSA_BITXOR;
+    case XEC_ASTOP_BITORASSIGN:     return XEC_SSA_BITOR;
+    default: assert( ! "invalid operator" ); break;
+    }
+
+    return XEC_SSA_NOP;
+}
+
+
+
+
+
 /*
     xec_ssa_build_expr
 */
@@ -474,7 +506,18 @@ xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_assign* node )
 {
     xec_ssa_lvalue lvalue;
     b->lvalue( &lvalue, node->lvalue );
-    xec_ssa_opref rvalue = visit( node->rvalue );
+    
+    if ( node->assignop == XEC_ASTOP_DECLARE
+            || node->assignop == XEC_ASTOP_ASSIGN )
+    {
+        xec_ssa_opref rvalue = visit( node->rvalue );
+        return b->lvalue_assign( &lvalue, rvalue );
+    }
+    
+    xec_ssa_opcode opcode = assign_opcode( node->assignop );
+    xec_ssa_opref lhs = b->lvalue_value( &lvalue );
+    xec_ssa_opref rhs = visit( node->rvalue );
+    xec_ssa_opref rvalue = b->op( node->sloc, opcode, lhs, rhs );
     return b->lvalue_assign( &lvalue, rvalue );
 }
 
@@ -754,7 +797,22 @@ void xec_ssa_build_unpack::visit(
     for ( int i = 0; i < lvalues.size(); ++i )
     {
         xec_ssa_lvalue lvalue = lvalues.at( i );
-        xec_ssa_opref v = b->lvalue_assign( &lvalue, rvalues.values.at( i ) );
+        
+        xec_ssa_opref v = XEC_SSA_INVALID;
+        if ( node->assignop == XEC_ASTOP_DECLARE
+                || node->assignop == XEC_ASTOP_ASSIGN )
+        {
+            v = b->lvalue_assign( &lvalue, rvalues.values.at( i ) );
+        }
+        else
+        {
+            xec_ssa_opcode opcode = assign_opcode( node->assignop );
+            xec_ssa_opref lhs = b->lvalue_value( &lvalue );
+            xec_ssa_opref rhs = rvalues.values.at( i );
+            xec_ssa_opref rvalue = b->op( node->sloc, opcode, lhs, rhs );
+            v = b->lvalue_assign( &lvalue, rvalue );
+        }
+        
         if ( valcount != -1 && (int)i < valcount )
         {
             values->values.push_back( v );
