@@ -119,6 +119,7 @@ void xec_ssa_liveness::analyze_block( xec_ssa_block* block )
         for ( size_t i = 0; i < oprefs.size(); ++i )
         {
             xec_ssa_opref operand = oprefs.at( i );
+            operand = func->operand( operand );
             livespan s( operand, useref, XEC_SSA_INVALID );
             live.emplace( operand, s );
         }
@@ -235,10 +236,6 @@ void xec_ssa_liveness::add_successor(
         {
             value = op.phi->definitions.at( index );
         }
-        else if ( op.opcode == XEC_SSA_REF )
-        {
-            value = op.operanda;
-        }
         
         if ( value )
         {
@@ -281,7 +278,7 @@ void xec_ssa_liveness::live_loop( livespan* span, xec_ssa_loop* loop )
     // of the loop header block.
     assert( *prev );
     assert( func->slices.at( prev->slice )->block == loop->header );
-    assert( func->getop( *prev ).opcode == XEC_SSA_LIVE );
+    assert( func->getop( *prev )->opcode == XEC_SSA_LIVE );
 
 
     // Go from loop header to loop bottom, and add a live span for each block
@@ -290,8 +287,9 @@ void xec_ssa_liveness::live_loop( livespan* span, xec_ssa_loop* loop )
     {
         xec_ssa_block* block = dfo->at( i );
         
+        
         // Ignore blocks that aren't in the loop.
-        if ( loops->inloop( block, loop ) )
+        if ( ! loops->inloop( block, loop ) )
         {
             continue;
         }
@@ -300,10 +298,10 @@ void xec_ssa_liveness::live_loop( livespan* span, xec_ssa_loop* loop )
         // While block of the next live range is before this block, move to
         // next in chain.
         xec_ssa_block* liveblock = blockof( *prev );
-        while ( block && liveblock->index < block->index )
+        while ( liveblock && liveblock->index < block->index )
         {
-            xec_ssa_op& op = func->getop( *prev );
-            prev = &op.lnext;
+            xec_ssa_op* op = func->getop( *prev );
+            prev = &op->lnext;
             liveblock = blockof( *prev );
         }
         
@@ -312,13 +310,13 @@ void xec_ssa_liveness::live_loop( livespan* span, xec_ssa_loop* loop )
         // block which can be reused.
         if ( liveblock == block )
         {
-            xec_ssa_op& op = func->getop( *prev );
-            if ( op.opcode == XEC_SSA_LIVE )
+            xec_ssa_op* op = func->getop( *prev );
+            if ( op->opcode == XEC_SSA_LIVE )
             {
                 // Great, extend the op to the end of the block and continue.
-                assert( op.operanda == span->value );
-                op.until = XEC_SSA_FOREVER;
-                prev = &op.lnext;
+                assert( op->operanda == span->value );
+                op->until = XEC_SSA_FOREVER;
+                prev = &op->lnext;
                 continue;
             }
             else
@@ -327,13 +325,13 @@ void xec_ssa_liveness::live_loop( livespan* span, xec_ssa_loop* loop )
                 // Take it out of the equation so it can be replaced with
                 // a range starting at the start of the block.
                 assert( *prev == span->value );
-                op.until = XEC_SSA_INVALID;
-                op.lnext = span->lnext;
+                op->until = XEC_SSA_INVALID;
+                op->lnext = span->lnext;
                 
                 // This situation means a mess as the definition of a value
                 // required at the start of the loop is defined only after
                 // the loop has already begun...
-                root->script->error( op.sloc, "undefined value" );
+                root->script->error( op->sloc, "undefined value" );
             }
         }
         

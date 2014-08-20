@@ -464,7 +464,8 @@ struct xec_ssa_func
 {
     xec_ssa_func( int sloc, const char* funcname );
     
-    xec_ssa_op& getop( xec_ssa_opref opref );
+    xec_ssa_opref   operand( xec_ssa_opref opref );
+    xec_ssa_op*     getop( xec_ssa_opref opref );
 
     int                 sloc;
     const char*         funcname;
@@ -721,9 +722,26 @@ inline xec_ssa_args::xec_ssa_args( int resultcount )
     inline
 */
 
-inline xec_ssa_op& xec_ssa_func::getop( xec_ssa_opref opref )
+inline xec_ssa_opref xec_ssa_func::operand( xec_ssa_opref opref )
 {
-    return slices.at( opref.slice )->ops.at( opref.index );
+    while ( true )
+    {
+        xec_ssa_op* op = getop( opref );
+        if ( op && op->opcode == XEC_SSA_REF )
+            opref = op->operanda;
+        else
+            return opref;
+    }
+
+}
+
+
+inline xec_ssa_op* xec_ssa_func::getop( xec_ssa_opref opref )
+{
+    if ( opref )
+        return &slices.at( opref.slice )->ops.at( opref.index );
+    else
+        return NULL;
 }
 
 

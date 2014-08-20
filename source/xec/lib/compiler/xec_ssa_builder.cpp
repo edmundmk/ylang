@@ -1104,6 +1104,7 @@ xec_ssa_opref xec_ssa_builder::lookup_name(
                             XEC_SSA_INVALID, defs.data(), defs.size() );
             if ( single )
             {
+                block->defined.emplace( name, single );
                 return single;
             }
             
@@ -1202,6 +1203,9 @@ void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
             phiop.opcode   = XEC_SSA_REF;
             phiop.operanda = single;
             phiop.operandb = XEC_SSA_INVALID;
+            
+            block->defined.erase( name );
+            block->defined.emplace( name, single );
         }
         else
         {

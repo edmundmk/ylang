@@ -42,23 +42,7 @@ void xec_opt_constfold::optimize( xec_ssa_func* func, xec_ssa_dfo* dfo )
 
 xec_ssa_op* xec_opt_constfold::operand( xec_ssa_opref opref )
 {
-    if ( ! opref )
-    {
-        return NULL;
-    }
-
-    xec_ssa_op* op = &func->getop( opref );
-    while ( op->opcode == XEC_SSA_REF )
-    {
-        if ( ! op->operanda )
-        {
-            return NULL;
-        }
-
-        op = &func->getop( op->operanda );
-    }
-    
-    return op;
+    return func->getop( func->operand( opref ) );
 }
 
 
