@@ -75,7 +75,7 @@ void xec_ssa_printer::print( xec_ssa_func* func )
         if ( block->condition )
         {
             printf( "  ?? %04X:%02X\n",
-                    block->condition.slice, block->condition.value );
+                    block->condition.slice, block->condition.index );
             printf( "    -> [%04X]\n", block->iftrue->index );
             printf( "    -> [%04X]\n", block->iffalse->index );
         }

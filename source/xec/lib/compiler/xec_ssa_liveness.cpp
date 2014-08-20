@@ -90,6 +90,10 @@ void xec_ssa_liveness::analyze_block( xec_ssa_block* block )
     {
         add_successor( &live, block, block->iftrue );
         add_successor( &live, block, block->iffalse );
+        
+        // The condition is also live at the bottom of the block.
+        livespan s( block->condition, XEC_SSA_FOREVER, XEC_SSA_INVALID );
+        live.emplace( block->condition, s );
     }
     else
     {
@@ -320,7 +324,7 @@ void xec_ssa_liveness::live_loop( livespan* span, xec_ssa_loop* loop )
                 // Take it out of the equation so it can be replaced with
                 // a range starting at the start of the block.
                 assert( *prev == span->value );
-                op.until = *prev;
+                op.until = XEC_SSA_INVALID;
                 op.lnext = span->lnext;
                 
                 // This situation means a mess as the definition of a value
