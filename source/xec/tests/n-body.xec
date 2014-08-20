@@ -85,7 +85,6 @@ var bodies =
 ];
 
 
-
 function advance( bodies, dt )
 {
     for ( var bi : bodies )
@@ -96,12 +95,12 @@ function advance( bodies, dt )
             var distance = sqrt( dx * dx + dy * dy + dz * dz );
             var mag = dt / ( distance * distance * distance );
             var bim, bjm = bi.mass * mag, bj.mass * mag;
-            bi.vx -= dx * bj.mass;
-            bi.vy -= dy * bj.mass;
-            bi.vz -= dz * bj.mass;
-            bj.vx += dx * bi.mass;
-            bj.vy += dy * bi.mass;
-            bj.vz += dz * bi.mass;
+            bi.vx -= dx * bjm;
+            bi.vy -= dy * bjm;
+            bi.vz -= dz * bjm;
+            bj.vx += dx * bim;
+            bj.vy += dy * bim;
+            bj.vz += dz * bim;
         }
     }
     for ( var bi : bodies )
