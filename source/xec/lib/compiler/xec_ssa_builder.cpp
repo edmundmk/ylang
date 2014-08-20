@@ -1217,17 +1217,38 @@ void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
 
 
 #include "xec_ssa_print.h"
+#include "xec_ssa_cfganalysis.h"
 #include "xec_ssa_liveness.h"
 
 
 bool xec_ssabuild( xec_ast* ast )
 {
+    // Build SSA form.
+
     xec_ssa ssa;
     xec_ssa_builder builder( &ssa );
     builder.build( ast );
 
-//    xec_ssa_print( &ssa );
-//    xec_ssa_liveness( &ssa );
+
+    // Calculate liveness.
+
+    xec_ssa_dfo dfo( &ssa );
+    xec_ssa_loop_forest loops( &ssa );
+    xec_ssa_liveness liveness( &ssa );
+    
+    for ( size_t i = 0; i < ssa.functions.size(); ++i )
+    {
+        xec_ssa_func* func = ssa.functions.at( i );
+        dfo.build_ordering( func );
+        loops.build_forest( func, &dfo );
+        liveness.analyze_func( func, &dfo, &loops );
+    }
+    
+    
+    // Print.
+    
+    xec_ssa_print( &ssa );
+    
     
     return ast->script->error_count() == 0;
 }

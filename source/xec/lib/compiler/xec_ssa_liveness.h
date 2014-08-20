@@ -73,15 +73,17 @@ private:
 
     typedef std::unordered_map< xec_ssa_opref, livespan > liveset;
 
-    void        analyze_block( xec_ssa_block* block,
-                        xec_ssa_dfo* dfo, xec_ssa_loop_forest* loops );
+    void        analyze_block( xec_ssa_block* block );
     void        add_successor( liveset* live,
                         xec_ssa_block* block, xec_ssa_block* successor );
-    xec_ssa_op* local_def(
-                        xec_ssa_block* block, xec_ssa_opref value );
-    void        live_loop( livespan* span, xec_ssa_dfo* dfo,
-                        xec_ssa_loop_forest* loops, xec_ssa_loop* loop );
+    xec_ssa_op* local_def( xec_ssa_block* block, xec_ssa_opref value );
+    void        live_loop( livespan* span, xec_ssa_loop* loop );
+    xec_ssa_block* blockof( xec_ssa_opref opref );
+    
 
+    xec_ssa_func*        func;
+    xec_ssa_dfo*         dfo;
+    xec_ssa_loop_forest* loops;
     std::unordered_map< xec_ssa_block*, liveset > livein;
 
     xec_ssa* root;

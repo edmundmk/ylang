@@ -213,6 +213,38 @@ void xec_ssa_printer::print_slice( xec_ssa_func* func, xec_ssa_slice* slice )
 
 void xec_ssa_printer::print_op( xec_ssa_func* func, xec_ssa_op& op )
 {
+    printf( "[" );
+    if ( op.opcode >= XEC_SSA_FIRST_SET
+                && op.opcode <= XEC_SSA_LAST_SET )
+    {
+        printf( "----:--|----:--" );
+    }
+    else
+    {
+        if ( op.until == XEC_SSA_FOREVER )
+        {
+            printf( "vvvv:vv" );
+        }
+        else if ( op.until )
+        {
+            printf( "%04X:%02X", op.until.slice, op.until.index );
+        }
+        else
+        {
+            printf( "----:--" );
+        }
+        printf( "|" );
+        if ( op.lnext )
+        {
+            printf( "%04X:%02X", op.lnext.slice, op.lnext.index );
+        }
+        else
+        {
+            printf( "----:--" );
+        }
+    }
+    printf( "] " );
+
     const char* opname = opnames.lookup( op.opcode );
     printf( "%-9s", opname );
 

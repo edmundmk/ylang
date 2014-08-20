@@ -8,6 +8,7 @@
 
 #include "xec_ssa_liveness.h"
 #include <make_unique>
+#include "xec_script.h"
 #include "xec_ssa.h"
 #include "xec_ssa_print.h"
 #include "xec_ssa_cfganalysis.h"
@@ -52,19 +53,29 @@ xec_ssa_liveness::xec_ssa_liveness( xec_ssa* root )
 void xec_ssa_liveness::analyze_func(
         xec_ssa_func* func, xec_ssa_dfo* dfo, xec_ssa_loop_forest* loops )
 {
+    this->func  = func;
+    this->dfo   = dfo;
+    this->loops = loops;
+    livein.clear();
+
     // Go through blocks in reverse dfo order.
     for ( int i = (int)dfo->size() - 1; i >= 0; --i )
     {
         xec_ssa_block* block = dfo->at( i );
-        analyze_block( block, dfo, loops );
+        analyze_block( block );
     }
+    
+    
+    this->func  = NULL;
+    this->dfo   = NULL;
+    this->loops = NULL;
+    livein.clear();
 }
 
 
 
 
-void xec_ssa_liveness::analyze_block(
-        xec_ssa_block* block, xec_ssa_dfo* dfo, xec_ssa_loop_forest* loops )
+void xec_ssa_liveness::analyze_block( xec_ssa_block* block )
 {
     // Find lowest point of use of all live values.
     liveset live;
@@ -160,7 +171,7 @@ void xec_ssa_liveness::analyze_block(
         // the entire loop.
         if ( loop && loop->header == block )
         {
-            live_loop( &span, dfo, loops, loop );
+            live_loop( &span, loop );
         }
     }
     
@@ -181,15 +192,15 @@ void xec_ssa_liveness::add_successor(
         return;
     }
     
-    // If it's a back reference, we haven't calculated liveness yet.
-    if ( block->index >= successor->index )
-    {
-        return;
-    }
     
     // Add all values that were live at the start of this successor.
-    liveset& slive = livein.at( successor );
-    live->insert( slive.begin(), slive.end() );
+    // If it's a back reference, we haven't calculated liveness yet.
+    if ( block->index < successor->index )
+    {
+        liveset& slive = livein.at( successor );
+        live->insert( slive.begin(), slive.end() );
+    }
+    
     
     // Find index of this code path in the successor block's previous link.
     // This relies on ɸ-function operands being correctly ordered.
@@ -203,11 +214,12 @@ void xec_ssa_liveness::add_successor(
     }
     assert( index < successor->previous.size() );
     
+    
     // Variables that are live at the start of successor include those
     // variables referenced by ɸ-functions coming from this code path.
-    for ( size_t i = 0; i < block->phi->ops.size(); ++i )
+    for ( size_t i = 0; i < successor->phi->ops.size(); ++i )
     {
-        xec_ssa_op& op = block->phi->ops.at( i );
+        xec_ssa_op& op = successor->phi->ops.at( i );
         xec_ssa_opref value = XEC_SSA_INVALID;
         
         if ( op.opcode == XEC_SSA_PHI )
@@ -250,9 +262,19 @@ xec_ssa_op* xec_ssa_liveness::local_def(
 
 
 
-void xec_ssa_liveness::live_loop( livespan* span,
-        xec_ssa_dfo* dfo, xec_ssa_loop_forest* loops, xec_ssa_loop* loop )
+void xec_ssa_liveness::live_loop( livespan* span, xec_ssa_loop* loop )
 {
+    // Pointer to last link in live span list.
+    xec_ssa_opref* prev = &span->lnext;
+    
+    
+    // First block in live span list should be a live instruction at the head
+    // of the loop header block.
+    assert( *prev );
+    assert( func->slices.at( prev->slice )->block == loop->header );
+    assert( func->getop( *prev ).opcode == XEC_SSA_LIVE );
+
+
     // Go from loop header to loop bottom, and add a live span for each block
     // that is inside the loop.
     for ( size_t i = loop->header->index; i <= loop->last; ++i )
@@ -265,176 +287,74 @@ void xec_ssa_liveness::live_loop( livespan* span,
             continue;
         }
         
-        // TODO.
-    }
-}
-
-
-
-
-
-void xec_ssa_liveness( xec_ssa* ssa )
-{
-    std::vector< xec_ssa_loop_forest* > forests;
-
-    for ( size_t i = 0; i < ssa->functions.size(); ++i )
-    {
-        xec_ssa_func* func = ssa->functions.at( i );
     
-        xec_ssa_dfo dfo( ssa );
-        dfo.build_ordering( func );
+        // While block of the next live range is before this block, move to
+        // next in chain.
+        xec_ssa_block* liveblock = blockof( *prev );
+        while ( block && liveblock->index < block->index )
+        {
+            xec_ssa_op& op = func->getop( *prev );
+            prev = &op.lnext;
+            liveblock = blockof( *prev );
+        }
         
-        xec_ssa_loop_forest* loops = new xec_ssa_loop_forest( ssa );
-        loops->build_forest( func, &dfo );
-        forests.push_back( loops );
-    }
-
-    xec_ssa_print( ssa );
-
-    for ( size_t i = 0; i < forests.size(); ++i )
-    {
-        forests.at( i )->print();
-        printf( "\n\n" );
-        delete forests.at( i );
-    }
-}
-
-
-
-
-
-
-#if MUSINGS
-
-
-
-
-struct xec_ssa_liveness_loop
-{
-    explicit xec_ssa_liveness_loop( xec_ssa_block* loop_header );
-
-    xec_ssa_block* header;
-    std::vector< xec_ssa_liveness_loop* > loops;
-    std::vector< xec_ssa_block* > blocks;
-};
-
-
-struct xec_ssa_liveness_block
-{
-    explicit xec_ssa_liveness_block( xec_ssa_block* block );
-
-    xec_ssa_block* block;
-    std::unordered_set< xec_ssa_opref > livein;
-    std::unordered_set< xec_ssa_opref > liveout;
-};
-
-
-class xec_ssa_liveness_analyzer
-{
-public:
-
-    xec_ssa_liveness_analyzer( xec_ssa* root, xec_ssa_func* func );
-    void analyze();
-
-private:
-
-    void partial_liveness( xec_ssa_block* block );
-
-    std::unordered_map< xec_ssa_block*, xec_ssa_liveness_block > blocklive;
-
-    xec_ssa*        root;
-    xec_ssa_func*   func;
-
-};
-
-
-xec_ssa_liveness_analyzer::xec_ssa_liveness_analyzer(
-                xec_ssa* root, xec_ssa_func* func )
-    :   root( root )
-    ,   func( func )
-{
-}
-
-void xec_ssa_liveness_analyzer::analyze()
-{
-    /*
-    
-    
-        xec deals with reducible CFGs (there are no entries into loops other
-        than through the loop header).
-    */
-
-    /*
-        Caculate the CFG dominator tree.
-    */
-    
-        The first step is to perform a depth-first ordering of blocks,
-        which is the order that nodes in the control-flow graph are visited
-        in during a depth-first search.  This allows CFG edges to be classified
-        as either back edges (where a node later in the depth-first ordering
-        has an edge back to an ancestor node), or not.
         
-     
-    
-        The first step is to find an ordering of blocks where the only back
-        edges are those for loops.
-     
-        The first step is to perform a depth-first-search ordering of blocks,
-        which is the order that nodes in the control-flow-graph are visited
-        in during a depth-first-search.  Given such an ordering of a
-        reducible control flow graph, the only back edges are loops.
-    
-    */
-
-
-
-
-    // Number blocks with respect to ordering.
-    for ( size_t i = 0; i < func->blocks.size(); ++i )
-    {
-        xec_ssa_block* block = func->blocks.at( i );
-        block->index = (int)i;
+        // Possibly there is already a live range at the beginning of the
+        // block which can be reused.
+        if ( liveblock == block )
+        {
+            xec_ssa_op& op = func->getop( *prev );
+            if ( op.opcode == XEC_SSA_LIVE )
+            {
+                // Great, extend the op to the end of the block and continue.
+                assert( op.operanda == span->value );
+                op.until = XEC_SSA_FOREVER;
+                prev = &op.lnext;
+                continue;
+            }
+            else
+            {
+                // This live range starts at the definition of the value.
+                // Take it out of the equation so it can be replaced with
+                // a range starting at the start of the block.
+                assert( *prev == span->value );
+                op.until = *prev;
+                op.lnext = span->lnext;
+                
+                // This situation means a mess as the definition of a value
+                // required at the start of the loop is defined only after
+                // the loop has already begun...
+                root->script->error( op.sloc, "undefined value" );
+            }
+        }
+        
+        
+        // Add new range spanning this block.
+        xec_ssa_op lop( -1, XEC_SSA_LIVE, span->value );
+        lop.until = XEC_SSA_FOREVER;
+        lop.lnext = *prev;
+        
+        xec_ssa_opref lref;
+        lref.slice = block->live->index;
+        lref.index = (int)block->live->ops.size();
+        
+        block->live->ops.push_back( lop );
+        
+        *prev = lref;
+        xec_ssa_op& op = block->live->ops.back();
+        prev = &op.lnext;
     }
-
-
-    // Build list of blocks which belong to each loop.
-    
-
-
-    // Calculate partial liveness for each block.
-    for ( auto i = func->blocks.rbegin(); i != func->blocks.rend(); ++i )
-    {
-        partial_liveness( *i );
-    }
-    
 }
 
 
-
-/*
-    We assume the CFG is reducible, and that the only back-edges (when
-    looking at the block ordering) are entries to loop headers.  We need a
-    list of every block dominated by the loop header that is part of the
-    loop - i.e. branches which end in break or return are excluded.
-    
-    During liveness analysis all variables live on entry to the loop header
-    must be live throughout the entire loop (if the loop loops, we will still
-    need them).
-*/
-
-
-
-
-/*
-    The partial liveness step calculates livein and liveout for each block,
-    ignoring loops.  The main part of the BuildIntervals function in the
-    Wimmer paper corresponds to the postorder traversal in the Brandner paper,
-    given that blocks are already ordered and visited bottom-up.
-*/
-
-void xec_ssa_liveness_analyzer::partial_liveness( xec_ssa_block* block )
+xec_ssa_block* xec_ssa_liveness::blockof( xec_ssa_opref opref )
 {
-    assert( blocklive.find( block ) == blocklive.end() );
+    if ( opref )
+    {
+        xec_ssa_slice* slice = func->slices.at( opref.slice );
+        return slice->block;
+    }
+    return NULL;
 }
 
 
@@ -442,7 +362,6 @@ void xec_ssa_liveness_analyzer::partial_liveness( xec_ssa_block* block )
 
 
 
-#endif
 
 
 
