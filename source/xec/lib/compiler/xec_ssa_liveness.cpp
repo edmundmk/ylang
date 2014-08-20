@@ -46,6 +46,9 @@ xec_ssa_liveness::livespan::livespan(
 
 xec_ssa_liveness::xec_ssa_liveness( xec_ssa* root )
     :   root( root )
+    ,   func( NULL )
+    ,   dfo( NULL )
+    ,   loops( NULL )
 {
 }
 

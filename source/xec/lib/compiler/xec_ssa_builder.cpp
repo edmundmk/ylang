@@ -1218,6 +1218,7 @@ void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
 
 #include "xec_ssa_print.h"
 #include "xec_ssa_cfganalysis.h"
+#include "xec_opt_constfold.h"
 #include "xec_ssa_liveness.h"
 
 
@@ -1230,9 +1231,21 @@ bool xec_ssabuild( xec_ast* ast )
     builder.build( ast );
 
 
-    // Calculate liveness.
+    // Perform optimizations.
 
     xec_ssa_dfo dfo( &ssa );
+    xec_opt_constfold constfold( &ssa );
+
+    for ( size_t i = 0; i < ssa.functions.size(); ++i )
+    {
+        xec_ssa_func* func = ssa.functions.at( i );
+        dfo.build_ordering( func );
+        constfold.optimize( func, &dfo );
+    }
+
+
+    // Calculate liveness.
+
     xec_ssa_loop_forest loops( &ssa );
     xec_ssa_liveness liveness( &ssa );
     

@@ -81,12 +81,12 @@ private:
     xec_ssa_block* blockof( xec_ssa_opref opref );
     
 
-    xec_ssa_func*        func;
-    xec_ssa_dfo*         dfo;
-    xec_ssa_loop_forest* loops;
+    xec_ssa*                root;
+    xec_ssa_func*           func;
+    xec_ssa_dfo*            dfo;
+    xec_ssa_loop_forest*    loops;
     std::unordered_map< xec_ssa_block*, liveset > livein;
 
-    xec_ssa* root;
 
 };
 

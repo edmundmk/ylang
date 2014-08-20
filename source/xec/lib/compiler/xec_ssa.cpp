@@ -14,10 +14,9 @@
     Some ideas for compiler optimizations:
         
         
-    prune phi
-        any referece to a phi-instruction that refers to a single value can
-        be replaced with that value.  this is more a weakness of our ssa
-        construction than anything else.
+    prune ref
+        all references to ref instructions could be replaced with references
+        to the target of the ref...
 
     fold constants
         3 * 4 can be replaced with 12

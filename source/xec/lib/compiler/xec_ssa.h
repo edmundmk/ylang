@@ -166,10 +166,12 @@ enum xec_ssa_opcode
 
     // ops w/ operands.
     XEC_SSA_REF,        // reference another value
+
     XEC_SSA_POS,        // unary +
     XEC_SSA_NEG,        // unary -
     XEC_SSA_NOT,        // unary !
     XEC_SSA_BITNOT,     // unary ~
+
     XEC_SSA_MUL,        // *
     XEC_SSA_DIV,        // /
     XEC_SSA_MOD,        // %
@@ -189,6 +191,7 @@ enum xec_ssa_opcode
     XEC_SSA_IN,         // in
     XEC_SSA_IS,         // is
     XEC_SSA_XOR,        // ^^
+    
     XEC_SSA_INKEY,      // object.[ key ]
     XEC_SSA_INDEX,      // container[ index ]
     XEC_SSA_DELINKEY,   // delete object.[ key ]
