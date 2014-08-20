@@ -249,8 +249,9 @@ void xec_ssa_printer::print_op( xec_ssa_func* func, xec_ssa_op& op )
     printf( "%-9s", opname );
 
 
-    if ( op.opcode >= XEC_SSA_FIRST_REF
-            && op.opcode <= XEC_SSA_LAST_REF )
+    if ( ( op.opcode >= XEC_SSA_FIRST_REF
+                && op.opcode <= XEC_SSA_LAST_REF )
+            || op.opcode == XEC_SSA_LIVE )
     {
         if ( op.operanda )
         {
