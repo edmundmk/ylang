@@ -1307,6 +1307,7 @@ void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
             // Change the ɸ-function to a reference.
             phiop.opcode   = XEC_SSA_REF;
             phiop.operanda = single.def;
+            phiop.operandb = XEC_SSA_INVALID;
             
             if ( block->defined.at( name ) == phiref )
             {
