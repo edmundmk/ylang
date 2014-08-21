@@ -13,17 +13,17 @@ for (;;)
 
 */
 
+var x = 0;
 
-function energy( bodies )
+while ( true )
 {
-    var e = 0;
-    for ( var bi : bodies )
+    var y = x;
+}
+
+while ( true )
+{
+    while ( true )
     {
-        e += 0.5 * bi.mass;
-        for ( var bj : bodies )
-        {
-            e -= bj.mass;
-        }
+        var z = x;
     }
-    return e;
 }

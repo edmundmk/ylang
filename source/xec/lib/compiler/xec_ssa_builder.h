@@ -24,6 +24,7 @@ struct xec_new_object;
 struct xec_ssa_follow;
 struct xec_ssa_build_func;
 struct xec_ssa_build_block;
+struct xec_ssa_build_lookup;
 
 
 
@@ -141,10 +142,13 @@ private:
 
     void            define_name( void* name, xec_ssa_opref value );
     xec_ssa_opref   lookup_name( void* name, int sloc, const char* text );
-    xec_ssa_opref   lookup_name( xec_ssa_build_block* block, void* name );
-    xec_ssa_opref   check_single( xec_ssa_opref phiref,
-                                    xec_ssa_opref* defs, size_t size );
-    void            seal_block( xec_ssa_build_block* block );
+
+    xec_ssa_build_lookup lookup_block( xec_ssa_build_block* block, void* name );
+    void                 seal_block( xec_ssa_build_block* block );
+    bool                 lookup_join( xec_ssa_build_block* block, void* name,
+                                std::vector< xec_ssa_build_lookup >* lookups );
+    xec_ssa_build_lookup check_single( xec_ssa_build_lookup expected,
+                                xec_ssa_build_lookup* lookups, size_t size );
     
 
     xec_ssa* root;

@@ -191,6 +191,58 @@ xec_ssa_build_func::xec_ssa_build_func( xec_ssa_func* func )
 
 
 
+
+
+/*
+    Results of name lookup can either be a real definition, or a to-be-added
+    phi instruction at a join node.
+*/
+
+struct xec_ssa_build_lookup
+{
+    xec_ssa_build_lookup( xec_ssa_build_block* join );
+    xec_ssa_build_lookup( xec_ssa_opref def );
+
+    explicit operator bool () const;
+
+    xec_ssa_build_block*    join;
+    xec_ssa_opref           def;
+};
+
+
+bool operator == (
+            const xec_ssa_build_lookup& a, const xec_ssa_build_lookup& b )
+{
+    return a.join == b.join && a.def == b.def;
+}
+
+bool operator != (
+            const xec_ssa_build_lookup& a, const xec_ssa_build_lookup& b )
+{
+    return !( a == b );
+}
+
+
+xec_ssa_build_lookup::xec_ssa_build_lookup( xec_ssa_build_block* join )
+    :   join( join )
+    ,   def( XEC_SSA_INVALID )
+{
+}
+
+xec_ssa_build_lookup::xec_ssa_build_lookup( xec_ssa_opref def )
+    :   join( NULL )
+    ,   def( def )
+{
+}
+
+xec_ssa_build_lookup::operator bool() const
+{
+    return join != NULL || def != XEC_SSA_INVALID;
+}
+
+
+
+
 /*
     A block which is being built.
 */
@@ -203,6 +255,7 @@ struct xec_ssa_build_block
     std::unordered_map< void*, xec_ssa_opref >  defined;
     std::unordered_map< xec_ssa_opref, void* >  incomplete;
     int                                         visitmark;
+    xec_ssa_build_lookup                        visitname;
     bool                                        sealed;
 };
 
@@ -210,6 +263,7 @@ struct xec_ssa_build_block
 xec_ssa_build_block::xec_ssa_build_block()
     :   block( NULL )
     ,   visitmark( -1 )
+    ,   visitname( XEC_SSA_INVALID )
     ,   sealed( false )
 {
 }
@@ -1030,12 +1084,22 @@ xec_ssa_opref xec_ssa_builder::lookup_name(
     {
         // Look it up.
         b->visitmark += 1;
-        xec_ssa_opref node = lookup_name( b->follow.block, name );
-        if ( node == XEC_SSA_UNDEF )
+        xec_ssa_build_lookup lookup = lookup_block( b->follow.block, name );
+        
+        
+        // Since we incremented visitmark we should have found a real def
+        // or constructed a phi instruction.
+        assert( ! lookup.join );
+        
+        
+        // But it could have been undefined (script semantics prevent this).
+        if ( lookup.def == XEC_SSA_UNDEF )
         {
             root->script->error( sloc, "undefined '%s'", text );
         }
-        return node;
+        
+        
+        return lookup.def;
     }
     else
     {
@@ -1044,6 +1108,315 @@ xec_ssa_opref xec_ssa_builder::lookup_name(
     }
 }
 
+
+
+
+
+/*
+    Perform recursive name lookup.  This _should_ avoid generating mutually-
+    referencing ɸ-functions as long as the CFG is reducible.  I think.
+*/
+
+
+xec_ssa_build_lookup xec_ssa_builder::lookup_block(
+                        xec_ssa_build_block* block, void* name )
+{
+    // If there is a local definition then use that.
+    auto i = block->defined.find( name );
+    if ( i != block->defined.end() )
+    {
+        return i->second;
+    }
+    
+    
+    // If this node has been visited before then it should have a cached
+    // lookup result.
+    if ( block->visitmark == b->visitmark )
+    {
+        return block->visitname;
+    }
+    
+    
+    // If it's an unsealed block then we can't proceed - add an incomplete phi.
+    if ( ! block->sealed )
+    {
+        xec_ssa_op phiop( -1, XEC_SSA_PHI, (xec_ssa_phi*)NULL );
+        xec_ssa_opref phiref = addop( block->block->phi, phiop );
+        
+        block->incomplete.emplace( phiref, name );
+        block->defined.emplace( name, phiref );
+        
+        block->visitmark = b->visitmark;
+        block->visitname = phiref;
+        
+        return phiref;
+    }
+    
+    
+    // If there's no predecessors then the name is undefined.
+    if ( block->block->previous.size() == 0 )
+    {
+        block->visitmark = b->visitmark;
+        block->visitname = XEC_SSA_UNDEF;
+
+        return XEC_SSA_UNDEF;
+    }
+    
+    
+    // If there's only one predecessor then continue search.
+    if ( block->block->previous.size() == 1 )
+    {
+        xec_ssa_block* prev = block->block->previous.at( 0 );
+        xec_ssa_build_block* build = b->blockmap.at( prev );
+        xec_ssa_build_lookup lookup = lookup_block( build, name );
+        
+        block->visitmark = b->visitmark;
+        block->visitname = lookup;
+        
+        if ( lookup.def )
+        {
+            block->defined[ name ] = lookup.def;
+        }
+        
+        return lookup;
+    }
+    
+    
+    // This is a join node without a local definition of the value.
+    
+    
+    // Ensure that any search which loops back to this node will return a
+    // pointer back to this block.
+    block->visitmark = b->visitmark;
+    block->visitname = block;
+    
+    
+    // Look up the def reachable from each predecessor block, in order.
+    std::vector< xec_ssa_build_lookup > lookups;
+    if ( ! lookup_join( block, name, &lookups ) )
+    {
+        // Undefined in at least one code path, undefined.
+        block->visitname = XEC_SSA_UNDEF;
+        return XEC_SSA_UNDEF;
+    }
+    
+
+    // Check whether all the values collapse to a single one.
+    xec_ssa_build_lookup single =
+                    check_single( block, lookups.data(), lookups.size() );
+    if ( single )
+    {
+        // Just return the single collapsed value.
+        block->visitname = single;
+        
+        if ( single.def )
+        {
+            block->defined[ name ] = single.def;
+        }
+        
+        return single;
+    }
+    
+    
+    // Actually is a ɸ-function.
+    xec_ssa_phi* phi = new ( root->alloc ) xec_ssa_phi();
+    phi->definitions.reserve( lookups.size() );
+    xec_ssa_op phiop( -1, XEC_SSA_PHI, phi );
+    xec_ssa_opref phiref = addop( block->block->phi, phiop );
+    
+    for ( size_t i = 0; i < lookups.size(); ++i )
+    {
+        xec_ssa_build_lookup& lookup = lookups.at( i );
+        
+        // Add to phi.
+        if ( lookup.join )
+        {
+            // I hope references to other join nodes have collapsed away.
+            assert( lookup.join == block );
+            
+            // It looped around and found the phi itself.
+            phi->definitions.push_back( phiref );
+        }
+        else
+        {
+            // It was an actual reference.
+            phi->definitions.push_back( lookup.def );
+        }
+    }
+
+    block->visitname = phiref;
+    block->defined[ name ] = phiref;
+    
+    return phiref;
+}
+
+
+
+void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
+{
+    // Seal block.
+    assert( ! block->sealed );
+    block->sealed = true;
+    
+    
+    // Check if there are incomplete ɸ-functions.
+    xec_ssa_slice* slice = block->block->phi;
+    if ( slice->ops.empty() )
+    {
+        return;
+    }
+    
+    
+    // All ɸ-functions should be incomplete.
+    for ( size_t i = 0; i < slice->ops.size(); ++i )
+    {
+        // Recover incomplete ɸ-function.
+        xec_ssa_op& phiop = slice->ops.at( i );
+        xec_ssa_opref phiref;
+        phiref.slice = slice->index;
+        phiref.index = (int)i;
+        void* name = block->incomplete.at( phiref );
+        
+        
+        // Start a new lookup for this name.
+        b->visitmark += 1;
+    
+    
+        // If it loops around then have it find the existing ɸ-function.
+        block->visitname = phiref;
+        
+        
+        // Lookup in predecessors, in order.
+        std::vector< xec_ssa_build_lookup > lookups;
+        if ( ! lookup_join( block, name, &lookups ) )
+        {
+            // Undefined in at least one code path, undefined.
+            root->script->error( -1, "undefined variable" );
+            phiop.opcode = XEC_SSA_NULL;
+            continue;
+        }
+        
+        
+        // Check whether all the values collapse to a single one.
+        xec_ssa_build_lookup single =
+                        check_single( phiref, lookups.data(), lookups.size() );
+        if ( single )
+        {
+            assert( single.def );
+        
+            // Change the ɸ-function to a reference.
+            phiop.opcode   = XEC_SSA_REF;
+            phiop.operanda = single.def;
+            
+            if ( block->defined.at( name ) == phiref )
+            {
+                block->defined[ name ] = single.def;
+            }
+            
+            continue;
+        }
+        
+        
+        // Fill in the ɸ-function.
+        xec_ssa_phi* phi = new ( root->alloc ) xec_ssa_phi();
+        phi->definitions.reserve( lookups.size() );
+    
+        for ( size_t i = 0; i < lookups.size(); ++i )
+        {
+            xec_ssa_build_lookup& lookup = lookups.at( i );
+            
+            // Add to phi.
+            if ( lookup.join )
+            {
+                // I hope references to other join nodes have collapsed away.
+                assert( lookup.join == block );
+                
+                // It looped around and found the phi itself.
+                phi->definitions.push_back( phiref );
+            }
+            else
+            {
+                // It was an actual reference.
+                phi->definitions.push_back( lookup.def );
+            }
+        }
+
+        phiop.phi = phi;
+        continue;
+    }
+
+}
+
+
+
+bool xec_ssa_builder::lookup_join( xec_ssa_build_block* block, void* name,
+                    std::vector< xec_ssa_build_lookup >* lookups )
+{
+    lookups->reserve( block->block->previous.size() );
+    
+    for ( size_t i = 0; i < block->block->previous.size(); ++i )
+    {
+        xec_ssa_block* prev = block->block->previous.at( i );
+        xec_ssa_build_block* build = b->blockmap.at( prev );
+        xec_ssa_build_lookup lookup = lookup_block( build, name );
+
+        if ( lookup.def == XEC_SSA_UNDEF )
+        {
+            return false;
+        }
+        
+        lookups->push_back( lookup );
+    }
+    
+    return true;
+}
+
+
+xec_ssa_build_lookup xec_ssa_builder::check_single(
+    xec_ssa_build_lookup expected, xec_ssa_build_lookup* lookups, size_t size )
+{
+    xec_ssa_build_lookup single = XEC_SSA_INVALID;
+    
+    size_t i = 0;
+    for ( ; i < size; ++i )
+    {
+        if ( lookups[ i ] != expected )
+        {
+            single = lookups[ i ];
+            break;
+        }
+    }
+    
+    for ( ; i < size; ++i )
+    {
+        if ( lookups[ i ] != expected && lookups[ i ] != single )
+        {
+            // Can't collapse to a single lookup.
+            return XEC_SSA_INVALID;
+        }
+    }
+    
+    return single;
+}
+
+
+
+
+
+
+
+
+#if 0
+
+
+
+
+
+/*
+    The block visitmark is not working, I need a better way to do it.
+    probably a 'definedin' pointer that points at the definition reaching
+    this block?
+*/
 
 
 xec_ssa_opref xec_ssa_builder::lookup_name(
@@ -1098,6 +1471,14 @@ xec_ssa_opref xec_ssa_builder::lookup_name(
             }
             
             
+            // If all definitions are INVALID then we're inside a loop that
+            // doesn't define the value at all.
+            if ( ! check_valid( defs.data(), defs.size() ) )
+            {
+                return XEC_SSA_INVALID;
+            }
+            
+            
             // If all definitions are the same (apart from recursive
             // definitions) then the ɸ-function is unecessary.
             xec_ssa_opref single = check_single(
@@ -1129,6 +1510,19 @@ xec_ssa_opref xec_ssa_builder::lookup_name(
         return phiref;
     }
 
+}
+
+
+bool xec_ssa_builder::check_valid( xec_ssa_opref* defs, size_t size )
+{
+    for ( size_t i = 0; i < size; ++i )
+    {
+        if ( defs[ i ] )
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 
@@ -1220,6 +1614,21 @@ void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
 
 
 
+
+
+
+
+
+
+#endif
+
+
+
+
+
+
+
+
 #include "xec_ssa_print.h"
 #include "xec_ssa_cfganalysis.h"
 #include "xec_opt_constfold.h"
@@ -1234,7 +1643,7 @@ bool xec_ssabuild( xec_ast* ast )
     xec_ssa_builder builder( &ssa );
     builder.build( ast );
 
-
+/*
     // Perform optimizations.
 
     xec_ssa_dfo dfo( &ssa );
@@ -1260,7 +1669,7 @@ bool xec_ssabuild( xec_ast* ast )
         loops.build_forest( func, &dfo );
         liveness.analyze_func( func, &dfo, &loops );
     }
-    
+  */  
     
     // Print.
     

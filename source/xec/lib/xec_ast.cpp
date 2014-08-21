@@ -471,7 +471,7 @@ xec_stmt_continue::xec_stmt_continue(
 
 xec_stmt_break::xec_stmt_break(
                 int sloc, xec_ast_scope* scope, xec_ast_scope* target )
-    :   xec_ast_node( XEC_STMT_CONTINUE, sloc )
+    :   xec_ast_node( XEC_STMT_BREAK, sloc )
     ,   scope( scope )
     ,   target( target )
 {
