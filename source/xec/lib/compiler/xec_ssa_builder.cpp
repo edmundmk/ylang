@@ -1318,13 +1318,13 @@ xec_ssa_opref xec_ssa_builder::lookup_join(
     
     
     // Attempt to collapse to a single definition - we can do this if all
-    // defs are either SELF or one other value.
+    // defs are either SELF (or block->phiref) or one other value.
     xec_ssa_opref single = XEC_SSA_INVALID;
     size_t i = 0;
     for ( ; i < lookups->size(); ++i )
     {
         xec_ssa_opref def = lookups->at( i );
-        if ( def != XEC_SSA_SELF )
+        if ( def != XEC_SSA_SELF && def != block->phiref )
         {
             single = def;
             break;
@@ -1334,7 +1334,7 @@ xec_ssa_opref xec_ssa_builder::lookup_join(
     for ( ; i < lookups->size(); ++i )
     {
         xec_ssa_opref def = lookups->at( i );
-        if ( def != XEC_SSA_SELF && def != single )
+        if ( def != XEC_SSA_SELF && def != block->phiref && def != single )
         {
             single = XEC_SSA_INVALID;
             break;
@@ -1387,262 +1387,6 @@ xec_ssa_opref xec_ssa_builder::ensure_phi( xec_ssa_build_block* block )
 
 
 
-
-
-
-
-
-
-/*
-xec_ssa_build_lookup xec_ssa_builder::check_single(
-    xec_ssa_build_lookup expected, xec_ssa_build_lookup* lookups, size_t size )
-{
-    xec_ssa_build_lookup single = XEC_SSA_INVALID;
-    
-    size_t i = 0;
-    for ( ; i < size; ++i )
-    {
-        if ( lookups[ i ] != expected )
-        {
-            single = lookups[ i ];
-            break;
-        }
-    }
-    
-    for ( ; i < size; ++i )
-    {
-        if ( lookups[ i ] != expected && lookups[ i ] != single )
-        {
-            // Can't collapse to a single lookup.
-            return XEC_SSA_INVALID;
-        }
-    }
-    
-    return single;
-}
-
-
-
-*/
-
-
-
-
-#if 0
-
-
-
-
-
-/*
-    The block visitmark is not working, I need a better way to do it.
-    probably a 'definedin' pointer that points at the definition reaching
-    this block?
-*/
-
-
-xec_ssa_opref xec_ssa_builder::lookup_name(
-                        xec_ssa_build_block* block, void* name )
-{
-    // Prevent infinite looping through loops which do not define the name.
-    if ( block->visitmark == b->visitmark )
-    {
-        return XEC_SSA_INVALID;
-    }
-    block->visitmark = b->visitmark;
-
-
-    // Look for local definition (finds previously built ɸ-functions).
-    auto i = block->defined.find( name );
-    if ( i != block->defined.end() )
-    {
-        return i->second;
-    }
-
-
-    if ( block->sealed )
-    {
-        if ( block->block->previous.size() == 0 )
-        {
-            // No predecessors, not found.
-            return XEC_SSA_UNDEF;
-        }
-        else if ( block->block->previous.size() == 1 )
-        {
-            // One predecessor, look it up recursively.
-            xec_ssa_block* prev = block->block->previous.at( 0 );
-            return lookup_name( b->blockmap.at( prev ), name );
-        }
-        else
-        {
-            // Multiple predecessors (sealed).
-            std::vector< xec_ssa_opref > defs;
-            defs.reserve( block->block->previous.size() );
-            
-            for ( size_t i = 0; i < block->block->previous.size(); ++i )
-            {
-                xec_ssa_block* prev = block->block->previous.at( i );
-                xec_ssa_build_block* pblock = b->blockmap.at( prev );
-                xec_ssa_opref d = lookup_name( pblock, name );
-                if ( d == XEC_SSA_UNDEF )
-                {
-                    // Undefined in at least one code path, undefined.
-                    return XEC_SSA_UNDEF;
-                }
-                defs.push_back( d );
-            }
-            
-            
-            // If all definitions are INVALID then we're inside a loop that
-            // doesn't define the value at all.
-            if ( ! check_valid( defs.data(), defs.size() ) )
-            {
-                return XEC_SSA_INVALID;
-            }
-            
-            
-            // If all definitions are the same (apart from recursive
-            // definitions) then the ɸ-function is unecessary.
-            xec_ssa_opref single = check_single(
-                            XEC_SSA_INVALID, defs.data(), defs.size() );
-            if ( single )
-            {
-                block->defined.emplace( name, single );
-                return single;
-            }
-            
-            
-            // Otherwise build a ɸ-function.
-            xec_ssa_phi* phi = new ( root->alloc ) xec_ssa_phi();
-            phi->definitions.reserve( defs.size() );
-            extend( &phi->definitions, defs );
-            xec_ssa_op phiop( -1, XEC_SSA_PHI, phi );
-            xec_ssa_opref phiref = addop( block->block->phi, phiop );
-            block->defined.emplace( name, phiref );
-            return phiref;
-        }
-    }
-    else
-    {
-        // This is an unsealed block - create incomplete ɸ-function.
-        xec_ssa_op phiop( -1, XEC_SSA_PHI, (xec_ssa_phi*)NULL );
-        xec_ssa_opref phiref = addop( block->block->phi, phiop );
-        block->incomplete.emplace( phiref, name );
-        block->defined.emplace( name, phiref );
-        return phiref;
-    }
-
-}
-
-
-bool xec_ssa_builder::check_valid( xec_ssa_opref* defs, size_t size )
-{
-    for ( size_t i = 0; i < size; ++i )
-    {
-        if ( defs[ i ] )
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-
-xec_ssa_opref xec_ssa_builder::check_single(
-                xec_ssa_opref phiref, xec_ssa_opref* defs, size_t size )
-{
-    xec_ssa_opref single = XEC_SSA_INVALID;
-    size_t i = 0;
-    for ( ; i < size; ++i )
-    {
-        if ( defs[ i ] != phiref )
-        {
-            single = defs[ i ];
-            break;
-        }
-    }
-    for ( ; i < size; ++i )
-    {
-        if ( defs[ i ] != phiref && defs[ i ] != single )
-        {
-            return XEC_SSA_INVALID;
-        }
-    }
-    return single;
-}
-
-
-void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
-{
-    assert( ! block->sealed );
-    block->sealed = true;
-
-    // All existing ɸ-functions in the block are incomplete.  Note that this
-    // process may create pointless ɸ-functions which refer only to a single
-    // other name.
-    xec_ssa_slice* slice = block->block->phi;
-    for ( size_t i = 0; i < slice->ops.size(); ++i )
-    {
-        xec_ssa_op& phiop = slice->ops.at( i );
-        xec_ssa_opref phiref;
-        phiref.slice = slice->index;
-        phiref.index = (int)i;
-        
-        void* name = block->incomplete.at( phiref );
-        
-        b->visitmark += 1;
-        
-        std::vector< xec_ssa_opref > defs;
-        defs.reserve( block->block->previous.size() );
-        
-        for ( size_t i = 0; i < block->block->previous.size(); ++i )
-        {
-            xec_ssa_block* prev = block->block->previous.at( i );
-            xec_ssa_build_block* pblock = b->blockmap.at( prev );
-            xec_ssa_opref d = lookup_name( pblock, name );
-            if ( d == XEC_SSA_UNDEF )
-            {
-                // Undefined in at least one code path, undefined.
-                root->script->error( -1, "undefined" );
-                return;
-            }
-            defs.push_back( d );
-        }
-        
-        
-        // If all definitions are the same (apart from recursive
-        // definitions) then the ɸ-function is unecessary.
-        xec_ssa_opref single = check_single( phiref, defs.data(), defs.size() );
-        if ( single )
-        {
-            // Change phiop to a ref.
-            phiop.opcode   = XEC_SSA_REF;
-            phiop.operanda = single;
-            phiop.operandb = XEC_SSA_INVALID;
-            
-            block->defined.erase( name );
-            block->defined.emplace( name, single );
-        }
-        else
-        {
-            // Otherwise build a ɸ-function.
-            xec_ssa_phi* phi = new ( root->alloc ) xec_ssa_phi();
-            phi->definitions.reserve( defs.size() );
-            extend( &phi->definitions, defs );
-            phiop.phi = phi;
-        }
-    }
-}
-
-
-
-
-
-
-
-
-
-#endif
 
 
 

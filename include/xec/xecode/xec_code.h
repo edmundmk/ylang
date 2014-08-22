@@ -14,7 +14,8 @@
 
 
 /*
-    A simple instruction set designed to implement the xec language.
+    A simple instruction set designed to implement the xec language.  Owes
+    a debt to the design of the Lua virtual machine (as does the language).
     
     Potential extensions allowing very large functions which exceed some of
     the current limits are shown commented out.
@@ -94,9 +95,9 @@ enum xec_opcode
     XEC_TABLE,      // r = new table (reserve c indexes)
 
     XEC_ARRAY,      // r = new array (reserve c indexes)
-    XEC_UNPACK,     // r .. set @unpacked = a[ (immediate)b .. end ]
+    XEC_UNPACK,     // r .. set @mark = a[ (immediate)b .. end ]
     XEC_APPEND,     // append r to (array)a
-    XEC_EXTEND,     // append r .. @unpacked to (array)a
+    XEC_EXTEND,     // append r .. @mark to (array)a
     
     XEC_CLOSURE,    // r = function closure of functions[ c ]
     XEC_ENVUP,      // add upvals[ c ] to previous function closure
@@ -104,12 +105,12 @@ enum xec_opcode
     XEC_VARARG,     // r = varargs[ c ]
     XEC_VARALL,     // r .. set @top = varargs
     
-    XEC_CALL,       // r .. r + b = call r .. r + a (with @unpacked)
-    XEC_YCALL,      // r .. r + b = yield call r .. r + a (with @unpacked)
-    XEC_YIELD,      // r .. r + b = yield r .. r + a (with @unpacked)
-    XEC_NEW,        // r = new a .. a + b (with @unpacked)
+    XEC_CALL,       // r .. r + b = call r .. r + a (with @mark)
+    XEC_YCALL,      // r .. r + b = yield call r .. r + a (with @mark)
+    XEC_YIELD,      // r .. r + b = yield r .. r + a (with @mark)
+    XEC_NEW,        // r = new a .. a + b (with @mark)
     
-    XEC_RETURN,     // return r .. r + a (with @unpacked)
+    XEC_RETURN,     // return r .. r + a (with @mark)
 
 };
 
@@ -125,6 +126,8 @@ enum xec_opcode
     Where r and a always index registers, and b either indexes a register or
     is an unsigned index.  c is an unsigned index, while j is a signed jump
     offset from the next instruction.
+    
+    a and b can also be register counts, or the special value XEC_MARK.
 */
 
 struct xec_opinst
@@ -149,11 +152,11 @@ struct xec_opinst
 
 /*
     This marker indicates that instead of a fixed number of values, either
-    unpack all available values and set the @unpacked marker, or use all
-    values from the base up to the @unpacked marker.
+    unpack all available values and set the @mark, or use all values from
+    the base up to the @mark.
 */
 
-static const unsigned XEC_UNPACKED = 0xFF;
+static const unsigned XEC_MARK = 0xFF;
 
 
 
