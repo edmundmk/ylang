@@ -200,11 +200,9 @@ enum xec_ssa_opcode
     XEC_SSA_EACH,       // make iterator for object key
     XEC_SSA_APPEND,     // append to an array
     XEC_SSA_EXTEND,     // extend an array with unpacked
-    XEC_SSA_CATCH,      // catch unwinding exception
-    XEC_SSA_RETHROW,    // rethrow unwinding exception
     
     XEC_SSA_FIRST_REF   = XEC_SSA_REF,
-    XEC_SSA_LAST_REF    = XEC_SSA_RETHROW,
+    XEC_SSA_LAST_REF    = XEC_SSA_EXTEND,
 
     // w/ key
     XEC_SSA_KEY,        // object.key

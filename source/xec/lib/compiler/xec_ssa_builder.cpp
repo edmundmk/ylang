@@ -1665,7 +1665,7 @@ bool xec_ssabuild( xec_ast* ast )
     xec_ssa_builder builder( &ssa );
     builder.build( ast );
 
-/*
+
     // Perform optimizations.
 
     xec_ssa_dfo dfo( &ssa );
@@ -1691,7 +1691,7 @@ bool xec_ssabuild( xec_ast* ast )
         loops.build_forest( func, &dfo );
         liveness.analyze_func( func, &dfo, &loops );
     }
-  */  
+
     
     // Print.
     

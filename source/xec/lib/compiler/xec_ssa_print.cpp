@@ -137,8 +137,6 @@ public:
         add( XEC_SSA_EACH,      "each"      );
         add( XEC_SSA_APPEND,    "append"    );
         add( XEC_SSA_EXTEND,    "extend"    );
-        add( XEC_SSA_CATCH,     "catch"     );
-        add( XEC_SSA_RETHROW,   "rethrow"   );
 
         add( XEC_SSA_KEY,       "key"       );
         add( XEC_SSA_DELKEY,    "delkey"    );
