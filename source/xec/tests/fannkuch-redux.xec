@@ -65,8 +65,7 @@ function fannkuch( n )
             q[ r ] = q0;
             c[ r ] = c[ r ] - 1;
             if ( c[ r ] > 0 )
-//                break;
-                continue;
+                break;
             
             r += 1;
         }

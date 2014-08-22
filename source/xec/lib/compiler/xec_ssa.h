@@ -273,12 +273,12 @@ struct xec_ssa_opref
 
     union
     {
-    unsigned    value;
         struct
         {
     unsigned    slice : 20;   // maximum of 1mi slices per function
     unsigned    index : 12;   // actual number of ops per slice is likely small
         };
+    unsigned    value;
     };
 };
 
@@ -293,9 +293,11 @@ template <> struct hash< xec_ssa_opref >
 bool operator == ( const xec_ssa_opref& a, const xec_ssa_opref& b );
 bool operator != ( const xec_ssa_opref& a, const xec_ssa_opref& b );
 
-static const xec_ssa_opref XEC_SSA_INVALID = { 0xFFFFFFFF };
-static const xec_ssa_opref XEC_SSA_FOREVER = { 0xFFFFFFFE };
-static const xec_ssa_opref XEC_SSA_UNDEF   = { 0xFFFFFFFD };
+static const xec_ssa_opref XEC_SSA_INVALID = { 0xFFFFF, 0xFFF };
+static const xec_ssa_opref XEC_SSA_FOREVER = { 0xFFFFF, 0xFFE };
+static const xec_ssa_opref XEC_SSA_UNDEF   = { 0xFFFFF, 0xFFD };
+static const xec_ssa_opref XEC_SSA_LOOP    = { 0xFFFFF, 0xFFC };
+static const xec_ssa_opref XEC_SSA_SELF    = { 0xFFFFF, 0xFFB };
 
 
 

@@ -1,6 +1,4 @@
 
-/*
-
 var a;
 var b;
 for (;;)
@@ -11,19 +9,3 @@ for (;;)
 
 }
 
-*/
-
-var x = 0;
-
-while ( true )
-{
-    var y = x;
-}
-
-while ( true )
-{
-    while ( true )
-    {
-        var z = x;
-    }
-}
