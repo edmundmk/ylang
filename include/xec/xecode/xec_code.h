@@ -59,7 +59,7 @@ enum xec_opcode
     XEC_KEY,        // r = a lookup keys[ b ]
     XEC_INKEY,      // r = a lookup (string)b
     XEC_INDEX,      // r = a index b
-    XEC_INIMM,      // r = a index (immediate)b
+    XEC_ELEM,       // r = a index (immediate)b
     XEC_GLOBAL,     // r = global keys[ b ]
     
     XEC_SETKEY,     // a lookup keys[ b ] = r

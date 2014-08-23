@@ -8,9 +8,9 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <xec/xec_script.h>
-#include <xec/xec_ast.h>
-#include <xec/xec_ast_print.h>
+#include <xec/parser/xec_script.h>
+#include <xec/parser/xec_ast.h>
+#include <xec/parser/xec_ast_print.h>
 
 
 
