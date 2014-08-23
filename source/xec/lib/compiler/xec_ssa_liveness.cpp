@@ -33,8 +33,10 @@
 
 
 /*
-    TODO: Eliminate XEC_SSA_FOREVER and allow live spans that cross
-            block boundaries.
+    TODO: Eliminate XEC_SSA_FOREVER and merge live spans in adjacent
+            blocks to create spans that cross block boundaries - this
+            will massively reduce span count and make register
+            allocation faster.
 */
 
 

@@ -78,7 +78,7 @@ void xec_ssa_regalloc::build_phiequiv()
             // is likely to be at the 'bottom' of a loop and therefore the
             // most frequently encountered.
             
-            for ( int i = (int)op.phi->definitions.size() - 1; i >= 0; ++i )
+            for ( int i = (int)op.phi->definitions.size() - 1; i >= 0; --i )
             {
                 attempt_equiv( phiref, op.phi->definitions.at( i ) );
             }
@@ -118,7 +118,31 @@ void xec_ssa_regalloc::attempt_equiv( xec_ssa_opref a, xec_ssa_opref b )
     // Live ranges don't interfere, merge the two live ranges.  Do this by
     // adding b's live range to a, and setting the equiv class of each def
     // in b to the head of a.
-
+    xec_ssa_opref* prev = &func->getop( a )->lnext;
+    while ( b )
+    {
+        while ( *prev && refcmp( *prev, b ) < 0 /* *prev < b */ )
+        {
+            // Next span in a comes before span b.  Move to next span in a.
+            prev = &func->getop( *prev )->lnext;
+        }
+        
+        
+        // b is now in a's equiv class.
+        xec_ssa_op* bop = func->getop( b );
+        if ( bop->opcode != XEC_SSA_LIVE )
+        {
+            equivmap[ b ] = a;
+        }
+        
+        
+        // Link span b into a.
+        xec_ssa_opref bnext = bop->lnext;
+        bop->lnext = *prev;
+        *prev = b;
+        prev = &bop->lnext;
+        b = bnext;
+    }
 
 }
 

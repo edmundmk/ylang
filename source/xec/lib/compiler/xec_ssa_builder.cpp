@@ -1399,6 +1399,7 @@ xec_ssa_opref xec_ssa_builder::ensure_phi( xec_ssa_build_block* block )
 #include "xec_ssa_cfganalysis.h"
 #include "xec_opt_constfold.h"
 #include "xec_ssa_liveness.h"
+#include "xec_ssa_regalloc.h"
 
 
 bool xec_ssabuild( xec_ast* ast )
@@ -1423,10 +1424,11 @@ bool xec_ssabuild( xec_ast* ast )
     }
 
 
-    // Calculate liveness.
+    // Calculate liveness and do register allocation.
 
     xec_ssa_loop_forest loops( &ssa );
     xec_ssa_liveness liveness( &ssa );
+    xec_ssa_regalloc regalloc( &ssa );
     
     for ( size_t i = 0; i < ssa.functions.size(); ++i )
     {
@@ -1434,6 +1436,7 @@ bool xec_ssabuild( xec_ast* ast )
         dfo.build_ordering( func );
         loops.build_forest( func, &dfo );
         liveness.analyze_func( func, &dfo, &loops );
+        regalloc.allocate( func, &dfo );
     }
 
     
