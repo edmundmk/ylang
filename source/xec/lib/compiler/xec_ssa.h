@@ -267,14 +267,17 @@ enum xec_ssa_opcode
 
 struct xec_ssa_opref
 {
+    static const int SLICE_BITS = 20;
+    static const int INDEX_BITS = 12;
+
     explicit operator bool();
 
     union
     {
         struct
         {
-    unsigned    slice : 20;   // maximum of 1mi slices per function
-    unsigned    index : 12;   // actual number of ops per slice is likely small
+    unsigned    slice : SLICE_BITS;   // maximum of 1mi slices per function
+    unsigned    index : INDEX_BITS;   // actual number of ops per slice is likely small
         };
     unsigned    value;
     };

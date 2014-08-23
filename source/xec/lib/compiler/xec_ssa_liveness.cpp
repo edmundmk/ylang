@@ -32,6 +32,11 @@
 */
 
 
+/*
+    TODO: Eliminate XEC_SSA_FOREVER and allow live spans that cross
+            block boundaries.
+*/
+
 
 
 xec_ssa_liveness::livespan::livespan(
