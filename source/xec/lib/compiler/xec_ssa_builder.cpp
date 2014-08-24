@@ -1441,8 +1441,8 @@ bool xec_ssabuild( xec_ast* ast )
 
     
     // Print.
-    
     xec_ssa_print( &ssa );
+    
     
     
     return ast->script->error_count() == 0;

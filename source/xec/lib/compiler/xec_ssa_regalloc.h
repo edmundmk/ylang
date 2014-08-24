@@ -23,6 +23,7 @@
 
 
 class xec_ssa_dfo;
+struct xec_ssa_fscan;
 
 
 class xec_ssa_regalloc
@@ -36,6 +37,17 @@ public:
     
 private:
 
+    enum event_kind { LIVE, DEAD, SLEEP, WAKE };
+
+    struct event
+    {
+        event_kind      kind;
+        xec_ssa_opref   at;
+        xec_ssa_opref   value;
+        int             prev;
+    };
+
+
     xec_ssa_opref   equiv( xec_ssa_opref opref );
 
     void            build_phiequiv();
@@ -47,14 +59,18 @@ private:
     uint64_t        opuntil( xec_ssa_opref live );
 
     void            forward_scan();
+    void            forward_slice( xec_ssa_fscan* scan, xec_ssa_slice* slice );
+    
     void            reverse_scan();
 
+    void            print_events();
 
 
     xec_ssa*        root;
     xec_ssa_func*   func;
     xec_ssa_dfo*    dfo;
     std::unordered_map< xec_ssa_opref, xec_ssa_opref > equivmap;
+    std::deque< event > events;
 
 };
 
