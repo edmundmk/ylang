@@ -11,6 +11,8 @@
 
 
 #include <stdint.h>
+#include <hash.h>
+#include <string.h>
 
 
 /*
@@ -23,7 +25,7 @@ enum xec_opcode
     XEC_NOP,
     
     XEC_NULL,       // r = null
-    XEC_K,          // r = constants[ c ]
+    XEC_VALUE,      // r = constants[ c ]
     
     XEC_MOV,        // r = a
     XEC_SWP,        // swap r and a
@@ -84,6 +86,7 @@ enum xec_opcode
     XEC_NEXT,       // r .. r + b = generate (iterator)a
 
     XEC_TABLE,      // r = new table (reserve c indexes)
+    XEC_OBJECT,     // r = new object with proto a.
 
     XEC_ARRAY,      // r = new array (reserve c indexes)
     XEC_UNPACK,     // r .. set @mark = a[ (immediate)b .. end ]
@@ -121,8 +124,10 @@ enum xec_opcode
     a and b can also be register counts, or the special value XEC_MARK.
 */
 
-struct xec_opinst
+class xec_opinst
 {
+public:
+
     xec_opinst( xec_opcode opcode, unsigned r, unsigned a, unsigned b );
     xec_opinst( xec_opcode opcode, unsigned r, unsigned c );
     xec_opinst( xec_opcode opcode, unsigned r, signed j );
@@ -134,6 +139,8 @@ struct xec_opinst
     unsigned    c();
     signed      j();
 
+
+private:
 
     uint32_t i;
     
@@ -148,6 +155,38 @@ struct xec_opinst
 */
 
 static const unsigned XEC_MARK = 0xFF;
+
+
+
+/*
+    Key literals used to look up objects.
+*/
+
+class xec_key
+{
+public:
+
+    static xec_key* create( const char* key );
+    static void destroy( xec_key* key );
+
+    hash32_t    hash() const;
+    const char* c_str() const;
+
+
+private:
+
+    xec_key();
+
+    hash32_t    khash;
+    char        kkey[];
+    
+};
+
+
+bool operator == ( const xec_key& a, const xec_key& b );
+bool operator != ( const xec_key& a, const xec_key& b );
+bool operator < ( const xec_key& a, const xec_key& b );
+
 
 
 
@@ -183,15 +222,66 @@ inline xec_opinst::xec_opinst(
 }
 
 
-inline xec_opcode   xec_opinst::opcode()    { return (xec_opcode)(uint8_t)i; }
-inline unsigned     xec_opinst::r()         { return (uint8_t)( i >> 8 );    }
-inline unsigned     xec_opinst::a()         { return (uint8_t)( i >> 16 );   }
-inline unsigned     xec_opinst::b()         { return (uint8_t)( i >> 24 );   }
-inline unsigned     xec_opinst::c()         { return (uint16_t)( i >> 16 );  }
-inline signed       xec_opinst::j()         { return (int16_t)( i >> 16 );   }
+inline xec_opcode xec_opinst::opcode()
+{
+    return (xec_opcode)(uint8_t)i;
+}
+
+inline unsigned xec_opinst::r()
+{
+    return (uint8_t)( i >> 8 );
+}
+
+inline unsigned xec_opinst::a()
+{
+    return (uint8_t)( i >> 16 );
+}
+
+inline unsigned xec_opinst::b()
+{
+    return (uint8_t)( i >> 24 );
+}
+
+inline unsigned xec_opinst::c()
+{
+    return (uint16_t)( i >> 16 );
+}
+
+inline signed xec_opinst::j()
+{
+    return (int16_t)( i >> 16 );
+}
 
 
 
+
+
+inline hash32_t xec_key::hash() const
+{
+    return khash;
+}
+
+inline const char* xec_key::c_str() const
+{
+    return kkey;
+}
+
+
+inline bool operator == ( const xec_key& a, const xec_key& b )
+{
+    return a.hash() == b.hash() && strcmp( a.c_str(), b.c_str() ) == 0;
+}
+
+inline bool operator != ( const xec_key& a, const xec_key& b )
+{
+    return !( a == b );
+}
+
+inline bool operator < ( const xec_key& a, const xec_key& b )
+{
+    return a.hash() < b.hash() ||
+        ( a.hash() == b.hash() && strcmp( a.c_str(), b.c_str() ) < 0 );
+}
 
 
 
