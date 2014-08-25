@@ -378,6 +378,8 @@ void xec_ssa_regalloc::forward_scan()
         {
             e.prev = i->second;
         }
+        
+        events.push_back( e );
 
     }
 
