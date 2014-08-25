@@ -625,6 +625,25 @@ xec_ast_node* xec_parser::lookup( int sloc, const char* identifier, bool outer )
 }
 
 
+xec_ast_node* xec_parser::key( int sloc, xec_ast_node* obj, const char* key )
+{
+    if ( obj->kind == XEC_EXPR_GLOBAL )
+    {
+        xec_expr_global* global = (xec_expr_global*)obj;
+        if ( ! global->gexplicit && strcmp( global->name, "global" ) == 0 )
+        {
+            // It's an explicit global.
+            global->gexplicit = true;
+            global->name = key;
+            return global;
+        }
+    }
+
+    return alloc< xec_expr_key >( sloc, obj, key );
+}
+
+
+
 xec_ast_node* xec_parser::lvalue( xec_ast_node* lvalue )
 {
     // The expression must be a single lvalue.  Only a restricted set of
@@ -1040,7 +1059,7 @@ xec_ast_node* xec_parser::declqual( int sloc, xec_ast_node* name, bool outer )
     {
         xec_name_qual* q = (xec_name_qual*)name;
         xec_ast_node* scope = declqual( q->sloc, q->scope, outer );
-        return alloc< xec_expr_key >( sloc, scope, q->name );
+        return key( sloc, scope, q->name );
     }
     assert( ! "invalid declaration name" );
 }

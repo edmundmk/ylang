@@ -24,7 +24,7 @@ int main( int argc, char* argv[] )
     if ( ! xec_parse( &script, &ast, argv[ 1 ], 2, sargv ) )
         goto error;
     
-//    xec_ast_print( &ast );
+    xec_ast_print( &ast );
     
     if ( ! xec_ssabuild( &ast ) )
         goto error;

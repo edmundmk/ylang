@@ -38,6 +38,8 @@ void xec_ssa_translateout::translateout( xec_ssa_func* func, xec_ssa_dfo* dfo )
 
 void xec_ssa_translateout::translateout( xec_ssa_block* block )
 {
+#if 0
+
     for ( size_t i = 0; i < block->ops->ops.size(); ++i )
     {
         xec_ssa_op* op = &block->ops->ops.at( i );
@@ -126,94 +128,116 @@ void xec_ssa_translateout::translateout( xec_ssa_block* block )
         }
         
         case XEC_SSA_POS:
-            inst( XEC_POS, op->r, op->operanda );
+            inst( XEC_POS, op->r, o( op->operanda ), 0 );
             break;
         case XEC_SSA_NEG:
-            inst( XEC_NEG, op->r, op->operanda );
+            inst( XEC_NEG, op->r, o( op->operanda ), 0 );
             break;
         case XEC_SSA_NOT:
-            inst( XEC_LNOT, op->r, op->operanda );
+            inst( XEC_LNOT, op->r, o( op->operanda ), 0 );
             break;
         case XEC_SSA_BITNOT:
-            inst( XEC_NOT, op->r, op->operanda );
+            inst( XEC_NOT, op->r, o( op->operanda ), 0 );
             break;
         
         case XEC_SSA_MUL:
-            inst( XEC_MUL, op->r, op->operanda, op->operandb );
+            inst( XEC_MUL, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_DIV:
-            inst( XEC_DIV, op->r, op->operanda, op->operandb );
+            inst( XEC_DIV, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_MOD:
-            inst( XEC_DIV, op->r, op->operanda, op->operandb );
+            inst( XEC_DIV, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_INTDIV:
-            inst( XEC_INTDIV, op->r, op->operanda, op->operandb );
+            inst( XEC_INTDIV, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_ADD:
-            inst( XEC_ADD, op->r, op->operanda, op->operandb );
+            inst( XEC_ADD, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_SUB:
-            inst( XEC_SUB, op->r, op->operanda, op->operandb );
+            inst( XEC_SUB, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_LSL:
-            inst( XEC_LSL, op->r, op->operanda, op->operandb );
+            inst( XEC_LSL, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_LSR:
-            inst( XEC_LSR, op->r, op->operanda, op->operandb );
+            inst( XEC_LSR, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_ASR:
-            inst( XEC_ASR, op->r, op->operanda, op->operandb );
+            inst( XEC_ASR, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_BITAND:
-            inst( XEC_AND, op->r, op->operanda, op->operandb );
+            inst( XEC_AND, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_BITXOR:
-            inst( XEC_XOR, op->r, op->operanda, op->operandb );
+            inst( XEC_XOR, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_BITOR:
-            inst( XEC_OR, op->r, op->operanda, op->operandb );
+            inst( XEC_OR, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_CONCAT:
-            inst( XEC_CONCAT, op->r, op->operanda, op->operandb );
+            inst( XEC_CONCAT, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         
         case XEC_SSA_EQ:
-            inst( XEC_EQ, op->r, op->operanda, op->operandb );
+            inst( XEC_EQ, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_LT:
-            inst( XEC_LT, op->r, op->operanda, op->operandb );
+            inst( XEC_LT, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_LE:
-            inst( XEC_LE, op->r, op->operanda, op->operandb );
+            inst( XEC_LE, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_IN:
-            inst( XEC_IN, op->r, op->operanda, op->operandb );
+            inst( XEC_IN, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_IS:
-            inst( XEC_IS, op->r, op->operanda, op->operandb );
+            inst( XEC_IS, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_XOR:
-            inst( XEC_LXOR, op->r, op->operanda, op->operandb );
+            inst( XEC_LXOR, op->r, o( op->operanda ), o( op->operandb ) );
             break;
 
         case XEC_SSA_INKEY:
-            inst( XEC_INKEY, op->r, op->operanda, op->operandb );
+            inst( XEC_INKEY, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_INDEX:
-            inst( XEC_INDEX, op->r, op->operanda, op->operandb );
+            inst( XEC_INDEX, op->r, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_DELINKEY:
-            inst( XEC_DELINKEY, op->operanda, op->operandb );
+            inst( XEC_DELINKEY, o( op->operanda ), o( op->operandb ) );
             break;
         case XEC_SSA_OBJECT:
-            inst( XEC_OBJECT, op->r, op->operanda );
+            inst( XEC_OBJECT, op->r, o( op->operanda ), 0 );
+            break;
+        case XEC_SSA_ITER:
+            inst( XEC_ITER, op->r, o( op->operanda ), 0 );
+            break;
+        case XEC_SSA_EACH:
+            inst( XEC_ITERKEY, op->r, o( op->operanda ), 0 );
+            break;
+
+        case XEC_SSA_APPEND:
+            inst( XEC_ITERKEY, o( op->operandb ), o( op->operanda ), 0 );
+            break;
+        
+        case XEC_SSA_KEY:
+            inst( XEC_KEY, op->r, o( op->operanda ), k( op->immkey ) );
+            break;
+        
+        case XEC_SSA_DELKEY:
+            inst( XEC_DELKEY, 0, o( op->operanda ), k( op->immkey ) );
             break;
             
+        case XEC_SSA_GLOBAL:
+            inst( XEC_GLOBAL, op->r, 0, k( op->immkey ) );
+            break;
+        
+        case XEC_SSA_SETGLOBAL:
+            break;
+
 /*
-    XEC_SSA_ITER,       // make iterator for a list
-    XEC_SSA_EACH,       // make iterator for object key
-    XEC_SSA_APPEND,     // append to an array
     
     // w/ key
     XEC_SSA_KEY,        // object.key
@@ -264,5 +288,5 @@ void xec_ssa_translateout::translateout( xec_ssa_block* block )
     
     }
 
-
+#endif
 }

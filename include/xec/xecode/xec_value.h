@@ -115,6 +115,11 @@ inline xec_value::xec_value( double number )
 {
 }
 
+inline xec_value::xec_value( bool boolean )
+    :   i( MARK_BOOL | (uint64_t)boolean )
+{
+}
+
 inline xec_value::xec_value( void* native )
     :   i( MARK_NULL | (uint64_t)native )
 {

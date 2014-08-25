@@ -1,4 +1,13 @@
 
+
+global.x = 2;
+var y = global.x;
+
+function global.func()
+{
+}
+
+
 var a;
 var b;
 for (;;)
@@ -8,4 +17,5 @@ for (;;)
     b = t;
 
 }
+
 

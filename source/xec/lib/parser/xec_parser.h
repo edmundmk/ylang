@@ -75,6 +75,7 @@ public:
 
 
     xec_ast_node*       lookup( int sloc, const char* identifier, bool outer );
+    xec_ast_node*       key( int sloc, xec_ast_node* obj, const char* key );
 
     xec_ast_node*       lvalue( xec_ast_node* lv );
     void                lvalue_list(

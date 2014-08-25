@@ -796,6 +796,14 @@ void xec_ssa_builder::lvalue( xec_ssa_lvalue* lvalue, xec_ast_node* node )
         break;
     }
     
+    case XEC_EXPR_GLOBAL:
+    {
+        xec_expr_global* global = (xec_expr_global*)node;
+        lvalue->opcode = XEC_SSA_GLOBAL;
+        lvalue->key = key( global->name );
+        break;
+    }
+    
     case XEC_EXPR_UPREF:
     {
         xec_expr_upref* upref = (xec_expr_upref*)node;
@@ -844,6 +852,9 @@ xec_ssa_opref xec_ssa_builder::lvalue_value( xec_ssa_lvalue* lvalue )
     case XEC_SSA_NOP:
         return lookup( lvalue->sloc, lvalue->local );
     
+    case XEC_SSA_GLOBAL:
+        return op( lvalue->sloc, XEC_SSA_GLOBAL, lvalue->key );
+    
     case XEC_SSA_SETUP:
         return op( lvalue->sloc, XEC_SSA_REFUP, lvalue->upval );
     
@@ -869,6 +880,10 @@ xec_ssa_opref xec_ssa_builder::lvalue_assign(
     {
     case XEC_SSA_NOP:
         define( lvalue->local, val );
+        break;
+        
+    case XEC_SSA_GLOBAL:
+        op( lvalue->sloc, XEC_SSA_SETGLOBAL, val, lvalue->key );
         break;
         
     case XEC_SSA_SETUP:
@@ -1409,6 +1424,9 @@ bool xec_ssabuild( xec_ast* ast )
     xec_ssa ssa;
     xec_ssa_builder builder( &ssa );
     builder.build( ast );
+    
+    xec_ssa_print( &ssa );
+    return true;
 
 
     // Perform optimizations.

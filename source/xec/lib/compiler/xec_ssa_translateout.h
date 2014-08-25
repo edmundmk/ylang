@@ -41,11 +41,13 @@ public:
 private:
 
     void translateout( xec_ssa_block* block );
+    
+    int k( int immkey );
+    int o( xec_ssa_opref operand );
+    
     void inst( xec_opcode op, int r );
+    void inst( xec_opcode op, int r, int a, int b );
     void inst( xec_opcode op, int r, int c );
-    void inst( xec_opcode op, int r, xec_ssa_opref operand );
-    void inst( xec_opcode op, int r, xec_ssa_opref lhs, xec_ssa_opref rhs );
-    void inst( xec_opcode op, xec_ssa_opref a, xec_ssa_opref b );
 
     xec_ssa* root;
     xec_ssa_func* func;

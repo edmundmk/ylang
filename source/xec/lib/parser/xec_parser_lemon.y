@@ -354,7 +354,7 @@ expr_index(x)   ::= OBJECT(token) .
                 }
 expr_index(x)   ::= expr_index(expr) PERIOD IDENTIFIER(token) .
                 {
-                    x = p->alloc< xec_expr_key >( expr->sloc, expr, token->text );
+                    x = p->key( expr->sloc, expr, token->text );
                     p->destroy( token );
                 }
 expr_index(x)   ::= expr_index(expr) PERIOD LSQ expr_value(key) RSQ .
@@ -395,8 +395,7 @@ expr_postfix(x) ::= expr_index(expr) LPN arg_list(args) RPN .
                 }
 expr_postfix(x) ::= expr_postfix(expr) PERIOD IDENTIFIER(token) .
                 {
-                    x = p->alloc< xec_expr_key >(
-                                expr->sloc, expr, token->text );
+                    x = p->key( expr->sloc, expr, token->text );
                     p->destroy( token );
                 }
 expr_postfix(x) ::= expr_postfix(expr) PERIOD LSQ expr_value(index) RSQ .

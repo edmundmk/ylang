@@ -10,6 +10,8 @@
 #define XEC_STRING_H
 
 
+#include <stddef.h>
+
 
 class xec_string
 {
@@ -19,8 +21,11 @@ public:
     static xec_string* create( const char* s, size_t size );
     static xec_string* create( size_t size, char** buffer );
     
-    size_t      size();
-    const char* c_str();
+    void        incref();
+    void        decref();
+    
+    size_t      size() const;
+    const char* c_str() const;
     
 
 private:
@@ -32,6 +37,19 @@ private:
     char        schars[];
     
 };
+
+
+
+inline size_t xec_string::size() const
+{
+    return slength;
+}
+
+inline const char* xec_string::c_str() const
+{
+    return schars;
+}
+
 
 
 
