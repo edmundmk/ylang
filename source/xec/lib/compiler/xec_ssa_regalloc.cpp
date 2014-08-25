@@ -10,6 +10,7 @@
 #include "xec_ssa_regalloc.h"
 #include "xec_ssa_cfganalysis.h"
 #include <queue>
+#include <list>
 
 
 
@@ -42,7 +43,7 @@ void xec_ssa_regalloc::allocate( xec_ssa_func* func, xec_ssa_dfo* dfo )
     // Actually perform register allocation by scanning the event list
     // _from the bottom up_, which allows us to place stack-op (e.g. calls)
     // parameters (well, most of them) after placing the stack-op itself,
-    // meaning fewer moves.
+    // meaning fewer moves (hopefully).
     reverse_scan();
     
 }
@@ -51,6 +52,7 @@ void xec_ssa_regalloc::allocate( xec_ssa_func* func, xec_ssa_dfo* dfo )
 
 xec_ssa_opref xec_ssa_regalloc::equiv( xec_ssa_opref opref )
 {
+    opref = func->operand( opref );
     auto i = equivmap.find( opref );
     if ( i != equivmap.end() )
         return i->second;
@@ -58,7 +60,67 @@ xec_ssa_opref xec_ssa_regalloc::equiv( xec_ssa_opref opref )
         return opref;
 }
 
+
+
+
+uint64_t xec_ssa_regalloc::opindex( xec_ssa_opref opref )
+{
+    // Assume that slices are numbered linearly within a block.  It would be
+    // nice if we could guarantee that oprefs were laid out with the slice
+    // index in the high bits...
     
+    xec_ssa_block* block = func->slices.at( opref.slice )->block;
+    return (uint64_t)block->index << 32
+         | (uint64_t)opref.slice << xec_ssa_opref::INDEX_BITS
+         | (uint64_t)opref.index;
+}
+
+
+uint64_t xec_ssa_regalloc::opuntil( xec_ssa_opref live )
+{
+    xec_ssa_opref until = func->getop( live )->until;
+    if ( until != XEC_SSA_FOREVER )
+    {
+        // Live until op.
+        return opindex( until );
+    }
+    else
+    {
+        // Live until end of block.
+        xec_ssa_block* block = func->slices.at( live.slice )->block;
+        return (uint64_t)block->index << 32
+             | (uint64_t)0xFFFFFFFF;
+    }
+}
+
+
+bool xec_ssa_regalloc::ismark( xec_ssa_op* op )
+{
+    // Mark ops are those which compile to instructions that push an unknown
+    // number of results onto the stack (setting @mark).
+    return ( op->opcode == XEC_SSA_UNPACK && op->immkey == -1 )
+        || ( op->opcode == XEC_SSA_VARARG && op->immkey == -1 )
+        || ( op->opcode == XEC_SSA_CALL && op->args->resultcount == -1 )
+        || ( op->opcode == XEC_SSA_YCALL && op->args->resultcount == -1 )
+        || ( op->opcode == XEC_SSA_YIELD && op->args->resultcount == -1 );
+}
+
+
+bool xec_ssa_regalloc::isstack( xec_ssa_op* op )
+{
+    // Stacklike ops are those which take multiple arguments, which compile to
+    // instructions which require those arguments in particular locations.
+    return ( op->opcode == XEC_SSA_EXTEND )
+        || ( op->opcode == XEC_SSA_CALL )
+        || ( op->opcode == XEC_SSA_YCALL )
+        || ( op->opcode == XEC_SSA_YIELD )
+        || ( op->opcode == XEC_SSA_NEW )
+        || ( op->opcode == XEC_SSA_RETURN );
+}
+
+
+
+
 
 void xec_ssa_regalloc::build_phiequiv()
 {
@@ -86,7 +148,8 @@ void xec_ssa_regalloc::build_phiequiv()
             
             for ( int i = (int)op.phi->definitions.size() - 1; i >= 0; --i )
             {
-                attempt_equiv( phiref, op.phi->definitions.at( i ) );
+                xec_ssa_opref def = op.phi->definitions.at( i );
+                attempt_equiv( phiref, def );
             }
         }
     }
@@ -99,6 +162,15 @@ void xec_ssa_regalloc::attempt_equiv( xec_ssa_opref a, xec_ssa_opref b )
     // of its live range may be different.
     a = equiv( a );
     b = equiv( b );
+
+
+    // If either op compiles to a stacklike instruction then we have less
+    // freedom about which registers to place results in.
+    if ( isstack( func->getop( a ) ) || isstack( func->getop( b ) ) )
+    {
+        return;
+    }
+
 
     // Ensure that a comes before b in the dfo order.
     int order = refcmp( a, b );
@@ -191,6 +263,10 @@ bool xec_ssa_regalloc::interfere( xec_ssa_opref a, xec_ssa_opref b )
 }
 
 
+
+
+
+
 int xec_ssa_regalloc::refcmp( xec_ssa_opref a, xec_ssa_opref b )
 {
     if ( a == b )
@@ -238,38 +314,6 @@ int xec_ssa_regalloc::spancmp( xec_ssa_opref a, xec_ssa_opref b )
     // spans overlap.
     return 0;
 }
-
-
-uint64_t xec_ssa_regalloc::opindex( xec_ssa_opref opref )
-{
-    // Assume that slices are numbered linearly within a block.  It would be
-    // nice if we could guarantee that oprefs were laid out with the slice
-    // index in the high bits...
-    
-    xec_ssa_block* block = func->slices.at( opref.slice )->block;
-    return (uint64_t)block->index << 32
-         | (uint64_t)opref.slice << xec_ssa_opref::INDEX_BITS
-         | (uint64_t)opref.index;
-}
-
-
-uint64_t xec_ssa_regalloc::opuntil( xec_ssa_opref live )
-{
-    xec_ssa_opref until = func->getop( live )->until;
-    if ( until != XEC_SSA_FOREVER )
-    {
-        // Live until op.
-        return opindex( until );
-    }
-    else
-    {
-        // Live until end of block.
-        xec_ssa_block* block = func->slices.at( live.slice )->block;
-        return (uint64_t)block->index << 32
-             | (uint64_t)0xFFFFFFFF;
-    }
-}
-
 
 
 
@@ -354,11 +398,18 @@ void xec_ssa_regalloc::forward_slice(
         uint64_t index = opindex( opref );
 
 
+        // Find until.
+        xec_ssa_opref until = XEC_SSA_INVALID;
+        if ( op->opcode < XEC_SSA_FIRST_SET || op->opcode > XEC_SSA_LAST_SET )
+        {
+            until = op->until;
+        }
+
+
+
         // If this op introduces a new live range then add it to live.
         xec_ssa_opref opequiv = equiv( opref );
-        if ( opequiv == opref && op->until &&
-                ( op->opcode < XEC_SSA_FIRST_SET
-                        || op->opcode > XEC_SSA_LAST_SET ) )
+        if ( until && opref == opequiv )
         {
             xec_ssa_fvalue fvalue;
             fvalue.index = index;
@@ -368,7 +419,7 @@ void xec_ssa_regalloc::forward_slice(
         }
 
 
-        // Kill any live values that are dead at this op.
+        // Kill any values that are dead at this op.
         while ( scan->dead.size() && scan->dead.top().index <= index )
         {
             xec_ssa_fvalue value = scan->dead.top();
@@ -405,6 +456,18 @@ void xec_ssa_regalloc::forward_slice(
         }
         
         
+        // If it's a stacklike op, we must find the stack top for it.
+        if ( isstack( op ) )
+        {
+            event e;
+            e.kind  = STACK;
+            e.at    = opref;
+            e.value = opref;
+            e.prev  = -1;
+            events.push_back( e );
+        }
+        
+        
         // Wake any values that are live at this op.
         while ( scan->live.size() && scan->live.top().index <= index )
         {
@@ -412,7 +475,7 @@ void xec_ssa_regalloc::forward_slice(
             xec_ssa_op* spanop = func->getop( value.span );
             scan->live.pop();
             
-            // Add live/sleep event.
+            // Add live/wake event.
             event e;
             e.kind  = ( value.value == value.span ) ? LIVE : WAKE;
             e.at    = opref;
@@ -473,28 +536,321 @@ void xec_ssa_regalloc::forward_slice(
             fvalue.span  = span;
             scan->dead.push( fvalue );
         }
+        
+        
     }
         
 }
 
 
-
-
+struct xec_ssa_ralloc
+{
+    xec_ssa_opref   value;
+    int             index;
+    xec_ssa_ralloc* asleep;
+};
 
 
 
 void xec_ssa_regalloc::reverse_scan()
 {
     // Go through the list of live events from the bottom up and actually
-    // finally perform register allocation.
+    // finally perform register allocation.  Note that because we do
+    // allocation backwards DEAD <-> LIVE and SLEEP <-> WAKE.
+
+    std::vector< xec_ssa_ralloc > allocs;
+    
+    for ( int i = (int)events.size() - 1; i >= 0; --i )
+    {
+        const event& e = events.at( i );
+        xec_ssa_op* op = func->getop( e.at );
+        
+        switch ( e.kind )
+        {
+        case DEAD: /* LIVE */
+        {
+            int r = -1;
+        
+            // If it's dead _at_ a stacklike instruction, attempt to allocate
+            // it the register that it needs to be in to make the stacklike
+            // instruction work.
+            if ( op && isstack( op ) )
+            {
+                assert( op->args->stacktop != -1 );
+                assert( op->opcode >= XEC_SSA_FIRST_ARG
+                            && op->opcode <= XEC_SSA_LAST_ARG );
+
+                // Find register.
+                int stackr;
+                for ( size_t i = 0; i < op->args->args.size(); ++i )
+                {
+                    xec_ssa_opref operand = op->args->args.at( i );
+                    operand = func->operand( operand );
+                    if ( operand == e.value )
+                    {
+                        stackr = op->args->stacktop + (int)i;
+                        break;
+                    }
+                }
+                if ( op->args->unpacked == e.value )
+                {
+                    stackr = op->args->stacktop + (int)op->args->args.size();
+                }
+                
+                
+                // Check if the desired register is in use.
+                r = check_alloc( allocs, stackr, i );
+            }
+            
+            
+            // Find first value where we can allocate this value.
+            for ( int searchr = 0;
+                        r == -1 && searchr < allocs.size(); ++searchr )
+            {
+                r = check_alloc( allocs, searchr, i );
+            }
+            
+            if ( r == -1 )
+            {
+                r = (int)allocs.size();
+            }
+            
+            while ( r >= allocs.size() )
+            {
+                xec_ssa_ralloc empty;
+                empty.value  = XEC_SSA_INVALID;
+                empty.index  = -1;
+                empty.asleep = NULL;
+                allocs.push_back( empty );
+            }
+            
+            // Actually allocate.
+            xec_ssa_ralloc* alloc = &allocs.at( r );
+            alloc->value = e.value;
+            alloc->index = i;
+        
+            break;
+        }
+        
+        case WAKE: /* SLEEP */
+        {
+            // No longer live but sleeping.
+            int r = find_alloc( allocs, e.value );
+            xec_ssa_ralloc* alloc = &allocs.at( r );
+            alloc->asleep = new xec_ssa_ralloc( *alloc );
+            alloc->value  = XEC_SSA_INVALID;
+            alloc->index  = -1;
+            break;
+        }
+        
+        case SLEEP: /* WAKE */
+        {
+            // No longer sleeping but live.
+            int r = find_asleep( allocs, e.value );
+            xec_ssa_ralloc* alloc = &allocs.at( r );
+            assert( ! alloc->value );
+            xec_ssa_ralloc* asleep = alloc->asleep;
+            *alloc = *asleep;
+            delete asleep;
+            break;
+        }
+        
+        case LIVE: /* DEAD */
+        {
+            // Dead.
+            int r = find_alloc( allocs, e.value );
+            xec_ssa_ralloc* alloc = &allocs.at( r );
+            assert( alloc->value );
+            alloc->value  = XEC_SSA_INVALID;
+            alloc->index  = -1;
+            
+            // But remember register.
+            op->r = r;
+            break;
+        }
+                
+        case STACK:
+        {
+            // If this is a stacklike instruction, then we must find the top
+            // of the stack at this point.  However if it's _also_ a mark
+            // instruction then it should already have been allocated the
+            // 'stack top' it requires as the SSA ops should be ordered such
+            // that it dies at the next stacklike instruction.
+            
+            assert( op->opcode >= XEC_SSA_FIRST_ARG
+                        && op->opcode <= XEC_SSA_LAST_ARG );
+
+            int r = (int)allocs.size() - 1;
+            for ( ; r >= 0; --r )
+            {
+                xec_ssa_ralloc* alloc = &allocs.at( r );
+                if ( alloc->value )
+                {
+                    // It's live.
+                    break;
+                }
+            }
+            
+            op->args->stacktop = r + 1;
+            break;
+        }
+        }
+    
+    }
     
     
-
-
+    
+    // Ensure that all equiv ops get their registers set.
+    for ( auto i = equivmap.begin(); i != equivmap.end(); ++i )
+    {
+        xec_ssa_op* op = func->getop( i->first );
+        xec_ssa_op* equiv = func->getop( i->second );
+  
+        assert( op->r == -1 );
+        assert( equiv->r != -1 );
+/*
+        printf( "%04X:%02X (%2d) -> %04X:%02X (%2d)\n",
+                i->first.slice, i->first.index, op->r,
+                i->second.slice, i->second.index, equiv->r );
+*/
+        op->r = equiv->r;
+    }
+    
 
 }
 
 
+int xec_ssa_regalloc::check_alloc(
+            const std::vector< xec_ssa_ralloc >& allocs, int r, int index )
+{
+    if ( r >= allocs.size() )
+    {
+        // Register hasn't been allocated ever, so it's fine.
+        return r;
+    }
+
+    // Check alloc.
+    const xec_ssa_ralloc* alloc = &allocs.at( r );
+    
+    if ( alloc->value )
+    {
+        // Alloc is live.
+        return -1;
+    }
+ 
+    for ( xec_ssa_ralloc* asleep = alloc->asleep;
+                    asleep; asleep = asleep->asleep )
+    {
+        // Check if new value interferes with asleep value.
+        if ( interfere( asleep->index, index ) )
+        {
+            return -1;
+        }
+    }
+    
+    return r;
+}
+
+
+int xec_ssa_regalloc::find_alloc(
+            const std::vector< xec_ssa_ralloc >& allocs, xec_ssa_opref value )
+{
+    for ( int i = 0; i < allocs.size(); ++i )
+    {
+        const xec_ssa_ralloc* alloc = &allocs.at( i );
+        if ( alloc->value == value )
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+
+
+int xec_ssa_regalloc::find_asleep(
+            const std::vector< xec_ssa_ralloc >& allocs, xec_ssa_opref value )
+{
+    for ( int i = 0; i < allocs.size(); ++i )
+    {
+        const xec_ssa_ralloc* alloc = &allocs.at( i );
+        if ( alloc->asleep && alloc->asleep->value == value )
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
+
+
+
+bool xec_ssa_regalloc::interfere( int a, int b )
+{
+    xec_ssa_opref aref = events[ a ].value;
+    xec_ssa_opref bref = events[ b ].value;
+
+    assert( events[ a ].kind == DEAD );
+    assert( events[ b ].kind == DEAD );
+    int aprev = events[ a ].prev;
+    int bprev = events[ b ].prev;
+    assert( aprev != -1 );
+    assert( bprev != -1 );
+
+    /*
+        Spans:
+            aprev -> a
+            bprev -> b
+    */
+    
+    // Check each span in a.
+    while ( true )
+    {
+        assert( a != b );
+        
+        // Ignore spans in b that are wholly after the a span.
+        if ( bprev > a )
+        {
+            // Move onto previous b span.
+            b = events[ bprev ].prev;
+            if ( b == -1 )
+            {
+                break;
+            }
+            assert( events[ b ].kind == SLEEP );
+            bprev = events[ b ].prev;
+            assert( bprev != -1 );
+            continue;
+        }
+        
+            
+        // If the a span is wholly after the b span.
+        if ( aprev > b )
+        {
+            // Move onto previous a span.
+            a = events[ aprev ].prev;
+            if ( a == -1 )
+            {
+                break;
+            }
+            assert( events[ a ].kind == SLEEP );
+            aprev = events[ a ].prev;
+            assert( aprev != -1 );
+            continue;
+        }
+            
+            
+        // Otherwise the spans overlap.
+        return true;
+    }
+    
+    
+    // Ranges do not overlap.
+    assert( ! interfere( aref, bref ) );
+    return false;
+}
 
 
 
@@ -520,6 +876,7 @@ void xec_ssa_regalloc::print_events()
         case DEAD:      printf( "dead  " );     break;
         case SLEEP:     printf( "sleep " );     break;
         case WAKE:      printf( "wake  " );     break;
+        case STACK:     printf( "stack " );     break;
         }
         printf( "%04X:%02X\n", e.value.slice, e.value.index );
     }

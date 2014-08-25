@@ -242,6 +242,8 @@ void xec_ssa_printer::print_op( xec_ssa_func* func, xec_ssa_op& op )
         }
     }
     printf( "] " );
+    
+    printf( "(%2d) ", op.r );
 
     const char* opname = opnames.lookup( op.opcode );
     printf( "%-9s", opname );
@@ -297,6 +299,7 @@ void xec_ssa_printer::print_op( xec_ssa_func* func, xec_ssa_op& op )
     else if ( op.opcode >= XEC_SSA_FIRST_ARG
                 && op.opcode <= XEC_SSA_LAST_ARG )
     {
+        printf( " (%2d)", op.args->stacktop );
         printf( " $%d", op.args->resultcount );
         for ( size_t i = 0; i < op.args->args.size(); ++i )
         {

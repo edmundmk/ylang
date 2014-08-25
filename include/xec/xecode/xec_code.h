@@ -16,9 +16,6 @@
 /*
     A simple instruction set designed to implement the xec language.  Owes
     a debt to the design of the Lua virtual machine (as does the language).
-    
-    Potential extensions allowing very large functions which exceed some of
-    the current limits are shown commented out.
 */
 
 enum xec_opcode
@@ -27,9 +24,6 @@ enum xec_opcode
     
     XEC_NULL,       // r = null
     XEC_K,          // r = constants[ c ]
-    
-//  XEC_SPILL,      // longr[ c ] = r
-//  XEC_LOAD,       // r = longr[ c ]
     
     XEC_MOV,        // r = a
     XEC_SWP,        // swap r and a
@@ -73,7 +67,7 @@ enum xec_opcode
     XEC_NEWUP,      // upvals[ c ] = new upval, upvals[ c ] = r
     XEC_SETUP,      // upvals[ c ] = r
     XEC_REFUP,      // r = upvals[ c ]
-    XEC_CLOSE,      // close upvals[ r .. r + c ]
+    XEC_CLOSE,      // close upvals[ c .. c + r ]
     
     XEC_EQ,         // r = a == b
     XEC_LT,         // r = a < b
@@ -84,9 +78,6 @@ enum xec_opcode
     XEC_JMP,        // pc = address of next instruction + j
     XEC_IFTRUE,     // if (bool)r pc = address of next instruction + j
     XEC_IFFALSE,    // if not (bool)r pc = address of next instruction + j
-//  XEC_LJMP,       // pc = longjmps[ c ]
-//  XEC_LIFTRUE,    // if (bool)r pc = longjmps[ c ]
-//  XEC_LIFFALSE,   // if not (bool)r pc = longjmps[ c ]
 
     XEC_ITER,       // r = iterator over indexes of a
     XEC_ITERKEY,    // r = iterator over keys of a

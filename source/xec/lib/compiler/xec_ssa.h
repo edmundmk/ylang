@@ -199,10 +199,9 @@ enum xec_ssa_opcode
     XEC_SSA_ITER,       // make iterator for a list
     XEC_SSA_EACH,       // make iterator for object key
     XEC_SSA_APPEND,     // append to an array
-    XEC_SSA_EXTEND,     // extend an array with unpacked
     
     XEC_SSA_FIRST_REF   = XEC_SSA_REF,
-    XEC_SSA_LAST_REF    = XEC_SSA_EXTEND,
+    XEC_SSA_LAST_REF    = XEC_SSA_APPEND,
 
     // w/ key
     XEC_SSA_KEY,        // object.key
@@ -242,6 +241,7 @@ enum xec_ssa_opcode
     XEC_SSA_YCALL,      // yieldable function call
     XEC_SSA_YIELD,      // yield
     XEC_SSA_NEW,        // new object by calling constructor
+    XEC_SSA_EXTEND,     // extend an array with unpacked
     XEC_SSA_RETURN,     // return
     
     XEC_SSA_FIRST_ARG   = XEC_SSA_CALL,
@@ -270,7 +270,7 @@ struct xec_ssa_opref
     static const int SLICE_BITS = 20;
     static const int INDEX_BITS = 12;
 
-    explicit operator bool();
+    explicit operator bool() const;
 
     union
     {
@@ -421,6 +421,7 @@ struct xec_ssa_args
     explicit xec_ssa_args( int resultcount );
 
     int                 resultcount;
+    int                 stacktop;
     xec_ssa_opref_list  args;
     xec_ssa_opref       unpacked;
 };
@@ -524,7 +525,7 @@ struct xec_ssa_slice
     opref
 */
 
-inline xec_ssa_opref::operator bool()
+inline xec_ssa_opref::operator bool() const
 {
     return value != 0xFFFFFFFF;
 }
@@ -715,6 +716,7 @@ inline xec_ssa_phi::xec_ssa_phi()
 
 inline xec_ssa_args::xec_ssa_args( int resultcount )
     :   resultcount( resultcount )
+    ,   stacktop( -1 )
     ,   unpacked( XEC_SSA_INVALID )
 {
 }

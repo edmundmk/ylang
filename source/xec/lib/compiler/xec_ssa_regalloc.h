@@ -24,6 +24,7 @@
 
 class xec_ssa_dfo;
 struct xec_ssa_fscan;
+struct xec_ssa_ralloc;
 
 
 class xec_ssa_regalloc
@@ -37,7 +38,7 @@ public:
     
 private:
 
-    enum event_kind { LIVE, DEAD, SLEEP, WAKE };
+    enum event_kind { LIVE, DEAD, SLEEP, WAKE, STACK };
 
     struct event
     {
@@ -49,19 +50,28 @@ private:
 
 
     xec_ssa_opref   equiv( xec_ssa_opref opref );
+    uint64_t        opindex( xec_ssa_opref opref );
+    uint64_t        opuntil( xec_ssa_opref live );
+    bool            ismark( xec_ssa_op* op );
+    bool            isstack( xec_ssa_op* op );
 
     void            build_phiequiv();
     void            attempt_equiv( xec_ssa_opref a, xec_ssa_opref b );
     bool            interfere( xec_ssa_opref a, xec_ssa_opref b );
     int             refcmp( xec_ssa_opref a, xec_ssa_opref b );
     int             spancmp( xec_ssa_opref a, xec_ssa_opref b );
-    uint64_t        opindex( xec_ssa_opref opref );
-    uint64_t        opuntil( xec_ssa_opref live );
 
     void            forward_scan();
     void            forward_slice( xec_ssa_fscan* scan, xec_ssa_slice* slice );
     
     void            reverse_scan();
+    int             check_alloc( const std::vector< xec_ssa_ralloc >& allocs,
+                                    int r, int index );
+    int             find_alloc( const std::vector< xec_ssa_ralloc >& allocs,
+                                    xec_ssa_opref value );
+    int             find_asleep( const std::vector< xec_ssa_ralloc >& allocs,
+                                    xec_ssa_opref value );
+    bool            interfere( int a, int b );
 
     void            print_events();
 
