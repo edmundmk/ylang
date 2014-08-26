@@ -140,6 +140,18 @@ void xec_ssa_liveness::analyze_block( xec_ssa_block* block )
         for ( size_t i = 0; i < oprefs.size(); ++i )
         {
             xec_ssa_opref operand = oprefs.at( i );
+            
+            if ( op.opcode == XEC_SSA_CLOSURE )
+            {
+                xec_ssa_op* opop = func->getop( func->operand( operand ) );
+                if ( opop->opcode == XEC_SSA_REFUP )
+                {
+                    // Don't introduce live ranges for upval refs whose only
+                    // reference is a closure.
+                    continue;
+                }
+            }
+            
             operand = func->operand( operand );
             livespan s( operand, useref, XEC_SSA_INVALID );
             live.emplace( operand, s );
