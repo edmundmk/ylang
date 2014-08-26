@@ -147,10 +147,10 @@ void xec_ssa_op::get_operands( std::vector< xec_ssa_opref >* operands )
         operands->reserve( phi->definitions.size() );
         extend( operands, phi->definitions );
     }
-    else if ( opcode == XEC_SSA_LAMBDA )
+    else if ( opcode == XEC_SSA_CLOSURE )
     {
-        operands->reserve( lambda->upvals.size() );
-        extend( operands, lambda->upvals );
+        operands->reserve( closure->upvals.size() );
+        extend( operands, closure->upvals );
     }
 
 

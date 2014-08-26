@@ -165,7 +165,7 @@ public:
         add( XEC_SSA_NEW,       "new"       );
         add( XEC_SSA_RETURN,    "return"    );
 
-        add( XEC_SSA_LAMBDA,    "lambda"    );
+        add( XEC_SSA_CLOSURE,   "closure"   );
         
         add( XEC_SSA_PHI,       "phi"       );
 
@@ -377,12 +377,12 @@ void xec_ssa_printer::print_op( xec_ssa_func* func, xec_ssa_op& op )
         break;
     }
         
-    case XEC_SSA_LAMBDA:
+    case XEC_SSA_CLOSURE:
     {
-        printf( " %p", op.lambda->function );
-        for ( size_t i = 0; i < op.lambda->upvals.size(); ++i )
+        printf( " %p", op.closure->function );
+        for ( size_t i = 0; i < op.closure->upvals.size(); ++i )
         {
-            xec_ssa_opref upval = op.lambda->upvals.at( i );
+            xec_ssa_opref upval = op.closure->upvals.at( i );
             printf( " %04X:%02X", upval.slice, upval.index );
         }
         break;

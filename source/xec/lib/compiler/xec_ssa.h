@@ -23,7 +23,7 @@ class xec_script;
 struct xec_ssa_opref;
 struct xec_ssa_op;
 struct xec_ssa_string;
-struct xec_ssa_lambda;
+struct xec_ssa_closure;
 struct xec_ssa_phi;
 struct xec_ssa_args;
 struct xec_ssa_name;
@@ -64,7 +64,7 @@ struct xec_ssa_slice;
         [   sloc   |   op/r   ] [  until   |  lnext   ] [        boolean      ]
         [   sloc   |   op/r   ] [  until   |  lnext   ] [        string       ]
     complex
-        [   sloc   |   op/r   ] [  until   |  lnext   ] [        lambda       ]
+        [   sloc   |   op/r   ] [  until   |  lnext   ] [        closure      ]
         [   sloc   |   op/r   ] [  until   |  lnext   ] [         phi         ]
         [   sloc   |   op/r   ] [  until   |  lnext   ] [         args        ]
     operands
@@ -248,7 +248,7 @@ enum xec_ssa_opcode
     XEC_SSA_LAST_ARG    = XEC_SSA_RETURN,
 
     // closures
-    XEC_SSA_LAMBDA,     // create a function closure
+    XEC_SSA_CLOSURE,    // create a function closure
 
     // phi
     XEC_SSA_PHI,        // SSA ɸ-function
@@ -312,7 +312,7 @@ struct xec_ssa_op
     xec_ssa_op( int sloc, xec_ssa_opcode opcode, double number );
     xec_ssa_op( int sloc, xec_ssa_opcode opcode, bool boolean );
     xec_ssa_op( int sloc, xec_ssa_opcode opcode, xec_ssa_string* string );
-    xec_ssa_op( int sloc, xec_ssa_opcode opcode, xec_ssa_lambda* lambda );
+    xec_ssa_op( int sloc, xec_ssa_opcode opcode, xec_ssa_closure* closure );
     xec_ssa_op( int sloc, xec_ssa_opcode opcode, xec_ssa_phi* phi );
     xec_ssa_op( int sloc, xec_ssa_opcode opcode, xec_ssa_args* args );
     xec_ssa_op( int sloc, xec_ssa_opcode opcode, int immkey );
@@ -374,7 +374,7 @@ struct xec_ssa_op
     double          number;
     bool            boolean;
     xec_ssa_string* string;
-    xec_ssa_lambda* lambda;
+    xec_ssa_closure* closure;
     xec_ssa_phi*    phi;
     xec_ssa_args*   args;
 
@@ -399,9 +399,9 @@ struct xec_ssa_string
 };
 
 
-struct xec_ssa_lambda
+struct xec_ssa_closure
 {
-    explicit xec_ssa_lambda( xec_ssa_func* function );
+    explicit xec_ssa_closure( xec_ssa_func* function );
 
     xec_ssa_func*       function;
     xec_ssa_opref_list  upvals;
@@ -597,13 +597,13 @@ inline xec_ssa_op::xec_ssa_op( int sloc,
 }
 
 inline xec_ssa_op::xec_ssa_op( int sloc,
-            xec_ssa_opcode opcode, xec_ssa_lambda* lambda )
+            xec_ssa_opcode opcode, xec_ssa_closure* closure )
     :   sloc( sloc )
     ,   opcode( opcode )
     ,   r( -1 )
     ,   until( XEC_SSA_INVALID )
     ,   lnext( XEC_SSA_INVALID )
-    ,   lambda( lambda )
+    ,   closure( closure )
 {
 }
 
@@ -705,7 +705,7 @@ inline xec_ssa_string::xec_ssa_string( const char* string, size_t length )
 {
 }
 
-inline xec_ssa_lambda::xec_ssa_lambda( xec_ssa_func* function )
+inline xec_ssa_closure::xec_ssa_closure( xec_ssa_func* function )
     :   function( function )
 {
 }

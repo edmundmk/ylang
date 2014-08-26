@@ -72,7 +72,7 @@ xec_ssa_opref xec_ssa_build_expr::visit( xec_ast_func* node )
     xec_ssa_func* func = b->func( node );
     
     // Retrieve upvals.
-    xec_ssa_lambda* l = b->lambda( func );
+    xec_ssa_closure* l = b->closure( func );
     l->upvals.reserve( node->upvals.size() );
     
     for ( size_t i = 0; i < node->upvals.size(); ++i )
@@ -96,7 +96,7 @@ xec_ssa_opref xec_ssa_build_expr::visit( xec_ast_func* node )
     }
     
     // Construct closure.
-    return b->op( node->sloc, XEC_SSA_LAMBDA, l );
+    return b->op( node->sloc, XEC_SSA_CLOSURE, l );
 }
 
 xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_null* node )
