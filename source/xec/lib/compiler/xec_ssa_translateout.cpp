@@ -235,16 +235,18 @@ void xec_ssa_translateout::translateout( xec_ssa_block* block )
             break;
         
         case XEC_SSA_SETGLOBAL:
+            inst( XEC_SETGLOBAL, o( op->operanda ), 0, k( op->immkey ) );
             break;
-
+            
+        case XEC_SSA_PARAM:
+        {
+            // Build register transfer graph and solve it to get parameters
+            // in the correct positions.
+            break;
+        }
+        
+        case XEC_SSA_
 /*
-    
-    // w/ key
-    XEC_SSA_KEY,        // object.key
-    XEC_SSA_DELKEY,     // delete object.key
-    XEC_SSA_GLOBAL,     // global.key
-    XEC_SSA_SETGLOBAL,  // global.key = value
- 
     // w/ immediate
     XEC_SSA_PARAM,      // parameter number
     XEC_SSA_VARARG,     // vararg, or unpack all

@@ -1425,8 +1425,6 @@ bool xec_ssabuild( xec_ast* ast )
     xec_ssa_builder builder( &ssa );
     builder.build( ast );
     
-    xec_ssa_print( &ssa );
-    return true;
 
 
     // Perform optimizations.

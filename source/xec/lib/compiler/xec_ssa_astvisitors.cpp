@@ -919,9 +919,10 @@ void xec_ssa_build_stmt::visit( xec_stmt_foreach* node )
     b->loopopen();
     
     // Get values for this iteration.
-    int request = 1 + (int)node->lvalues.size();
-    xec_ssa_opref next = b->op( node->sloc, XEC_SSA_NEXT, iter, request );
-    xec_ssa_opref cond = b->op( node->sloc, XEC_SSA_SELECT, next, 0 );
+    int request = (int)node->lvalues.size();
+    xec_ssa_args* args = b->args( request );
+    args->args.push_back( iter );
+    xec_ssa_opref next = b->op( node->sloc, XEC_SSA_NEXT, args );
     for ( int i = 0; i < node->lvalues.size(); ++i )
     {
         xec_ssa_lvalue lvalue;
@@ -931,7 +932,7 @@ void xec_ssa_build_stmt::visit( xec_stmt_foreach* node )
     }
     
     // Loop body.
-    b->ifthen( cond );
+    b->ifthen( next );
     visit( node->body );
     b->loopcontinue();
     b->ifelse();

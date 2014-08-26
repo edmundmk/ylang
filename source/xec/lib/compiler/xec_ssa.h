@@ -223,10 +223,9 @@ enum xec_ssa_opcode
     XEC_SSA_CLOSE,      // close upval
     XEC_SSA_ARRAY,      // new array
     XEC_SSA_TABLE,      // new table
-    XEC_SSA_NEXT,       // produce values from an iterator
     
     XEC_SSA_FIRST_IMM   = XEC_SSA_PARAM,
-    XEC_SSA_LAST_IMM    = XEC_SSA_NEXT,
+    XEC_SSA_LAST_IMM    = XEC_SSA_TABLE,
 
     // assignments
     XEC_SSA_SETINKEY,   // object.[ key ] = value
@@ -242,7 +241,8 @@ enum xec_ssa_opcode
     XEC_SSA_YIELD,      // yield
     XEC_SSA_NEW,        // new object by calling constructor
     XEC_SSA_EXTEND,     // extend an array with unpacked
-    XEC_SSA_RETURN,     // return
+    XEC_SSA_NEXT,       // produce values from an iterator
+    XEC_SSA_RETURN,     // return    
     
     XEC_SSA_FIRST_ARG   = XEC_SSA_CALL,
     XEC_SSA_LAST_ARG    = XEC_SSA_RETURN,

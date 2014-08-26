@@ -101,9 +101,15 @@ void xec_ssa_liveness::analyze_block( xec_ssa_block* block )
         add_successor( &live, block, block->iftrue );
         add_successor( &live, block, block->iffalse );
         
-        // The condition is also live at the bottom of the block.
-        livespan s( block->condition, XEC_SSA_FOREVER, XEC_SSA_INVALID );
-        live.emplace( block->condition, s );
+        // The condition is also live at the bottom of the block.  However
+        // next ops don't require live ranges as they return their continue
+        // result in special 'register' @done.
+        xec_ssa_op* condop = func->getop( block->condition );
+        if ( condop->opcode != XEC_SSA_NEXT )
+        {
+            livespan s( block->condition, XEC_SSA_FOREVER, XEC_SSA_INVALID );
+            live.emplace( block->condition, s );
+        }
     }
     else
     {
@@ -117,6 +123,14 @@ void xec_ssa_liveness::analyze_block( xec_ssa_block* block )
     for ( int i = (int)block->ops->ops.size() - 1; i >= 0; --i )
     {
         xec_ssa_op& op = block->ops->ops.at( i );
+
+        if ( op.opcode == XEC_SSA_SELECT )
+        {
+            // A call/yield/next and its accompanying select ops are a single
+            // unit - do not introduce a live range for the call op if the only
+            // references to it are with selects.
+            continue;
+        }
 
         xec_ssa_opref useref;
         useref.slice = block->ops->index;

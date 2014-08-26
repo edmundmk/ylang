@@ -164,14 +164,6 @@ void xec_ssa_regalloc::attempt_equiv( xec_ssa_opref a, xec_ssa_opref b )
     b = equiv( b );
 
 
-    // If either op compiles to a stacklike instruction then we have less
-    // freedom about which registers to place results in.
-    if ( isstack( func->getop( a ) ) || isstack( func->getop( b ) ) )
-    {
-        return;
-    }
-
-
     // Ensure that a comes before b in the dfo order.
     int order = refcmp( a, b );
     if ( order == 0 /* a == b */ )
@@ -458,8 +450,11 @@ void xec_ssa_regalloc::forward_slice(
         }
         
         
-        // If it's a stacklike op, we must find the stack top for it.
-        if ( isstack( op ) )
+        // If it's a stacklike op, we must find the stack top for it.  Also
+        // next ops with more than two results return their results on the
+        // top of the stack.
+        if ( isstack( op ) ||
+                ( op->opcode == XEC_SSA_NEXT && op->args->resultcount > 2 ) )
         {
             event e;
             e.kind  = STACK;
@@ -583,7 +578,7 @@ void xec_ssa_regalloc::reverse_scan()
                             && op->opcode <= XEC_SSA_LAST_ARG );
 
                 // Find register.
-                int stackr;
+                int stackr = -1;
                 for ( size_t i = 0; i < op->args->args.size(); ++i )
                 {
                     xec_ssa_opref operand = op->args->args.at( i );
@@ -601,7 +596,10 @@ void xec_ssa_regalloc::reverse_scan()
                 
                 
                 // Check if the desired register is in use.
-                r = check_alloc( allocs, stackr, i );
+                if ( stackr != -1 )
+                {
+                    r = check_alloc( allocs, stackr, i );
+                }
             }
             
             
