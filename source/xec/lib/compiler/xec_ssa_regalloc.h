@@ -52,8 +52,10 @@ private:
     xec_ssa_opref   equiv( xec_ssa_opref opref );
     uint64_t        opindex( xec_ssa_opref opref );
     uint64_t        opuntil( xec_ssa_opref live );
-    bool            ismark( xec_ssa_op* op );
-    bool            isstack( xec_ssa_op* op );
+    
+    bool            is_stack( xec_ssa_op* op );
+    bool            is_stack_results( xec_ssa_op* op );
+    bool            is_stack_args( xec_ssa_op* op );
 
     void            build_phiequiv();
     void            attempt_equiv( xec_ssa_opref a, xec_ssa_opref b );

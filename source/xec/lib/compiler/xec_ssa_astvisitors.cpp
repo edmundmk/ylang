@@ -487,7 +487,8 @@ xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_yield* node )
 xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_vararg* node )
 {
     // Fetch the first variable argument.
-    return b->op( node->sloc, XEC_SSA_VARARG, 0 );
+    xec_ssa_args* args = b->args( 0 );
+    return b->op( node->sloc, XEC_SSA_VARARG, args );
 }
 
 xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_unpack* node )
@@ -707,13 +708,15 @@ void xec_ssa_build_unpack::visit(
     {
         for ( int i = 0; i < valcount; ++i )
         {
-            xec_ssa_opref value = b->op( node->sloc, XEC_SSA_VARARG, i );
+            xec_ssa_args* args = b->args( i );
+            xec_ssa_opref value = b->op( node->sloc, XEC_SSA_VARARG, args );
             values->values.push_back( value );
         }
     }
     else
     {
-        values->unpacked = b->op( node->sloc, XEC_SSA_VARARG, -1 );
+        xec_ssa_args* args = b->args( -1 );
+        values->unpacked = b->op( node->sloc, XEC_SSA_VARARG, args );
     }
 }
 
@@ -725,13 +728,17 @@ void xec_ssa_build_unpack::visit(
     {
         for ( int i = 0; i < valcount; ++i )
         {
-            xec_ssa_opref value = b->op( node->sloc, XEC_SSA_UNPACK, array, i );
+            xec_ssa_args* args = b->args( i );
+            args->args.push_back( array );
+            xec_ssa_opref value = b->op( node->sloc, XEC_SSA_UNPACK, args );
             values->values.push_back( value );
         }
     }
     else
     {
-        values->unpacked = b->op( node->sloc, XEC_SSA_UNPACK, array, -1 );
+        xec_ssa_args* args = b->args( -1 );
+        args->args.push_back( array );
+        values->unpacked = b->op( node->sloc, XEC_SSA_UNPACK, args );
     }
 }
 

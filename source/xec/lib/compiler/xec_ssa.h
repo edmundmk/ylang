@@ -214,9 +214,7 @@ enum xec_ssa_opcode
     
     // w/ immediate
     XEC_SSA_PARAM,      // parameter number
-    XEC_SSA_VARARG,     // vararg, or unpack all
     XEC_SSA_SELECT,     // select a call result
-    XEC_SSA_UNPACK,     // array element, or unpack all
     XEC_SSA_NEWUP,      // create and initialize new upval
     XEC_SSA_SETUP,      // set upval
     XEC_SSA_REFUP,      // value of upval
@@ -236,6 +234,8 @@ enum xec_ssa_opcode
     XEC_SSA_LAST_SET    = XEC_SSA_SETKEY,
     
     // w/args
+    XEC_SSA_VARARG,     // vararg, or unpack all
+    XEC_SSA_UNPACK,     // array element, or unpack all
     XEC_SSA_CALL,       // function call
     XEC_SSA_YCALL,      // yieldable function call
     XEC_SSA_YIELD,      // yield
@@ -244,7 +244,7 @@ enum xec_ssa_opcode
     XEC_SSA_NEXT,       // produce values from an iterator
     XEC_SSA_RETURN,     // return    
     
-    XEC_SSA_FIRST_ARG   = XEC_SSA_CALL,
+    XEC_SSA_FIRST_ARG   = XEC_SSA_VARARG,
     XEC_SSA_LAST_ARG    = XEC_SSA_RETURN,
 
     // closures

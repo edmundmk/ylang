@@ -245,20 +245,20 @@ void xec_ssa_translateout::translateout( xec_ssa_block* block )
             break;
         }
         
-        case XEC_SSA_
+        case XEC_SSA_VARARG:
+        {
+            break;
+        }
 /*
     // w/ immediate
     XEC_SSA_PARAM,      // parameter number
-    XEC_SSA_VARARG,     // vararg, or unpack all
     XEC_SSA_SELECT,     // select a call result
-    XEC_SSA_UNPACK,     // array element, or unpack all
     XEC_SSA_NEWUP,      // create and initialize new upval
     XEC_SSA_SETUP,      // set upval
     XEC_SSA_REFUP,      // value of upval
     XEC_SSA_CLOSE,      // close upval
     XEC_SSA_ARRAY,      // new array
     XEC_SSA_TABLE,      // new table
-    XEC_SSA_NEXT,       // produce values from an iterator
     
     // assignments
     XEC_SSA_SETINKEY,   // object.[ key ] = value
@@ -266,11 +266,14 @@ void xec_ssa_translateout::translateout( xec_ssa_block* block )
     XEC_SSA_SETKEY,     // object.key = value
  
     // w/args
+    XEC_SSA_VARARG,
+    XEC_SSA_UNPACK,
     XEC_SSA_CALL,       // function call
     XEC_SSA_YCALL,      // yieldable function call
     XEC_SSA_YIELD,      // yield
     XEC_SSA_NEW,        // new object by calling constructor
     XEC_SSA_EXTEND,     // extend an array with unpacked
+    XEC_SSA_NEXT,
     XEC_SSA_RETURN,     // return
     
     // closures

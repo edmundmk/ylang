@@ -43,7 +43,9 @@ void xec_ssa_regalloc::allocate( xec_ssa_func* func, xec_ssa_dfo* dfo )
     // Actually perform register allocation by scanning the event list
     // _from the bottom up_, which allows us to place stack-op (e.g. calls)
     // parameters (well, most of them) after placing the stack-op itself,
-    // meaning fewer moves (hopefully).
+    // meaning fewer moves (hopefully).  Doing it top-down would have allowed
+    // the same for stack-op results, but returning multiple results is far
+    // less common than taking multiple parameters.
     reverse_scan();
     
 }
@@ -94,27 +96,36 @@ uint64_t xec_ssa_regalloc::opuntil( xec_ssa_opref live )
 }
 
 
-bool xec_ssa_regalloc::ismark( xec_ssa_op* op )
+
+
+bool xec_ssa_regalloc::is_stack( xec_ssa_op* op )
 {
-    // Mark ops are those which compile to instructions that push an unknown
-    // number of results onto the stack (setting @mark).
-    return ( op->opcode == XEC_SSA_UNPACK && op->immkey == -1 )
-        || ( op->opcode == XEC_SSA_VARARG && op->immkey == -1 )
-        || ( op->opcode == XEC_SSA_CALL && op->args->resultcount == -1 )
-        || ( op->opcode == XEC_SSA_YCALL && op->args->resultcount == -1 )
-        || ( op->opcode == XEC_SSA_YIELD && op->args->resultcount == -1 );
+    // Return true if the op compiles to an instruction that works on the
+    // top of the register 'stack'.
+    return is_stack_results( op ) || is_stack_args( op );
 }
 
-
-bool xec_ssa_regalloc::isstack( xec_ssa_op* op )
+bool xec_ssa_regalloc::is_stack_results( xec_ssa_op* op )
 {
-    // Stacklike ops are those which take multiple arguments, which compile to
-    // instructions which require those arguments in particular locations.
-    return ( op->opcode == XEC_SSA_EXTEND )
+    // Return true if this op compiles to an instruction which returns its
+    // results on the stack.
+    return ( op->opcode == XEC_SSA_VARARG && op->args->resultcount == -1 )
+        || ( op->opcode == XEC_SSA_UNPACK && op->args->resultcount == -1 )
         || ( op->opcode == XEC_SSA_CALL )
         || ( op->opcode == XEC_SSA_YCALL )
         || ( op->opcode == XEC_SSA_YIELD )
+        || ( op->opcode == XEC_SSA_NEXT && op->args->resultcount > 2 );
+}
+
+bool xec_ssa_regalloc::is_stack_args( xec_ssa_op* op )
+{
+    // Return true if this op compiles to an instruction which takes multiple
+    // arguments on the stack.
+    return ( op->opcode == XEC_SSA_CALL )
+        || ( op->opcode == XEC_SSA_YCALL )
+        || ( op->opcode == XEC_SSA_YIELD )
         || ( op->opcode == XEC_SSA_NEW )
+        || ( op->opcode == XEC_SSA_EXTEND )
         || ( op->opcode == XEC_SSA_RETURN );
 }
 
@@ -453,8 +464,7 @@ void xec_ssa_regalloc::forward_slice(
         // If it's a stacklike op, we must find the stack top for it.  Also
         // next ops with more than two results return their results on the
         // top of the stack.
-        if ( isstack( op ) ||
-                ( op->opcode == XEC_SSA_NEXT && op->args->resultcount > 2 ) )
+        if ( is_stack( op ) )
         {
             event e;
             e.kind  = STACK;
@@ -568,10 +578,10 @@ void xec_ssa_regalloc::reverse_scan()
         {
             int r = -1;
         
-            // If it's dead _at_ a stacklike instruction, attempt to allocate
-            // it the register that it needs to be in to make the stacklike
-            // instruction work.
-            if ( op && isstack( op ) )
+            // If it's dead _at_ a stacklike instruction that takes it as one
+            // of its stack arguments, attempt to allocate it to the register
+            // that it needs to be in to make the stacklike instruction work.
+            if ( op && is_stack_args( op ) )
             {
                 assert( op->args->stacktop != -1 );
                 assert( op->opcode >= XEC_SSA_FIRST_ARG
