@@ -38,8 +38,6 @@ void xec_ssa_translateout::translateout( xec_ssa_func* func, xec_ssa_dfo* dfo )
 
 void xec_ssa_translateout::translateout( xec_ssa_block* block )
 {
-#if 0
-
     for ( size_t i = 0; i < block->ops->ops.size(); ++i )
     {
         xec_ssa_op* op = &block->ops->ops.at( i );
@@ -292,28 +290,97 @@ void xec_ssa_translateout::translateout( xec_ssa_block* block )
             
         case XEC_SSA_VARARG:
         {
+            if ( op->args->resultcount == -1 )
+            {
+                // Stacklike unpack of all varargs.
+                assert( op->r == op->args->stacktop );
+                inst( XEC_VARALL, op->r, 0 );
+            }
+            else
+            {
+                // Recover single vararg.
+                inst( XEC_VARARG, op->r, op->args->resultcount );
+            }
+            break;
+        }
+        
+        case XEC_SSA_UNPACK:
+        {
+            if ( op->args->resultcount == -1 )
+            {
+                // Stacklike unpack of all results.
+                assert( op->r == op->args->stacktop );
+                inst( XEC_UNPACK, op->r, 0 );
+            }
+            else
+            {
+                // Recover single array element.
+                inst( XEC_ELEM, op->r, op->args->resultcount );
+            }
+            break;
+        }
+        
+        case XEC_SSA_CALL:
+            callinst( XEC_CALL, op );
+            break;
+        
+        case XEC_SSA_YCALL:
+            callinst( XEC_YCALL, op );
+            break;
+            
+        case XEC_SSA_YIELD:
+            callinst( XEC_YIELD, op );
+            break;
+            
+        case XEC_SSA_NEW:
+        {
+            // Build register transfer to get arguments in correct positions.
+            // TODO.
+            
+            // Instruction places new object in the correct place.
+            int b = op->args->unpacked ? XEC_MARK : (int)op->args->args.size();
+            inst( XEC_NEW, op->r, op->args->stacktop, b );
+            break;
+        }
+        
+        case XEC_SSA_EXTEND:
+        {
+            // Extend should have only the array and unpacked args.
+            assert( op->args->unpacked );
+            inst( XEC_EXTEND, op->args->stacktop,
+                            o( op->args->args.at( 0 ) ), 0 );
+            break;
+        }
+        
+        case XEC_SSA_NEXT:
+        {
+            // There are special cases for next ops returning 1 and 2 values.
+            // This is the vast majority of cases (iterating through arrays,
+            // tables, or object keys).
+            if ( op->args->resultcount == 1 )
+            {
+                inst( XEC_NEXT1, op->r, o( op->args->args.at( 0 ) ), 0 );
+            }
+            else if ( op->args->resultcount == 2 )
+            {
+                // Find the two following selects.
+                
+            }
+            else
+            {
+                // Deal similar to call-like instruction.
+            }
         }
 
-/*
-    // w/args
-    XEC_SSA_VARARG,
-    XEC_SSA_UNPACK,
-    XEC_SSA_CALL,       // function call
-    XEC_SSA_YCALL,      // yieldable function call
-    XEC_SSA_YIELD,      // yield
-    XEC_SSA_NEW,        // new object by calling constructor
-    XEC_SSA_EXTEND,     // extend an array with unpacked
-    XEC_SSA_NEXT,
-    XEC_SSA_RETURN,     // return
-    
-    // closures
-    XEC_SSA_LAMBDA,     // create a function closure
-
-*/
-
+        case XEC_SSA_RETURN:
+        {
+            break;
+        }
         
-        
-        
+        case XEC_SSA_CLOSURE:
+        {
+            break;
+        }
         
         default:
             assert( ! "invalid opcode" );
@@ -322,6 +389,54 @@ void xec_ssa_translateout::translateout( xec_ssa_block* block )
         
     
     }
-
-#endif
 }
+
+
+
+int xec_ssa_translateout::k( int immkey )
+{
+    const char* ssakey = root->keys.at( immkey );
+    for ( size_t i = 0; i < keys.size(); ++i )
+    {
+        xec_key* key = keys.at( i );
+        if ( strcmp( key->c_str(), ssakey ) == 0 )
+        {
+            return (int)i;
+        }
+    }
+    
+    int result = (int)keys.size();
+    keys.push_back( xec_key::create( ssakey ) );
+    return result;
+}
+
+int xec_ssa_translateout::o( xec_ssa_opref operand )
+{
+    operand = func->operand( operand );
+    xec_ssa_op* op = func->getop( operand );
+    return op->r;
+}
+
+
+void xec_ssa_translateout::inst( xec_opcode opcode, int r )
+{
+}
+
+void xec_ssa_translateout::inst( xec_opcode opcode, int r, int a, int b )
+{
+}
+
+void xec_ssa_translateout::inst( xec_opcode opcode, int r, int c )
+{
+}
+
+
+void xec_ssa_translateout::callinst( xec_opcode opcode, xec_ssa_op* op )
+{
+}
+
+
+
+
+
+

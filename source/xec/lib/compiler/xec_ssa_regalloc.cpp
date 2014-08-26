@@ -114,7 +114,8 @@ bool xec_ssa_regalloc::is_stack_results( xec_ssa_op* op )
         || ( op->opcode == XEC_SSA_CALL )
         || ( op->opcode == XEC_SSA_YCALL )
         || ( op->opcode == XEC_SSA_YIELD )
-        || ( op->opcode == XEC_SSA_NEXT && op->args->resultcount > 2 );
+        || ( op->opcode == XEC_SSA_NEXT &&
+                    op->args->resultcount != 1 && op->args->resultcount != 2 );
 }
 
 bool xec_ssa_regalloc::is_stack_args( xec_ssa_op* op )

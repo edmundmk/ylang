@@ -45,9 +45,11 @@ private:
     int k( int immkey );
     int o( xec_ssa_opref operand );
     
-    void inst( xec_opcode op, int r );
-    void inst( xec_opcode op, int r, int a, int b );
-    void inst( xec_opcode op, int r, int c );
+    void inst( xec_opcode opcode, int r );
+    void inst( xec_opcode opcode, int r, int a, int b );
+    void inst( xec_opcode opcode, int r, int c );
+
+    void callinst( xec_opcode opcode, xec_ssa_op* op );
 
     xec_ssa* root;
     xec_ssa_func* func;

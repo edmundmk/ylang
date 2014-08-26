@@ -439,6 +439,7 @@ xec_ssa_opref xec_ssa_build_expr::visit( xec_new_array* node )
         if ( values.unpacked )
         {
             xec_ssa_args* args = b->args( 0 );
+            args->args.push_back( array );
             args->unpacked = values.unpacked;
             b->op( node->final->sloc, XEC_SSA_EXTEND, args );
         }
