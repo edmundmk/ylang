@@ -83,7 +83,7 @@ public:
     int             key( const char* key );
     xec_ssa_string* string( const char* string, size_t length );
     xec_ssa_closure* closure( xec_ssa_func* function );
-    xec_ssa_args*   args( int resultcount );
+    xec_ssa_args*   args( int rcount );
     
     template< typename ... arguments_t >
     xec_ssa_opref   op( arguments_t ... arguments );
@@ -175,9 +175,9 @@ inline xec_ssa_closure* xec_ssa_builder::closure( xec_ssa_func* function )
     return new ( root->alloc ) xec_ssa_closure( function );
 }
 
-inline xec_ssa_args* xec_ssa_builder::args( int resultcount )
+inline xec_ssa_args* xec_ssa_builder::args( int rcount )
 {
-    return new ( root->alloc ) xec_ssa_args( resultcount );
+    return new ( root->alloc ) xec_ssa_args( rcount );
 }
 
 template< typename ... arguments_t >

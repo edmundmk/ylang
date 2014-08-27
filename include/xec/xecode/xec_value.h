@@ -58,7 +58,6 @@ public:
     xec_value( xec_string* string );
 
     explicit operator bool() const;
-    bool raweq( const xec_value& v ) const;
 
     bool            isnull() const;
     bool            isnumber() const;
@@ -79,7 +78,7 @@ private:
     friend bool operator != ( const xec_value& a, const xec_value& b );
 
 
-    static const uint64_t FLOAT_ONES    = (uint64_t)0x7FF0 << 48;
+    static const uint64_t FLOAT_INFNAN  = (uint64_t)0x7FF0 << 48;
     static const uint64_t FLOAT_MARK    = (uint64_t)0x0007 << 48;
     
     static const uint64_t MARK_MASK     = (uint64_t)0xFFFF << 48;
@@ -90,6 +89,11 @@ private:
     static const uint64_t MARK_STRING   = (uint64_t)0x7FF6 << 48;
     static const uint64_t MARK_OOLPTR   = (uint64_t)0x7FF7 << 48;
     
+    static const uint64_t BITS_NULL     = MARK_NULL;
+    static const uint64_t BITS_FALSE    = MARK_BOOL | (uint64_t)false;
+    static const uint64_t BITS_ZERO     = 0x0000000000000000ll;
+    static const uint64_t BITS_NZERO    = 0x8000000000000000ll;
+    
     union
     {
         double      f;
@@ -97,6 +101,11 @@ private:
     };
 
 };
+
+
+/*
+    Note that this is _raw_ equality, where NaNs compare equal.
+*/
 
 bool operator == ( const xec_value& a, const xec_value& b );
 bool operator != ( const xec_value& a, const xec_value& b );
@@ -141,14 +150,10 @@ inline xec_value::xec_value( xec_string* string )
 
 inline xec_value::operator bool() const
 {
-    return ( ! isnull() )
-        && ( ! isboolean() || boolean() )
-        && ( ! isnumber() || number() );
-}
-
-inline bool xec_value::raweq( const xec_value& v ) const
-{
-    return i == v.i;
+    return i != BITS_NULL
+        && i != BITS_FALSE
+        && i != BITS_ZERO
+        && i != BITS_NZERO;
 }
 
 
@@ -160,7 +165,7 @@ inline bool xec_value::isnull() const
 
 inline bool xec_value::isnumber() const
 {
-    return ( i & FLOAT_ONES ) != FLOAT_ONES || ( i & FLOAT_MARK ) == 0;
+    return ( i & FLOAT_INFNAN ) != FLOAT_INFNAN || ( i & FLOAT_MARK ) == 0;
 }
 
 inline bool xec_value::isboolean() const
@@ -213,13 +218,13 @@ inline xec_string* xec_value::string() const
 
 inline bool operator == ( const xec_value& a, const xec_value& b )
 {
-    return a.i == b.i && ( ! a.isnumber() || ! isnan( a.number() ) );
+    return a.i == b.i;
 }
 
 
 inline bool operator != ( const xec_value& a, const xec_value& b )
 {
-    return a.i != b.i || ( a.isnumber() && isnan( a.number() ) );
+    return a.i != b.i;
 }
 
 

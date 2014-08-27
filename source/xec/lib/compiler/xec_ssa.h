@@ -418,9 +418,9 @@ struct xec_ssa_phi
 
 struct xec_ssa_args
 {
-    explicit xec_ssa_args( int resultcount );
+    explicit xec_ssa_args( int rcount );
 
-    int                 resultcount;
+    int                 rcount;
     int                 stacktop;
     xec_ssa_opref_list  args;
     xec_ssa_opref       unpacked;
@@ -714,8 +714,8 @@ inline xec_ssa_phi::xec_ssa_phi()
 {
 }
 
-inline xec_ssa_args::xec_ssa_args( int resultcount )
-    :   resultcount( resultcount )
+inline xec_ssa_args::xec_ssa_args( int rcount )
+    :   rcount( rcount )
     ,   stacktop( -1 )
     ,   unpacked( XEC_SSA_INVALID )
 {

@@ -26,6 +26,7 @@
 
 
 class xec_ssa_dfo;
+struct xec_ssa_rtgraph;
 
 
 class xec_ssa_translateout
@@ -45,11 +46,13 @@ private:
     int k( int immkey );
     int o( xec_ssa_opref operand );
     
-    void inst( xec_opcode opcode, int r );
     void inst( xec_opcode opcode, int r, int a, int b );
     void inst( xec_opcode opcode, int r, int c );
 
-    void callinst( xec_opcode opcode, xec_ssa_op* op );
+    void callinst( xec_opcode opcode, xec_ssa_slice* slice, int index );
+    void arguments( xec_ssa_op* op );
+    void select( xec_ssa_slice* slice, size_t index );
+    void move( xec_ssa_rtgraph* rtg );
 
     xec_ssa* root;
     xec_ssa_func* func;

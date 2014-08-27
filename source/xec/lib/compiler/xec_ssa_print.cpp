@@ -314,7 +314,7 @@ void xec_ssa_printer::print_op( xec_ssa_func* func, xec_ssa_op& op )
         {
             printf( "     " );
         }
-        printf( " $%d", op.args->resultcount );
+        printf( " $%d", op.args->rcount );
         for ( size_t i = 0; i < op.args->args.size(); ++i )
         {
             xec_ssa_opref arg = op.args->args.at( i );

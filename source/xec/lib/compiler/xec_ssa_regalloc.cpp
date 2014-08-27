@@ -109,13 +109,13 @@ bool xec_ssa_regalloc::is_stack_results( xec_ssa_op* op )
 {
     // Return true if this op compiles to an instruction which returns its
     // results on the stack.
-    return ( op->opcode == XEC_SSA_VARARG && op->args->resultcount == -1 )
-        || ( op->opcode == XEC_SSA_UNPACK && op->args->resultcount == -1 )
+    return ( op->opcode == XEC_SSA_VARARG && op->args->rcount == -1 )
+        || ( op->opcode == XEC_SSA_UNPACK && op->args->rcount == -1 )
         || ( op->opcode == XEC_SSA_CALL )
         || ( op->opcode == XEC_SSA_YCALL )
         || ( op->opcode == XEC_SSA_YIELD )
         || ( op->opcode == XEC_SSA_NEXT &&
-                    op->args->resultcount != 1 && op->args->resultcount != 2 );
+                    op->args->rcount != 1 && op->args->rcount != 2 );
 }
 
 bool xec_ssa_regalloc::is_stack_args( xec_ssa_op* op )
