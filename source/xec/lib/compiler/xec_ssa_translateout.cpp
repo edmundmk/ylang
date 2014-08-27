@@ -735,7 +735,7 @@ void xec_ssa_translateout::move( xec_ssa_rtgraph* rtg )
         int a = rtg->moves.at( b );
         
         // Swap.
-        inst( XEC_SWP, a, b );
+        inst( XEC_SWP, a, b, 0 );
         
         if ( c == a )
         {
