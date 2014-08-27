@@ -17,7 +17,15 @@
 
 struct xec_ssa_rtgraph
 {
-    std::vector< std::pair< int, int > > moves;
+    void move( int target, int source )
+    {
+        if ( target != source )
+        {
+            moves[ target ] = source;
+        }
+    }
+
+    std::unordered_map< int, int > moves;
 };
 
 
@@ -255,7 +263,7 @@ void xec_ssa_translateout::translateout( xec_ssa_block* block )
             xec_ssa_rtgraph rtg;
             while ( op->opcode == XEC_SSA_PARAM && i < block->ops->ops.size() )
             {
-                rtg.moves.emplace_back( op->immkey, (int)op->r );
+                rtg.move( (int)op->r, op->immkey );
                 ++i;
             }
             --i;
@@ -582,7 +590,7 @@ void xec_ssa_translateout::arguments( xec_ssa_op* op )
     for ( size_t i = 0; i < op->args->args.size(); ++i )
     {
         int operand = o( op->args->args.at( i ) );
-        rtg.moves.emplace_back( operand, op->args->stacktop + (int)i );
+        rtg.move( op->args->stacktop + (int)i, operand );
     }
 
     // Rely on register allocator to place unpacked ops correctly.
@@ -612,7 +620,7 @@ void xec_ssa_translateout::select( xec_ssa_slice* slice, size_t index )
     xec_ssa_rtgraph rtg;
     if ( op->r != -1 )
     {
-        rtg.moves.emplace_back( stacktop, (int)op->r );
+        rtg.move( (int)op->r, stacktop );
     }
 
     // Or there might be selects after all.
@@ -626,7 +634,7 @@ void xec_ssa_translateout::select( xec_ssa_slice* slice, size_t index )
         }
         
         assert( selop->immkey < op->args->rcount );
-        rtg.moves.emplace_back( stacktop + selop->immkey, (int)selop->r );
+        rtg.move( (int)selop->r, stacktop + selop->immkey );
     }
     
     // Perform moves.
@@ -634,8 +642,116 @@ void xec_ssa_translateout::select( xec_ssa_slice* slice, size_t index )
 }
 
 
+
 void xec_ssa_translateout::move( xec_ssa_rtgraph* rtg )
 {
+    // The register transfer graph has nodes representing registers and edges
+    // representing moves.  Each node has at most a single incoming edge, but
+    // may have many outgoing edges.  We can separate the graph into:
+    //
+    //      Cycles.
+    //      Paths which start at a node with no outgoing edges and follow
+    //          edges backwards to either a node with no incoming edges, or
+    //          a node which is part of a cycle.
+
+    // We can perform the register transfers by following this algorithm:
+    //
+    //      Count the number of outgoing edges for each node.
+    //      While there is at least one node with a zero count:
+    //          Perform move to this node A from its source node B.
+    //          Decrement outgoing edge count of source node A.
+    //          Remove node A from set.
+    //      The remaining nodes form loops.  While nodes remain:
+    //          Swap values between a random node A and its source node B.
+    //          Remove edge between nodes A and B.
+    //          Create a new edge between node A and the target of node B.
+    //          Remove node A from set.
+    //
+
+    // Or, a version of the loop-swapping algorithm that doesn't require us to
+    // traverse the graph forwards along edges:
+    //
+    //      Pick a random node C.
+    //      Find its source node B and B's source node A.
+    //      If A == C then swap the two nodes, and remove both from set.
+    //      Otherwise swap A and B, and
+    //          remove B, and
+    //          change the source node of C to be A.
+    //
+    
+    // Count outgoing edges.
+    std::unordered_map< int, int > outcount;
+    for ( auto i = rtg->moves.begin(); i != rtg->moves.end(); ++i )
+    {
+        int source = i->second;
+        outcount[ source ] += 1;
+    }
+    
+    // Build list of nodes with zero outcount.
+    std::unordered_set< int > zero;
+    std::unordered_set< int > nonzero;
+    for ( auto i = rtg->moves.begin(); i != rtg->moves.end(); ++i )
+    {
+        int target = i->first;
+        if ( outcount.find( target ) == outcount.end() )
+        {
+            zero.insert( target );
+        }
+        else
+        {
+            nonzero.insert( target );
+        }
+    }
+    
+    // Perform moves to nodes with zero outcount.
+    while ( zero.size() )
+    {
+        auto i = zero.begin();
+        int target = *i;
+        int source = rtg->moves.at( target );
+        
+        // Perform move.
+        inst( XEC_MOV, target, source, 0 );
+        
+        // Target is no longer in the set.
+        zero.erase( i );
+        
+        // Decrement outcount for source.
+        outcount[ source ] -= 1;
+        if ( outcount[ source ] == 0 &&
+                    nonzero.find( source ) != nonzero.end() )
+        {
+            nonzero.erase( source );
+            zero.insert( source );
+        }
+    }
+    
+    // Remaining nodes are in cycles.
+    while ( nonzero.size() )
+    {
+        auto i = nonzero.begin();
+        int c = *i;
+        int b = rtg->moves.at( c );
+        int a = rtg->moves.at( b );
+        
+        // Swap.
+        inst( XEC_SWP, a, b );
+        
+        if ( c == a )
+        {
+            // Remove both.
+            nonzero.erase( a );
+            nonzero.erase( b );
+        }
+        else
+        {
+            // Remove B.
+            nonzero.erase( b );
+            
+            // Change source node of C to be A.
+            rtg->moves[ c ] = a;
+        }
+    }
 }
 
 
