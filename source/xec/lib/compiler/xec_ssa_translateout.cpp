@@ -17,6 +17,11 @@
 
 struct xec_ssa_rtgraph
 {
+    explicit operator bool ()
+    {
+        return moves.size();
+    }
+
     void move( int target, int source )
     {
         if ( target != source )
@@ -42,21 +47,40 @@ xec_ssa_translateout::xec_ssa_translateout( xec_ssa* root )
 void xec_ssa_translateout::translateout( xec_ssa_func* func, xec_ssa_dfo* dfo )
 {
     i.clear();
-    
     this->func = func;
     this->dfo  = dfo;
 
-    // And with all blocks.
+
+    /*
+        Note that blocks with only one predecessor never have phi rtgs.
+        
+        There is some scope to optimize branches involving phi rtgs. If both
+        rtgs out of a block are the same we can do it before the branch.  If
+        one branch is more likely we could do its rtg before the branch and
+        then 'undo' it on the other branch.  I'm sure there are others...
+    */
+
+
     for ( size_t i = 0; i < dfo->size(); ++i )
     {
         xec_ssa_block* block = dfo->at( i );
-        translateout( block );
+        
+        // Remember label at start of block.
+        label( block );
+        
+        
+        // Translate the operations in the block.
+        translateops( block );
+        
+        
+        // CFG edges out.
+        translatecfg( block );
     }
 }
 
 
 
-void xec_ssa_translateout::translateout( xec_ssa_block* block )
+void xec_ssa_translateout::translateops( xec_ssa_block* block )
 {
     for ( size_t i = 0; i < block->ops->ops.size(); ++i )
     {
@@ -514,6 +538,161 @@ void xec_ssa_translateout::translateout( xec_ssa_block* block )
 }
 
 
+void xec_ssa_translateout::translatecfg( xec_ssa_block* block )
+{
+
+    if ( block->condition )
+    {
+        xec_ssa_rtgraph phitrue;
+        xec_ssa_rtgraph phifalse;
+        
+        phi( &phitrue, block, block->iftrue );
+        phi( &phifalse, block, block->iffalse );
+    
+        if ( block->iftrue->index == block->index + 1 )
+        {
+            if ( phifalse )
+            {
+                /*
+                        iftrue goto next;
+                        false phi
+                        goto false;
+                    next:
+                        true phi
+                        ...
+                */
+                
+                branch( block->condition, true, &block->condition );
+                move( &phifalse );
+                jump( XEC_JMP, 0, block->iffalse );
+                label( &block->condition );
+            }
+            else
+            {
+                /*
+                        iffalse goto false;
+                        true phi
+                        ...
+                */
+                
+                branch( block->condition, false, block->iffalse );
+            }
+
+            if ( phitrue )
+            {
+                move( &phitrue );
+            }
+        }
+        else if ( block->iffalse->index == block->index + 1 )
+        {
+            if ( phitrue )
+            {
+                /*
+                        iffalse goto next:
+                        true phi
+                        goto true;
+                    next:
+                        false phi
+                        ...
+                */
+                
+                branch( block->condition, false, &block->condition );
+                move( &phitrue );
+                jump( XEC_JMP, 0, block->iftrue );
+                label( &block->condition );
+            }
+            else
+            {
+                /*
+                        iftrue goto true;
+                        false phi
+                        ...
+                */
+                
+                branch( block->condition, true, block->iftrue );
+            }
+            
+            if ( phifalse )
+            {
+                move( &phifalse );
+            }
+        }
+        else
+        {
+            if ( phitrue && phifalse )
+            {
+                /*
+                        iffalse goto falsephi;
+                        true phi
+                        goto true;
+                    false:
+                        false phi
+                        goto false;
+                */
+                
+                branch( block->condition, false, &block->condition );
+                move( &phitrue );
+                jump( XEC_JMP, 0, block->iftrue );
+                label( &block->condition );
+                move( &phifalse );
+                jump( XEC_JMP, 0, block->iffalse );
+            }
+            else if ( phitrue )
+            {
+                /*
+                        iffalse goto false;
+                        true phi
+                        goto true;
+                */
+                
+                branch( block->condition, false, block->iffalse );
+                move( &phitrue );
+                jump( XEC_JMP, 0, block->iftrue );
+            }
+            else if ( phifalse )
+            {
+                /*
+                        iftrue goto true;
+                        false phi
+                        goto false;
+                */
+                
+                branch( block->condition, true, block->iftrue );
+                move( &phifalse );
+                jump( XEC_JMP, 0, block->iffalse );
+            }
+            else
+            {
+                /*
+                        iftrue goto true;
+                        goto false;
+                */
+                
+                branch( block->condition, true, block->iftrue );
+                jump( XEC_JMP, 0, block->iffalse );
+            }
+        }
+    }
+    else if ( block->next )
+    {
+        // Perform phi on entry to next block.
+        xec_ssa_rtgraph phinext;
+        phi( &phinext, block, block->next );
+        if ( phinext )
+        {
+            move( &phinext );
+        }
+        
+        // Add jump to next block.
+        if ( block->next->index != block->index + 1 )
+        {
+            jump( XEC_JMP, 0, block->next );
+        }
+    }
+        
+}
+
+
 
 int xec_ssa_translateout::k( int immkey )
 {
@@ -752,6 +931,29 @@ void xec_ssa_translateout::move( xec_ssa_rtgraph* rtg )
             rtg->moves[ c ] = a;
         }
     }
+}
+
+
+
+void xec_ssa_translateout::phi(
+                xec_ssa_rtgraph* rtg, xec_ssa_block* from, xec_ssa_block* to )
+{
+}
+
+    
+void xec_ssa_translateout::label( void* label )
+{
+}
+
+
+void xec_ssa_translateout::jump( xec_opcode opcode, int r, void* label )
+{
+}
+
+
+void xec_ssa_translateout::branch(
+                xec_ssa_opref condition, bool iftrue, void* label )
+{
 }
 
 

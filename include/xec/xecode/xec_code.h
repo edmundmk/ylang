@@ -81,6 +81,7 @@ enum xec_opcode
     XEC_IFTRUE,     // if (bool)r pc = address of next instruction + j
     XEC_IFFALSE,    // if not (bool)r pc = address of next instruction + j
     XEC_IFDONE,     // if @done pc = address of next instruction + j
+    XEC_IFSTILL,    // if not @done pc = address of next instruction + j
 
     XEC_ITER,       // r = iterator over indexes of a
     XEC_ITERKEY,    // r = iterator over keys of a

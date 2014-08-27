@@ -41,7 +41,8 @@ public:
 
 private:
 
-    void translateout( xec_ssa_block* block );
+    void translateops( xec_ssa_block* block );
+    void translatecfg( xec_ssa_block* block );
     
     int k( int immkey );
     int o( xec_ssa_opref operand );
@@ -53,6 +54,13 @@ private:
     void arguments( xec_ssa_op* op );
     void select( xec_ssa_slice* slice, size_t index );
     void move( xec_ssa_rtgraph* rtg );
+    
+    void phi( xec_ssa_rtgraph* rtg, xec_ssa_block* from, xec_ssa_block* to );
+    
+    void label( void* label );
+    void jump( xec_opcode opcode, int r, void* label );
+    void branch( xec_ssa_opref condition, bool iftrue, void* label );
+    
 
     xec_ssa* root;
     xec_ssa_func* func;
