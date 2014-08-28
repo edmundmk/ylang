@@ -61,6 +61,9 @@ xec_module* xec_compile( xec_ast* ast )
         buildcode.build_func( func, &dfo );
     }
 
+
+    xec_ssa_print( &ssa );
+
     
     return buildcode.build_module();
 }

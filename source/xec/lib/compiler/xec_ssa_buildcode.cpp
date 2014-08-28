@@ -434,16 +434,20 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
         
         case XEC_SSA_UNPACK:
         {
+            // Should have a single argument, the array.
+            assert( op->args->args.size() == 1 );
+            int array = o( op->args->args.at( 0 ) );
+
             if ( op->args->rcount == -1 )
             {
                 // Stacklike unpack of all results.
                 assert( op->r == op->args->stacktop );
-                inst( XEC_UNPACK, o( op->r ), 0 );
+                inst( XEC_UNPACK, o( op->r ), array, 0 );
             }
             else
             {
                 // Recover single array element.
-                inst( XEC_ELEM, o( op->r ), op->args->rcount );
+                inst( XEC_ELEM, o( op->r ), array, op->args->rcount );
             }
             break;
         }

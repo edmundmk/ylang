@@ -48,14 +48,14 @@ enum xec_opcode
     XEC_OR,         // r = a | b
     XEC_CONCAT,     // r = (string) a + b
 
-    XEC_LVAL,       // r = (bool)a
+    XEC_TEST,       // r = (bool)a
     XEC_LNOT,       // r = not (bool)a
     XEC_LXOR,       // r = (bool)a xor (bool)b
     
     XEC_KEY,        // r = a lookup keys[ b ]
     XEC_INKEY,      // r = a lookup (string)b
     XEC_INDEX,      // r = a index b
-    XEC_ELEM,       // r = a index (immediate)c
+    XEC_ELEM,       // r = a index (immediate)b
     XEC_GLOBAL,     // r = global keys[ b ]
     
     XEC_SETKEY,     // a lookup keys[ b ] = r

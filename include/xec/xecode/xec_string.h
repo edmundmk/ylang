@@ -11,6 +11,7 @@
 
 
 #include <stddef.h>
+#include <assert.h>
 
 
 class xec_string
@@ -26,6 +27,7 @@ public:
     
     size_t      size() const;
     const char* c_str() const;
+    char        at( size_t i ) const;
     
 
 private:
@@ -50,7 +52,11 @@ inline const char* xec_string::c_str() const
     return schars;
 }
 
-
+inline char xec_string::at( size_t i ) const
+{
+    assert( i < slength );
+    return schars[ i ];
+}
 
 
 
