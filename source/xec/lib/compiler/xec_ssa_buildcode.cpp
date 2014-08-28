@@ -112,11 +112,11 @@ xec_module* xec_ssa_buildcode::build_module()
     
     module->mkeys = (xec_key**)malloc( sizeof( xec_key* ) * keys.size() );
     memcpy( module->mkeys, keys.data(), sizeof( xec_key* ) * keys.size() );
-    module->mkeycount = keys.size();
+    module->mkeycount = (uint32_t)keys.size();
     
     module->mvalues = (xec_value*)malloc( sizeof( xec_value ) * values.size() );
     memcpy( module->mvalues, values.data(), sizeof( xec_value ) * values.size() );
-    module->mvaluecount = values.size();
+    module->mvaluecount = (uint32_t)values.size();
     
     for ( size_t i = 0; i < functions.size(); ++i )
     {
@@ -126,7 +126,7 @@ xec_module* xec_ssa_buildcode::build_module()
     
     module->mfuncs = (xec_function**)malloc( sizeof( xec_function* ) * functions.size() );
     memcpy( module->mfuncs, functions.data(), sizeof( xec_function* ) * functions.size() );
-    module->mfunccount = functions.size();
+    module->mfunccount = (uint32_t)functions.size();
     
     keys.clear();
     values.clear();
@@ -366,9 +366,10 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
             while ( op->opcode == XEC_SSA_PARAM && i < block->ops->ops.size() )
             {
                 rtg.move( (int)op->r, op->immkey );
-                ++i;
+                i += 1;
+                op = &block->ops->ops.at( i );
             }
-            --i;
+            i -= 1;
             move( &rtg );
             break;
         }

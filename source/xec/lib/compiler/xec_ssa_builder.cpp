@@ -960,11 +960,9 @@ void xec_ssa_builder::build_function( xec_ast_func* astf, xec_ssa_func* ssaf )
     build_stmt.visit( astf->block );
     
     
-    // Close scope and return null.
+    // Close scope and return nothing.
     close_scope( astf->scope );
-    xec_ssa_opref nullval = op( astf->sloc, XEC_SSA_NULL );
     xec_ssa_args* results = args( 0 );
-    results->args.push_back( nullval );
     op( astf->sloc, XEC_SSA_RETURN, results );
     funcreturn();
     

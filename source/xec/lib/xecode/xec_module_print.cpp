@@ -94,7 +94,7 @@ public:
         add( XEC_APPEND,    "append    %a %r" );
         add( XEC_EXTEND,    "extend    %a [%r .. ]" );
     
-        add( XEC_CLOSURE,   "closure   %f" );
+        add( XEC_CLOSURE,   "closure   %r %f" );
         add( XEC_ENVUP,     "envup     ^%c" );
 
         add( XEC_VARARG,    "vararg    $%c" );
@@ -191,7 +191,7 @@ static void xec_function_print( unsigned findex, xec_function* function )
                     }
                     else if ( v.isnumber() )
                     {
-                        printf( "%g", v.number() );
+                        printf( "$%g", v.number() );
                     }
                     else if ( v.isstring() )
                     {
