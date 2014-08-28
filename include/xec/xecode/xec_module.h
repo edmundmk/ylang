@@ -33,7 +33,9 @@ public:
     
     xec_key*        key( unsigned k );
     xec_value       value( unsigned v );
+    
     xec_function*   function( unsigned f );
+    unsigned        function_count();
 
 
 private:
@@ -44,11 +46,11 @@ private:
 
     char*           mname;
     xec_key**       mkeys;
-    size_t          mkeycount;
+    uint32_t        mkeycount;
     xec_value*      mvalues;
-    size_t          mvaluecount;
+    uint32_t        mvaluecount;
     xec_function**  mfuncs;
-    size_t          mfunccount;
+    uint32_t        mfunccount;
 
 };
 
@@ -64,10 +66,12 @@ public:
     const char*     name();
     
     xec_opinst      code( unsigned pc );
-    size_t          param_count();
-    size_t          upval_count();
-    size_t          newup_count();
-    size_t          stack_count();
+    unsigned        code_count();
+    
+    unsigned        param_count();
+    unsigned        upval_count();
+    unsigned        newup_count();
+    unsigned        stack_count();
     bool            is_varargs();
     bool            is_coroutine();
 
@@ -131,6 +135,11 @@ inline xec_function* xec_module::function( unsigned f )
     return mfuncs[ f ];
 }
 
+inline unsigned xec_module::function_count()
+{
+    return mfunccount;
+}
+
 
 
 
@@ -150,22 +159,27 @@ inline xec_opinst xec_function::code( unsigned pc )
     return mcode[ pc ];
 }
 
-inline size_t xec_function::param_count()
+inline unsigned xec_function::code_count()
+{
+    return mcodecount;
+}
+
+inline unsigned xec_function::param_count()
 {
     return mparamcount;
 }
 
-inline size_t xec_function::upval_count()
+inline unsigned xec_function::upval_count()
 {
     return mupvalcount;
 }
 
-inline size_t xec_function::newup_count()
+inline unsigned xec_function::newup_count()
 {
     return mnewupcount;
 }
 
-inline size_t xec_function::stack_count()
+inline unsigned xec_function::stack_count()
 {
     return mstackcount;
 }
