@@ -1101,14 +1101,8 @@ xec_ssa_opref xec_ssa_builder::lookup_name(
 
         // Should have resolved to a real definition.
         assert( ! lookup.join );
-        
-        
-        // But it could have been undefined (script semantics prevent this).
-        if ( lookup.def == XEC_SSA_UNDEF )
-        {
-            root->script->error( sloc, "undefined '%s'", text );
-        }
-        
+        assert( lookup.def != XEC_SSA_UNDEF );
+
         
         return lookup.def;
     }
@@ -1406,63 +1400,6 @@ xec_ssa_opref xec_ssa_builder::ensure_phi( xec_ssa_build_block* block )
 
 
 
-
-
-
-
-#include "xec_ssa_print.h"
-#include "xec_ssa_cfganalysis.h"
-#include "xec_opt_constfold.h"
-#include "xec_ssa_liveness.h"
-#include "xec_ssa_regalloc.h"
-
-
-bool xec_ssabuild( xec_ast* ast )
-{
-    // Build SSA form.
-
-    xec_ssa ssa;
-    xec_ssa_builder builder( &ssa );
-    builder.build( ast );
-    
-
-
-    // Perform optimizations.
-
-    xec_ssa_dfo dfo( &ssa );
-    xec_opt_constfold constfold( &ssa );
-
-    for ( size_t i = 0; i < ssa.functions.size(); ++i )
-    {
-        xec_ssa_func* func = ssa.functions.at( i );
-        dfo.build_ordering( func );
-        constfold.optimize( func, &dfo );
-    }
-
-
-    // Calculate liveness and do register allocation.
-
-    xec_ssa_loop_forest loops( &ssa );
-    xec_ssa_liveness liveness( &ssa );
-    xec_ssa_regalloc regalloc( &ssa );
-    
-    for ( size_t i = 0; i < ssa.functions.size(); ++i )
-    {
-        xec_ssa_func* func = ssa.functions.at( i );
-        dfo.build_ordering( func );
-        loops.build_forest( func, &dfo );
-        liveness.analyze_func( func, &dfo, &loops );
-        regalloc.allocate( func, &dfo );
-    }
-
-    
-    // Print.
-    xec_ssa_print( &ssa );
-    
-    
-    
-    return ast->script->error_count() == 0;
-}
 
 
 

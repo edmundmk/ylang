@@ -364,7 +364,7 @@ void xec_ssa_liveness::live_loop( livespan* span, xec_ssa_loop* loop )
                 // This situation means a mess as the definition of a value
                 // required at the start of the loop is defined only after
                 // the loop has already begun...
-                root->script->error( op->sloc, "undefined value" );
+                assert( ! "undefined value" );
             }
         }
         

@@ -1,16 +1,17 @@
 //
-//  xec_ssa_translateout.cpp
+//  xec_ssa_buildcode.cpp
 //
 //  Created by Edmund Kapusniak on 25/08/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "xec_ssa_translateout.h"
+#include "xec_ssa_buildcode.h"
 #include "xec_ssa.h"
 #include "xec_ssa_cfganalysis.h"
 #include "xec_string.h"
-
+#include "xec_module.h"
+#include "xec_script.h"
 
 
 
@@ -37,29 +38,25 @@ struct xec_ssa_rtgraph
 
 
 
-xec_ssa_translateout::xec_ssa_translateout( xec_ssa* root )
+xec_ssa_buildcode::xec_ssa_buildcode( xec_ssa* root )
     :   root( root )
+    ,   func( NULL )
+    ,   dfo( NULL )
+    ,   maxstack( -1 )
 {
 }
 
 
 
-void xec_ssa_translateout::translateout( xec_ssa_func* func, xec_ssa_dfo* dfo )
+void xec_ssa_buildcode::build_func( xec_ssa_func* func, xec_ssa_dfo* dfo )
 {
-    i.clear();
     this->func = func;
     this->dfo  = dfo;
 
 
     /*
-        Note that blocks with only one predecessor never have phi rtgs.
-        
-        There is some scope to optimize branches involving phi rtgs. If both
-        rtgs out of a block are the same we can do it before the branch.  If
-        one branch is more likely we could do its rtg before the branch and
-        then 'undo' it on the other branch.  I'm sure there are others...
+        Translate function out of SSA form.
     */
-
 
     for ( size_t i = 0; i < dfo->size(); ++i )
     {
@@ -70,17 +67,78 @@ void xec_ssa_translateout::translateout( xec_ssa_func* func, xec_ssa_dfo* dfo )
         
         
         // Translate the operations in the block.
-        translateops( block );
+        build_ops( block );
         
         
         // CFG edges out.
-        translatecfg( block );
+        build_cfg( block );
     }
+    
+    
+    /*
+        Build module function.
+    */
+    
+    xec_function* function = new xec_function();
+    function->mname = strdup( func->funcname );
+
+    function->mcode = (xec_opinst*)malloc( sizeof( xec_opinst ) * code.size() );
+    memcpy( function->mcode, code.data(), sizeof( xec_opinst ) * code.size() );
+    function->mcodecount  = (uint32_t)code.size();
+
+    function->mparamcount = func->paramcount;
+    function->mupvalcount = func->upvalcount;
+    function->mnewupcount = func->localupcount;
+    function->mstackcount = maxstack;
+    function->mvarargs    = func->varargs;
+    function->mcoroutine  = func->coroutine;
+    functions.push_back( function );
+    
+    
+    /*
+        Clear.
+    */
+    
+    labels.clear();
+    code.clear();
+    maxstack = -1;
+}
+
+
+xec_module* xec_ssa_buildcode::build_module()
+{
+    xec_module* module = new xec_module();
+    module->mname = strdup( root->script->get_filename() );
+    
+    module->mkeys = (xec_key**)malloc( sizeof( xec_key* ) * keys.size() );
+    memcpy( module->mkeys, keys.data(), sizeof( xec_key* ) * keys.size() );
+    module->mkeycount = keys.size();
+    
+    module->mvalues = (xec_value*)malloc( sizeof( xec_value ) * values.size() );
+    memcpy( module->mvalues, values.data(), sizeof( xec_value ) * values.size() );
+    module->mvaluecount = values.size();
+    
+    for ( size_t i = 0; i < functions.size(); ++i )
+    {
+        xec_function* function = functions.at( i );
+        function->mmodule = module;
+    }
+    
+    module->mfuncs = (xec_function**)malloc( sizeof( xec_function* ) * functions.size() );
+    memcpy( module->mfuncs, functions.data(), sizeof( xec_function* ) * functions.size() );
+    module->mfunccount = functions.size();
+    
+    keys.clear();
+    values.clear();
+    functions.clear();
+    
+    return module;
 }
 
 
 
-void xec_ssa_translateout::translateops( xec_ssa_block* block )
+
+void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
 {
     for ( size_t i = 0; i < block->ops->ops.size(); ++i )
     {
@@ -94,8 +152,138 @@ void xec_ssa_translateout::translateops( xec_ssa_block* block )
             break;
         
         case XEC_SSA_NULL:
-            inst( XEC_NULL, op->r, 0, 0 );
+            inst( XEC_NULL, o( op->r ), 0, 0 );
             break;
+        case XEC_SSA_POS:
+            inst( XEC_POS, o( op->r ), o( op->operanda ), 0 );
+            break;
+        case XEC_SSA_NEG:
+            inst( XEC_NEG, o( op->r ), o( op->operanda ), 0 );
+            break;
+        case XEC_SSA_NOT:
+            inst( XEC_LNOT, o( op->r ), o( op->operanda ), 0 );
+            break;
+        case XEC_SSA_BITNOT:
+            inst( XEC_NOT, o( op->r ), o( op->operanda ), 0 );
+            break;
+        case XEC_SSA_MUL:
+            inst( XEC_MUL, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_DIV:
+            inst( XEC_DIV, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_MOD:
+            inst( XEC_DIV, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_INTDIV:
+            inst( XEC_INTDIV, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_ADD:
+            inst( XEC_ADD, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_SUB:
+            inst( XEC_SUB, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_LSL:
+            inst( XEC_LSL, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_LSR:
+            inst( XEC_LSR, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_ASR:
+            inst( XEC_ASR, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_BITAND:
+            inst( XEC_AND, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_BITXOR:
+            inst( XEC_XOR, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_BITOR:
+            inst( XEC_OR, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_CONCAT:
+            inst( XEC_CONCAT, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_EQ:
+            inst( XEC_EQ, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_LT:
+            inst( XEC_LT, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_LE:
+            inst( XEC_LE, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_IN:
+            inst( XEC_IN, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_IS:
+            inst( XEC_IS, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_XOR:
+            inst( XEC_LXOR, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_INKEY:
+            inst( XEC_INKEY, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_INDEX:
+            inst( XEC_INDEX, o( op->r ), o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_DELINKEY:
+            inst( XEC_DELINKEY, o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_OBJECT:
+            inst( XEC_OBJECT, o( op->r ), o( op->operanda ), 0 );
+            break;
+        case XEC_SSA_ITER:
+            inst( XEC_ITER, o( op->r ), o( op->operanda ), 0 );
+            break;
+        case XEC_SSA_EACH:
+            inst( XEC_ITERKEY, o( op->r ), o( op->operanda ), 0 );
+            break;
+        case XEC_SSA_APPEND:
+            inst( XEC_APPEND, o( op->operandb ), o( op->operanda ), 0 );
+            break;
+        case XEC_SSA_KEY:
+            inst( XEC_KEY, o( op->r ), o( op->operanda ), k( op->immkey ) );
+            break;
+        case XEC_SSA_DELKEY:
+            inst( XEC_DELKEY, 0, o( op->operanda ), k( op->immkey ) );
+            break;
+        case XEC_SSA_GLOBAL:
+            inst( XEC_GLOBAL, o( op->r ), 0, k( op->immkey ) );
+            break;
+        case XEC_SSA_SETGLOBAL:
+            inst( XEC_SETGLOBAL, o( op->operanda ), 0, k( op->immkey ) );
+            break;
+        case XEC_SSA_NEWUP:
+            inst( XEC_NEWUP, o( op->operanda ), op->immkey );
+            break;
+        case XEC_SSA_SETUP:
+            inst( XEC_SETUP, o( op->operanda ), op->immkey );
+            break;
+        case XEC_SSA_REFUP:
+            inst( XEC_REFUP, o( op->r ), op->immkey );
+            break;
+        case XEC_SSA_ARRAY:
+            inst( XEC_ARRAY, o( op->r ), op->immkey );
+            break;
+        case XEC_SSA_TABLE:
+            inst( XEC_TABLE, o( op->r ), op->immkey );
+            break;
+        case XEC_SSA_SETINKEY:
+            inst( XEC_SETINKEY, o( op->operandv ),
+                            o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_SETINDEX:
+            inst( XEC_SETINDEX, o( op->operandv ),
+                            o( op->operanda ), o( op->operandb ) );
+            break;
+        case XEC_SSA_SETKEY:
+            inst( XEC_SETKEY, o( op->operandv ),
+                            o( op->operanda ), k( op->immkey ) );
+            break;
+            
             
         case XEC_SSA_NUMBER:
         {
@@ -116,7 +304,7 @@ void xec_ssa_translateout::translateops( xec_ssa_block* block )
                 values.push_back( v );
             }
             
-            inst( XEC_VALUE, op->r, (int)i );
+            inst( XEC_VALUE, o( op->r ), (int)i );
             break;
         }
         
@@ -139,7 +327,7 @@ void xec_ssa_translateout::translateops( xec_ssa_block* block )
                 values.push_back( v );
             }
             
-            inst( XEC_VALUE, op->r, (int)i );
+            inst( XEC_VALUE, o( op->r ), (int)i );
             break;
         }
         
@@ -165,120 +353,10 @@ void xec_ssa_translateout::translateops( xec_ssa_block* block )
                 values.push_back( t );
             }
             
-            inst( XEC_VALUE, op->r, (int)i );
+            inst( XEC_VALUE, o( op->r ), (int)i );
             break;
         }
         
-        case XEC_SSA_POS:
-            inst( XEC_POS, op->r, o( op->operanda ), 0 );
-            break;
-        case XEC_SSA_NEG:
-            inst( XEC_NEG, op->r, o( op->operanda ), 0 );
-            break;
-        case XEC_SSA_NOT:
-            inst( XEC_LNOT, op->r, o( op->operanda ), 0 );
-            break;
-        case XEC_SSA_BITNOT:
-            inst( XEC_NOT, op->r, o( op->operanda ), 0 );
-            break;
-        
-        case XEC_SSA_MUL:
-            inst( XEC_MUL, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_DIV:
-            inst( XEC_DIV, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_MOD:
-            inst( XEC_DIV, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_INTDIV:
-            inst( XEC_INTDIV, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_ADD:
-            inst( XEC_ADD, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_SUB:
-            inst( XEC_SUB, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_LSL:
-            inst( XEC_LSL, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_LSR:
-            inst( XEC_LSR, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_ASR:
-            inst( XEC_ASR, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_BITAND:
-            inst( XEC_AND, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_BITXOR:
-            inst( XEC_XOR, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_BITOR:
-            inst( XEC_OR, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_CONCAT:
-            inst( XEC_CONCAT, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        
-        case XEC_SSA_EQ:
-            inst( XEC_EQ, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_LT:
-            inst( XEC_LT, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_LE:
-            inst( XEC_LE, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_IN:
-            inst( XEC_IN, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_IS:
-            inst( XEC_IS, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_XOR:
-            inst( XEC_LXOR, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-
-        case XEC_SSA_INKEY:
-            inst( XEC_INKEY, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_INDEX:
-            inst( XEC_INDEX, op->r, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_DELINKEY:
-            inst( XEC_DELINKEY, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_OBJECT:
-            inst( XEC_OBJECT, op->r, o( op->operanda ), 0 );
-            break;
-        case XEC_SSA_ITER:
-            inst( XEC_ITER, op->r, o( op->operanda ), 0 );
-            break;
-        case XEC_SSA_EACH:
-            inst( XEC_ITERKEY, op->r, o( op->operanda ), 0 );
-            break;
-
-        case XEC_SSA_APPEND:
-            inst( XEC_ITERKEY, o( op->operandb ), o( op->operanda ), 0 );
-            break;
-        
-        case XEC_SSA_KEY:
-            inst( XEC_KEY, op->r, o( op->operanda ), k( op->immkey ) );
-            break;
-        
-        case XEC_SSA_DELKEY:
-            inst( XEC_DELKEY, 0, o( op->operanda ), k( op->immkey ) );
-            break;
-            
-        case XEC_SSA_GLOBAL:
-            inst( XEC_GLOBAL, op->r, 0, k( op->immkey ) );
-            break;
-        
-        case XEC_SSA_SETGLOBAL:
-            inst( XEC_SETGLOBAL, o( op->operanda ), 0, k( op->immkey ) );
-            break;
             
         case XEC_SSA_PARAM:
         {
@@ -296,21 +374,12 @@ void xec_ssa_translateout::translateops( xec_ssa_block* block )
         }
         
         case XEC_SSA_SELECT:
+        {
             // Will have compiled selects as part of the op they select from.
             break;
+        }
             
-        case XEC_SSA_NEWUP:
-            inst( XEC_NEWUP, o( op->operanda ), op->immkey );
-            break;
         
-        case XEC_SSA_SETUP:
-            inst( XEC_SETUP, o( op->operanda ), op->immkey );
-            break;
-            
-        case XEC_SSA_REFUP:
-            inst( XEC_REFUP, op->r, op->immkey );
-            break;
-            
         case XEC_SSA_CLOSE:
         {
             // Build ranges of upvals to close from adjacent close ops.
@@ -346,29 +415,6 @@ void xec_ssa_translateout::translateops( xec_ssa_block* block )
             
             break;
         }
-        
-        case XEC_SSA_ARRAY:
-            inst( XEC_ARRAY, op->r, op->immkey );
-            break;
-            
-        case XEC_SSA_TABLE:
-            inst( XEC_TABLE, op->r, op->immkey );
-            break;
-
-        case XEC_SSA_SETINKEY:
-            inst( XEC_SETINKEY, o( op->operandv ),
-                            o( op->operanda ), o( op->operandb ) );
-            break;
-            
-        case XEC_SSA_SETINDEX:
-            inst( XEC_SETINDEX, o( op->operandv ),
-                            o( op->operanda ), o( op->operandb ) );
-            break;
-            
-        case XEC_SSA_SETKEY:
-            inst( XEC_SETKEY, o( op->operandv ),
-                            o( op->operanda ), k( op->immkey ) );
-            break;
             
         case XEC_SSA_VARARG:
         {
@@ -376,12 +422,12 @@ void xec_ssa_translateout::translateops( xec_ssa_block* block )
             {
                 // Stacklike unpack of all varargs.
                 assert( op->r == op->args->stacktop );
-                inst( XEC_VARALL, op->r, 0 );
+                inst( XEC_VARALL, o( op->r ), 0 );
             }
             else
             {
                 // Recover single vararg.
-                inst( XEC_VARARG, op->r, op->args->rcount );
+                inst( XEC_VARARG, o( op->r ), op->args->rcount );
             }
             break;
         }
@@ -392,27 +438,33 @@ void xec_ssa_translateout::translateops( xec_ssa_block* block )
             {
                 // Stacklike unpack of all results.
                 assert( op->r == op->args->stacktop );
-                inst( XEC_UNPACK, op->r, 0 );
+                inst( XEC_UNPACK, o( op->r ), 0 );
             }
             else
             {
                 // Recover single array element.
-                inst( XEC_ELEM, op->r, op->args->rcount );
+                inst( XEC_ELEM, o( op->r ), op->args->rcount );
             }
             break;
         }
         
         case XEC_SSA_CALL:
-            callinst( XEC_CALL, block->ops, (int)i );
+        {
+            call( XEC_CALL, block->ops, (int)i );
             break;
+        }
         
         case XEC_SSA_YCALL:
-            callinst( XEC_YCALL, block->ops, (int)i );
+        {
+            call( XEC_YCALL, block->ops, (int)i );
             break;
+        }
             
         case XEC_SSA_YIELD:
-            callinst( XEC_YIELD, block->ops, (int)i );
+        {
+            call( XEC_YIELD, block->ops, (int)i );
             break;
+        }
             
         case XEC_SSA_NEW:
         {
@@ -421,7 +473,7 @@ void xec_ssa_translateout::translateops( xec_ssa_block* block )
             
             // Instruction places new object in the correct place.
             int b = op->args->unpacked ? XEC_MARK : (int)op->args->args.size();
-            inst( XEC_NEW, op->r, op->args->stacktop, b );
+            inst( XEC_NEW, o( op->r ), op->args->stacktop, b );
             break;
         }
         
@@ -446,12 +498,29 @@ void xec_ssa_translateout::translateops( xec_ssa_block* block )
             if ( op->args->rcount == 1 )
             {
                 // Simplest version.
-                inst( XEC_NEXT1, op->r, iter, 0 );
+                int select = -1;
+                for ( size_t j = i; j < block->ops->ops.size(); ++j )
+                {
+                    xec_ssa_op* selop = &block->ops->ops.at( j );
+                    
+                    if ( selop->opcode != XEC_SSA_SELECT
+                            || func->getop( selop->operanda ) != op )
+                    {
+                        break;
+                    }
+                    
+                    if ( selop->immkey == 0 )
+                    {
+                        select = o( op->r );
+                    }
+                }
+                
+                inst( XEC_NEXT1, select, iter, 0 );
             }
             else if ( op->args->rcount == 2 )
             {
                 // Find the two following selects.
-                int select[ 2 ] = { op->r, -1 };
+                int select[ 2 ] = { -1, -1 };
                 for ( size_t j = i; j < block->ops->ops.size(); ++j )
                 {
                     xec_ssa_op* selop = &block->ops->ops.at( j );
@@ -462,19 +531,20 @@ void xec_ssa_translateout::translateops( xec_ssa_block* block )
                         break;
                     }
                     
-                    if ( selop->immkey >= 0 && selop->immkey <= 1 )
+                    if ( selop->immkey == 0 || selop->immkey == 1 )
                     {
-                        select[ op->immkey ] = op->r;
+                        select[ op->immkey ] = o( op->r );
                     }
                 }
                 
                 // Two-result version.
-                inst( XEC_NEXT2, select[ 0 ], iter, select[ 1 ] );
+                inst( XEC_NEXT2, select[ 0 ], select[ 1 ], iter );
             }
             else
             {
                 // Generic version which uses stack top.
                 int b = op->args->rcount == -1 ? XEC_MARK : op->args->rcount;
+                stack( op->args->stacktop, b );
                 inst( XEC_NEXT, op->args->stacktop, iter, b );
             
                 // Build register transfer graph from following selects to get
@@ -509,7 +579,7 @@ void xec_ssa_translateout::translateops( xec_ssa_block* block )
             assert( index < root->functions.size() );
             
             // Output instruction.
-            inst( XEC_CLOSURE, op->r, (int)index );
+            inst( XEC_CLOSURE, o( op->r ), (int)index );
             
             // Add upvals to closure.
             assert( op->closure->upvals.size() ==
@@ -538,8 +608,17 @@ void xec_ssa_translateout::translateops( xec_ssa_block* block )
 }
 
 
-void xec_ssa_translateout::translatecfg( xec_ssa_block* block )
+void xec_ssa_buildcode::build_cfg( xec_ssa_block* block )
 {
+    /*
+        Note that blocks with only one predecessor never have phi rtgs.
+        
+        There is some scope to optimize branches involving phi rtgs. If both
+        rtgs out of a block are the same we can do it before the branch.  If
+        one branch is more likely we could do its rtg before the branch and
+        then 'undo' it on the other branch.  I'm sure there are others...
+    */
+
 
     if ( block->condition )
     {
@@ -694,7 +773,7 @@ void xec_ssa_translateout::translatecfg( xec_ssa_block* block )
 
 
 
-int xec_ssa_translateout::k( int immkey )
+int xec_ssa_buildcode::k( int immkey )
 {
     const char* ssakey = root->keys.at( immkey );
     for ( size_t i = 0; i < keys.size(); ++i )
@@ -711,36 +790,51 @@ int xec_ssa_translateout::k( int immkey )
     return result;
 }
 
-int xec_ssa_translateout::o( xec_ssa_opref operand )
+int xec_ssa_buildcode::o( xec_ssa_opref operand )
 {
     operand = func->operand( operand );
     xec_ssa_op* op = func->getop( operand );
-    return op->r;
+    return o( op->r );
+}
+
+int xec_ssa_buildcode::o( int r )
+{
+    maxstack = std::max( maxstack, r );
+    return r;
 }
 
 
-void xec_ssa_translateout::inst( xec_opcode opcode, int r, int a, int b )
+void xec_ssa_buildcode::stack( int r, int b )
+{
+    if ( b != XEC_MARK )
+    {
+        maxstack = std::max( maxstack, r + b );
+    }
+}
+
+
+void xec_ssa_buildcode::inst( xec_opcode opcode, int r, int a, int b )
 {
     if ( r == -1 || a == -1 || b == -1 )
     {
         return;
     }
     
-    i.emplace_back( opcode, (unsigned)r, (unsigned)a, (unsigned)b );
+    code.emplace_back( opcode, (unsigned)r, (unsigned)a, (unsigned)b );
 }
 
-void xec_ssa_translateout::inst( xec_opcode opcode, int r, int c )
+void xec_ssa_buildcode::inst( xec_opcode opcode, int r, int c )
 {
     if ( r == -1 || c == -1 )
     {
         return;
     }
     
-    i.emplace_back( opcode, (unsigned)r, (unsigned)c );
+    code.emplace_back( opcode, (unsigned)r, (unsigned)c );
 }
 
 
-void xec_ssa_translateout::callinst(
+void xec_ssa_buildcode::call(
                 xec_opcode opcode, xec_ssa_slice* slice, int index )
 {
     xec_ssa_op* op = &slice->ops.at( index );
@@ -751,6 +845,7 @@ void xec_ssa_translateout::callinst(
     // Call.
     int a = op->args->unpacked ? XEC_MARK : (int)op->args->args.size();
     int b = op->args->rcount == -1 ? XEC_MARK : op->args->rcount;
+    stack( op->args->stacktop, b );
     inst( opcode, op->args->stacktop, a, b );
 
     // Build register transfer graph from following selects to get results in
@@ -759,7 +854,7 @@ void xec_ssa_translateout::callinst(
 }
 
 
-void xec_ssa_translateout::arguments( xec_ssa_op* op )
+void xec_ssa_buildcode::arguments( xec_ssa_op* op )
 {
     assert( op->opcode >= XEC_SSA_FIRST_ARG
                 && op->opcode <= XEC_SSA_LAST_ARG );
@@ -786,7 +881,7 @@ void xec_ssa_translateout::arguments( xec_ssa_op* op )
     move( &rtg );
 }
 
-void xec_ssa_translateout::select( xec_ssa_slice* slice, size_t index )
+void xec_ssa_buildcode::select( xec_ssa_slice* slice, size_t index )
 {
     // The op that we're at is the one that generates the values to select.
     xec_ssa_op* op = &slice->ops.at( index );
@@ -822,7 +917,7 @@ void xec_ssa_translateout::select( xec_ssa_slice* slice, size_t index )
 
 
 
-void xec_ssa_translateout::move( xec_ssa_rtgraph* rtg )
+void xec_ssa_buildcode::move( xec_ssa_rtgraph* rtg )
 {
     // The register transfer graph has nodes representing registers and edges
     // representing moves.  Each node has at most a single incoming edge, but
@@ -890,7 +985,7 @@ void xec_ssa_translateout::move( xec_ssa_rtgraph* rtg )
         int source = rtg->moves.at( target );
         
         // Perform move.
-        inst( XEC_MOV, target, source, 0 );
+        inst( XEC_MOV, o( target ), o( source ), 0 );
         
         // Target is no longer in the set.
         zero.erase( i );
@@ -914,7 +1009,7 @@ void xec_ssa_translateout::move( xec_ssa_rtgraph* rtg )
         int a = rtg->moves.at( b );
         
         // Swap.
-        inst( XEC_SWP, a, b, 0 );
+        inst( XEC_SWP, o( a ), o( b ), 0 );
         
         if ( c == a )
         {
@@ -935,25 +1030,111 @@ void xec_ssa_translateout::move( xec_ssa_rtgraph* rtg )
 
 
 
-void xec_ssa_translateout::phi(
+void xec_ssa_buildcode::phi(
                 xec_ssa_rtgraph* rtg, xec_ssa_block* from, xec_ssa_block* to )
 {
+    // Find index of incoming edge.
+    size_t edgeindex = -1;
+    for ( size_t i = 0; i < to->previous.size(); ++i )
+    {
+        if ( to->previous.at( i ) == from )
+        {
+            edgeindex = (int)i;
+            break;
+        }
+    }
+    assert( edgeindex != -1 );
+    
+    // Build rtg based on phi ops.
+    for ( size_t i = 0; i < to->phi->ops.size(); ++i )
+    {
+        xec_ssa_op& phiop = to->phi->ops.at( i );
+        
+        if ( phiop.opcode != XEC_SSA_PHI )
+        {
+            continue;
+        }
+        
+        assert( phiop.r != -1 );
+        assert( phiop.phi->definitions.size() == to->previous.size() );
+        xec_ssa_opref source = phiop.phi->definitions.at( edgeindex );
+        rtg->move( phiop.r, o( source ) );
+    }
 }
 
     
-void xec_ssa_translateout::label( void* label )
+void xec_ssa_buildcode::label( void* label )
 {
+    auto i = labels.find( label );
+    if ( i != labels.end() )
+    {
+        jumplabel& l = i->second;
+        l.label = (int)code.size();
+        for ( size_t i = 0 ; i < l.jumps.size(); ++i )
+        {
+            int jumppc = l.jumps.at( i );
+            xec_opinst inst = code.at( jumppc );
+            signed j = l.label - ( jumppc + 1 );
+            code[ jumppc ] = xec_opinst( inst.opcode(), inst.r(), j );
+        }
+        l.jumps.clear();
+    }
+    else
+    {
+        jumplabel l;
+        l.label = (int)code.size();
+        labels.emplace( label, std::move( l ) );
+    }
 }
 
 
-void xec_ssa_translateout::jump( xec_opcode opcode, int r, void* label )
+void xec_ssa_buildcode::jump( xec_opcode opcode, int r, void* label )
 {
+    
+    // Check for label.
+    int labelpc = (int)code.size() + 1;
+    auto i = labels.find( label );
+    if ( i != labels.end() )
+    {
+        jumplabel& l = i->second;
+        if ( l.label == -1 )
+        {
+            l.jumps.push_back( (int)code.size() );
+        }
+        else
+        {
+            labelpc = l.label;
+        }
+    }
+    else
+    {
+        jumplabel l;
+        l.label = -1;
+        l.jumps.push_back( (int)code.size() );
+        labels.emplace( label, std::move( l ) );
+    }
+    
+    signed j = labelpc - ( (int)code.size() + 1 );
+    code.emplace_back( opcode, r, j );
+    
 }
 
 
-void xec_ssa_translateout::branch(
+void xec_ssa_buildcode::branch(
                 xec_ssa_opref condition, bool iftrue, void* label )
 {
+    xec_ssa_op* condop = func->getop( func->operand( condition ) );
+    if ( condop->opcode == XEC_SSA_NEXT )
+    {
+        xec_opcode opcode = iftrue ? XEC_IFITER : XEC_IFDONE;
+        jump( opcode, 0, label );
+    }
+    else
+    {
+        xec_opcode opcode = iftrue ? XEC_IFTRUE : XEC_IFFALSE;
+        assert( condop->r != -1 );
+        jump( opcode, o( condop->r ), label );
+    }
 }
 
 

@@ -1,13 +1,13 @@
 //
-//  xec_ssa_translateout.h
+//  xec_ssa_buildcode.h
 //
 //  Created by Edmund Kapusniak on 25/08/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef XEC_SSA_TRANSLATEOUT_H
-#define XEC_SSA_TRANSLATEOUT_H
+#ifndef XEC_SSA_BUILDCODE_H
+#define XEC_SSA_BUILDCODE_H
 
 
 #include <vector>
@@ -27,30 +27,41 @@
 
 class xec_ssa_dfo;
 struct xec_ssa_rtgraph;
+class xec_module;
+class xec_function;
 
 
-class xec_ssa_translateout
+class xec_ssa_buildcode
 {
 public:
 
-    explicit xec_ssa_translateout( xec_ssa* root );
+    explicit xec_ssa_buildcode( xec_ssa* root );
     
-    void translateout( xec_ssa_func* func, xec_ssa_dfo* dfo );
-    void print();
+    void build_func( xec_ssa_func* func, xec_ssa_dfo* dfo );
+    xec_module* build_module();
 
 
 private:
 
-    void translateops( xec_ssa_block* block );
-    void translatecfg( xec_ssa_block* block );
+    struct jumplabel
+    {
+        int                 label;
+        std::vector< int >  jumps;
+    };
+
+    void build_ops( xec_ssa_block* block );
+    void build_cfg( xec_ssa_block* block );
     
     int k( int immkey );
     int o( xec_ssa_opref operand );
+    int o( int r );
+
+    void stack( int r, int b );
     
     void inst( xec_opcode opcode, int r, int a, int b );
     void inst( xec_opcode opcode, int r, int c );
 
-    void callinst( xec_opcode opcode, xec_ssa_slice* slice, int index );
+    void call( xec_opcode opcode, xec_ssa_slice* slice, int index );
     void arguments( xec_ssa_op* op );
     void select( xec_ssa_slice* slice, size_t index );
     void move( xec_ssa_rtgraph* rtg );
@@ -68,7 +79,11 @@ private:
 
     std::vector< xec_value > values;
     std::vector< xec_key* > keys;
-    std::vector< xec_opinst > i;
+    std::vector< xec_function* > functions;
+    
+    std::unordered_map< void*, jumplabel > labels;
+    std::vector< xec_opinst > code;
+    int maxstack;
 
 };
 

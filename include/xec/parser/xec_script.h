@@ -18,6 +18,7 @@
 
 
 struct xec_ast;
+class xec_module;
 
 
 
@@ -75,10 +76,11 @@ bool xec_parse( xec_script* script, xec_ast* ast,
 
 
 /*
-    SSA build (temporary).
+    Compile an AST into a compiled xecode module.
 */
 
-bool xec_ssabuild( xec_ast* ast );
+xec_module* xec_compile( xec_ast* ast );
+
 
 
 

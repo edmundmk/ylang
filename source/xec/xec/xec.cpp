@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <xec/parser/xec_script.h>
 #include <xec/parser/xec_ast.h>
-#include <xec/parser/xec_ast_print.h>
+#include <xec/xecode/xec_module.h>
 
 
 
@@ -22,21 +22,23 @@ int main( int argc, char* argv[] )
 
     const char* sargv[] = { "argv0", "..." };
     if ( ! xec_parse( &script, &ast, argv[ 1 ], 2, sargv ) )
-        goto error;
-    
-//    xec_ast_print( &ast );
-    
-    if ( ! xec_ssabuild( &ast ) )
-        goto error;
-    
-    return EXIT_SUCCESS;
-    
-error:
-
-    for ( size_t i = 0; i < script.error_count(); ++i )
     {
-        fprintf( stderr, "%s\n", script.error( i ) );
+        for ( size_t i = 0; i < script.error_count(); ++i )
+        {
+            fprintf( stderr, "%s\n", script.error( i ) );
+        }
+        return EXIT_FAILURE;
     }
     
-    return EXIT_FAILURE;
+    xec_ast_print( &ast );
+
+    std::unique_ptr< xec_module > module( xec_compile( &ast ) );
+    if ( ! module )
+    {
+        return EXIT_FAILURE;
+    }
+
+    xec_module_print( module.get() );
+    
+    return EXIT_SUCCESS;
 }

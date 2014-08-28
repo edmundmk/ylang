@@ -80,14 +80,14 @@ enum xec_opcode
     XEC_JMP,        // pc = address of next instruction + j
     XEC_IFTRUE,     // if (bool)r pc = address of next instruction + j
     XEC_IFFALSE,    // if not (bool)r pc = address of next instruction + j
-    XEC_IFDONE,     // if @done pc = address of next instruction + j
-    XEC_IFSTILL,    // if not @done pc = address of next instruction + j
+    XEC_IFITER,     // if @iter pc = address of next instruction + j
+    XEC_IFDONE,     // if not @iter pc = address of next instruction + j
 
     XEC_ITER,       // r = iterator over indexes of a
     XEC_ITERKEY,    // r = iterator over keys of a
-    XEC_NEXT1,      // r = generate (iterator)a, set/clear @done
-    XEC_NEXT2,      // r, b = generator (iterator)a, set/clear @done
-    XEC_NEXT,       // r .. r + b = generate (iterator)a, set/clear @done
+    XEC_NEXT1,      // r = generate (iterator)a, set/clear @iter
+    XEC_NEXT2,      // r, a = generator (iterator)b, set/clear @iter
+    XEC_NEXT,       // r .. r + b = generate (iterator)a, set/clear @iter
 
     XEC_TABLE,      // r = new table (reserve c indexes)
     XEC_OBJECT,     // r = new object with proto a.

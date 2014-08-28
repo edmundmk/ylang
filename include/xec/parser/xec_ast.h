@@ -858,10 +858,13 @@ struct xec_name_list : public xec_ast_node
 
 
 /*
-    Operator names.
+    AST printing.
 */
 
-const char* xec_operator_name( xec_ast_opkind op );
+
+void xec_ast_print( xec_ast* root );
+
+
 
 
 

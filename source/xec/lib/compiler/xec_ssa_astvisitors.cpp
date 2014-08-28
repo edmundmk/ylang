@@ -935,7 +935,7 @@ void xec_ssa_build_stmt::visit( xec_stmt_foreach* node )
     {
         xec_ssa_lvalue lvalue;
         b->lvalue( &lvalue, node->lvalues.at( i ) );
-        xec_ssa_opref rvalue = b->op( node->sloc, XEC_SSA_SELECT, next, 1 + i );
+        xec_ssa_opref rvalue = b->op( node->sloc, XEC_SSA_SELECT, next, i );
         b->lvalue_assign( &lvalue, rvalue );
     }
     

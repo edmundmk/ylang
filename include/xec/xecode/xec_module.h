@@ -27,7 +27,7 @@ public:
 
     ~xec_module();
 
-    xec_string*     name();
+    const char*     name();
     
     xec_function*   script_function();
     
@@ -38,15 +38,17 @@ public:
 
 private:
 
+    friend class xec_ssa_buildcode;
+
     xec_module();
 
-    xec_string*     mname;
-    size_t          mkeycount;
+    char*           mname;
     xec_key**       mkeys;
-    size_t          mvaluecount;
+    size_t          mkeycount;
     xec_value*      mvalues;
-    size_t          mfunccount;
+    size_t          mvaluecount;
     xec_function**  mfuncs;
+    size_t          mfunccount;
 
 };
 
@@ -59,10 +61,10 @@ public:
     ~xec_function();
 
     xec_module*     module();
-    xec_string*     name();
+    const char*     name();
     
-    xec_opinst      inst( unsigned pc );
-    size_t          argument_count();
+    xec_opinst      code( unsigned pc );
+    size_t          param_count();
     size_t          upval_count();
     size_t          newup_count();
     size_t          stack_count();
@@ -72,13 +74,15 @@ public:
     
 private:
 
+    friend class xec_ssa_buildcode;
+
     xec_function();
 
     xec_module*     mmodule;
-    xec_string*     mname;
-    xec_opinst*     minst;
-    uint32_t        minstcount;
-    uint32_t        margcount;
+    char*           mname;
+    xec_opinst*     mcode;
+    uint32_t        mcodecount;
+    uint32_t        mparamcount;
     uint32_t        mupvalcount;
     uint32_t        mnewupcount;
     uint32_t        mstackcount;
@@ -89,12 +93,16 @@ private:
 
 
 
+void xec_module_print( xec_module* module );
+
+
+
 
 /*
 */
 
 
-inline xec_string* xec_module::name()
+inline const char* xec_module::name()
 {
     return mname;
 }
@@ -131,20 +139,20 @@ inline xec_module* xec_function::module()
     return mmodule;
 }
 
-inline xec_string* xec_function::name()
+inline const char* xec_function::name()
 {
     return mname;
 }
 
-inline xec_opinst xec_function::inst( unsigned pc )
+inline xec_opinst xec_function::code( unsigned pc )
 {
-    assert( pc < minstcount );
-    return minst[ pc ];
+    assert( pc < mcodecount );
+    return mcode[ pc ];
 }
 
-inline size_t xec_function::argument_count()
+inline size_t xec_function::param_count()
 {
-    return margcount;
+    return mparamcount;
 }
 
 inline size_t xec_function::upval_count()

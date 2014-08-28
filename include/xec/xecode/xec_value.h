@@ -23,19 +23,18 @@
     qnan      s111111111111000000000000000000000000000000000000000000000000000
     snan      s111111111110zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
 
-    null      0           0001000000000000000000000000000000000000000000000000
-    bool      0           0010                                               b
-    native    0           0011pppppppppppppppppppppppppppppppppppppppppppppppp
-    object    0           0101pppppppppppppppppppppppppppppppppppppppppppppppp
-    string    0           0110pppppppppppppppppppppppppppppppppppppppppppppppp
-    oolptr    0           0111pppppppppppppppppppppppppppppppppppppppppppppppp
+    null      0111111111110001000000000000000000000000000000000000000000000000
+    bool      011111111111001000000000000000000000000000000000000000000000000b
+    native    0111111111110011pppppppppppppppppppppppppppppppppppppppppppppppp
+    object    0111111111110101pppppppppppppppppppppppppppppppppppppppppppppppp
+    string    0111111111110110pppppppppppppppppppppppppppppppppppppppppppppppp
+    oolptr    0111111111110111pppppppppppppppppppppppppppppppppppppppppppppppp
 
-    On systems where this is not the case, we should enforce that xec objects
+    On systems with a truly 64-bit address space, we should ensure that values
     are allocated from the low 48-bits (or from a heap not larger than 48-bits)
     and introduce a special oolnative type to hold full 64-bit pointers with
-    an extra level of indirection.
-    
-    For now just be lazy and horribly future-incompatible.
+    an extra level of indirection.  For now just be lazy - 256TiB should be
+    enough for everyone!
  
 */
 
@@ -78,9 +77,9 @@ private:
     friend bool operator != ( const xec_value& a, const xec_value& b );
 
 
-    static const uint64_t FLOAT_INFNAN  = (uint64_t)0x7FF0 << 48;
-    static const uint64_t FLOAT_MARK    = (uint64_t)0x0007 << 48;
-    
+    static const uint64_t FLOAT_XOR     = (uint64_t)0x0008 << 48;
+    static const int64_t  FLOAT_MAX     = (int64_t)0x7FF8 << 48;
+
     static const uint64_t MARK_MASK     = (uint64_t)0xFFFF << 48;
     static const uint64_t MARK_NULL     = (uint64_t)0x7FF1 << 48;
     static const uint64_t MARK_BOOL     = (uint64_t)0x7FF2 << 48;
@@ -89,7 +88,6 @@ private:
     static const uint64_t MARK_STRING   = (uint64_t)0x7FF6 << 48;
     static const uint64_t MARK_OOLPTR   = (uint64_t)0x7FF7 << 48;
     
-    static const uint64_t BITS_NULL     = MARK_NULL;
     static const uint64_t BITS_FALSE    = MARK_BOOL | (uint64_t)false;
     static const uint64_t BITS_ZERO     = 0x0000000000000000ll;
     static const uint64_t BITS_NZERO    = 0x8000000000000000ll;
@@ -130,7 +128,7 @@ inline xec_value::xec_value( bool boolean )
 }
 
 inline xec_value::xec_value( void* native )
-    :   i( MARK_NULL | (uint64_t)native )
+    :   i( MARK_NATIVE | (uint64_t)native )
 {
     assert( (uint64_t)native < ( (uint64_t)1 << 48 ) );
 }
@@ -150,7 +148,7 @@ inline xec_value::xec_value( xec_string* string )
 
 inline xec_value::operator bool() const
 {
-    return i != BITS_NULL
+    return i != MARK_NULL
         && i != BITS_FALSE
         && i != BITS_ZERO
         && i != BITS_NZERO;
@@ -165,7 +163,8 @@ inline bool xec_value::isnull() const
 
 inline bool xec_value::isnumber() const
 {
-    return ( i & FLOAT_INFNAN ) != FLOAT_INFNAN || ( i & FLOAT_MARK ) == 0;
+    // Attempting to be clever here.
+    return (int64_t)( i ^ FLOAT_XOR ) <= FLOAT_MAX;
 }
 
 inline bool xec_value::isboolean() const
