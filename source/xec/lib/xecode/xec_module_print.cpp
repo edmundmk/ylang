@@ -65,7 +65,7 @@ public:
     
         add( XEC_NEWUP,     "newup     ^%c %r" );
         add( XEC_SETUP,     "setup     ^%c %r" );
-        add( XEC_REFUP,     "refup     $r ^%c" );
+        add( XEC_REFUP,     "refup     %r ^%c" );
         add( XEC_CLOSE,     "close     ^[%c .. %r]" );
     
         add( XEC_EQ,        "eq        %r %a %b" );
