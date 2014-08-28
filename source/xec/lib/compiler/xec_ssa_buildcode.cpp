@@ -89,7 +89,7 @@ void xec_ssa_buildcode::build_func( xec_ssa_func* func, xec_ssa_dfo* dfo )
     function->mparamcount = func->paramcount;
     function->mupvalcount = func->upvalcount;
     function->mnewupcount = func->localupcount;
-    function->mstackcount = maxstack;
+    function->mstackcount = maxstack + 1;
     function->mvarargs    = func->varargs;
     function->mcoroutine  = func->coroutine;
     functions.push_back( function );
@@ -232,9 +232,6 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
         case XEC_SSA_DELINKEY:
             inst( XEC_DELINKEY, o( op->operanda ), o( op->operandb ) );
             break;
-        case XEC_SSA_OBJECT:
-            inst( XEC_OBJECT, o( op->r ), o( op->operanda ), 0 );
-            break;
         case XEC_SSA_ITER:
             inst( XEC_ITER, o( op->r ), o( op->operanda ), 0 );
             break;
@@ -287,6 +284,11 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
             
         case XEC_SSA_NUMBER:
         {
+            if ( op->r == -1 )
+            {
+                break;
+            }
+        
             xec_value v = xec_value( op->number );
             
             size_t i = 0;
@@ -310,6 +312,11 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
         
         case XEC_SSA_BOOL:
         {
+            if ( op->r == -1 )
+            {
+                break;
+            }
+
             xec_value v = xec_value( op->boolean );
         
             size_t i = 0;
@@ -333,6 +340,11 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
         
         case XEC_SSA_STRING:
         {
+            if ( op->r == -1 )
+            {
+                break;
+            }
+
             xec_ssa_string* s = op->string;
         
             size_t i = 0;
@@ -357,6 +369,13 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
             break;
         }
         
+        case XEC_SSA_OBJECT:
+        {
+            int proto = op->operanda ? o( op->operanda ) : XEC_NOVAL;
+            inst( XEC_OBJECT, o( op->r ), proto, 0 );
+            break;
+        }
+
             
         case XEC_SSA_PARAM:
         {

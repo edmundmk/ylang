@@ -161,6 +161,13 @@ private:
 static const unsigned XEC_MARK = 0xFF;
 
 
+/*
+    This value means 'no value', where operands are optional.
+*/
+
+static const unsigned XEC_NOVAL = 0xFF;
+
+
 
 /*
     Key literals used to look up objects.
