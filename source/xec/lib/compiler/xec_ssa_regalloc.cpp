@@ -37,7 +37,7 @@ void xec_ssa_regalloc::allocate( xec_ssa_func* func, xec_ssa_dfo* dfo )
     
     
     // Print event list for debugging.
-    print_events();
+//    print_events();
     
     
     // Actually perform register allocation by scanning the event list
