@@ -13,6 +13,7 @@
 #include <vector>
 #include <unordered_map>
 #include "xec_code.h"
+#include "xec_object.h"
 #include "xec_ssa.h"
 #include "xec_value.h"
 
@@ -78,7 +79,7 @@ private:
     xec_ssa_dfo* dfo;
 
     std::vector< xec_value > values;
-    std::vector< xec_key* > keys;
+    std::vector< xec_objkey > keys;
     std::vector< xec_function* > functions;
     
     std::unordered_map< void*, jumplabel > labels;

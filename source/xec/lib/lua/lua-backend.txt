@@ -1,0 +1,33 @@
+
+This is the backend for xec which compiles to lua.
+
+xec type hierarchy:
+
+null
+boolean
+string
+number
+
+object
+  array
+  table
+  function
+  coroutine
+
+
+xec env contains only xec objects, and xec functions all use the xec env.
+
+xec objects are tables with the following:
+
+
+
+<table>
+    __xecproto
+    __xecarray
+    __xectable
+
+
+
+
+
+

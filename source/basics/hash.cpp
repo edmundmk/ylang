@@ -687,6 +687,30 @@ hash64_t hash64( const void* data, size_t size )
 }
 
 
+template < int > hash_t hash32or64( const void* data, size_t size );
+
+template <> hash_t hash32or64< 4 >( const void* data, size_t size )
+{
+    return hash32( data, size );
+}
+
+template <> hash_t hash32or64< 8 >( const void* data, size_t size )
+{
+    return hash64( data, size );
+}
+
+
+hash_t hash( const char* string )
+{
+    return hash( string, strlen( string ) );
+}
+
+hash_t hash( const void* data, size_t size )
+{
+    return hash32or64< sizeof( hash_t ) >( data, size );
+}
+
+
 
 hash_context::hash_context()
     :   context( new SpookyHash )

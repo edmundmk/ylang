@@ -6,10 +6,13 @@
 //
 
 
-#include "xec_module.h"
+#include "xec_code.h"
 #include <stdio.h>
 #include <unordered_map>
 #include "xec_string.h"
+#include "xec_value.h"
+#include "xec_object.h"
+#include "xec_inline.h"
 
 
 
@@ -63,10 +66,13 @@ public:
         add( XEC_DELKEY,    "delkey    %a %k" );
         add( XEC_DELINKEY,  "delinkey  %a %b" );
     
-        add( XEC_NEWUP,     "newup     ^%c %r" );
+        add( XEC_NEWUP,     "newup     !%c %r" );
+        add( XEC_SETNU,     "setnu     !%c %r" );
+        add( XEC_REFNU,     "refnu     %r !%c" );
+        add( XEC_CLOSE,     "close     ![%c .. %r]" );
+
         add( XEC_SETUP,     "setup     ^%c %r" );
         add( XEC_REFUP,     "refup     %r ^%c" );
-        add( XEC_CLOSE,     "close     ^[%c .. %r]" );
     
         add( XEC_EQ,        "eq        %r %a %b" );
         add( XEC_LT,        "lt        %r %a %b" );
@@ -95,6 +101,7 @@ public:
         add( XEC_EXTEND,    "extend    %a [%r .. ]" );
     
         add( XEC_CLOSURE,   "closure   %r %f" );
+        add( XEC_ENVNU,     "envnu     !%c" );
         add( XEC_ENVUP,     "envup     ^%c" );
 
         add( XEC_VARARG,    "vararg    $%c" );
@@ -195,11 +202,11 @@ static void xec_function_print( unsigned findex, xec_function* function )
                     }
                     else if ( v.isstring() )
                     {
-                        xec_string* string = v.string();
+                        xec_string& string = v.string();
                         printf( " \"" );
-                        for ( size_t i = 0; i < string->size(); ++i )
+                        for ( size_t i = 0; i < string.size(); ++i )
                         {
-                            char c = string->at( i );
+                            char c = string.at( i );
                             if ( c >= 0x20 && c <= 0x7E )
                             {
                                 printf( "%c", c );
@@ -224,8 +231,8 @@ static void xec_function_print( unsigned findex, xec_function* function )
                 
                 case 'k':
                 {
-                    xec_key* key = function->module()->key( code.b() );
-                    printf( "'%s'", key->c_str() );
+                    xec_objkey key = function->module()->key( code.b() );
+                    printf( "'%s'", key.c_str() );
                     break;
                 }
                 

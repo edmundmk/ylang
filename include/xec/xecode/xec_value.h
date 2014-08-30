@@ -56,7 +56,10 @@ public:
     xec_value( xec_object* object );
     xec_value( xec_string* string );
 
-    explicit operator bool() const;
+    void            incref();
+    void            decref();
+
+    bool            test() const;
 
     bool            isnull() const;
     bool            isnumber() const;
@@ -68,8 +71,9 @@ public:
     double          number() const;
     bool            boolean() const;
     void*           native() const;
-    xec_object*     object() const;
-    xec_string*     string() const;
+    xec_object&     object() const;
+    xec_string&     string() const;
+    
 
 private:
 
@@ -87,6 +91,8 @@ private:
     static const uint64_t MARK_OBJECT   = (uint64_t)0x7FF5 << 48;
     static const uint64_t MARK_STRING   = (uint64_t)0x7FF6 << 48;
     static const uint64_t MARK_OOLPTR   = (uint64_t)0x7FF7 << 48;
+    
+    static const uint64_t REF_MASK      = (uint64_t)0x7FF4 << 48;
     
     static const uint64_t BITS_FALSE    = MARK_BOOL | (uint64_t)false;
     static const uint64_t BITS_ZERO     = 0x0000000000000000ll;
@@ -110,121 +116,16 @@ bool operator != ( const xec_value& a, const xec_value& b );
 
 
 
+/*
+    Null value.
+*/
 
-
-inline xec_value::xec_value()
-    :   i( MARK_NULL )
-{
-}
-
-inline xec_value::xec_value( double number )
-    :   f( number )
-{
-}
-
-inline xec_value::xec_value( bool boolean )
-    :   i( MARK_BOOL | (uint64_t)boolean )
-{
-}
-
-inline xec_value::xec_value( void* native )
-    :   i( MARK_NATIVE | (uint64_t)native )
-{
-    assert( (uint64_t)native < ( (uint64_t)1 << 48 ) );
-}
-
-inline xec_value::xec_value( xec_object* object )
-    :   i( MARK_OBJECT | (uint64_t)object )
-{
-    assert( (uint64_t)object < ( (uint64_t)1 << 48 ) );
-}
-
-inline xec_value::xec_value( xec_string* string )
-    :   i( MARK_STRING | (uint64_t)string )
-{
-    assert( (uint64_t)string < ( (uint64_t)1 << 48 ) );
-}
-
-
-inline xec_value::operator bool() const
-{
-    return i != MARK_NULL
-        && i != BITS_FALSE
-        && i != BITS_ZERO
-        && i != BITS_NZERO;
-}
+static const xec_value xec_null;
 
 
 
-inline bool xec_value::isnull() const
-{
-    return i == MARK_NULL;
-}
-
-inline bool xec_value::isnumber() const
-{
-    // Attempting to be clever here.
-    return (int64_t)( i ^ FLOAT_XOR ) <= FLOAT_MAX;
-}
-
-inline bool xec_value::isboolean() const
-{
-    return ( i & MARK_MASK ) == MARK_BOOL;
-}
-
-inline bool xec_value::isnative() const
-{
-    return ( i & MARK_MASK ) == MARK_NATIVE;
-}
-
-inline bool xec_value::isobject() const
-{
-    return ( i & MARK_MASK ) == MARK_OBJECT;
-}
-
-inline bool xec_value::isstring() const
-{
-    return ( i & MARK_MASK ) == MARK_STRING;
-}
 
 
-inline double xec_value::number() const
-{
-    return f;
-}
-
-inline bool xec_value::boolean() const
-{
-    return (bool)( i & ~MARK_MASK );
-}
-
-inline void* xec_value::native() const
-{
-    return (void*)( i & ~MARK_MASK );
-}
-
-inline xec_object* xec_value::object() const
-{
-    return (xec_object*)( i & ~MARK_MASK );
-}
-
-inline xec_string* xec_value::string() const
-{
-    return (xec_string*)( i & ~MARK_MASK );
-}
-
-
-
-inline bool operator == ( const xec_value& a, const xec_value& b )
-{
-    return a.i == b.i;
-}
-
-
-inline bool operator != ( const xec_value& a, const xec_value& b )
-{
-    return a.i != b.i;
-}
 
 
 

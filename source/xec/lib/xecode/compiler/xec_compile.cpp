@@ -6,12 +6,8 @@
 //
 
 
-
-
-
-
 #include "xec_ast.h"
-#include "xec_module.h"
+#include "xec_code.h"
 #include "xec_ssa_builder.h"
 #include "xec_ssa_print.h"
 #include "xec_ssa_cfganalysis.h"
@@ -19,6 +15,7 @@
 #include "xec_ssa_liveness.h"
 #include "xec_ssa_regalloc.h"
 #include "xec_ssa_buildcode.h"
+
 
 
 xec_module* xec_compile( xec_ast* ast )

@@ -14,6 +14,7 @@
 #include <assert.h>
 
 
+
 class xec_string
 {
 public:
@@ -41,22 +42,6 @@ private:
 };
 
 
-
-inline size_t xec_string::size() const
-{
-    return slength;
-}
-
-inline const char* xec_string::c_str() const
-{
-    return schars;
-}
-
-inline char xec_string::at( size_t i ) const
-{
-    assert( i < slength );
-    return schars[ i ];
-}
 
 
 

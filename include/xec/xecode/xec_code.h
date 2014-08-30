@@ -11,8 +11,14 @@
 
 
 #include <stdint.h>
-#include <hash.h>
-#include <string.h>
+
+
+class xec_value;
+class xec_objkey;
+
+class xec_opinst;
+class xec_module;
+class xec_function;
 
 
 /*
@@ -67,9 +73,12 @@ enum xec_opcode
     XEC_DELINKEY,   // a delete (string)b
     
     XEC_NEWUP,      // upvals[ c ] = new upval, upvals[ c ] = r
-    XEC_SETUP,      // upvals[ c ] = r
-    XEC_REFUP,      // r = upvals[ c ]
+    XEC_SETNU,      // upvals[ c ] = r
+    XEC_REFNU,      // r = upvals[ c ]
     XEC_CLOSE,      // close upvals[ c .. c + r ]
+
+    XEC_SETUP,      // closure upvals[ c ] = r
+    XEC_REFUP,      // r = closure upvals[ c ]
     
     XEC_EQ,         // r = a == b
     XEC_LT,         // r = a < b
@@ -98,7 +107,8 @@ enum xec_opcode
     XEC_EXTEND,     // append r .. @mark to (array)a
     
     XEC_CLOSURE,    // r = function closure of functions[ c ]
-    XEC_ENVUP,      // add upvals[ c ] to previous function closure
+    XEC_ENVNU,      // add upvals[ c ] to previous function closure
+    XEC_ENVUP,      // add closure upvals[ c ] to previous function closure
 
     XEC_VARARG,     // r = varargs[ c ]
     XEC_VARALL,     // r .. set @top = varargs
@@ -169,130 +179,106 @@ static const unsigned XEC_NOVAL = 0xFF;
 
 
 
+
+
 /*
-    Key literals used to look up objects.
+    A module is a compiled script file.
 */
 
-class xec_key
+class xec_module
 {
 public:
 
-    static xec_key* create( const char* key );
-    static void destroy( xec_key* key );
+    ~xec_module();
 
-    hash32_t    hash() const;
-    const char* c_str() const;
+    const char*     name();
+    
+    xec_function*   script_function();
+    
+    xec_objkey      key( unsigned k );
+    xec_value       value( unsigned v );
+    
+    xec_function*   function( unsigned f );
+    unsigned        function_count();
 
 
 private:
 
-    xec_key();
+    friend class xec_ssa_buildcode;
 
-    hash32_t    khash;
-    char        kkey[];
-    
+    xec_module();
+
+    char*           mname;
+    xec_objkey*     mkeys;
+    uint32_t        mkeycount;
+    xec_value*      mvalues;
+    uint32_t        mvaluecount;
+    xec_function**  mfuncs;
+    uint32_t        mfunccount;
+
 };
-
-
-bool operator == ( const xec_key& a, const xec_key& b );
-bool operator != ( const xec_key& a, const xec_key& b );
-bool operator < ( const xec_key& a, const xec_key& b );
-
-
-
 
 
 
 /*
+    Code for a function.
 */
 
-
-inline xec_opinst::xec_opinst(
-                xec_opcode opcode, unsigned r, unsigned a, unsigned b )
-    :   i( (uint8_t)opcode
-            | (uint8_t)r << 8
-            | (uint8_t)a << 16
-            | (uint8_t)b << 24 )
+class xec_function
 {
-}
+public:
 
-inline xec_opinst::xec_opinst(
-                xec_opcode opcode, unsigned r, unsigned c )
-    :   i( (uint8_t)opcode
-            | (uint8_t)r << 8
-            | (uint16_t)c << 16 )
-{
-}
+    ~xec_function();
 
-inline xec_opinst::xec_opinst(
-                xec_opcode opcode, unsigned r, signed j )
-    :   i( (uint8_t)opcode
-            | (uint8_t)r << 8
-            | (int16_t)j << 16 )
-{
-}
+    xec_module*     module();
+    const char*     name();
+    
+    xec_opinst      code( unsigned pc );
+    unsigned        code_count();
+    
+    unsigned        param_count();
+    unsigned        upval_count();
+    unsigned        newup_count();
+    unsigned        stack_count();
+    bool            is_varargs();
+    bool            is_coroutine();
+
+    
+private:
+
+    friend class xec_ssa_buildcode;
+
+    xec_function();
+
+    xec_module*     mmodule;
+    char*           mname;
+    xec_opinst*     mcode;
+    uint32_t        mcodecount;
+    uint32_t        mparamcount;
+    uint32_t        mupvalcount;
+    uint32_t        mnewupcount;
+    uint32_t        mstackcount;
+    bool            mvarargs;
+    bool            mcoroutine;
+
+};
 
 
-inline xec_opcode xec_opinst::opcode()
-{
-    return (xec_opcode)(uint8_t)i;
-}
 
-inline unsigned xec_opinst::r()
-{
-    return (uint8_t)( i >> 8 );
-}
+/*
+    Print module for debugging.
+*/
 
-inline unsigned xec_opinst::a()
-{
-    return (uint8_t)( i >> 16 );
-}
-
-inline unsigned xec_opinst::b()
-{
-    return (uint8_t)( i >> 24 );
-}
-
-inline unsigned xec_opinst::c()
-{
-    return (uint16_t)( i >> 16 );
-}
-
-inline signed xec_opinst::j()
-{
-    return (int16_t)( i >> 16 );
-}
+void xec_module_print( xec_module* module );
 
 
 
 
 
-inline hash32_t xec_key::hash() const
-{
-    return khash;
-}
-
-inline const char* xec_key::c_str() const
-{
-    return kkey;
-}
 
 
-inline bool operator == ( const xec_key& a, const xec_key& b )
-{
-    return a.hash() == b.hash() && strcmp( a.c_str(), b.c_str() ) == 0;
-}
 
-inline bool operator != ( const xec_key& a, const xec_key& b )
-{
-    return !( a == b );
-}
 
-inline bool operator < ( const xec_key& a, const xec_key& b )
-{
-    return a.hash() < b.hash() ||
-        ( a.hash() == b.hash() && strcmp( a.c_str(), b.c_str() ) < 0 );
-}
 
 
 

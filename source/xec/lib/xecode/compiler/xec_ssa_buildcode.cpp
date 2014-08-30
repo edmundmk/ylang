@@ -10,8 +10,9 @@
 #include "xec_ssa.h"
 #include "xec_ssa_cfganalysis.h"
 #include "xec_string.h"
-#include "xec_module.h"
+#include "xec_code.h"
 #include "xec_script.h"
+#include "xec_inline.h"
 
 
 
@@ -110,8 +111,8 @@ xec_module* xec_ssa_buildcode::build_module()
     xec_module* module = new xec_module();
     module->mname = strdup( root->script->get_filename() );
     
-    module->mkeys = (xec_key**)malloc( sizeof( xec_key* ) * keys.size() );
-    memcpy( module->mkeys, keys.data(), sizeof( xec_key* ) * keys.size() );
+    module->mkeys = (xec_objkey*)malloc( sizeof( xec_objkey ) * keys.size() );
+    memcpy( module->mkeys, keys.data(), sizeof( xec_objkey ) * keys.size() );
     module->mkeycount = (uint32_t)keys.size();
     
     module->mvalues = (xec_value*)malloc( sizeof( xec_value ) * values.size() );
@@ -253,15 +254,6 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
         case XEC_SSA_SETGLOBAL:
             inst( XEC_SETGLOBAL, o( op->operanda ), 0, k( op->immkey ) );
             break;
-        case XEC_SSA_NEWUP:
-            inst( XEC_NEWUP, o( op->operanda ), op->immkey );
-            break;
-        case XEC_SSA_SETUP:
-            inst( XEC_SETUP, o( op->operanda ), op->immkey );
-            break;
-        case XEC_SSA_REFUP:
-            inst( XEC_REFUP, o( op->r ), op->immkey );
-            break;
         case XEC_SSA_ARRAY:
             inst( XEC_ARRAY, o( op->r ), op->immkey );
             break;
@@ -351,8 +343,8 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
             for ( ; i < values.size(); ++i )
             {
                 xec_value v = values.at( i );
-                if ( v.isstring() && v.string()->size() == s->length &&
-                    memcmp( v.string()->c_str(), s->string, s->length ) == 0 )
+                if ( v.isstring() && v.string().size() == s->length &&
+                    memcmp( v.string().c_str(), s->string, s->length ) == 0 )
                 {
                     break;
                 }
@@ -399,6 +391,41 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
             break;
         }
             
+        case XEC_SSA_NEWUP:
+        {
+            assert( op->immkey >= func->upvalcount );
+            int nuindex = op->immkey - func->upvalcount;
+            inst( XEC_NEWUP, o( op->operanda ), nuindex );
+            break;
+        }
+        
+        case XEC_SSA_SETUP:
+        {
+            if ( op->immkey < func->upvalcount )
+            {
+                inst( XEC_SETUP, o( op->operanda ), op->immkey );
+            }
+            else
+            {
+                int nuindex = op->immkey - func->upvalcount;
+                inst( XEC_SETNU, o( op->operanda ), nuindex );
+            }
+            break;
+        }
+        
+        case XEC_SSA_REFUP:
+        {
+            if ( op->immkey < func->upvalcount )
+            {
+                inst( XEC_REFUP, o( op->r ), op->immkey );
+            }
+            else
+            {
+                int nuindex = op->immkey - func->upvalcount;
+                inst( XEC_REFNU, o( op->operanda ), nuindex );
+            }
+            break;
+        }
         
         case XEC_SSA_CLOSE:
         {
@@ -409,9 +436,11 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
             
             while ( op->opcode == XEC_SSA_CLOSE && i < block->ops->ops.size() )
             {
-                close.insert( op->immkey );
-                minclose = std::min( minclose, op->immkey );
-                maxclose = std::max( maxclose, op->immkey );
+                assert( op->immkey >= func->upvalcount );
+                int nuindex = op->immkey - func->upvalcount;
+                close.insert( nuindex );
+                minclose = std::min( minclose, nuindex );
+                maxclose = std::max( maxclose, nuindex );
                 op = &block->ops->ops.at( i );
                 ++i;
             }
@@ -802,15 +831,15 @@ int xec_ssa_buildcode::k( int immkey )
     const char* ssakey = root->keys.at( immkey );
     for ( size_t i = 0; i < keys.size(); ++i )
     {
-        xec_key* key = keys.at( i );
-        if ( strcmp( key->c_str(), ssakey ) == 0 )
+        xec_objkey key = keys.at( i );
+        if ( strcmp( key.c_str(), ssakey ) == 0 )
         {
             return (int)i;
         }
     }
     
     int result = (int)keys.size();
-    keys.push_back( xec_key::create( ssakey ) );
+    keys.push_back( xec_objkey::create( ssakey ) );
     return result;
 }
 
