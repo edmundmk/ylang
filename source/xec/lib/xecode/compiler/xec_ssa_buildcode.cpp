@@ -441,8 +441,8 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
                 close.insert( nuindex );
                 minclose = std::min( minclose, nuindex );
                 maxclose = std::max( maxclose, nuindex );
-                op = &block->ops->ops.at( i );
                 ++i;
+                op = &block->ops->ops.at( i );
             }
             --i;
             
