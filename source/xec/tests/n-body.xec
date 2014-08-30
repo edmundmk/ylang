@@ -117,7 +117,7 @@ function energy( bodies )
     var e = 0;
     for ( var bi : bodies )
     {
-        e += 0.5 * bi.mass * ( bi.vx * bi.vx + bi.vy * bi.vy + bz.vz * bz.vz );
+        e += 0.5 * bi.mass * ( bi.vx * bi.vx + bi.vy * bi.vy + bi.vz * bi.vz );
         for ( var bj : bodies )
         {
             var dx, dy, dz = bi.x - bj.x, bi.y - bj.y, bi.z - bj.z;

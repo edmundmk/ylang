@@ -650,7 +650,15 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
                 xec_ssa_opref upref = op->closure->upvals.at( i );
                 xec_ssa_op* upop = func->getop( func->operand( upref ) );
                 assert( upop->opcode == XEC_SSA_REFUP );
-                inst( XEC_ENVUP, 0, upop->immkey );
+                if ( upop->immkey < func->upvalcount )
+                {
+                    inst( XEC_ENVUP, 0, upop->immkey );
+                }
+                else
+                {
+                    unsigned nuindex =  upop->immkey - func->upvalcount;
+                    inst( XEC_ENVNU, 0, nuindex );
+                }
             }
             
             break;
