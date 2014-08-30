@@ -407,8 +407,9 @@ struct xec_expr_global : public xec_ast_node
 
 struct xec_expr_upref : public xec_ast_node
 {
-    xec_expr_upref( int sloc, int index );
+    xec_expr_upref( int sloc, xec_ast_func* func, int index );
 
+    xec_ast_func*       func;
     int                 index;
 };
 
@@ -460,7 +461,7 @@ struct xec_expr_preop : public xec_ast_node
 {
     xec_expr_preop( int sloc, xec_ast_opkind opkind, xec_ast_node* lvalue );
 
-    xec_ast_opkind   opkind;
+    xec_ast_opkind      opkind;
     xec_ast_node*       lvalue;
 };
 
@@ -469,7 +470,7 @@ struct xec_expr_postop : public xec_ast_node
 {
     xec_expr_postop( int sloc, xec_ast_opkind opkind, xec_ast_node* lvalue );
 
-    xec_ast_opkind   opkind;
+    xec_ast_opkind      opkind;
     xec_ast_node*       lvalue;
 };
 
@@ -478,7 +479,7 @@ struct xec_expr_unary : public xec_ast_node
 {
     xec_expr_unary( int sloc, xec_ast_opkind opkind, xec_ast_node* operand );
 
-    xec_ast_opkind   opkind;
+    xec_ast_opkind      opkind;
     xec_ast_node*       operand;
 };
 
@@ -488,7 +489,7 @@ struct xec_expr_binary : public xec_ast_node
     xec_expr_binary( int sloc,
             xec_ast_opkind opkind, xec_ast_node* lhs, xec_ast_node* rhs );
 
-    xec_ast_opkind   opkind;
+    xec_ast_opkind      opkind;
     xec_ast_node*       lhs;
     xec_ast_node*       rhs;
 };
@@ -509,7 +510,7 @@ struct xec_expr_logical : public xec_ast_node
     xec_expr_logical( int sloc,
             xec_ast_opkind opkind, xec_ast_node* lhs, xec_ast_node* rhs );
 
-    xec_ast_opkind   opkind;
+    xec_ast_opkind      opkind;
     xec_ast_node*       lhs;
     xec_ast_node*       rhs;
 };
@@ -643,7 +644,7 @@ struct xec_expr_assign : public xec_ast_node
 {
     xec_expr_assign( int sloc, xec_ast_opkind assignop );
 
-    xec_ast_opkind   assignop;
+    xec_ast_opkind      assignop;
     xec_ast_node*       lvalue;
     xec_ast_node*       rvalue;
 };
@@ -653,7 +654,7 @@ struct xec_expr_assign_list : public xec_ast_node
 {
     xec_expr_assign_list( int sloc, xec_ast_opkind assignop );
 
-    xec_ast_opkind   assignop;
+    xec_ast_opkind      assignop;
     xec_ast_node_list   lvalues;
     xec_ast_node*       rvalues;
 };

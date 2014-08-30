@@ -7,33 +7,64 @@
 
 
 #include "xec_object.h"
+#include <unordered_map>
 #include <stdlib.h>
+#include <symbol.h>
 #include "xec_code.h"
 
 
 
+struct xec_objkey_key
+{
+    hash32_t    khash;
+    unsigned    ksize;
+    char        kkey[];
+};
+
+static std::unordered_map< symkey, xec_objkey_key* > objkeys;
+
+
 xec_objkey xec_objkey::create( const char* key )
 {
-    // TODO.
-    return xec_objkey();
+    return create( key, strlen( key ) );
 }
 
 xec_objkey xec_objkey::create( const char* key, size_t size )
 {
-    // TODO.
-    return xec_objkey();
+    hash32_t hash = hash32( key, size );
+
+    auto i = objkeys.find( symkey( hash, key, size ) );
+    if ( i != objkeys.end() )
+    {
+        return xec_objkey( i->second );
+    }
+    
+    xec_objkey_key* k = (xec_objkey_key*)malloc(
+                    sizeof( xec_objkey_key ) + size + 1 );
+    k->khash = hash;
+    k->ksize = (unsigned)size;
+    memcpy( k->kkey, key, size );
+    k->kkey[ size ] = '\0';
+    objkeys.emplace( symkey( k->khash, k->kkey, k->ksize ), k );
+    
+    return xec_objkey( k );
 }
 
 void xec_objkey::destroy( xec_objkey key )
 {
+    // They live forever at the moment...
 }
 
 
 const char* xec_objkey::c_str() const
 {
-    return NULL;
+    return ( (xec_objkey_key*)k )->kkey;
 }
 
+xec_objkey::xec_objkey( void* k )
+    :   k( k )
+{
+}
 
 
 

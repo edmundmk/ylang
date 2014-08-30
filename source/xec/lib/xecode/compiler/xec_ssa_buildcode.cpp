@@ -422,7 +422,7 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
             else
             {
                 int nuindex = op->immkey - func->upvalcount;
-                inst( XEC_REFNU, o( op->operanda ), nuindex );
+                inst( XEC_REFNU, o( op->r ), nuindex );
             }
             break;
         }

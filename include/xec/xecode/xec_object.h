@@ -45,6 +45,8 @@ public:
 
 private:
 
+    xec_objkey( void* k );
+
     friend bool operator == ( xec_objkey a, xec_objkey b );
     friend bool operator != ( xec_objkey a, xec_objkey b );
     friend std::hash< xec_objkey >;

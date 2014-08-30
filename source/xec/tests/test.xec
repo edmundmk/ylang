@@ -1,13 +1,11 @@
 
 
-global.x = 2;
-var y = global.x;
+var x = 4;
 
-function global.func()
-{
-}
+var y = x++ + ++x;
 
 
+/*
 var a;
 var b;
 for (;;)
@@ -18,4 +16,4 @@ for (;;)
 
 }
 
-
+*/

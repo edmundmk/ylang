@@ -217,7 +217,7 @@ template <> struct hash< symkey >
 inline bool operator == ( const symkey& a, const symkey& b )
 {
     return a.shash == b.shash && a.ssize == b.ssize
-                    && strncmp( a.sname, b.sname, a.ssize ) == 0;
+                    && memcmp( a.sname, b.sname, a.ssize ) == 0;
 }
 
 inline bool operator != ( const symkey& a, const symkey& b )

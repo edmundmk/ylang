@@ -580,7 +580,7 @@ xec_ast_node* xec_parser::lookup( int sloc, const char* identifier, bool outer )
         {
             // It's an upval.
             nameref = alloc< xec_expr_upref >(
-                            sloc, upval( local->func, lookname ) );
+                        sloc, local->func, upval( local->func, lookname ) );
         }
         
         // If the name is 'super' then transform to 'this.super'.
@@ -616,7 +616,7 @@ xec_ast_node* xec_parser::lookup( int sloc, const char* identifier, bool outer )
         {
             // Object is an upval.
             xec_expr_upref* upref = alloc< xec_expr_upref >(
-                            sloc, upval( local->func, object ) );
+                            sloc, local->func, upval( local->func, object ) );
             return alloc< xec_expr_key >( sloc, upref, identifier );
         }
     

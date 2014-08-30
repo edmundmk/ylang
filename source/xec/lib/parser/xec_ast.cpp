@@ -158,8 +158,9 @@ xec_expr_global::xec_expr_global( int sloc, const char* name, bool gexplicit )
 }
 
 
-xec_expr_upref::xec_expr_upref( int sloc, int index )
+xec_expr_upref::xec_expr_upref( int sloc, xec_ast_func* func, int index )
     :   xec_ast_node( XEC_EXPR_UPREF, sloc )
+    ,   func( func )
     ,   index( index )
 {
 }
