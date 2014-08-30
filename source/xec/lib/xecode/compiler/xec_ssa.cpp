@@ -64,6 +64,9 @@
         doesn't have operator overloading - arithmetic operations always
         operate on numbers.
         
+    explicit incref/decref
+        if we keep with incref/decref on the stack...
+ 
     inlining
         if we know which function is being called (when is this?).
 

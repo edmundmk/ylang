@@ -26,7 +26,6 @@ xec_module* xec_compile( xec_ast* ast )
     xec_ssa_builder builder( &ssa );
     builder.build( ast );
     
-/*
 
     // Perform optimizations.
 
@@ -57,12 +56,12 @@ xec_module* xec_compile( xec_ast* ast )
         regalloc.allocate( func, &dfo );
         buildcode.build_func( func, &dfo );
     }
-*/
+
 
     xec_ssa_print( &ssa );
 
     
-    return NULL; //buildcode.build_module();
+    return buildcode.build_module();
 }
 
 

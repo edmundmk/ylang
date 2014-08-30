@@ -14,6 +14,16 @@
 #include "xec_inline.h"
 
 
+xec_context::xec_context()
+{
+    g = new xec_object();
+}
+
+xec_context::~xec_context()
+{
+    g->decref();
+}
+
 
 void xec_context::execute( xec_function* function, const char* params, ... )
 {
@@ -80,13 +90,14 @@ void xec_context::execute( xec_function* function, const char* params, ... )
 
 void xec_context::execute( unsigned fp, unsigned acount, unsigned rcount )
 {
-    xec_function* function = (xec_function*)&s[ fp ].object();
+    xec_closure& closure = s[ fp ].object().closure();
+    xec_function* function = closure.function();
     fp += 1;
     
     s.resize( fp + function->stack_count() );
 
-    unsigned upvalfp = (unsigned)u.size();
-    u.resize( upvalfp + function->newup_count() );
+    unsigned up = (unsigned)u.size();
+    u.resize( up + function->newup_count() );
 
     unsigned pc = 0;
     while ( true )
@@ -395,7 +406,6 @@ void xec_context::execute( unsigned fp, unsigned acount, unsigned rcount )
         
         case XEC_INDEX:
         {
-        /*
             xec_value& r = s[ fp + code.r() ];
             xec_value  a = s[ fp + code.a() ];
             xec_value  b = s[ fp + code.b() ];
@@ -412,39 +422,189 @@ void xec_context::execute( unsigned fp, unsigned acount, unsigned rcount )
             {
                 v = o.table().index( b );
             }
+            else
+            {
+                // This is an error.
+            }
             
             v.incref();
             r.decref();
             r = v;
-*/
             break;
         }
         
         case XEC_ELEM:
         {
+            xec_value& r = s[ fp + code.r() ];
+            xec_value  a = s[ fp + code.a() ];
+            unsigned   b = code.b();
+            check_object( a );
+            
+            xec_value v;
+            xec_object& o = a.object();
+            if ( o.isarray() )
+            {
+                v = o.array().index( b );
+            }
+            else
+            {
+                // This is an error.
+            }
+            
+            v.incref();
+            r.decref();
+            r = v;
+            break;
         }
         
         case XEC_GLOBAL:
         {
+            xec_value& r = s[ fp + code.r() ];
+            xec_objkey k = function->module()->key( code.b() );
+            xec_value v = g->key( k );
+            v.incref();
+            r.decref();
+            r = v;
+            break;
         }
     
         case XEC_SETKEY:
+        {
+            xec_value r = s[ fp + code.r() ];
+            xec_value a = s[ fp + code.a() ];
+            xec_objkey k = function->module()->key( code.b() );
+            check_object( a );
+            
+            xec_object& o = a.object();
+            o.setkey( k, r );
+            break;
+        }
+        
         case XEC_SETINKEY:
+        {
+            xec_value r = s[ fp + code.r() ];
+            xec_value a = s[ fp + code.a() ];
+            xec_value b = s[ fp + code.b() ];
+            check_object( a );
+            check_string( b );
+            
+            xec_string& p = b.string();
+            xec_objkey k = xec_objkey::create( p.c_str(), p.size() );
+            
+            xec_object& o = a.object();
+            o.setkey( k, r );
+            break;
+        }
+        
         case XEC_SETINDEX:
+        {
+            xec_value r = s[ fp + code.r() ];
+            xec_value a = s[ fp + code.a() ];
+            xec_value b = s[ fp + code.b() ];
+            check_object( a );
+
+            xec_object& o = a.object();
+            if ( o.isarray() )
+            {
+                check_integer( b );
+                o.array().setindex( (size_t)b.number(), r );
+            }
+            else if ( o.istable() )
+            {
+                o.table().setindex( b, r );
+            }
+            else
+            {
+                // This is an error.
+            }
+
+            break;
+        }
+        
         case XEC_SETGLOBAL:
+        {
+            xec_value r = s[ fp + code.r() ];
+            xec_objkey k = function->module()->key( code.b() );
+            g->setkey( k, r );
+            break;
+        }
     
         case XEC_DELKEY:
+        {
+            // TODO.
+            break;
+        }
+        
         case XEC_DELINKEY:
+        {
+            // TODO.
+            break;
+        }
     
         case XEC_NEWUP:
+        {
+            xec_value r = s[ fp + code.r() ];
+            xec_upval*& p = u[ up + code.c() ];
+            assert( ! p );
+            p = new xec_upval( r );
+            break;
+        }
+        
         case XEC_SETNU:
+        {
+            xec_value r = s[ fp + code.r() ];
+            xec_upval* p = u[ up + code.c() ];
+            p->assign( r );
+            break;
+        }
+        
         case XEC_REFNU:
+        {
+            xec_value& r = s[ fp + code.r() ];
+            xec_upval* p = u[ up + code.c() ];
+            xec_value v = p->get();
+            v.incref();
+            r.decref();
+            r = v;
+            break;
+        }
+        
         case XEC_CLOSE:
+        {
+            for ( unsigned c = fp + code.c();
+                            c <= fp + code.c() + code.r(); ++c )
+            {
+                xec_upval*& p = u[ c ];
+                p->decref();
+                p = NULL;
+            }
+            break;
+        }
 
         case XEC_SETUP:
+        {
+            xec_value r = s[ fp + code.r() ];
+            xec_upval* p = closure.upval( code.c() );
+            p->assign( r );
+            break;
+        }
+        
         case XEC_REFUP:
+        {
+            xec_value& r = s[ fp + code.r() ];
+            xec_upval* p = closure.upval( code.c() );
+            xec_value v = p->get();
+            v.incref();
+            r.decref();
+            r = v;
+            break;
+        }
     
         case XEC_EQ:
+        {
+            
+        }
+        
         case XEC_LT:
         case XEC_LE:
         case XEC_IN:
@@ -471,8 +631,18 @@ void xec_context::execute( unsigned fp, unsigned acount, unsigned rcount )
         case XEC_EXTEND:
     
         case XEC_CLOSURE:
+
         case XEC_ENVNU:
+        {
+            assert( ! "unexpected envnu" );
+            break;
+        }
+        
         case XEC_ENVUP:
+        {
+            assert( ! "unexpected envup" );
+            break;
+        }
 
         case XEC_VARARG:
         case XEC_VARALL:
@@ -492,6 +662,10 @@ void xec_context::execute( unsigned fp, unsigned acount, unsigned rcount )
 
 
 void xec_context::check_number( xec_value v )
+{
+}
+
+void xec_context::check_integer( xec_value v )
 {
 }
 

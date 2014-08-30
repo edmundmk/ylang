@@ -22,6 +22,9 @@ class xec_context
 {
 public:
 
+    xec_context();
+    ~xec_context();
+
     void execute( xec_function* function, const char* params, ... );
 
 
@@ -30,9 +33,11 @@ private:
     void execute( unsigned fp, unsigned acount, unsigned rcount );
 
     void check_number( xec_value v );
+    void check_integer( xec_value v );
     void check_string( xec_value v );
     void check_object( xec_value v );
 
+    xec_object*                 g;
     std::vector< xec_value >    s;
     std::vector< xec_upval* >   u;
 

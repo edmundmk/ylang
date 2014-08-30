@@ -144,14 +144,26 @@ inline bool operator != ( xec_objkey a, xec_objkey b )
     return a.k != b.k;
 }
 
-namespace std
-{
-inline size_t hash< xec_objkey >::operator()( const xec_objkey& k ) const
+inline size_t std::hash< xec_objkey >::operator()( const xec_objkey& k ) const
 {
     return std::hash< void* >()( k.k );
 }
+
+
+
+inline void xec_upval::incref()
+{
+    refcount += 1;
 }
 
+inline void xec_upval::decref()
+{
+    refcount -= 1;
+    if ( refcount == 0 )
+    {
+        delete this;
+    }
+}
 
 
 inline xec_value xec_upval::get() const
@@ -161,6 +173,8 @@ inline xec_value xec_upval::get() const
 
 inline void xec_upval::assign( xec_value value )
 {
+    value.incref();
+    mvalue.decref();
     mvalue = value;
 }
 
@@ -204,6 +218,80 @@ inline void xec_object::setkey( xec_objkey key, xec_value value )
     v.decref();
     v = value;
 }
+
+inline bool xec_object::isarray() const
+{
+    return mkind == ARRAY;
+}
+
+inline bool xec_object::istable() const
+{
+    return mkind == TABLE;
+}
+
+inline bool xec_object::isclosure() const
+{
+    return mkind == CLOSURE;
+}
+
+inline bool xec_object::isiter() const
+{
+    return mkind == ITER;
+}
+
+inline xec_array& xec_object::array()
+{
+    return *(xec_array*)this;
+}
+
+inline xec_table& xec_object::table()
+{
+    return *(xec_table*)this;
+}
+
+inline xec_closure& xec_object::closure()
+{
+    return *(xec_closure*)this;
+}
+
+inline xec_iter& xec_object::iter()
+{
+    return *(xec_iter*)this;
+}
+
+
+
+inline xec_value xec_array::index( size_t index ) const
+{
+    return mvalues.at( index );
+}
+
+inline void xec_array::setindex( size_t index, xec_value value )
+{
+    xec_value& v = mvalues[ index ];
+    value.incref();
+    v.decref();
+    v = value;
+}
+
+
+
+
+inline xec_value xec_table::index( xec_value index ) const
+{
+    return mvalues.at( index );
+}
+
+inline void xec_table::setindex( xec_value index, xec_value value )
+{
+    xec_value& v = mvalues[ index ];
+    value.incref();
+    v.decref();
+    v = value;
+}
+
+
+
 
 
 
@@ -356,6 +444,7 @@ inline xec_string& xec_value::string() const
 
 inline void xec_value::incref()
 {
+/*
     if ( isobject() )
     {
         object().decref();
@@ -363,11 +452,19 @@ inline void xec_value::incref()
     else if ( isstring() )
     {
         string().decref();
+    }
+*/
+
+    if ( ( i & REF_MASK ) == REF_MASK )
+    {
+        int& refcount = *(int*)( i & ~MARK_MASK );
+        refcount += 1;
     }
 }
 
 inline void xec_value::decref()
 {
+/*
     if ( isobject() )
     {
         object().decref();
@@ -375,6 +472,26 @@ inline void xec_value::decref()
     else if ( isstring() )
     {
         string().decref();
+    }
+*/
+    if ( ( i & REF_MASK ) == REF_MASK )
+    {
+        int& refcount = *(int*)( i & ~MARK_MASK );
+        if ( refcount > 1 )
+        {
+            refcount -= 1;
+        }
+        else
+        {
+            if ( isobject() )
+            {
+                object().decref();
+            }
+            else if ( isstring() )
+            {
+                string().decref();
+            }
+        }
     }
 }
 
@@ -385,12 +502,15 @@ inline bool operator == ( const xec_value& a, const xec_value& b )
     return a.i == b.i;
 }
 
-
 inline bool operator != ( const xec_value& a, const xec_value& b )
 {
     return a.i != b.i;
 }
 
+inline size_t std::hash< xec_value >::operator()( const xec_value& v ) const
+{
+    return std::hash< uint64_t >()( v.i );
+}
 
 
 

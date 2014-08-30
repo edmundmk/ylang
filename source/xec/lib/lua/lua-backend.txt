@@ -28,6 +28,9 @@ xec objects are tables with the following:
 
 
 
+okay this is turning out to be not much simpler than the VM backend, because
+++i/i++ and assignments inside brackets need to be ordered correctly with
+other operations.
 
 
 

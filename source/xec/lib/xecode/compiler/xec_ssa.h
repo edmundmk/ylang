@@ -91,8 +91,8 @@ struct xec_ssa_slice;
         yield acount $-1    // unpacks to all values passed back to coroutine
  
  
-    'unpacked' values can only be consumed by following xunpack arguments, or
-    by an extend op.  Typically an unpacked value is consumed immediately.  It
+    'unpacked' values can only be consumed by the 'unpacked' argument of an
+    args-like op.  Typically an unpacked value is consumed immediately.  It
     is invalid to unpack another value before the first is consumed.
  
         call                // appends unpacked values to end of
@@ -530,12 +530,9 @@ inline xec_ssa_opref::operator bool() const
     return value != 0xFFFFFFFF;
 }
 
-namespace std
-{
-inline size_t hash< xec_ssa_opref >::operator() ( const xec_ssa_opref& o ) const
+inline size_t std::hash< xec_ssa_opref >::operator() ( const xec_ssa_opref& o ) const
 {
     return std::hash< unsigned >()( o.value );
-}
 }
 
 inline bool operator == ( const xec_ssa_opref& a, const xec_ssa_opref& b )

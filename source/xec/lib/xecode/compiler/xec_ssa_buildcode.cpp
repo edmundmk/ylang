@@ -560,7 +560,7 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
             {
                 // Simplest version.
                 int select = -1;
-                for ( size_t j = i; j < block->ops->ops.size(); ++j )
+                for ( size_t j = i + 1; j < block->ops->ops.size(); ++j )
                 {
                     xec_ssa_op* selop = &block->ops->ops.at( j );
                     
@@ -572,7 +572,7 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
                     
                     if ( selop->immkey == 0 )
                     {
-                        select = o( op->r );
+                        select = o( selop->r );
                     }
                 }
                 

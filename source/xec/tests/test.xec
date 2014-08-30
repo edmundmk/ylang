@@ -3,10 +3,11 @@
 
 do
 {
-    continue;
     var x = 4;
+    var y = 4;
+    continue;
 }
-while ( x == 4 );
+while ( x == y );
 
 
 

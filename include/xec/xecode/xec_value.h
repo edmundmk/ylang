@@ -79,6 +79,7 @@ private:
 
     friend bool operator == ( const xec_value& a, const xec_value& b );
     friend bool operator != ( const xec_value& a, const xec_value& b );
+    friend std::hash< xec_value >;
 
 
     static const uint64_t FLOAT_XOR     = (uint64_t)0x0008 << 48;
@@ -113,6 +114,14 @@ private:
 
 bool operator == ( const xec_value& a, const xec_value& b );
 bool operator != ( const xec_value& a, const xec_value& b );
+namespace std
+{
+template <> struct hash< xec_value >
+{
+    size_t operator ()( const xec_value& v ) const;
+};
+}
+
 
 
 

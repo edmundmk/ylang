@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <symbol.h>
 #include "xec_code.h"
+#include "xec_inline.h"
 
 
 
@@ -72,25 +73,18 @@ xec_objkey::xec_objkey( void* k )
 
 
 
-inline xec_upval::xec_upval( xec_value value )
+xec_upval::xec_upval( xec_value value )
     :   refcount( 1 )
     ,   mvalue( value )
 {
+    mvalue.incref();
 }
 
-inline void xec_upval::incref()
+xec_upval::~xec_upval()
 {
-    refcount += 1;
+    mvalue.decref();
 }
 
-inline void xec_upval::decref()
-{
-    refcount -= 1;
-    if ( refcount == 0 )
-    {
-        delete this;
-    }
-}
 
 
 

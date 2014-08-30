@@ -10,6 +10,7 @@
 #define XEC_OBJECT_H
 
 
+#include <vector>
 #include <unordered_map>
 #include <hash.h>
 #include "xec_value.h"
@@ -79,6 +80,7 @@ class xec_upval
 public:
 
     xec_upval( xec_value value );
+    ~xec_upval();
     
     void        incref();
     void        decref();
@@ -155,6 +157,49 @@ private:
 };
 
 
+
+
+/*
+    Arrays.
+*/
+
+class xec_array : public xec_object
+{
+public:
+
+    xec_array();
+    
+    xec_value   index( size_t index ) const;
+    void        setindex( size_t index, xec_value value );
+    
+    
+private:
+
+    std::vector< xec_value > mvalues;
+
+};
+
+
+
+/*
+    Tables.
+*/
+
+class xec_table : public xec_object
+{
+public:
+
+    xec_table();
+    
+    xec_value   index( xec_value index ) const;
+    void        setindex( xec_value index, xec_value value );
+    
+    
+private:
+
+    std::unordered_map< xec_value, xec_value > mvalues;
+    
+};
 
 
 
