@@ -385,8 +385,8 @@ void xec_context::execute( unsigned fp, unsigned acount, unsigned rcount )
             
             xec_string& p = b.string();
             xec_objkey k = xec_objkey::create( p.c_str(), p.size() );
-            
             xec_value v = a.object().key( k );
+            
             v.incref();
             r.decref();
             r = v;
@@ -395,7 +395,29 @@ void xec_context::execute( unsigned fp, unsigned acount, unsigned rcount )
         
         case XEC_INDEX:
         {
+        /*
+            xec_value& r = s[ fp + code.r() ];
+            xec_value  a = s[ fp + code.a() ];
+            xec_value  b = s[ fp + code.b() ];
+            check_object( a );
             
+            xec_value v;
+            xec_object& o = a.object();
+            if ( o.isarray() )
+            {
+                check_integer( b );
+                v = o.array().index( (size_t)b.number() );
+            }
+            else if ( o.istable() )
+            {
+                v = o.table().index( b );
+            }
+            
+            v.incref();
+            r.decref();
+            r = v;
+*/
+            break;
         }
         
         case XEC_ELEM:

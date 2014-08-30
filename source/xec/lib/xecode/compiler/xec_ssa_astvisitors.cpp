@@ -893,7 +893,7 @@ void xec_ssa_build_stmt::visit( xec_stmt_switch* node )
 
 void xec_ssa_build_stmt::visit( xec_stmt_while* node )
 {
-    b->loopopen();
+    b->loopopen( false );
     b->ifthen( b->expr( node->condition ) );
     visit( node->body );
     b->loopcontinue();
@@ -906,8 +906,9 @@ void xec_ssa_build_stmt::visit( xec_stmt_while* node )
 
 void xec_ssa_build_stmt::visit( xec_stmt_do* node )
 {
-    b->loopopen();
+    b->loopopen( true );
     visit( node->body );
+    b->loopdowhile();
     b->ifthen( b->expr( node->condition ) );
     b->loopcontinue();
     b->ifelse();
@@ -924,7 +925,7 @@ void xec_ssa_build_stmt::visit( xec_stmt_foreach* node )
     xec_ssa_opref iter = b->op( node->sloc, opcode, list );
 
     // Begin loop.
-    b->loopopen();
+    b->loopopen( false );
     
     // Get values for this iteration.
     int request = (int)node->lvalues.size();
@@ -958,7 +959,7 @@ void xec_ssa_build_stmt::visit( xec_stmt_for* node )
     {
         visit( node->init );
     }
-    b->loopopen();
+    b->loopopen( false );
     if ( node->condition )
     {
         b->ifthen( b->expr( node->condition ) );

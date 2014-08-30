@@ -158,6 +158,16 @@ void xec_parser::close_switch( xec_ast_scope* scope )
     close_scope( scope );
 }
 
+void xec_parser::dowhile( xec_ast_scope* scope )
+{
+    // This is the continue point of the dowhile loop.  It is no longer
+    // valid to refer to variables that were declared after the first continue.
+    scope->dowhile = true;
+}
+
+
+
+
 
 
 
@@ -414,6 +424,34 @@ void xec_parser::statement( xec_ast_node* stmt )
     xec_ast_scope* scope = get_scope();
     assert( scope->kind != XEC_SCOPE_OBJECT );
     assert( scope->kind != XEC_SCOPE_IMPLIED );
+
+
+    /*
+        If we are continuing inside a do-while statement then mark the
+        scope as 'continued'.  This allows us to detect the error where
+        you continue past a declaration of a name you use in the condition.
+    */
+
+    if ( stmt->kind == XEC_STMT_CONTINUE )
+    {
+        xec_stmt_continue* contstmt = (xec_stmt_continue*)stmt;
+        if ( contstmt->target->node->kind == XEC_STMT_DO )
+        {
+            contstmt->target->continued = true;
+        }
+    }
+
+
+
+    /*
+        case statements are only allowed inside a switch block.
+    */
+    
+    if ( stmt->kind == XEC_STMT_CASE && scope->kind != XEC_SCOPE_SWITCH )
+    {
+        root->script->error( stmt->sloc, "case outside switch" );
+    }
+
     
     /*
         switch statements are made up of case statements and implicit blocks.
@@ -488,11 +526,6 @@ void xec_parser::statement( xec_ast_node* stmt )
     }
     else
     {
-        // Not in a switch statement.
-        if ( stmt->kind == XEC_STMT_CASE )
-        {
-            root->script->error( stmt->sloc, "case outside switch" );
-        }
         scope->block->stmts.push_back( stmt );
     }
 }
@@ -514,7 +547,7 @@ xec_ast_scope* xec_parser::continue_target( int sloc )
     }
     
     root->script->error( sloc, "continue outside loop" );
-    return NULL;
+    return get_scope();
 }
 
 
@@ -535,7 +568,7 @@ xec_ast_scope* xec_parser::break_target( int sloc )
     }
     
     root->script->error( sloc, "break outside loop or switch" );
-    return NULL;
+    return get_scope();
 }
 
 
@@ -568,13 +601,21 @@ xec_ast_node* xec_parser::lookup( int sloc, const char* identifier, bool outer )
         // If the name is 'super' then we actually reference 'this'.
         xec_ast_name* lookname = name->superthis ? name->superthis : name;
         
+        // If it's a continued variable in a closed dowhile scope, it's not
+        // valid.
+        if ( name->continued && name->scope->dowhile )
+        {
+            root->script->error( sloc,
+                    "declaration of '%s' is skipped by continue", name->name );
+            return alloc< xec_expr_global >( sloc, identifier, false );
+        }
+        
         // It's a variable, either we're referencing an upval or a local.
         xec_ast_node* nameref = NULL;
         if ( name->scope->func == local->func )
         {
             // It's a local variable.
-            nameref = alloc< xec_expr_local >(
-                            sloc, lookname );
+            nameref = alloc< xec_expr_local >( sloc, lookname );
         }
         else
         {
@@ -949,6 +990,7 @@ xec_ast_name* xec_parser::declare( int sloc, const char* name )
     
     // Declare in scope.
     xec_ast_name* n = alloc< xec_ast_name >( sloc, scope, name );
+    n->continued = scope->continued;
     scope->names.emplace( name, n );
     scope->decls.push_back( n );
     

@@ -28,6 +28,8 @@ xec_ast_scope::xec_ast_scope( xec_ast_scope_kind kind,
     ,   node( node )
     ,   func( func )
     ,   block( NULL )
+    ,   continued( false )
+    ,   dowhile( false )
 {
 }
 
@@ -39,6 +41,7 @@ xec_ast_name::xec_ast_name( int sloc, xec_ast_scope* scope, const char* name )
     ,   superthis( NULL )
     ,   prototype( NULL )
     ,   upval( false )
+    ,   continued( false )
 {
 }
 

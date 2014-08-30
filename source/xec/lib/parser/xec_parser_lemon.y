@@ -88,6 +88,7 @@ inline xec_token_op make_token_op(
 %type stmt_switch   { xec_stmt_switch* }
 %type stmt_while    { xec_stmt_while* }
 %type stmt_do       { xec_stmt_do* }
+%type stmt_doblock  { xec_stmt_do* }
 %type scope_for     { xec_token_scope }
 %type stmt_foreach  { xec_stmt_foreach* }
 %type stmt_for      { xec_stmt_for* }
@@ -1159,10 +1160,9 @@ stmt_common(x)  ::= stmt_while(stmt) LPN condition(expr) RPN
                     p->close_scope( stmt->scope );
                     x = stmt;
                 }
-stmt_common(x)  ::= stmt_do(stmt) stmt_reuse(block) WHILE
-                                LPN expr_assign(expr) RPN SEMICOLON .
+stmt_common(x)  ::= stmt_doblock(stmt)
+                            WHILE LPN expr_assign(expr) RPN SEMICOLON .
                 {
-                    stmt->body      = block;
                     stmt->condition = expr;
                     p->close_scope( stmt->scope );
                     x = stmt;
@@ -1278,6 +1278,13 @@ stmt_do(x)      ::= DO(token) .
                     x = p->alloc< xec_stmt_do >( token->sloc );
                     x->scope = p->block_scope( x );
                     p->destroy( token );
+                }
+
+stmt_doblock(x) ::= stmt_do(stmt) stmt_reuse(block) .
+                {
+                    stmt->body = block;
+                    p->dowhile( stmt->scope );
+                    x = stmt;
                 }
 
 scope_for(x)    ::= FOR(token) .

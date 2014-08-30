@@ -369,6 +369,11 @@ void xec_ssa_printer::print_op( xec_ssa_func* func, xec_ssa_op& op )
     
     case XEC_SSA_PHI:
     {
+        if ( ! op.phi )
+        {
+            break;
+        }
+    
         for ( size_t i = 0; i < op.phi->definitions.size(); ++i )
         {
             xec_ssa_opref def = op.phi->definitions.at( i );

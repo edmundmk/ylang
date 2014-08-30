@@ -108,9 +108,10 @@ public:
     void            switchbreak();
     void            switchend();
     
-    void            loopopen();
+    void            loopopen( bool dowhile );
     void            loopcontinue();
     void            loopbreak();
+    void            loopdowhile();
     void            loopend();
     
     void            excepttry();

@@ -1,8 +1,13 @@
 
 
-var x = 4;
 
-var y = x++ + ++x;
+do
+{
+    continue;
+    var x = 4;
+}
+while ( x == 4 );
+
 
 
 /*

@@ -696,10 +696,14 @@ void xec_ast_printer::print_scope( xec_ast_scope* scope, int indent )
     printf( "%*sscope %s %p:\n", indent, "", kind_name, scope );
     indent += INDENT;
     
-    printf( "%*souter: %p\n", indent, "", scope->outer );
-    printf( "%*snode : %p\n", indent, "", scope->node );
-    printf( "%*sfunc : %p\n", indent, "", scope->func );
-    printf( "%*sblock: %p\n", indent, "", scope->block );
+    printf( "%*souter     : %p\n", indent, "", scope->outer );
+    printf( "%*snode      : %p\n", indent, "", scope->node );
+    printf( "%*sfunc      : %p\n", indent, "", scope->func );
+    printf( "%*sblock     : %p\n", indent, "", scope->block );
+    printf( "%*scontinued : %s\n", indent, "",
+                    scope->continued ? "true" : "false" );
+    printf( "%*sdowhile   : %s\n", indent, "",
+                    scope->dowhile ? "true" : "false" );
     
     if ( scope->implied.size() )
     {
@@ -793,6 +797,11 @@ void xec_ast_printer::print_name( xec_ast_name* name )
     if ( name->upval )
     {
         printf( " upval" );
+    }
+    
+    if ( name->continued )
+    {
+        printf( " continued" );
     }
 }
 

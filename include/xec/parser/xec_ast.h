@@ -263,6 +263,8 @@ struct xec_ast_scope
     xec_ast_imply_map   implied;
     xec_ast_name_map    names;
     xec_ast_name_list   decls;
+    bool                continued;
+    bool                dowhile;
 };
 
 
@@ -276,6 +278,7 @@ struct xec_ast_name
     xec_ast_name*       superthis;
     xec_ast_prototype*  prototype;
     bool                upval;
+    bool                continued;
 };
 
 

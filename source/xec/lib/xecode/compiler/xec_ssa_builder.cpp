@@ -152,11 +152,14 @@ struct xec_ssa_build_loop
     
     xec_ssa_build_block*    loop;
     std::deque< xec_ssa_follow > breaks;
+    std::deque< xec_ssa_follow > continues;
+    bool                    dowhile;
 };
 
 
 xec_ssa_build_loop::xec_ssa_build_loop()
     :   loop( NULL )
+    ,   dowhile( false )
 {
 }
 
@@ -670,10 +673,11 @@ void xec_ssa_builder::switchend()
 }
 
 
-void xec_ssa_builder::loopopen()
+void xec_ssa_builder::loopopen( bool dowhile )
 {
     b->loopstack.emplace_back();
     xec_ssa_build_loop& buildloop = b->loopstack.back();
+    buildloop.dowhile = dowhile;
     
     // The entry to the loop is the only kind of block that isn't
     // sealed immediately after creation (we don't know how many
@@ -695,9 +699,14 @@ void xec_ssa_builder::loopcontinue()
 {
     xec_ssa_build_loop& buildloop = b->loopstack.back();
 
-    // Link current follow point to the head of the loop.
-    if ( buildloop.loop )
+    if ( buildloop.dowhile )
     {
+        // Remember current follow point so we can continue to the condition.
+        buildloop.continues.push_back( b->follow );
+    }
+    else if ( buildloop.loop )
+    {
+        // Link current follow point to the head of the loop.
         link( &b->follow, buildloop.loop );
     }
     
@@ -714,6 +723,45 @@ void xec_ssa_builder::loopbreak()
 
     // Further statements are unreachable.
     b->follow.reset( XEC_SSA_FOLLOW_NONE, NULL );
+}
+
+void xec_ssa_builder::loopdowhile()
+{
+    xec_ssa_build_loop& buildloop = b->loopstack.back();
+
+    // This loop has its condition at the end.  If there were any continues
+    // they end up here.
+    if ( buildloop.continues.empty() )
+    {
+        // No continues, just keep going onto the condition.
+        return;
+    }
+
+
+    // Create block and link all continues.
+    xec_ssa_build_block* dowhile = make_block();
+    
+    if ( b->follow )
+    {
+        link( &b->follow, dowhile );
+    }
+    
+    for ( size_t i = 0; i < buildloop.continues.size(); ++i )
+    {
+        xec_ssa_follow& follow = buildloop.continues.at( i );
+        link( &follow, dowhile );
+    }
+    
+    seal_block( dowhile );
+    
+    
+    // Any continues after this point should continue to the loop header.
+    buildloop.continues.clear();
+    buildloop.dowhile = false;
+    
+    
+    // Continue with this block.
+    b->follow.reset( XEC_SSA_FOLLOW_BLOCK, dowhile );
 }
 
 void xec_ssa_builder::loopend()
@@ -1260,6 +1308,7 @@ void xec_ssa_builder::seal_block( xec_ssa_build_block* block )
                 block->defined[ name ] = def;
             }
             
+            assert( def != XEC_SSA_UNDEF );
             continue;
             
         }

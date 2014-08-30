@@ -1,4 +1,4 @@
-//
+ //
 //  xec_ssa_buildcode.cpp
 //
 //  Created by Edmund Kapusniak on 25/08/2014.
@@ -374,10 +374,14 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
             // Build register transfer graph to get parameters in correct
             // registers.
             xec_ssa_rtgraph rtg;
-            while ( op->opcode == XEC_SSA_PARAM && i < block->ops->ops.size() )
+            while ( op->opcode == XEC_SSA_PARAM )
             {
                 rtg.move( (int)op->r, op->immkey );
                 i += 1;
+                if ( i >= block->ops->ops.size() )
+                {
+                    break;
+                }
                 op = &block->ops->ops.at( i );
             }
             i -= 1;
@@ -434,7 +438,7 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
             int minclose = INT_MAX;
             int maxclose = INT_MIN;
             
-            while ( op->opcode == XEC_SSA_CLOSE && i < block->ops->ops.size() )
+            while ( op->opcode == XEC_SSA_CLOSE )
             {
                 assert( op->immkey >= func->upvalcount );
                 int nuindex = op->immkey - func->upvalcount;
@@ -442,6 +446,10 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
                 minclose = std::min( minclose, nuindex );
                 maxclose = std::max( maxclose, nuindex );
                 ++i;
+                if ( i >= block->ops->ops.size() )
+                {
+                    break;
+                }
                 op = &block->ops->ops.at( i );
             }
             --i;
