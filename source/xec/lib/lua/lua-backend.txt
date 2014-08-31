@@ -33,4 +33,159 @@ okay this is turning out to be not much simpler than the VM backend, because
 other operations.
 
 
+or we could compile our SSA to luajit:
+
+
+    // constants
+    XEC_SSA_NULL,       // null value
+        KPRI a, d = 0
+        or knil a, d
+
+    XEC_SSA_NUMBER,     // number
+        KNUM a, d
+
+    XEC_SSA_BOOL,       // boolean
+        KPRI a, d = 1(false), 2(true)
+
+    XEC_SSA_STRING,     // string
+        KSTR a, d
+
+    // ops w/ operands.
+    XEC_SSA_REF,        // reference another value
+        // no
+
+    XEC_SSA_POS,        // unary +
+        unm a, d
+        unm a, d
+
+    XEC_SSA_NEG,        // unary -
+        unm a, d
+
+    XEC_SSA_NOT,        // unary !
+        not a, d
+
+    XEC_SSA_BITNOT,     // unary ~
+        --> __xec_not( b )
+
+    XEC_SSA_MUL,        // *
+    XEC_SSA_DIV,        // /
+    XEC_SSA_MOD,        // %
+    XEC_SSA_ADD,        // +
+    XEC_SSA_SUB,        // -
+        if their arguments are literal numbers we can pack them
+        opnv opvn
+
+    XEC_SSA_INTDIV,     // ~
+        --> __xec_intdiv( b )
+
+    XEC_SSA_LSL,        // <<
+    XEC_SSA_LSR,        // >>
+    XEC_SSA_ASR,        // ~>>
+    XEC_SSA_BITAND,     // &
+    XEC_SSA_BITXOR,     // ^
+    XEC_SSA_BITOR,      // |
+        --> __xec_<op>( a, b )
+
+    XEC_SSA_CONCAT,     // ..
+        cat a, b, c
+
+    XEC_SSA_EQ,         // ==
+        iseq/iseqv/iseqs/iseqp
+
+    XEC_SSA_LT,         // <
+        islt
+
+    XEC_SSA_LE,         // <=
+        isle
+
+    XEC_SSA_IN,         // in
+        -> __xec_in( a, b )
+
+    XEC_SSA_IS,         // is
+        -> __xec_is( a, b )
+
+    XEC_SSA_XOR,        // ^^
+        -> __xec_xor( a, b )
+    
+    XEC_SSA_INKEY,      // object.[ key ]
+        tgetv
+
+    XEC_SSA_INDEX,      // container[ index ]
+        -> obj.__xec_index[ index ]
+
+    XEC_SSA_DELINKEY,   // delete object.[ key ]
+        -> __xec_delete[ key ]
+
+    XEC_SSA_OBJECT,     // create new object with prototype
+        -> __xec_obj( proto )
+
+    XEC_SSA_ITER,       // make iterator for a list
+        -> __xec_iter( a )
+
+    XEC_SSA_EACH,       // make iterator for object key
+        -> __xec_iterkey( a )
+
+    XEC_SSA_APPEND,     // append to an array
+        -> a.append( b )
+    
+
+    // w/ key
+    XEC_SSA_KEY,        // object.key
+        
+
+    XEC_SSA_DELKEY,     // delete object.key
+    XEC_SSA_GLOBAL,     // global.key
+    XEC_SSA_SETGLOBAL,  // global.key = value
+    
+    XEC_SSA_FIRST_KEY   = XEC_SSA_KEY,
+    XEC_SSA_LAST_KEY    = XEC_SSA_SETGLOBAL,
+    
+    // w/ immediate
+    XEC_SSA_PARAM,      // parameter number
+    XEC_SSA_SELECT,     // select a call result
+    XEC_SSA_NEWUP,      // create and initialize new upval
+    XEC_SSA_SETUP,      // set upval
+    XEC_SSA_REFUP,      // value of upval
+    XEC_SSA_CLOSE,      // close upval
+    XEC_SSA_ARRAY,      // new array
+    XEC_SSA_TABLE,      // new table
+    
+    XEC_SSA_FIRST_IMM   = XEC_SSA_PARAM,
+    XEC_SSA_LAST_IMM    = XEC_SSA_TABLE,
+
+    // assignments
+    XEC_SSA_SETINKEY,   // object.[ key ] = value
+    XEC_SSA_SETINDEX,   // container[ index ] = value
+    XEC_SSA_SETKEY,     // object.key = value
+
+    XEC_SSA_FIRST_SET   = XEC_SSA_SETINKEY,
+    XEC_SSA_LAST_SET    = XEC_SSA_SETKEY,
+    
+    // w/args
+    XEC_SSA_VARARG,     // vararg, or unpack all
+    XEC_SSA_UNPACK,     // array element, or unpack all
+    XEC_SSA_CALL,       // function call
+    XEC_SSA_YCALL,      // yieldable function call
+    XEC_SSA_YIELD,      // yield
+    XEC_SSA_NEW,        // new object by calling constructor
+    XEC_SSA_EXTEND,     // extend an array with unpacked
+    XEC_SSA_NEXT,       // produce values from an iterator
+    XEC_SSA_RETURN,     // return    
+    
+    XEC_SSA_FIRST_ARG   = XEC_SSA_VARARG,
+    XEC_SSA_LAST_ARG    = XEC_SSA_RETURN,
+
+    // closures
+    XEC_SSA_CLOSURE,    // create a function closure
+
+    // phi
+    XEC_SSA_PHI,        // SSA ɸ-function
+    
+    // liveness information.
+    XEC_SSA_LIVE,       // additional live range for value.
+
+
+
+
+
 

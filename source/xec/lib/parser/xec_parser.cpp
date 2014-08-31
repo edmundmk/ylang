@@ -831,6 +831,36 @@ xec_ast_node* xec_parser::unpack( xec_ast_node* expr )
 
 
 
+xec_ast_node* xec_parser::test_expr( xec_ast_node* expr )
+{
+    // Expression used in a boolean context, where it does not throw
+    // an exception on a missing key but return false instead.
+        
+    switch ( expr->kind )
+    {
+    case XEC_EXPR_KEY:
+    {
+        xec_expr_key* key = (xec_expr_key*)expr;
+        key->test = true;
+        break;
+    }
+    
+    case XEC_EXPR_INKEY:
+    {
+        xec_expr_inkey* inkey = (xec_expr_inkey*)expr;
+        inkey->test = true;
+        break;
+    }
+    
+    default:
+        break;
+    }
+    
+    return expr;
+}
+
+
+
 xec_ast_node* xec_parser::compare( int sloc,
                 xec_ast_opkind op, xec_ast_node* lhs, xec_ast_node* rhs )
 {

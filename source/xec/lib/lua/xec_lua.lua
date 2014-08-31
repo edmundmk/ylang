@@ -226,6 +226,7 @@ g.coroutine     = coroutine
 
 -- operations
 
+g.__xec_intdiv  = __xec_intdiv
 g.__xec_not     = bit.bnot
 g.__xec_lsl     = bit.lshift
 g.__xec_lsr     = bit.rshift
@@ -237,6 +238,7 @@ g.__xec_in      = __xec_in
 g.__xec_is      = __xec_is
 g.__xec_obj     = __xec_obj
 g.__xec_new     = __xec_new
+g.__xec_delete  = __xec_delete
 
 
 return g;

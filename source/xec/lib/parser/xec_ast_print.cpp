@@ -296,14 +296,14 @@ void xec_ast_printer::visit( xec_expr_objref* node, int indent )
 
 void xec_ast_printer::visit( xec_expr_key* node, int indent ) 
 {
-    printf( "%*skey:\n", indent, "" );
+    printf( "%*skey:%s\n", indent, "", node->test ? " test" : "" );
     visit( node->object, indent + INDENT );
     printf( "%*s'%s'\n", indent + INDENT, "", node->key );
 }
 
 void xec_ast_printer::visit( xec_expr_inkey* node, int indent ) 
 {
-    printf( "%*sinkey:\n", indent, "" );
+    printf( "%*sinkey:%s\n", indent, "", node->test ? "test" : "" );
     visit( node->object, indent + INDENT );
     visit( node->key, indent + INDENT );
 }
