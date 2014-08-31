@@ -13,6 +13,7 @@
 
 #include <deque>
 #include <string>
+#include <memory>
 #include <region.h>
 #include <symbol.h>
 
@@ -29,6 +30,7 @@ class xec_module;
         -   Newline offsets.
         -   Identifiers and strings.
         -   Errors.
+        -   The parsed AST for the script.
 
 */
 
@@ -46,18 +48,23 @@ public:
     size_t              error_count();
     const char*         error( size_t index );
 
+    xec_ast*            get_ast();
+
 
 private:
 
     friend class xec_parser;
-    friend bool xec_parse( xec_script*, xec_ast*,
-                    const char*, size_t, const char* const* );
+    friend xec_script* xec_parse( const char*, size_t, const char* const* );
+
+    xec_script();
+    
 
     region                          alloc;
     std::string                     filename;
     std::deque< int >               newlines;
     std::unordered_set< symkey >    identifiers;
     std::deque< std::string >       errors;
+    std::unique_ptr< xec_ast >      ast;
 
 };
 
@@ -69,17 +76,7 @@ private:
     Parse a script file and generate an AST.
 */
 
-bool xec_parse( xec_script* script, xec_ast* ast,
-            const char* filename, size_t argc, const char* const* argv );
-
-
-
-
-
-
-
-
-
+xec_script* xec_parse( const char* path, size_t argc, const char* const* argv );
 
 
 

@@ -215,9 +215,6 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
         case XEC_SSA_LE:
             inst( XEC_LE, o( op->r ), o( op->operanda ), o( op->operandb ) );
             break;
-        case XEC_SSA_IN:
-            inst( XEC_IN, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
         case XEC_SSA_IS:
             inst( XEC_IS, o( op->r ), o( op->operanda ), o( op->operandb ) );
             break;
@@ -358,6 +355,13 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
             }
             
             inst( XEC_VALUE, o( op->r ), (int)i );
+            break;
+        }
+        
+        case XEC_SSA_IN:
+        {
+            // Hmmm.
+            inst( XEC_IN, o( op->r ), o( op->operanda ), o( op->operandb ) );
             break;
         }
         

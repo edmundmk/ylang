@@ -40,6 +40,7 @@ private:
     xec_object*                 g;
     std::vector< xec_value >    s;
     std::vector< xec_upval* >   u;
+    bool                        iter;
 
 };
 

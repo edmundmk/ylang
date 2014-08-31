@@ -7,20 +7,23 @@
 
 
 #include "xec_parser.h"
+#include <make_unique>
 #include "xec_token.h"
 
 
 
 
 
-bool xec_parse( xec_script* script, xec_ast* ast,
-            const char* filename, size_t argc, const char* const* argv )
+xec_script* xec_parse( const char* path, size_t argc, const char* const* argv )
 {
-    region_scope rscope( ast->alloc );
+    xec_script* script = new xec_script();
+    script->ast = std::make_unique< xec_ast>();
+
+    region_scope rscope( script->ast->alloc );
 
     // Associate AST with script.
-    assert( ast->script == NULL );
-    ast->script = script;
+    script->ast->script = script;
+    xec_ast* ast = script->ast.get();
 
     // Set up root function and scope.
     ast->function = new ( ast->alloc ) xec_ast_func( -1 );
@@ -32,8 +35,8 @@ bool xec_parse( xec_script* script, xec_ast* ast,
     
     
     // Preserve function name.
-    char* funcname = (char*)script->alloc.malloc( strlen( filename ) + 1 );
-    strcpy( funcname, filename );
+    char* funcname = (char*)script->alloc.malloc( strlen( path ) + 1 );
+    strcpy( funcname, path );
     ast->function->funcname = funcname;
     
     
@@ -70,7 +73,11 @@ bool xec_parse( xec_script* script, xec_ast* ast,
     
     // Parse.
     xec_parser parser( ast );
-    return parser.parse( filename );
+    parser.parse( path );
+
+
+    // Return.
+    return script;
 }
 
 

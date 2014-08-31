@@ -601,30 +601,209 @@ void xec_context::execute( unsigned fp, unsigned acount, unsigned rcount )
     
         case XEC_EQ:
         {
+            xec_value& r = s[ fp + code.r() ];
+            xec_value  a = s[ fp + code.a() ];
+            xec_value  b = s[ fp + code.b() ];
             
+            xec_value v;
+            if ( a.isnumber() && b.isnumber() )
+            {
+                v = a.number() == b.number();
+            }
+            else if ( a.isstring() && b.isstring() )
+            {
+                xec_string& p = a.string();
+                xec_string& q = b.string();
+                v = p.size() == q.size()
+                        && memcmp( p.c_str(), q.c_str(), p.size() ) == 0;
+            }
+            else
+            {
+                v = a == b;
+            }
+            
+            r.decref();
+            r = v;
+            break;
         }
         
         case XEC_LT:
+        {
+            xec_value& r = s[ fp + code.r() ];
+            xec_value  a = s[ fp + code.a() ];
+            xec_value  b = s[ fp + code.b() ];
+            
+            xec_value v;
+            if ( a.isnumber() && b.isnumber() )
+            {
+                v = a.number() < b.number();
+            }
+            else if ( a.isstring() && b.isstring() )
+            {
+                xec_string& p = a.string();
+                xec_string& q = b.string();
+                size_t size = std::min( p.size(), q.size() );
+                int compare = memcmp( p.c_str(), q.c_str(), size );
+                v = compare < 0 || ( compare == 0 && p.size() < q.size() );
+            }
+            else
+            {
+                // This is an error.
+            }
+            
+            r.decref();
+            r = v;
+            break;
+        }
+        
         case XEC_LE:
+        {
+            xec_value& r = s[ fp + code.r() ];
+            xec_value  a = s[ fp + code.a() ];
+            xec_value  b = s[ fp + code.b() ];
+            
+            xec_value v;
+            if ( a.isnumber() && b.isnumber() )
+            {
+                v = a.number() <= b.number();
+            }
+            else if ( a.isstring() && b.isstring() )
+            {
+                xec_string& p = a.string();
+                xec_string& q = b.string();
+                size_t size = std::min( p.size(), q.size() );
+                int compare = memcmp( p.c_str(), q.c_str(), size );
+                v = compare < 0 || ( compare == 0 && p.size() <= q.size() );
+            }
+            else
+            {
+                // This is an error.
+            }
+            
+            r.decref();
+            r = v;
+            break;
+        }
+        
         case XEC_IN:
+        {
+            // TODO.
+            break;
+        }
+        
         case XEC_IS:
+        {
+            // TODO.
+            break;
+        }
 
         case XEC_JMP:
+        {
+            pc += code.j();
+            break;
+        }
+        
         case XEC_IFTRUE:
+        {
+            xec_value r = s[ fp + code.r() ];
+            if ( r.test() )
+            {
+                pc += code.j();
+            }
+            break;
+        }
+        
         case XEC_IFFALSE:
+        {
+            xec_value r = s[ fp + code.r() ];
+            if ( ! r.test() )
+            {
+                pc += code.j();
+            }
+            break;
+        }
+
         case XEC_IFITER:
+        {
+            if ( iter )
+            {
+                pc += code.j();
+            }
+            break;
+        }
+        
         case XEC_IFDONE:
+        {
+            if ( ! iter )
+            {
+                pc += code.j();
+            }
+            break;
+        }
 
         case XEC_ITER:
+        {
+            xec_value& r = s[ fp + code.r() ];
+            xec_value  a = s[ fp + code.a() ];
+            xec_iter* i = new xec_iter( a );
+            r.decref();
+            r = i;
+            break;
+        }
+        
         case XEC_ITERKEY:
+        {
+            // TODO.
+            break;
+        }
+        
         case XEC_NEXT1:
+        {
+            xec_value& r = s[ fp + code.r() ];
+            xec_value  a = s[ fp + code.a() ];
+            check_object( a );
+            
+            xec_value v;
+            xec_object& o = a.object();
+            if ( o.isiter() )
+            {
+                iter = o.iter().next1( &v );
+            }
+            else
+            {
+                // This is an error.
+            }
+            
+            v.incref();
+            r.decref();
+            r = v;
+            break;
+        }
+        
         case XEC_NEXT2:
+        {
+            // TODO.
+            break;
+        }
+        
         case XEC_NEXT:
+        {
+            // TODO.
+            break;
+        }
 
         case XEC_TABLE:
+        {
+        }
+        
         case XEC_OBJECT:
+        {
+        }
 
         case XEC_ARRAY:
+        {
+        }
+        
         case XEC_UNPACK:
         case XEC_APPEND:
         case XEC_EXTEND:
@@ -644,7 +823,16 @@ void xec_context::execute( unsigned fp, unsigned acount, unsigned rcount )
         }
 
         case XEC_VARARG:
+        {
+            // TODO.
+            break;
+        }
+        
         case XEC_VARALL:
+        {
+            // TODO.
+            break;
+        }
     
         case XEC_CALL:
         case XEC_YCALL:
@@ -652,8 +840,10 @@ void xec_context::execute( unsigned fp, unsigned acount, unsigned rcount )
         case XEC_NEW:
     
         case XEC_RETURN:
+        {
+            
             break;
-        
+        }
         
         }
     }

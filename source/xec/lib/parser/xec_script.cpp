@@ -13,6 +13,9 @@
 
 
 
+xec_script::xec_script()
+{
+}
 
 
 
@@ -61,6 +64,13 @@ size_t xec_script::error_count()
 const char* xec_script::error( size_t index )
 {
     return errors.at( index ).c_str();
+}
+
+
+
+xec_ast* xec_script::get_ast()
+{
+    return ast.get();
 }
 
 

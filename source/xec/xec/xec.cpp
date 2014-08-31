@@ -17,22 +17,20 @@
 
 int main( int argc, char* argv[] )
 {
-    xec_script  script;
-    xec_ast     ast;
-
     const char* sargv[] = { "argv0", "..." };
-    if ( ! xec_parse( &script, &ast, argv[ 1 ], 2, sargv ) )
+    std::unique_ptr< xec_script > script( xec_parse( argv[ 1 ], 2, sargv ) );
+    if ( script->error_count() )
     {
-        for ( size_t i = 0; i < script.error_count(); ++i )
+        for ( size_t i = 0; i < script->error_count(); ++i )
         {
-            fprintf( stderr, "%s\n", script.error( i ) );
+            fprintf( stderr, "%s\n", script->error( i ) );
         }
         return EXIT_FAILURE;
     }
-    
-    xec_ast_print( &ast );
 
-    std::unique_ptr< xec_module > module( xec_compile( &ast ) );
+    xec_ast_print( script->get_ast() );
+
+    std::unique_ptr< xec_module > module( xec_compile( script->get_ast() ) );
     if ( ! module )
     {
         return EXIT_FAILURE;

@@ -120,6 +120,7 @@ public:
     void            incref();
     void            decref();
 
+    bool            haskey( xec_objkey key ) const;
     xec_value       key( xec_objkey key ) const;
     void            setkey( xec_objkey key, xec_value value );
 
@@ -169,6 +170,7 @@ public:
 
     xec_array();
     
+    size_t      size() const;
     xec_value   index( size_t index ) const;
     void        setindex( size_t index, xec_value value );
     
@@ -228,6 +230,30 @@ private:
 
 };
 
+
+
+/*
+    Iterators index into arrays, or tables, or return coroutine results.
+    Currently just do it for arrays.
+*/
+
+
+class xec_iter : public xec_object
+{
+public:
+
+    explicit xec_iter( xec_value v );
+    ~xec_iter();
+    
+    bool            next1( xec_value* v );
+    
+    
+private:
+
+    xec_array*      marray;
+    size_t          mindex;
+
+};
 
 
 

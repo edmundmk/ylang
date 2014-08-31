@@ -261,6 +261,12 @@ inline xec_iter& xec_object::iter()
 
 
 
+
+inline size_t xec_array::size() const
+{
+    return mvalues.size();
+}
+
 inline xec_value xec_array::index( size_t index ) const
 {
     return mvalues.at( index );

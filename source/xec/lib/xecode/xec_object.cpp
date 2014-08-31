@@ -133,5 +133,37 @@ void xec_closure::envup( unsigned i, xec_upval* upval )
 
 
 
+xec_iter::xec_iter( xec_value v )
+    :   xec_object( ITER )
+{
+    assert( v.isobject() && v.object().isarray() );
+    marray = &v.object().array();
+    marray->incref();
+    mindex = 0;
+}
+
+xec_iter::~xec_iter()
+{
+    marray->decref();
+}
+
+
+bool xec_iter::next1( xec_value* v )
+{
+    if ( mindex < marray->size() )
+    {
+        *v = marray->index( mindex );
+        mindex += 1;
+        return true;
+    }
+    else
+    {
+        *v = xec_value();
+        return false;
+    }
+}
+
+
+
 
 
