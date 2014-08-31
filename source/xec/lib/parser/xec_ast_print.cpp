@@ -10,7 +10,7 @@
 
 
 
-static const char* xec_operator_name( xec_ast_opkind op )
+const char* xec_operator_name( xec_ast_opkind op )
 {
     switch ( op )
     {

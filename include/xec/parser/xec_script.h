@@ -88,6 +88,13 @@ xec_module* xec_compile( xec_ast* ast );
 
 
 
+/*
+    Compile an AST into Javascript.
+*/
+
+void xec_compile_js( xec_ast* ast );
+
+
 
 #endif
 
