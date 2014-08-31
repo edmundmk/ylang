@@ -92,7 +92,6 @@ void xec_context::execute( unsigned fp, unsigned acount, unsigned rcount )
 {
     xec_closure& closure = s[ fp ].object().closure();
     xec_function* function = closure.function();
-    fp += 1;
     
     s.resize( fp + function->stack_count() );
 

@@ -614,6 +614,15 @@ void xec_ssa_regalloc::reverse_scan()
             }
             
             
+            // If the value is a parameter, then attempt to allocate it the
+            // register the parameter would be in.
+            xec_ssa_op* valop = func->getop( e.value );
+            if ( r == -1 && valop->opcode == XEC_SSA_PARAM )
+            {
+                r = check_alloc( allocs, valop->immkey + 1, i );
+            }
+            
+            
             // Find first value where we can allocate this value.
             for ( int searchr = 0;
                         r == -1 && searchr < allocs.size(); ++searchr )

@@ -372,11 +372,12 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
         case XEC_SSA_PARAM:
         {
             // Build register transfer graph to get parameters in correct
-            // registers.
+            // registers.  Note that register 0, on entry to the function,
+            // is the closure itself.
             xec_ssa_rtgraph rtg;
             while ( op->opcode == XEC_SSA_PARAM )
             {
-                rtg.move( (int)op->r, op->immkey );
+                rtg.move( (int)op->r, op->immkey + 1 );
                 i += 1;
                 if ( i >= block->ops->ops.size() )
                 {

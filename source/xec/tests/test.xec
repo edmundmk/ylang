@@ -1,6 +1,13 @@
 
 
 
+
+hello[ a * b ] = p - q;
+
+
+
+
+/*
 do
 {
     var x = 4;
@@ -8,7 +15,7 @@ do
     continue;
 }
 while ( x == y );
-
+*/
 
 
 /*
