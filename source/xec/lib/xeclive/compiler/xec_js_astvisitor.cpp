@@ -9,7 +9,6 @@
 #include "xec_js_astvisitor.h"
 #include "xec_source_writer.h"
 #include "xec_seq.h"
-#include "xec_seq_astvisitor.h"
 
 
 
@@ -24,8 +23,8 @@ void xec_js_astvisitor::fallback( xec_ast_node* node )
 {
     // Build seq from expression.
     xec_seq seq;
-    xec_seq_build( &seq, node );
-    xec_seq_print( &seq );
+    xec_seq_builder builder( &seq );
+    builder.build( node );
     
     
     // Turn seq into Javascript.

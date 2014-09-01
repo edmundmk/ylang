@@ -179,7 +179,8 @@ xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_preop* node )
     }
     
     xec_ssa_opref updated = b->op( node->sloc, opcode, value, literal );
-    return b->lvalue_assign( &lvalue, updated );
+    b->lvalue_assign( &lvalue, updated );
+    return updated;
 }
 
 xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_postop* node )

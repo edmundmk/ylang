@@ -79,7 +79,7 @@
  
     The seq form is similar to the SSA form used when compiling xec to
     bytecode, but since it expresses only a single expression and does not
-    need to undergo any transformations it is much simpler.
+    need to undergo any transformations it can be much simpler.
  
 */
 
@@ -87,29 +87,125 @@
 #include <vector>
 #include <unordered_map>
 #include <region.h>
+#include "xec_seq_astvisitors.h"
 
 
 struct xec_ast_node;
+struct xec_ast_name;
 
 
-
-enum xec_seqop_kind
+enum xec_seq_opcode
 {
-    XEC_SEQ_EVAL,
-    XEC_SEQ_ASSIGN,
-    XEC_SEQ_DECLARE,
+    XEC_SEQ_NOP,
+
+    // References to AST nodes.
+    XEC_SEQ_ASTNODE,
+
+    // Reference to an object under construction (may be an upval).
+    XEC_SEQ_OBJREF,
+    
+    // A literal 1 value.
+    XEC_SEQ_ONE,
+
+    // Unary operators.
+    XEC_SEQ_POS,
+    XEC_SEQ_NEG,
+    XEC_SEQ_NOT,
+    XEC_SEQ_BITNOT,
+    
+    // Binary operators.
+    XEC_SEQ_MUL,
+    XEC_SEQ_DIV,
+    XEC_SEQ_MOD,
+    XEC_SEQ_INTDIV,
+    XEC_SEQ_ADD,
+    XEC_SEQ_SUB,
+    XEC_SEQ_LSL,
+    XEC_SEQ_LSR,
+    XEC_SEQ_ASR,
+    XEC_SEQ_BITAND,
+    XEC_SEQ_BITXOR,
+    XEC_SEQ_BITOR,
+    XEC_SEQ_CONCAT,
+    XEC_SEQ_EQ,
+    XEC_SEQ_NE,
+    XEC_SEQ_LT,
+    XEC_SEQ_LE,
+    XEC_SEQ_GT,
+    XEC_SEQ_GE,
+    XEC_SEQ_IN,
+    XEC_SEQ_NOTIN,
+    XEC_SEQ_IS,
+    XEC_SEQ_NOTIS,
+    XEC_SEQ_AND,            // Shortcut evaluation: if not a then a else b
+    XEC_SEQ_OR,             // Shortcut evaluation: if a then a else b
+    XEC_SEQ_XOR,
+    
+    // Lookups.
+    XEC_SEQ_VAR,
+    XEC_SEQ_GLOBAL,
+    XEC_SEQ_KEY,
+    XEC_SEQ_INKEY,
+    XEC_SEQ_INDEX,
+    
+    // Assignments.
+    XEC_SEQ_SETVAR,
+    XEC_SEQ_SETGLOBAL,
+    XEC_SEQ_SETKEY,
+    XEC_SEQ_SETINKEY,
+    XEC_SEQ_SETINDEX,
+
+    // Trinary operator.
+    XEC_SEQ_CONDITIONAL,    // ?:
+
+    // Calls and other multi-value operations.
+    XEC_SEQ_NEW,
+    XEC_SEQ_CALL,
+    XEC_SEQ_YCALL,
+    XEC_SEQ_YIELD,
+    XEC_SEQ_UNPACK,
+    XEC_SEQ_VARALL,
+    
+    // Select one of the multiple-valued results.
+    XEC_SEQ_SELECT,
+    XEC_SEQ_ELEMENT,
+    XEC_SEQ_VARARG,
+
 };
 
 
-struct xec_seqop
+struct xec_seq_op
 {
-    xec_seqop( xec_seqop_kind kind, xec_ast_node* node );
-    xec_seqop( xec_seqop_kind kind, xec_ast_node* lval, xec_ast_node* rval );
+    xec_seq_op( int sloc, xec_seq_opcode opcode );
+    xec_seq_op( int sloc, xec_seq_opcode opcode, xec_ast_node* astnode );
+    xec_seq_op( int sloc, xec_seq_opcode opcode, xec_ast_name* name );
+    xec_seq_op( int sloc, xec_seq_opcode opcode, const char* k );
+    xec_seq_op( int sloc, xec_seq_opcode opcode, xec_seq_op* a );
+    xec_seq_op( int sloc, xec_seq_opcode opcode, xec_seq_op* a, const char* k );
+    xec_seq_op( int sloc, xec_seq_opcode opcode, xec_seq_op* a, xec_seq_op* b );
+    xec_seq_op( int sloc, xec_seq_opcode opcode, xec_ast_name* name, xec_seq_op* v );
+    xec_seq_op( int sloc, xec_seq_opcode opcode, const char* k, xec_seq_op* v );
+    xec_seq_op( int sloc, xec_seq_opcode opcode, xec_seq_op* a, const char* k, xec_seq_op* v );
+    xec_seq_op( int sloc, xec_seq_opcode opcode, xec_seq_op* a, xec_seq_op* b, xec_seq_op* v );
 
-    xec_seqop_kind  kind;
-    int             rcount;
-    xec_ast_node*   lvalue;
-    xec_ast_node*   rvalue;
+    int             sloc;
+    xec_seq_opcode  opcode      : 8;
+    int             refcount    : 24;
+    
+    union
+    {
+    xec_ast_node*   astnode;
+    xec_ast_name*   name;
+    xec_seq_op*     a;
+    };
+    
+    union
+    {
+    const char*     k;
+    xec_seq_op*     b;
+    };
+
+    xec_seq_op*     v;
 };
 
 
@@ -117,13 +213,78 @@ struct xec_seqop
 struct xec_seq
 {
     region alloc;
-    std::vector< xec_seqop > ops;
-    std::unordered_map< xec_ast_node*, size_t > nodemap;
+    std::vector< xec_seq_op* > ops;
 };
 
 
 
-void xec_seq_build( xec_seq* seq, xec_ast_node* expr );
+
+
+/*
+    Builder that uses visitors to build seq-form of expression.
+*/
+
+
+struct xec_seq_lvalue
+{
+    int             sloc;
+    xec_seq_opcode  opcode;
+    union
+    {
+    xec_ast_name*   name;
+    xec_seq_op*     a;
+    };
+    union
+    {
+    xec_seq_op*     b;
+    const char*     k;
+    };
+};
+
+struct xec_seq_valist
+{
+    std::vector< xec_seq_op* > values;
+    xec_seq_op*      unpacked;
+};
+
+
+class xec_seq_builder
+{
+public:
+
+    explicit xec_seq_builder( xec_seq* seq );
+    
+    xec_seq_op*     build( xec_ast_node* expr );
+    
+    template < typename ... arguments_t >
+    xec_seq_op*     op( arguments_t ... arguments );
+
+    xec_ast_upval*  upval( xec_expr_upref* upref );
+    
+    xec_seq_op*     expr( xec_ast_node* expr );
+    void            unpack( xec_seq_valist* l, xec_ast_node* node, int count );
+
+    void            lvalue( xec_seq_lvalue* lvalue, xec_ast_node* node );
+    xec_seq_op*     lvalue_value( xec_seq_lvalue* lvalue );
+    xec_seq_op*     lvalue_assign( xec_seq_lvalue* lvalue, xec_seq_op* v );
+
+
+private:
+
+    xec_seq* seq;
+    xec_seq_build_expr      build_expr;
+    xec_seq_build_unpack    build_unpack;
+
+};
+
+
+template < typename ... arguments_t >
+inline xec_seq_op* xec_seq_builder::op( arguments_t ... arguments )
+{
+    xec_seq_op* op = new ( seq->alloc ) xec_seq_op( arguments ... );
+    seq->ops.push_back( op );
+    return op;
+}
 
 
 
