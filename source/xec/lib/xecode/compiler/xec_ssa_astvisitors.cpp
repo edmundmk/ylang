@@ -359,6 +359,8 @@ xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_logical* node )
         assert( ! "invalid operator" );
         break;
     }
+    
+    return XEC_SSA_INVALID;
 }
 
 xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_qmark* node )

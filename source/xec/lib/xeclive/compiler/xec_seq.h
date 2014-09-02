@@ -37,6 +37,9 @@
             appropriate result as the rvalue of an assignment, or they
             are consumed immediately as the last 'unpack' argument to
             a function call.
+            
+        -   Control flow (for &&, ||, ?:, and chained comparisons) is made
+            explicit.
        
  
     Translating out of seq-form produces a sequence of calls, assignments,
@@ -69,13 +72,14 @@
             call arguments) as long as there are no assignments or temporaries
             inbetween the call and the op where the expression is realised.
             Therefore assignments/temporaries 'flush' pending calls, in order.
+        
+        -   Control flow may be collapsible into the target language's
+            shortcut or conditional operators (if the subexpressions are
+            simple enough) - otherwise it must be added with explicit ifs.
  
     You can see why compiler people like functional languages which have no
     assignments and no side-effects!
  
-    &&, || and ?: introduce control flow, but the semantics of the xec
-    operations are the same as both Lua and Javascript.  Lua lacks a ?:
-    construction, so it compiles to an if statement assigning into a temporary.
  
     The seq form is similar to the SSA form used when compiling xec to
     bytecode, but since it expresses only a single expression and does not
@@ -137,8 +141,6 @@ enum xec_seq_opcode
     XEC_SEQ_NOTIN,
     XEC_SEQ_IS,
     XEC_SEQ_NOTIS,
-    XEC_SEQ_AND,            // Shortcut evaluation: if not a then a else b
-    XEC_SEQ_OR,             // Shortcut evaluation: if a then a else b
     XEC_SEQ_XOR,
     
     // Lookups.
@@ -155,8 +157,12 @@ enum xec_seq_opcode
     XEC_SEQ_SETINKEY,
     XEC_SEQ_SETINDEX,
 
-    // Trinary operator.
-    XEC_SEQ_CONDITIONAL,    // ?:
+    // Control flow.
+    XEC_SEQ_BEGINAND,       // if ! a then a else ...
+    XEC_SEQ_BEGINOR,        // if a then a else ...
+    XEC_SEQ_BEGINIF,        // if a then ...
+    XEC_SEQ_ELSE,           // result of block is a, else ...
+    XEC_SEQ_END,            // result of block is a
 
     // Calls and other multi-value operations.
     XEC_SEQ_NEW,

@@ -185,12 +185,32 @@ xec_seq_op* xec_seq_build_expr::visit( xec_expr_binary* node )
 
 xec_seq_op* xec_seq_build_expr::visit( xec_expr_compare* node )
 {
-    if ( node->opkinds.size() == 1 )
+    /*
+        a
+        b
+        <
+        result : beginand <
+            c
+            >
+            beginand >
+                d
+                ==
+                beginand ==
+                    e
+                    !=
+                end : !=
+            end : beginand ==
+        end : beginand >
+    */
+
+    xec_seq_op* lhs = b->expr( node->first );
+    xec_seq_op* result = NULL;
+    
+    std::vector< xec_seq_op* > end;
+    for ( size_t i = 0; i < node->opkinds.size(); ++i )
     {
-        // Simple comparison.
-        xec_seq_op* operanda = b->expr( node->first );
-        xec_seq_op* operandb = b->expr( node->terms.at( 0 ) );
-        
+        xec_seq_op* rhs = b->expr( node->terms.at( i ) );
+    
         xec_seq_opcode opcode = XEC_SEQ_NOP;
         switch ( node->opkinds.at( 0 ) )
         {
@@ -207,16 +227,82 @@ xec_seq_op* xec_seq_build_expr::visit( xec_expr_compare* node )
         default: assert( ! "invalid operator" ); break;
         }
         
-        return b->op( node->sloc, opcode, operanda, operandb );
+        xec_seq_op* compare = b->op( node->sloc, opcode, lhs, rhs );
+        
+        if ( i < ( node->opkinds.size() - 1 ) )
+        {
+            compare = b->op( node->sloc, XEC_SEQ_BEGINAND, compare );
+        }
+        
+        if ( i == 0 )
+        {
+            result = compare;
+        }
+        else
+        {
+            end.push_back( compare );
+        }
     }
-    else
+    
+    for ( auto i = end.rbegin(); i != end.rbegin(); ++i )
     {
-        // Chained comparisons are a nightmare.  Can't express the required
-        // control flow in seq form, so delay worrying about it until later...
-        return b->op( node->sloc, XEC_SEQ_ASTNODE, node );
+        b->op( node->sloc, XEC_SEQ_END, *i );
     }
+    
+    return result;
 }
 
+
+xec_seq_op* xec_seq_build_expr::visit( xec_expr_logical* node )
+{
+    switch ( node->opkind )
+    {
+    case XEC_ASTOP_LOGICAND:
+    {
+        /*
+            lhs
+            beginand lhs
+                rhs
+            end : rhs
+        */
+        xec_seq_op* lhs = b->expr( node->lhs );
+        xec_seq_op* result = b->op( node->sloc, XEC_SEQ_BEGINAND, lhs );
+        xec_seq_op* rhs = b->expr( node->rhs );
+        b->op( node->sloc, XEC_SEQ_END, rhs );
+        return result;
+    }
+    
+    case XEC_ASTOP_LOGICXOR:
+    {
+        // No shortcut evaluation...
+        xec_seq_op* lhs = b->expr( node->lhs );
+        xec_seq_op* rhs = b->expr( node->rhs );
+        return b->op( node->sloc, XEC_SEQ_XOR, lhs, rhs );
+        break;
+    }
+    
+    case XEC_ASTOP_LOGICOR:
+    {
+        /*
+            lhs
+            beginor lhs
+                rhs
+            end : rhs
+        */
+        xec_seq_op* lhs = b->expr( node->lhs );
+        xec_seq_op* result = b->op( node->sloc, XEC_SEQ_BEGINOR, lhs );
+        xec_seq_op* rhs = b->expr( node->rhs );
+        b->op( node->sloc, XEC_SEQ_END, rhs );
+        return result;
+    }
+        
+    default:
+        assert( ! "invalid operator" );
+        break;
+    }
+    
+    return NULL;
+}
 
 
 
