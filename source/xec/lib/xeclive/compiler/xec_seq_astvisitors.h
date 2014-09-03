@@ -90,18 +90,19 @@ public:
 
     using xec_ast_visitor< xec_seq_build_unpack, void, xec_seq_valist*, int >::visit;
 
-    void fallback( xec_ast_node* node, xec_seq_valist* values, int valcount );
+    void fallback( xec_ast_node* node, xec_seq_valist* valist, int rcount );
 
-    void visit( xec_expr_null* node, xec_seq_valist* values, int valcount );
-    void visit( xec_expr_call* node, xec_seq_valist* values, int valcount );
-    void visit( xec_expr_yield* node, xec_seq_valist* values, int valcount );
-    void visit( xec_expr_vararg* node, xec_seq_valist* values, int valcount );
-    void visit( xec_expr_unpack* node, xec_seq_valist* values, int valcount );
-    void visit( xec_expr_list* node, xec_seq_valist* values, int valcount );
-    void visit( xec_expr_assign_list* node, xec_seq_valist* values, int valcount );
+    void visit( xec_expr_call* node, xec_seq_valist* valist, int rcount );
+    void visit( xec_expr_yield* node, xec_seq_valist* valist, int rcount );
+    void visit( xec_expr_vararg* node, xec_seq_valist* valist, int rcount );
+    void visit( xec_expr_unpack* node, xec_seq_valist* valist, int rcount );
+    void visit( xec_expr_list* node, xec_seq_valist* valist, int rcount );
+    void visit( xec_expr_assign_list* node, xec_seq_valist* valist, int rcount );
 
 
 private:
+
+    void select( int sloc, xec_seq_valist* valist, int rcount, xec_seq_op* op );
 
     xec_seq_builder* b;
 

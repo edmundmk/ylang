@@ -8,6 +8,33 @@
 
 #include "xec_seq_astvisitors.h"
 #include "xec_seq.h"
+#include "xec_seq_builder.h"
+
+
+
+static xec_seq_opcode assign_opcode( xec_ast_opkind assignop )
+{
+    switch ( assignop )
+    {
+    case XEC_ASTOP_MULASSIGN:       return XEC_SEQ_MUL;
+    case XEC_ASTOP_DIVASSIGN:       return XEC_SEQ_DIV;
+    case XEC_ASTOP_MODASSIGN:       return XEC_SEQ_MOD;
+    case XEC_ASTOP_INTDIVASSIGN:    return XEC_SEQ_INTDIV;
+    case XEC_ASTOP_ADDASSIGN:       return XEC_SEQ_ADD;
+    case XEC_ASTOP_SUBASSIGN:       return XEC_SEQ_SUB;
+    case XEC_ASTOP_LSHIFTASSIGN:    return XEC_SEQ_LSL;
+    case XEC_ASTOP_LRSHIFTASSIGN:   return XEC_SEQ_LSR;
+    case XEC_ASTOP_ARSHIFTASSIGN:   return XEC_SEQ_ASR;
+    case XEC_ASTOP_BITANDASSIGN:    return XEC_SEQ_BITAND;
+    case XEC_ASTOP_BITXORASSIGN:    return XEC_SEQ_BITXOR;
+    case XEC_ASTOP_BITORASSIGN:     return XEC_SEQ_BITOR;
+    default: assert( ! "invalid operator" ); break;
+    }
+
+    return XEC_SEQ_NOP;
+}
+
+
 
 
 
@@ -30,17 +57,22 @@ xec_seq_op* xec_seq_build_expr::visit( xec_ast_func* node )
 
 xec_seq_op* xec_seq_build_expr::visit( xec_expr_null* node )
 {
-    return b->op( node->sloc, XEC_SEQ_ASTNODE, node );
+    return b->op( node->sloc, XEC_SEQ_LITERAL, node );
+}
+
+xec_seq_op* xec_seq_build_expr::visit( xec_expr_bool* node )
+{
+    return b->op( node->sloc, XEC_SEQ_LITERAL, node );
 }
 
 xec_seq_op* xec_seq_build_expr::visit( xec_expr_number* node )
 {
-    return b->op( node->sloc, XEC_SEQ_ASTNODE, node );
+    return b->op( node->sloc, XEC_SEQ_LITERAL, node );
 }
 
 xec_seq_op* xec_seq_build_expr::visit( xec_expr_string* node )
 {
-    return b->op( node->sloc, XEC_SEQ_ASTNODE, node );
+    return b->op( node->sloc, XEC_SEQ_LITERAL, node );
 }
 
 xec_seq_op* xec_seq_build_expr::visit( xec_expr_local* node )
@@ -57,17 +89,18 @@ xec_seq_op* xec_seq_build_expr::visit( xec_expr_upref* node )
 {
     xec_ast_upval* uv = b->upval( node );
 
-    if ( uv->kind == XEC_UPVAL_LOCAL )
+    switch ( uv->kind )
     {
+    case XEC_UPVAL_LOCAL:
         return b->op( node->sloc, XEC_SEQ_VAR, uv->local );
-    }
-    else if ( uv->kind == XEC_UPVAL_OBJECT )
-    {
+
+    case XEC_UPVAL_OBJECT:
         return b->op( node->sloc, XEC_SEQ_OBJREF, uv->object );
+
+    default:
+        assert( ! "invalid upval" );
+        return NULL;
     }
-    
-    assert( ! "invalid upval" );
-    return NULL;
 }
 
 xec_seq_op* xec_seq_build_expr::visit( xec_expr_objref* node )
@@ -298,298 +331,432 @@ xec_seq_op* xec_seq_build_expr::visit( xec_expr_logical* node )
         
     default:
         assert( ! "invalid operator" );
-        break;
+        return NULL;
     }
     
-    return NULL;
 }
 
 
-
-
-/*
-xec_seq_astvisitor::xec_seq_astvisitor( xec_seq* seq )
-    :   seq( seq )
+xec_seq_op* xec_seq_build_expr::visit( xec_expr_qmark* node )
 {
+    xec_seq_op* condition = b->expr( node->condition );
+    xec_seq_op* qmark = b->op( node->sloc, XEC_SEQ_BEGINIF, condition );
+    xec_seq_op* iftrue = b->expr( node->iftrue );
+    b->op( node->sloc, XEC_SEQ_ELSE, iftrue );
+    xec_seq_op* iffalse = b->expr( node->iffalse );
+    b->op( node->sloc, XEC_SEQ_END, iffalse );
+    return qmark;
 }
 
-void xec_seq_astvisitor::fallback( xec_ast_node* node )
+
+xec_seq_op* xec_seq_build_expr::visit( xec_new_new* node )
 {
-    assert( ! "expected expression" );
+    xec_seq_op* proto = b->expr( node->proto );
+    
+    // Get arguments (unpacked).
+    xec_seq_valist arguments;
+    b->unpack( &arguments, node->arguments, -1 );
+    
+    // Build operand list.
+    xec_seq_args* args = b->args( 1 );
+    b->reserve( args, 1, &arguments );
+    b->push( args, proto );
+    b->push( args, &arguments );
+    
+    return b->op( node->sloc, XEC_SEQ_NEW, args );
 }
 
-void xec_seq_astvisitor::visit( xec_ast_func* node )
+
+xec_seq_op* xec_seq_build_expr::visit( xec_new_object* node )
 {
-    seq_eval( node );
+    // Don't recurse into the object.
+    return b->op( node->sloc, XEC_SEQ_ASTNODE, node );
 }
 
-void xec_seq_astvisitor::visit( xec_expr_null* node )
+
+xec_seq_op* xec_seq_build_expr::visit( xec_new_array* node )
 {
-    seq_eval( node );
+    // Similarly with arrays.
+    return b->op( node->sloc, XEC_SEQ_ASTNODE, node );
 }
 
-void xec_seq_astvisitor::visit( xec_expr_bool* node )
+
+xec_seq_op* xec_seq_build_expr::visit( xec_new_table* node )
 {
-    seq_eval( node );
+    // And similarly again.
+    return b->op( node->sloc, XEC_SEQ_ASTNODE, node );
 }
 
-void xec_seq_astvisitor::visit( xec_expr_number* node )
+
+xec_seq_op* xec_seq_build_expr::visit( xec_expr_mono* node )
 {
-    seq_eval( node );
+    return visit( node->expr );
 }
 
-void xec_seq_astvisitor::visit( xec_expr_string* node )
+
+xec_seq_op* xec_seq_build_expr::visit( xec_expr_call* node )
 {
-    seq_eval( node );
+    xec_seq_valist values;
+    b->unpack( &values, node, 1 );
+    return values.values.at( 0 );
 }
 
-void xec_seq_astvisitor::visit( xec_expr_local* node )
+
+xec_seq_op* xec_seq_build_expr::visit( xec_expr_yield* node )
 {
-    seq_eval( node );
+    xec_seq_valist values;
+    b->unpack( &values, node, 1 );
+    return values.values.at( 0 );
 }
 
-void xec_seq_astvisitor::visit( xec_expr_global* node )
+
+xec_seq_op* xec_seq_build_expr::visit( xec_expr_vararg* node )
 {
-    seq_eval( node );
+    return b->op( node->sloc, XEC_SEQ_VARARG, 0 );
 }
 
-void xec_seq_astvisitor::visit( xec_expr_upref* node )
+
+xec_seq_op* xec_seq_build_expr::visit( xec_expr_unpack* node )
 {
-    seq_eval( node );
+    return b->op( node->sloc, XEC_SEQ_ELEMENT, 0 );
 }
 
-void xec_seq_astvisitor::visit( xec_expr_objref* node )
+
+xec_seq_op* xec_seq_build_expr::visit( xec_expr_list* node )
 {
-    seq_eval( node );
+    xec_seq_valist values;
+    b->unpack( &values, node, 1 );
+    return values.values.at( 0 );
 }
 
-void xec_seq_astvisitor::visit( xec_expr_key* node )
+
+xec_seq_op* xec_seq_build_expr::visit( xec_expr_assign* node )
 {
-    visit( node->object );
-    seq_eval( node );
-}
-
-void xec_seq_astvisitor::visit( xec_expr_inkey* node )
-{
-    visit( node->object );
-    visit( node->key );
-    seq_eval( node );
-}
-
-void xec_seq_astvisitor::visit( xec_expr_index* node )
-{
-    visit( node->object );
-    visit( node->index );
-    seq_eval( node );
-}
-
-void xec_seq_astvisitor::visit( xec_expr_preop* node )
-{
-}
-
-void xec_seq_astvisitor::visit( xec_expr_postop* node )
-{
-}
-
-void xec_seq_astvisitor::visit( xec_expr_unary* node )
-{
-    visit( node->operand );
-    seq_eval( node );
-}
-
-void xec_seq_astvisitor::visit( xec_expr_binary* node )
-{
-    visit( node->lhs );
-    visit( node->rhs );
-    seq_eval( node );
-}
-
-void xec_seq_astvisitor::visit( xec_expr_compare* node )
-{
-}
-
-void xec_seq_astvisitor::visit( xec_expr_logical* node )
-{
-}
-
-void xec_seq_astvisitor::visit( xec_expr_qmark* node )
-{
-}
-
-void xec_seq_astvisitor::visit( xec_new_new* node )
-{
-}
-
-void xec_seq_astvisitor::visit( xec_new_object* node )
-{
-    seq_eval( node );
-}
-
-void xec_seq_astvisitor::visit( xec_new_array* node )
-{
-    seq_eval( node );
-}
-
-void xec_seq_astvisitor::visit( xec_new_table* node )
-{
-    seq_eval( node );
-}
-
-void xec_seq_astvisitor::visit( xec_expr_mono* node )
-{
-}
-
-void xec_seq_astvisitor::visit( xec_expr_call* node )
-{
-}
-
-void xec_seq_astvisitor::visit( xec_expr_yield* node )
-{
-}
-
-void xec_seq_astvisitor::visit( xec_expr_vararg* node )
-{
-}
-
-void xec_seq_astvisitor::visit( xec_expr_unpack* node )
-{
-}
-
-void xec_seq_astvisitor::visit( xec_expr_list* node )
-{
-}
-
-void xec_seq_astvisitor::visit( xec_expr_assign* node )
-{
-    // Evaluate expressions in the lvalue before evaluating the rvalue.
-    lvalue( node->lvalue );
-
-
-    // If it's a compound assignment then create a fake AST node to perform
-    // the operation.
-    xec_seq_opcode seqkind = XEC_SEQ_ASSIGN;
-    xec_ast_opkind opkind = XEC_ASTOP_ASSIGN;
-    switch ( node->assignop )
+    xec_seq_lvalue lvalue;
+    b->lvalue( &lvalue, node->lvalue );
+    
+    if ( node->assignop == XEC_ASTOP_DECLARE
+            || node->assignop == XEC_ASTOP_ASSIGN )
     {
-    case XEC_ASTOP_MULASSIGN:       opkind = XEC_ASTOP_MULTIPLY;    break;
-    case XEC_ASTOP_DIVASSIGN:       opkind = XEC_ASTOP_DIVIDE;      break;
-    case XEC_ASTOP_MODASSIGN:       opkind = XEC_ASTOP_MODULUS;     break;
-    case XEC_ASTOP_INTDIVASSIGN:    opkind = XEC_ASTOP_INTDIV;      break;
-    case XEC_ASTOP_ADDASSIGN:       opkind = XEC_ASTOP_ADD;         break;
-    case XEC_ASTOP_SUBASSIGN:       opkind = XEC_ASTOP_SUBTRACT;    break;
-    case XEC_ASTOP_LSHIFTASSIGN:    opkind = XEC_ASTOP_LSHIFT;      break;
-    case XEC_ASTOP_LRSHIFTASSIGN:   opkind = XEC_ASTOP_LRSHIFT;     break;
-    case XEC_ASTOP_ARSHIFTASSIGN:   opkind = XEC_ASTOP_ARSHIFT;     break;
-    case XEC_ASTOP_BITANDASSIGN:    opkind = XEC_ASTOP_BITAND;      break;
-    case XEC_ASTOP_BITXORASSIGN:    opkind = XEC_ASTOP_BITXOR;      break;
-    case XEC_ASTOP_BITORASSIGN:     opkind = XEC_ASTOP_BITOR;       break;
-
-    case XEC_ASTOP_DECLARE:
-        seqkind = XEC_SEQ_DECLARE;
-        break;
-    
-    case XEC_ASTOP_ASSIGN:
-        break;
-    
-    default:
-        assert( ! "invalid op" );
-        break;
+        // Normal assignment.
+        xec_seq_op* rvalue = b->expr( node->rvalue );
+        b->lvalue_assign( &lvalue, rvalue );
+        return rvalue;
     }
-    
-    xec_ast_node* rvalue = node->rvalue;
-    if ( opkind != XEC_ASTOP_ASSIGN )
+    else
     {
-        rvalue = new ( seq->alloc ) xec_expr_binary(
-                        node->sloc, opkind, node->lvalue, node->rvalue );
+        // Assignment with operation.
+        xec_seq_opcode opcode = assign_opcode( node->assignop );
+        xec_seq_op* lhs = b->lvalue_value( &lvalue );
+        xec_seq_op* rhs = b->expr( node->rvalue );
+        xec_seq_op* rvalue = b->op( node->sloc, opcode, lhs, rhs );
+        b->lvalue_assign( &lvalue, rvalue );
+        return rvalue;
     }
-    
-    // Add rvalue to sequence.
-    visit( rvalue );
-    
-
-    // Add assignment.
-    seq->ops.emplace_back( seqkind, node->lvalue, rvalue );
-
-
-    // 'Value' of assignment is the rvalue.
-    size_t index = seq->nodemap.at( rvalue );
-    seq->nodemap.emplace( node, index );
-    
 }
 
-void xec_seq_astvisitor::visit( xec_expr_assign_list* node )
-{
 
+xec_seq_op* xec_seq_build_expr::visit( xec_expr_assign_list* node )
+{
+    xec_seq_valist values;
+    b->unpack( &values, node, 1 );
+    return values.values.at( 0 );
 }
 
 
 
-
-
-void xec_seq_astvisitor::lvalue( xec_ast_node* lvalue )
+xec_seq_build_unpack::xec_seq_build_unpack( xec_seq_builder* b )
+    :   b( b )
 {
-    // Visit the expressions that are required for the lvalue.
+}
 
-    switch ( lvalue->kind )
+
+void xec_seq_build_unpack::fallback(
+                xec_ast_node* node, xec_seq_valist* valist, int rcount )
+{
+    // It's an expression that doesn't unpack.  Evaluate it.
+    xec_seq_op* val = b->expr( node );
+    
+    // Return the required number of results.
+    if ( rcount > 0 )
     {
-    case XEC_EXPR_LOCAL:
-    case XEC_EXPR_GLOBAL:
-    case XEC_EXPR_UPREF:
-        // No subexpressions.
-        break;
+        valist->values.reserve( rcount );
+
+        // Starting with the expression result.
+        valist->values.push_back( val );
+        
+        for ( int i = 1; i < rcount; ++i )
+        {
+            valist->values.push_back( b->op( node->sloc, XEC_SEQ_NULL ) );
+        }
+    }
+}
+
+
+void xec_seq_build_unpack::visit(
+                xec_expr_call* node, xec_seq_valist* valist, int rcount )
+{
+    assert( node->unpack );
+
+    // Get function and 'this'.
+    xec_seq_op* function = NULL;
+    xec_seq_op* thisval  = NULL;
     
+    switch ( node->function->kind )
+    {
     case XEC_EXPR_KEY:
     {
-        xec_expr_key* keyexpr = (xec_expr_key*)lvalue;
-        visit( keyexpr->object );
+        xec_expr_key* key = (xec_expr_key*)node->function;
+        thisval = b->expr( key->object );
+        function = b->op( key->sloc, XEC_SEQ_KEY, thisval, key->key );
         break;
     }
     
     case XEC_EXPR_INKEY:
     {
-        xec_expr_inkey* inkey = (xec_expr_inkey*)lvalue;
-        visit( inkey->object );
-        visit( inkey->key );
+        xec_expr_inkey* inkey = (xec_expr_inkey*)node->function;
+        thisval = b->expr( inkey->object );
+        xec_seq_op* key = b->expr( inkey->key );
+        function = b->op( inkey->sloc, XEC_SEQ_INKEY, thisval, key );
         break;
     }
     
     case XEC_EXPR_INDEX:
     {
-        xec_expr_index* index = (xec_expr_index*)lvalue;
-        visit( index->object );
-        visit( index->index );
+        xec_expr_index* index = (xec_expr_index*)node->function;
+        thisval = b->expr( index->object );
+        xec_seq_op* idxval = b->expr( index->index );
+        function = b->op( index->sloc, XEC_SEQ_INDEX, thisval, idxval );
         break;
-    }
-        
-    default:
-        assert( ! "invalid lvalue" );
-        break;
-    }
-}
-
-
-
-void xec_seq_astvisitor::seq_eval( xec_ast_node* node )
-{
-    auto i = seq->nodemap.find( node );
-    if ( i != seq->nodemap.end() )
-    {
-        // Node already evaluated, don't re-evaluate it.
-        xec_seq_op* op = &seq->ops.at( i->second );
-        op->rcount += 1;
-        return;
     }
     
-    size_t index = seq->ops.size();
-    seq->ops.emplace_back( XEC_SEQ_EVAL, node );
-    seq->nodemap.emplace( node, index );
+    default:
+    {
+        // Call function without implicit this.
+        function = b->expr( node->function );
+        break;
+    }
+    }
+    
+    // Unpack arguments.
+    xec_seq_valist arguments;
+    if ( node->arguments )
+    {
+        b->unpack( &arguments, node->arguments, -1 );
+    }
+    
+    // Construct call.
+    xec_seq_args* args = b->args( rcount );
+    b->reserve( args, thisval ? 2 : 1, &arguments );
+    b->push( args, function );
+    if ( thisval )
+    {
+        b->push( args, thisval );
+    }
+    b->push( args, &arguments );
+    
+    xec_seq_opcode opcode = node->yieldcall ? XEC_SEQ_YCALL : XEC_SEQ_CALL;
+    xec_seq_op* call = b->op( node->sloc, opcode, args );
+    
+    select( node->sloc, valist, rcount, call );
+}
+
+
+void xec_seq_build_unpack::visit(
+                xec_expr_yield* node, xec_seq_valist* valist, int rcount )
+{
+    assert( node->unpack );
+
+    // Unpack arguments.
+    xec_seq_valist arguments;
+    if ( node->arguments )
+    {
+        b->unpack( &arguments, node->arguments, -1 );
+    }
+    
+    // Construct yield.
+    xec_seq_args* args = b->args( rcount );
+    b->reserve( args, 0, &arguments );
+    b->push( args, &arguments );
+    
+    xec_seq_op* yield = b->op( node->sloc, XEC_SEQ_YIELD, args );
+    
+    select( node->sloc, valist, rcount, yield );
+}
+
+
+void xec_seq_build_unpack::visit(
+                xec_expr_vararg* node, xec_seq_valist* valist, int rcount )
+{
+    if ( rcount >= 0 )
+    {
+        valist->values.reserve( rcount );
+        for ( int i = 0; i < rcount; ++i )
+        {
+            xec_seq_op* varg = b->op( node->sloc, XEC_SEQ_VARARG, i );
+            valist->values.push_back( varg );
+        }
+    }
+    else
+    {
+        valist->unpacked = b->op( node->sloc, XEC_SEQ_VARALL, b->args( -1 ) );
+    }
+}
+
+
+void xec_seq_build_unpack::visit(
+                xec_expr_unpack* node, xec_seq_valist* valist, int rcount )
+{
+    xec_seq_op* array = b->expr( node->array );
+
+    if ( rcount >= 0 )
+    {
+        valist->values.reserve( rcount );
+        for ( int i = 0; i < rcount; ++i )
+        {
+            xec_seq_op* elem = b->op( node->sloc, XEC_SEQ_ELEMENT, array, i );
+            valist->values.push_back( elem );
+        }
+    }
+    else
+    {
+        valist->unpacked = b->op( node->sloc, XEC_SEQ_UNPACK, b->args( -1 ) );
+    }
+}
+
+
+void xec_seq_build_unpack::visit(
+                xec_expr_list* node, xec_seq_valist* valist, int rcount )
+{
+    if ( rcount >= 0 )
+    {
+        valist->values.reserve( rcount );
+    }
+
+    // Evaluate non-final values.
+    for ( size_t i = 0; i < node->values.size(); ++i )
+    {
+        xec_seq_op* val = b->expr( node->values.at( i ) );
+        if ( rcount < 0 || (int)i < rcount )
+        {
+            valist->values.push_back( val );
+        }
+    }
+    
+    // Work out the number of results that remain unfilled.
+    int fcount;
+    if ( rcount >= 0 )
+    {
+        fcount = rcount - (int)node->values.size();
+        fcount = fcount >= 0 ? fcount : 0;
+    }
+    else
+    {
+        fcount = -1;
+    }
+    
+    if ( node->final )
+    {
+        // Unpack the final value, requesting the number of values remaining.
+        xec_seq_valist final;
+        b->unpack( &final, node->final, fcount );
+        valist->values.insert( valist->values.end(),
+                        final.values.begin(), final.values.end() );
+        valist->unpacked = final.unpacked;
+    }
+    else
+    {
+        // Unpack null into remaining values.
+        for ( int i = 0; i < fcount; ++i )
+        {
+            valist->values.push_back( b->op( node->sloc, XEC_SEQ_NULL ) );
+        }
+    }
+}
+
+
+void xec_seq_build_unpack::visit(
+                xec_expr_assign_list* node, xec_seq_valist* valist, int rcount )
+{
+    if ( rcount >= 0 )
+    {
+        valist->values.reserve( rcount );
+    }
+
+    // Evaluate all lvalues ready for assignment.
+    std::vector< xec_seq_lvalue > lvalues;
+    for ( size_t i = 0; i < node->lvalues.size(); ++i )
+    {
+        xec_seq_lvalue lvalue;
+        b->lvalue( &lvalue, node->lvalues.at( i ) );
+        lvalues.push_back( lvalue );
+    }
+    
+    // Unpack the correct number of rvalues.
+    xec_seq_valist rvalues;
+    b->unpack( &rvalues, node->rvalues, (int)lvalues.size() );
+
+    // Perform assignments and add values to the valist.
+    for ( int i = 0; i < lvalues.size(); ++i )
+    {
+        xec_seq_lvalue& lvalue = lvalues.at( i );
+        
+        xec_seq_op* val = NULL;
+        if ( node->assignop == XEC_ASTOP_DECLARE
+                || node->assignop == XEC_ASTOP_ASSIGN )
+        {
+            // Straightforward assignment.
+            val = rvalues.values.at( i );
+        }
+        else
+        {
+            // It's assignment with an operation.
+            xec_seq_opcode opcode = assign_opcode( node->assignop );
+            xec_seq_op* lhs = b->lvalue_value( &lvalue );
+            xec_seq_op* rhs = rvalues.values.at( i );
+            val = b->op( node->sloc, opcode, lhs, rhs );
+            b->lvalue_assign( &lvalue, val );
+        }
+        
+        b->lvalue_assign( &lvalue, val );
+        if ( i < rcount )
+        {
+            valist->values.push_back( val );
+        }
+    }
+    
+    // And fill in the rest with null.
+    for ( int i = (int)lvalues.size(); i < rcount; ++i )
+    {
+        valist->values.push_back( b->op( node->sloc, XEC_SEQ_NULL ) );
+    }
 }
 
 
 
-*/
-
-
-
+void xec_seq_build_unpack::select(
+                int sloc, xec_seq_valist* valist, int rcount, xec_seq_op* op )
+{
+    if ( rcount == 0 || rcount == 1 )
+    {
+        // One result.
+        valist->values.push_back( op );
+    }
+    else if ( rcount > 1 )
+    {
+        // Select finite number of values.
+        valist->values.reserve( rcount );
+        for ( int i = 0; i < rcount; ++i )
+        {
+            xec_seq_op* sel = b->op( sloc, XEC_SEQ_SELECT, op, i );
+            valist->values.push_back( sel );
+        }
+    }
+    else
+    {
+        // Unpack all results.
+        valist->unpacked = op;
+    }
+}
 
 

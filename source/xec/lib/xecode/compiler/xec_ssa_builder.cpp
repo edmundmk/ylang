@@ -921,7 +921,7 @@ xec_ssa_opref xec_ssa_builder::lvalue_value( xec_ssa_lvalue* lvalue )
     }
 }
 
-xec_ssa_opref xec_ssa_builder::lvalue_assign(
+void xec_ssa_builder::lvalue_assign(
             xec_ssa_lvalue* lvalue, xec_ssa_opref val )
 {
     switch ( lvalue->opcode )
@@ -950,8 +950,6 @@ xec_ssa_opref xec_ssa_builder::lvalue_assign(
     default:
         assert( ! "invalid lvalue" );
     }
-
-    return val;
 }
 
 

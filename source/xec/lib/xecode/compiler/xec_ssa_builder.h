@@ -126,7 +126,7 @@ public:
     
     void            lvalue( xec_ssa_lvalue* lvalue, xec_ast_node* node );
     xec_ssa_opref   lvalue_value( xec_ssa_lvalue* lvalue );
-    xec_ssa_opref   lvalue_assign( xec_ssa_lvalue* lvalue, xec_ssa_opref val );
+    void            lvalue_assign( xec_ssa_lvalue* lvalue, xec_ssa_opref val );
     
     
 private:

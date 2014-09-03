@@ -518,14 +518,16 @@ xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_assign* node )
             || node->assignop == XEC_ASTOP_ASSIGN )
     {
         xec_ssa_opref rvalue = visit( node->rvalue );
-        return b->lvalue_assign( &lvalue, rvalue );
+        b->lvalue_assign( &lvalue, rvalue );
+        return rvalue;
     }
     
     xec_ssa_opcode opcode = assign_opcode( node->assignop );
     xec_ssa_opref lhs = b->lvalue_value( &lvalue );
     xec_ssa_opref rhs = visit( node->rvalue );
     xec_ssa_opref rvalue = b->op( node->sloc, opcode, lhs, rhs );
-    return b->lvalue_assign( &lvalue, rvalue );
+    b->lvalue_assign( &lvalue, rvalue );
+    return rvalue;
 }
 
 xec_ssa_opref xec_ssa_build_expr::visit( xec_expr_assign_list* node )
@@ -815,15 +817,16 @@ void xec_ssa_build_unpack::visit(
         if ( node->assignop == XEC_ASTOP_DECLARE
                 || node->assignop == XEC_ASTOP_ASSIGN )
         {
-            v = b->lvalue_assign( &lvalue, rvalues.values.at( i ) );
+            v = rvalues.values.at( i );
+            b->lvalue_assign( &lvalue, v );
         }
         else
         {
             xec_ssa_opcode opcode = assign_opcode( node->assignop );
             xec_ssa_opref lhs = b->lvalue_value( &lvalue );
             xec_ssa_opref rhs = rvalues.values.at( i );
-            xec_ssa_opref rvalue = b->op( node->sloc, opcode, lhs, rhs );
-            v = b->lvalue_assign( &lvalue, rvalue );
+            v = b->op( node->sloc, opcode, lhs, rhs );
+            b->lvalue_assign( &lvalue, v );
         }
         
         if ( valcount != -1 && (int)i < valcount )
