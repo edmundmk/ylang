@@ -42,45 +42,6 @@
             explicit.
        
  
-    Translating out of seq-form produces a sequence of calls, assignments,
-    and declarations, which capture the semantics of the original xec
-    expression.  To perform this translation, conduct a linear scan of the
-    sequence ops, doing a simple liveness analysis/alias analysis:
-    
-        -   Any op with a single ref is live.  Don't actually write out code
-            to evaluate it until it is used in a call or assign, or it needs
-            to be assigned to a temporary.
-        
-        -   Any op with more than one ref must be assigned to a temporary,
-            to avoid evaluating it more than once.
-            
-        -   Before assign and call ops (NOT declarations, as declarations
-            cannot clobber any values), any ops which are live (and not dead
-            at the assign/call) may need to be assigned to temporaries.  We
-            can avoid this if we can prove that the assignment does not
-            clobber any value reachable from the live op.  The simplest
-            solution is to always assign to a temporary.
- 
-        -   If the target language supports multiple-assignment, sequences
-            of assignments may be merged into a single expression (and no need
-            to generate temporaries for ops that die between the first and
-            last assignment in the sequence, as long as the semantics of
-            multiple assignment means that all assignments happen after all
-            rvalues are evaluated, which is the case in Lua).
-            
-        -   Calls can be inlined into an expression (including when used as
-            call arguments) as long as there are no assignments or temporaries
-            inbetween the call and the op where the expression is realised.
-            Therefore assignments/temporaries 'flush' pending calls, in order.
-        
-        -   Control flow may be collapsible into the target language's
-            shortcut or conditional operators (if the subexpressions are
-            simple enough) - otherwise it must be added with explicit ifs.
- 
-    You can see why compiler people like functional languages which have no
-    assignments and no side-effects!
- 
- 
     The seq form is similar to the SSA form used when compiling xec to
     bytecode, but since it expresses only a single expression and does not
     need to undergo any transformations it can be much simpler.
@@ -108,12 +69,12 @@ enum xec_seq_opcode
     XEC_SEQ_NOP,
 
     // References to AST nodes.
-    XEC_SEQ_LITERAL,
-    XEC_SEQ_ASTNODE,
-
+    XEC_SEQ_LITERAL,        // null, bool, number, string
+    XEC_SEQ_ASTNODE,        // func, new object, new array, new table
+    
     // Reference to an object under construction (may be an upval).
     XEC_SEQ_OBJREF,
-    
+
     // Literals.
     XEC_SEQ_NULL,           // null
     XEC_SEQ_ONE,            // 1.0
@@ -157,7 +118,12 @@ enum xec_seq_opcode
     XEC_SEQ_INKEY,
     XEC_SEQ_INDEX,
     
+    XEC_SEQ_TGLOBAL,
+    XEC_SEQ_TKEY,
+    XEC_SEQ_TINKEY,
+    
     // Assignments.
+    XEC_SEQ_DECLARE,
     XEC_SEQ_SETVAR,
     XEC_SEQ_SETGLOBAL,
     XEC_SEQ_SETKEY,

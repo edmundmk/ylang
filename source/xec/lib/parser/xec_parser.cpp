@@ -838,6 +838,13 @@ xec_ast_node* xec_parser::test_expr( xec_ast_node* expr )
         
     switch ( expr->kind )
     {
+    case XEC_EXPR_GLOBAL:
+    {
+        xec_expr_global* global = (xec_expr_global*)expr;
+        global->test = true;
+        break;
+    }
+    
     case XEC_EXPR_KEY:
     {
         xec_expr_key* key = (xec_expr_key*)expr;

@@ -71,6 +71,7 @@ public:
     xec_seq_op*     expr( xec_ast_node* expr );
     void            unpack( xec_seq_valist* l, xec_ast_node* node, int count );
 
+    void            declare( xec_seq_lvalue* lvalue, xec_ast_node* node );
     void            lvalue( xec_seq_lvalue* lvalue, xec_ast_node* node );
     xec_seq_op*     lvalue_value( xec_seq_lvalue* lvalue );
     void            lvalue_assign( xec_seq_lvalue* lvalue, xec_seq_op* v );

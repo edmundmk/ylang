@@ -245,7 +245,12 @@ public:
         add( XEC_SEQ_KEY,       "key       %a %k"       );
         add( XEC_SEQ_INKEY,     "inkey     %a %b"       );
         add( XEC_SEQ_INDEX,     "index     %a %b"       );
+        
+        add( XEC_SEQ_TGLOBAL,   "tglobal   %k"          );
+        add( XEC_SEQ_TKEY,      "tkey      %a %k"       );
+        add( XEC_SEQ_TINKEY,    "tinkey    %a %b"       );
 
+        add( XEC_SEQ_DECLARE,   "declare   %n %v"       );
         add( XEC_SEQ_SETVAR,    "setvar    %n %v"       );
         add( XEC_SEQ_SETGLOBAL, "setglobal %k %v"       );
         add( XEC_SEQ_SETKEY,    "setkey    %a %k %v"    );
@@ -293,6 +298,93 @@ static const xec_seq_opformats opformats;
 
 void xec_seq_print( xec_seq* seq )
 {
-
+    std::unordered_map< xec_seq_op*, size_t > index;
+    for ( size_t i = 0; i < seq->ops.size(); ++i )
+    {
+        index.emplace( seq->ops.at( i ), i );
+    }
+    
+    for ( size_t i = 0; i < seq->ops.size(); ++i )
+    {
+        xec_seq_op* op = seq->ops.at( i );
+        const char* format = opformats.lookup( op->opcode );
+        
+        printf( "%04d [%d]", (int)i, op->refcount );
+        
+        for ( const char* c = format; c[ 0 ] != '\0'; ++c )
+        {
+            if ( c[ 0 ] != '%' )
+            {
+                printf( "%c", c[ 0 ] );
+            }
+            else
+            {
+                switch ( c[ 1 ] )
+                {
+                case 't':
+                {
+                    printf( "~%p", op->astnode );
+                    break;
+                }
+                
+                case 'n':
+                {
+                    printf( "%s", op->name->name );
+                    break;
+                }
+                
+                case 'g':
+                {
+                    printf( "%d", op->args->rcount );
+                    for ( size_t i = 0; i < op->args->values.size(); ++i )
+                    {
+                        xec_seq_op* arg = op->args->values.at( i );
+                        printf( " :%04d", (int)index.at( arg ) );
+                    }
+                    if ( op->args->unpacked )
+                    {
+                        xec_seq_op* arg = op->args->unpacked;
+                        printf( " :%04d ...", (int)index.at( arg ) );
+                    }
+                    break;
+                }
+                
+                case 'a':
+                {
+                    printf( ":%04d", (int)index.at( op->a ) );
+                    break;
+                }
+                
+                case 'k':
+                {
+                    printf( "'%s'", op->k );
+                    break;
+                }
+                
+                case 'i':
+                {
+                    printf( "%d", op->i );
+                    break;
+                }
+                
+                case 'b':
+                {
+                    printf( ":%04d", (int)index.at( op->b ) );
+                    break;
+                }
+                
+                case 'v':
+                {
+                    printf( ":%04d", (int)index.at( op->v ) );
+                    break;
+                }
+                }
+            
+                c += 1;
+            }
+        }
+        
+        printf( "\n" );
+    }
 }
 

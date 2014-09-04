@@ -2,8 +2,8 @@
 
 
 
-hello[ a * b ] = p - q;
-
+var x = 4;
+var y = x++ + ++x;
 
 
 

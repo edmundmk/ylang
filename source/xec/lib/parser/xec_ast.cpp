@@ -157,6 +157,7 @@ xec_expr_global::xec_expr_global( int sloc, const char* name, bool gexplicit )
     :   xec_ast_node( XEC_EXPR_GLOBAL, sloc )
     ,   name( name )
     ,   gexplicit( gexplicit )
+    ,   test( false )
 {
 }
 

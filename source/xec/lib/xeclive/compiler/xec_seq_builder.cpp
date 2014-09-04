@@ -94,6 +94,27 @@ void xec_seq_builder::unpack( xec_seq_valist* l, xec_ast_node* node, int count )
 }
 
 
+void xec_seq_builder::declare( xec_seq_lvalue* lvalue, xec_ast_node* node )
+{
+    lvalue->sloc = node->sloc;
+
+    switch ( node->kind )
+    {
+    case XEC_EXPR_LOCAL:
+    {
+        xec_expr_local* local = (xec_expr_local*)node;
+        lvalue->opcode  = XEC_SEQ_DECLARE;
+        lvalue->name    = local->name;
+        break;
+    }
+            
+    default:
+        assert( ! "invalid declaration name" );
+        break;
+    }
+}
+
+
 void xec_seq_builder::lvalue( xec_seq_lvalue* lvalue, xec_ast_node* node )
 {
     lvalue->sloc = node->sloc;
@@ -163,6 +184,10 @@ xec_seq_op* xec_seq_builder::lvalue_value( xec_seq_lvalue* lvalue )
 {
     switch ( lvalue->opcode )
     {
+    case XEC_SEQ_DECLARE:
+        assert( ! "undeclared value" );
+        break;
+    
     case XEC_SEQ_SETVAR:
         return op( lvalue->sloc, XEC_SEQ_VAR, lvalue->name );
     
@@ -190,6 +215,10 @@ void xec_seq_builder::lvalue_assign(
 {
     switch ( lvalue->opcode )
     {
+    case XEC_SEQ_DECLARE:
+        op( lvalue->sloc, XEC_SEQ_DECLARE, lvalue->name, v );
+        break;
+    
     case XEC_SEQ_SETVAR:
         op( lvalue->sloc, XEC_SEQ_SETVAR, lvalue->name, v );
         break;

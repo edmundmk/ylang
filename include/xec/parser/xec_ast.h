@@ -405,6 +405,7 @@ struct xec_expr_global : public xec_ast_node
 
     const char*         name;
     bool                gexplicit;
+    bool                test;
 };
 
 

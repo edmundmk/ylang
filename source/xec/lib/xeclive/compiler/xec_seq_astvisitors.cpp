@@ -82,7 +82,8 @@ xec_seq_op* xec_seq_build_expr::visit( xec_expr_local* node )
 
 xec_seq_op* xec_seq_build_expr::visit( xec_expr_global* node )
 {
-    return b->op( node->sloc, XEC_SEQ_GLOBAL, node->name );
+    xec_seq_opcode opcode = node->test ? XEC_SEQ_TGLOBAL : XEC_SEQ_GLOBAL;
+    return b->op( node->sloc, opcode, node->name );
 }
 
 xec_seq_op* xec_seq_build_expr::visit( xec_expr_upref* node )
@@ -110,15 +111,17 @@ xec_seq_op* xec_seq_build_expr::visit( xec_expr_objref* node )
 
 xec_seq_op* xec_seq_build_expr::visit( xec_expr_key* node )
 {
+    xec_seq_opcode opcode = node->test ? XEC_SEQ_TKEY : XEC_SEQ_KEY;
     xec_seq_op* object = b->expr( node->object );
-    return b->op( node->sloc, XEC_SEQ_KEY, object, node->key );
+    return b->op( node->sloc, opcode, object, node->key );
 }
 
 xec_seq_op* xec_seq_build_expr::visit( xec_expr_inkey* node )
 {
+    xec_seq_opcode opcode = node->test ? XEC_SEQ_TINKEY : XEC_SEQ_INKEY;
     xec_seq_op* object = b->expr( node->object );
     xec_seq_op* key = b->expr( node->key );
-    return b->op( node->sloc, XEC_SEQ_INKEY, object, key );
+    return b->op( node->sloc, opcode, object, key );
 }
 
 xec_seq_op* xec_seq_build_expr::visit( xec_expr_index* node )
@@ -433,7 +436,14 @@ xec_seq_op* xec_seq_build_expr::visit( xec_expr_list* node )
 xec_seq_op* xec_seq_build_expr::visit( xec_expr_assign* node )
 {
     xec_seq_lvalue lvalue;
-    b->lvalue( &lvalue, node->lvalue );
+    if ( node->assignop == XEC_ASTOP_DECLARE )
+    {
+        b->declare( &lvalue, node->lvalue );
+    }
+    else
+    {
+        b->lvalue( &lvalue, node->lvalue );
+    }
     
     if ( node->assignop == XEC_ASTOP_DECLARE
             || node->assignop == XEC_ASTOP_ASSIGN )
@@ -688,7 +698,14 @@ void xec_seq_build_unpack::visit(
     for ( size_t i = 0; i < node->lvalues.size(); ++i )
     {
         xec_seq_lvalue lvalue;
-        b->lvalue( &lvalue, node->lvalues.at( i ) );
+        if ( node->assignop == XEC_ASTOP_DECLARE )
+        {
+            b->declare( &lvalue, node->lvalues.at( i ) );
+        }
+        else
+        {
+            b->lvalue( &lvalue, node->lvalues.at( i ) );
+        }
         lvalues.push_back( lvalue );
     }
     
