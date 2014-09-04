@@ -191,231 +191,108 @@ xec_seq_args::xec_seq_args( int rcount )
 
 
 
-/*
 
 
-class xec_seq_printnode : public xec_ast_visitor< xec_seq_printnode, void >
+
+class xec_seq_opformats
 {
 public:
 
+    xec_seq_opformats()
+    {
+        add( XEC_SEQ_NOP,       "nop"                   );
 
-    using xec_ast_visitor< xec_seq_printnode, void >::visit;
-    
-    void fallback( xec_ast_node* node )
-    {
-        printf( "!!" );
+        add( XEC_SEQ_LITERAL,   "literal   %t"          );
+        add( XEC_SEQ_ASTNODE,   "astnode   %t"          );
+        
+        add( XEC_SEQ_OBJREF,    "objref    %t"          );
+        
+        add( XEC_SEQ_NULL,      "null"                  );
+        add( XEC_SEQ_ONE,       "one"                   );
+        
+        add( XEC_SEQ_POS,       "unary +   %a"          );
+        add( XEC_SEQ_NEG,       "unary -   %a"          );
+        add( XEC_SEQ_NOT,       "unary !   %a"          );
+        add( XEC_SEQ_BITNOT,    "unary ~   %a"          );
+        
+        add( XEC_SEQ_MUL,       "*         %a %b"       );
+        add( XEC_SEQ_DIV,       "/         %a %b"       );
+        add( XEC_SEQ_MOD,       "%         %a %b"       );
+        add( XEC_SEQ_INTDIV,    "~         %a %b"       );
+        add( XEC_SEQ_ADD,       "+         %a %b"       );
+        add( XEC_SEQ_SUB,       "-         %a %b"       );
+        add( XEC_SEQ_LSL,       "<<        %a %b"       );
+        add( XEC_SEQ_LSR,       ">>        %a %b"       );
+        add( XEC_SEQ_ASR,       "~>>       %a %b"       );
+        add( XEC_SEQ_BITAND,    "&         %a %b"       );
+        add( XEC_SEQ_BITXOR,    "^         %a %b"       );
+        add( XEC_SEQ_BITOR,     "|         %a %b"       );
+        add( XEC_SEQ_CONCAT,    "..        %a %b"       );
+        add( XEC_SEQ_EQ,        "==        %a %b"       );
+        add( XEC_SEQ_NE,        "!=        %a %b"       );
+        add( XEC_SEQ_LT,        "<         %a %b"       );
+        add( XEC_SEQ_LE,        "<=        %a %b"       );
+        add( XEC_SEQ_GT,        ">         %a %b"       );
+        add( XEC_SEQ_GE,        ">=        %a %b"       );
+        add( XEC_SEQ_IN,        "in        %a %b"       );
+        add( XEC_SEQ_NOTIN,     "!in       %a %b"       );
+        add( XEC_SEQ_IS,        "is        %a %b"       );
+        add( XEC_SEQ_NOTIS,     "!is       %a %b"       );
+        add( XEC_SEQ_XOR,       "^^        %a %b"       );
+        
+        add( XEC_SEQ_VAR,       "var       %n"          );
+        add( XEC_SEQ_GLOBAL,    "global    %k"          );
+        add( XEC_SEQ_KEY,       "key       %a %k"       );
+        add( XEC_SEQ_INKEY,     "inkey     %a %b"       );
+        add( XEC_SEQ_INDEX,     "index     %a %b"       );
+
+        add( XEC_SEQ_SETVAR,    "setvar    %n %v"       );
+        add( XEC_SEQ_SETGLOBAL, "setglobal %k %v"       );
+        add( XEC_SEQ_SETKEY,    "setkey    %a %k %v"    );
+        add( XEC_SEQ_SETINKEY,  "setinkey  %a %b %v"    );
+        add( XEC_SEQ_SETINDEX,  "setindex  %a %b %v"    );
+        
+        add( XEC_SEQ_BEGINAND,  ">beginand  %a"         );
+        add( XEC_SEQ_BEGINOR,   ">beginor   %a"         );
+        add( XEC_SEQ_BEGINIF,   ">beginif   %a"         );
+        add( XEC_SEQ_ELSE,      "<>else      %a"        );
+        add( XEC_SEQ_END,       "<end       %a"         );
+        
+        add( XEC_SEQ_NEW,       "new       %g"          );
+        add( XEC_SEQ_CALL,      "call      %g"          );
+        add( XEC_SEQ_YCALL,     "ycall     %g"          );
+        add( XEC_SEQ_YIELD,     "yield     %g"          );
+        add( XEC_SEQ_UNPACK,    "unpack    %g"          );
+        add( XEC_SEQ_VARALL,    "varall    %g"          );
+        
+        add( XEC_SEQ_SELECT,    "select    %a %i"       );
+        add( XEC_SEQ_SELECT,    "element   %a %i"       );
+        add( XEC_SEQ_SELECT,    "vararg    %a %i"       );
     }
     
-    
-    void visit( xec_ast_func* node )
+    const char* lookup( xec_seq_opcode o ) const
     {
-        printf( "%p func %s", node, node->funcname );
+        return map.at( o );
     }
     
-    void visit( xec_expr_null* node )
+private:
+
+    void add( xec_seq_opcode o, const char* n )
     {
-        printf( "%p null", node );
-    }
-    
-    void visit( xec_expr_bool* node )
-    {
-        printf( "%p %s", node, node->value ? "true" : "false" );
-    }
-    
-    void visit( xec_expr_number* node )
-    {
-        printf( "%p %g", node, node->value );
-    }
-    
-    void visit( xec_expr_string* node )
-    {
-        printf( "%p \"%.5s\"", node, node->string );
-    }
-    
-    void visit( xec_expr_local* node )
-    {
-        printf( "%p %s", node, node->name->name );
-    }
-    
-    void visit( xec_expr_global* node )
-    {
-        printf( "%p global %s", node, node->name );
-    }
-    
-    void visit( xec_expr_upref* node )
-    {
-        printf( "%p upval %d", node, node->index );
-    }
-    
-    void visit( xec_expr_objref* node )
-    {
-        printf( "%p objref %p", node, node->object );
-    }
-    
-    void visit( xec_expr_key* node )
-    {
-        printf( "%p [%p].%s", node, node->object, node->key );
-    }
-    
-    void visit( xec_expr_inkey* node )
-    {
-        printf( "%p [%p].[ [%p] ]", node, node->object, node->key );
-    }
-    
-    void visit( xec_expr_index* node )
-    {
-        printf( "%p [%p][ [%p] ]", node, node->object, node->index );
-    }
-    
-    void visit( xec_expr_preop* node )
-    {
-        printf( "%p %s[%p]", node,
-                xec_operator_name( node->opkind ), node->lvalue );
-    }
-    
-    void visit( xec_expr_postop* node )
-    {
-        printf( "%p [%p]%s", node,
-                node->lvalue, xec_operator_name( node->opkind ) );
-    }
-    
-    void visit( xec_expr_unary* node )
-    {
-        printf( "%p %s[%p]", node,
-                xec_operator_name( node->opkind ), node->operand );
-    }
-    
-    void visit( xec_expr_binary* node )
-    {
-        printf( "%p [%p] %s [%p]", node,
-                node->lhs, xec_operator_name( node->opkind ), node->rhs );
-    }
-    
-    void visit( xec_expr_compare* node )
-    {
-        printf( "%p compare ...", node );
-    }
-    
-    void visit( xec_expr_logical* node )
-    {
-        printf( "%p [%p] %s [%p]", node,
-                node->lhs, xec_operator_name( node->opkind ), node->rhs );
-    }
-    
-    void visit( xec_expr_qmark* node )
-    {
-        printf( "%p [%p] ? [%p] : [%p]", node,
-                node->condition, node->iftrue, node->iffalse );
-    }
-    
-    void visit( xec_new_new* node )
-    {
-        printf( "%p new ...", node );
-    }
-    
-    void visit( xec_new_object* node )
-    {
-        printf( "%p object ...", node );
-    }
-    
-    void visit( xec_new_array* node )
-    {
-        printf( "%p array ...", node );
+        map.emplace( o, n );
     }
 
-    void visit( xec_new_table* node )
-    {
-        printf( "%p table ...", node );
-    }
-    
-    void visit( xec_expr_mono* node )
-    {
-        printf( "%p mono ...", node );
-    }
-
-    void visit( xec_expr_call* node )
-    {
-        printf( "%p call ...", node );
-    }
-    
-    void visit( xec_expr_yield* node )
-    {
-        printf( "%p yield ...", node );
-    }
-    
-    void visit( xec_expr_vararg* node )
-    {
-        printf( "%p vararg ...", node );
-    }
-    
-    void visit( xec_expr_unpack* node )
-    {
-        printf( "%p unpack ...", node );
-    }
-    
-    void visit( xec_expr_list* node )
-    {
-        printf( "%p list ...", node );
-    }
-    
-    void visit( xec_expr_assign* node )
-    {
-        printf( "%p assign ...", node );
-    }
-    
-    void visit( xec_expr_assign_list* node )
-    {
-        printf( "%p assign-list ...", node );
-    }
+    std::unordered_map< int, const char* > map;
 
 };
 
 
+static const xec_seq_opformats opformats;
 
 
-static void print_astnode( xec_ast_node* node )
-{
-    xec_seq_printnode p;
-    p.visit( node );
-}
-
-*/
 
 void xec_seq_print( xec_seq* seq )
 {
 
-/*
-    for ( size_t i = 0; i < seq->ops.size(); ++i )
-    {
-        xec_seq_op* op = &seq->ops.at( i );
-        
-        switch ( op->kind )
-        {
-        case XEC_SEQ_EVAL:
-        {
-            printf( "[%d] eval ", op->rcount );
-            print_astnode( op->rvalue );
-            printf( "\n" );
-            break;
-        }
-        
-        case XEC_SEQ_ASSIGN:
-        {
-            printf( "[%d] assign ", op->rcount );
-            print_astnode( op->lvalue );
-            printf( " = %p\n", op->rvalue );
-            break;
-        }
-        
-        case XEC_SEQ_DECLARE:
-        {
-            printf( "[%d] declare ", op->rcount );
-            print_astnode( op->lvalue );
-            printf( " = %p\n", op->rvalue );
-            break;
-        }
-        }
-    }
-*/
 }
 
