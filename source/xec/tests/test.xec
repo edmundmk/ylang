@@ -30,3 +30,19 @@ for (;;)
 }
 
 */
+
+
+
+
+object hello : goodbye
+{
+}
+
+end
+
+
+
+object hello : goodbye is
+    var x = blah
+
+end

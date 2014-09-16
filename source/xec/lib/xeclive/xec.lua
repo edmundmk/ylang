@@ -39,8 +39,9 @@ function meta_object.__index( object, index )
         error( "non-string value used as key", 2 )
     end
 
-    if object.super then
-        return object.super[ index ]
+    super = rawget( object, "super" )
+    if super then
+        return super[ index ]
     end
 
     error( "key '" .. index .. "' not found", 2 )
@@ -60,43 +61,51 @@ end
 local object = {}
 setmetatable( object, meta_object )
 
-function object:__xec_setup()
+function object:__setup()
 end
 
 function object:this( ... )
 end
 
-local function __xec_obj( proto )
+local function __newobj( proto )
     local object = {}
     object.super = proto;
     setmetatable( object, meta_object )
-    object:__xec_setup()
+    object:__setup()
     return object
 end
 
-local function __xec_new( proto, ... )
-    local object = __xec_obj( proto )
+local function __new( proto, ... )
+    local object = __newobj( proto )
     object:this( ... )
     return object
 end
 
-local function __xec_delete( object, key )
+local function __delete( object, key )
     rawset( object, key, nil )
+end
+
+local function __eachkey( object )
+    local function object_next( object, key )
+        local key, value = next( object, key )
+        return key, key, value
+    end
+    return object_next, object, nil
 end
 
 
 -- primitive values
 
-local boolean    = __xec_obj( object )
-local number     = __xec_obj( object )
-local __function = __xec_obj( object )
+local boolean    = __newobj( object )
+local number     = __newobj( object )
+local __function = __newobj( object )
 
 
 -- strings
 
-local string = __xec_obj( object )
+local string = __newobj( object )
 
-function string:__xec_setup()
+function string:__setup()
     error( "cannot inherit from string", 3 )
 end
 
@@ -140,12 +149,40 @@ function meta_array.__newindex( array, index, value )
 
 end
 
-local array = __xec_obj( object )
+local array = __newobj( object )
 
-function array:__xec_setup()
-    self.__xec_index = {}
-    self.__xec_index.length = 0
-    setmetatable( self.__xec_index, meta_array )
+function array:__setup()
+    self.__index = {}
+    self.__index.length = 0
+    setmetatable( self.__index, meta_array )
+end
+
+function array:__each()
+    local function array_next( array, index )
+        if index < array.length then
+            return index + 1, array[ index ]
+        else
+            return nil
+        end
+    end
+    return array_next, self.__index, 0
+end
+
+function array:length()
+    return self.__index.length
+end
+
+function array:append( ... )
+    local count = select( "#", ... )
+    local length = self.__index.length;
+    self.__index.length = length + count
+    for i = 1, count do
+        self.__index[ length - 1 + i ] = select( i, ... )
+    end
+end
+
+local function __unpack( array )
+    return unpack( array.__index, 0, array.__index.length - 1 )
 end
 
 
@@ -157,46 +194,46 @@ function meta_table.__index( table, index )
     return null
 end
 
-local table = __xec_obj( object )
+local table = __newobj( object )
 
-function table:__xec_setup()
-    self.__xec_index = {}
-    setmetatable( self.__xec_index, meta_table )
+function table:__setup()
+    self.__index = {}
+    setmetatable( self.__index, meta_table )
+end
+
+function table:__each()
+    local function table_next( table, key )
+        local key, value = next( table, key )
+        return key, key, value
+    end 
+    return table_next, self.__index, nil
 end
 
 
 -- coroutines
 
-local coroutine = __xec_obj( object )
+local coroutine = __newobj( object )
 
 
 -- operators
 
-local function __xec_intdiv( a, b )
+local function __mono( mono, ... )
+    return mono
+end
+
+local function __intdiv( a, b )
     return math.floor( a / b )
 end
 
-local function __xec_test( v )
+local function __test( v )
     return v and v ~= null and v ~= 0;
 end
 
-local function __xec_lxor( a, b )
-    return not __xec_test( a ) ~= not __xec_test( b )
+local function __lxor( a, b )
+    return not __test( a ) ~= not __test( b )
 end
 
-local function __xec_tkey( object, key )
-    while object do
-        if __xec_test( rawget( object, key ) ) then
-            return true
-        end
-
-        object = object.super
-    end
-
-    return false
-end
-
-local function __xec_in( object, key )
+local function __in( object, key )
     return rawget( object, key ) ~= nil
 end
 
@@ -208,7 +245,7 @@ local simple_proto =
     [ "function" ] = __function
 }
 
-local function __xec_is( object, proto )
+local function __is( object, proto )
 
     local simple = simple_proto[ type( object ) ]
     if simple then
@@ -231,51 +268,62 @@ end
 
 -- build xec global scope
 
-local g = __xec_obj( object )
+local g = __newobj( object )
 
 
 -- null
 
-g.null              = null
+g.null      = null
 
 
 -- builtin prototypes
 
-g.boolean           = boolean
-g.number            = number
-g.string            = string
-g.object            = object
-g[ "function" ]     = __function
-g.coroutine         = coroutine
+g.boolean   = boolean
+g.number    = number
+g.string    = string
+g.object    = object
+g.array     = array
+g.table     = table
+g[ "function" ] = __function
+g.coroutine = coroutine
+
+
+-- used for array and table literals
+
+g.__object  = object
+g.__array   = array
+g.__table   = table
 
 
 -- operations
 
-g.__xec_obj     = __xec_obj
-g.__xec_new     = __xec_new
-g.__xec_delete  = __xec_delete
+g.__pcall   = pcall
+g.__error   = error
 
-g.__xec_intdiv  = __xec_intdiv
-g.__xec_not     = bit.bnot
-g.__xec_lsl     = bit.lshift
-g.__xec_lsr     = bit.rshift
-g.__xec_asr     = bit.arshift
-g.__xec_and     = bit.band
-g.__xec_xor     = bit.bxor
-g.__xec_or      = bit.bor
+g.__newobj  = __newobj
+g.__new     = __new
+g.__delete  = __delete
+g.__eachkey = __eachkey
+g.__unpack  = __unpack
 
-g.__xec_test    = __xec_test
-g.__xec_lxor    = __xec_lxor
+g.__mono    = __mono
+g.__intdiv  = __intdiv
+g.__not     = bit.bnot
+g.__lsl     = bit.lshift
+g.__lsr     = bit.rshift
+g.__asr     = bit.arshift
+g.__and     = bit.band
+g.__xor     = bit.bxor
+g.__or      = bit.bor
 
-g.__xec_tkey    = __xec_tkey
-g.__xec_in      = __xec_in
-g.__xec_is      = __xec_is
+g.__test    = __test
+g.__lxor    = __lxor
+
+g.__in      = __in
+g.__is      = __is
 
 
-return g;
-
-
-
+return g
 
 
 

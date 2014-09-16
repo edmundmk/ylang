@@ -87,10 +87,12 @@ var bodies =
 
 function advance( bodies, dt )
 {
-    for ( var bi : bodies )
+    for ( var i = 0; i < bodies.length(); ++i )
     {
-        for ( var bj : bodies )
+        var bi = bodies[ i ];
+        for ( var j = i + 1; j < bodies.length(); ++j )
         {
+            var bj = bodies[ j ];
             var dx, dy, dz = bi.x - bj.x, bi.y - bj.y, bi.z - bj.z;
             var distance = sqrt( dx * dx + dy * dy + dz * dz );
             var mag = dt / ( distance * distance * distance );
@@ -103,8 +105,9 @@ function advance( bodies, dt )
             bj.vz += dz * bim;
         }
     }
-    for ( var bi : bodies )
+    for ( var i = 0; i < bodies.length(); ++i )
     {
+        var bi = bodies[ i ];
         bi.x += dt * bi.vx;
         bi.y += dt * bi.vy;
         bi.z += dt * bi.vz;
@@ -115,11 +118,13 @@ function advance( bodies, dt )
 function energy( bodies )
 {
     var e = 0;
-    for ( var bi : bodies )
+    for ( var i = 0; i < bodies.length(); ++i )
     {
+        var bi = bodies[ i ];
         e += 0.5 * bi.mass * ( bi.vx * bi.vx + bi.vy * bi.vy + bi.vz * bi.vz );
-        for ( var bj : bodies )
+        for ( var j = i + 1; j < bodies.length(); ++j )
         {
+            var bj = bodies[ j ];
             var dx, dy, dz = bi.x - bj.x, bi.y - bj.y, bi.z - bj.z;
             var distance = sqrt( dx * dx + dy * dy + dz * dz );
             e -= ( bi.mass * bj.mass ) / distance;
@@ -132,8 +137,9 @@ function energy( bodies )
 function offset_momentum( bodies )
 {
     var px, py, pz = 0, 0, 0;
-    for ( var bi : bodies )
+    for ( var i = 0; i < bodies.length(); ++i )
     {
+        var bi = bodies[ i ];
         px += bi.vx * bi.mass;
         py += bi.vy * bi.mass;
         pz += bi.vz * bi.mass;

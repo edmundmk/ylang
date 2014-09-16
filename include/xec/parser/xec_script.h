@@ -20,6 +20,7 @@
 
 struct xec_ast;
 class xec_module;
+class xec_srcbuf;
 
 
 
@@ -89,10 +90,10 @@ xec_module* xec_compile( xec_ast* ast );
 
 
 /*
-    Compile an AST into Javascript.
+    Compile an AST into luajit-compatiable lua.
 */
 
-void xec_compile_js( xec_ast* ast );
+xec_srcbuf* xec_compile_lj( xec_ast* ast );
 
 
 

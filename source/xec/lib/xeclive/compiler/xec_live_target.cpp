@@ -63,6 +63,17 @@ void xec_live_target::expression( xec_seq* seq )
         You can see why compiler people like functional languages which have no
         assignments and no side-effects!
     */
+    
+    std::unordered_map< xec_seq_op*, int > live;
+    std::unordered_map< xec_seq_op*, int > temporaries;
+    std::list< xec_seq_op* > calls;
+    
+    for ( size_t i = 0; i < seq->ops.size(); ++i )
+    {
+        xec_seq_op* op = seq->ops.at( i );
+        
+    }
+    
 }
 
 
@@ -74,5 +85,96 @@ void xec_live_target::opformat(
 {
     opformats.emplace( opcode, xec_live_opformat( precedence, format ) );
 }
+
+
+
+void xec_live_target::realize( xec_seq_op* op, int precedence )
+{
+
+
+
+
+
+    const xec_live_opformat& format = opformats.at( op->opcode );
+    
+    // precedence is the precedence of the containing expression.  It is
+    // positive if we are the associative operand (e.g. the left operand
+    // where the containing expression is left-associative) and negative
+    // for the other operand.  Zero is a special case for those operations
+    // which bind most tightly - any operands are assumed to already be
+    // isolated and require no parentheses.
+    //
+    // format.precedence is the precedence of this sub-expression.  Lower
+    // precedence values bind more tightly.
+    //
+    // If the precedence of this expression is looser then we have to add
+    // parentheses.  If the precedence of this expression is the same then
+    // we have to add parentheses if we are the non-associative operand.
+    
+    int looseness = abs( precedence ) - abs( format.precedence );
+    bool parentheses = precedence != 0
+            && ( looseness < 0 || ( looseness == 0 && precedence < 0 ) );
+
+    if ( parentheses )
+    {
+        printf( "( " );
+    }
+    
+    for ( const char* c = format.format; c[ 0 ] != '\0'; ++c )
+    {
+        if ( c[ 0 ] != '%' )
+        {
+            printf( "%c", c[ 0 ] );
+        }
+        else
+        {
+            switch ( c[ 1 ] )
+            {
+            case '%':
+                printf( "%%" );
+                break;
+            
+            case 'a':
+                realize( op->a, format.precedence );
+                break;
+            
+            case 'b':
+                realize( op->b, -format.precedence );
+                break;
+                
+            case 'k':
+                printf( "%s", op->k );
+                break;
+            }
+            
+            c += 1;
+        }
+    }
+    
+    if ( parentheses )
+    {
+        printf( " )" );
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

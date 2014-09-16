@@ -10,11 +10,8 @@
 #define XEC_LIVE_LUA_H
 
 
-#include "xec_live_target.h"
 
-
-
-class xec_live_lua : public xec_live_target
+class xec_live_lua
 {
 public:
 

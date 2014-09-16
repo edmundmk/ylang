@@ -157,7 +157,6 @@ xec_expr_global::xec_expr_global( int sloc, const char* name, bool gexplicit )
     :   xec_ast_node( XEC_EXPR_GLOBAL, sloc )
     ,   name( name )
     ,   gexplicit( gexplicit )
-    ,   test( false )
 {
 }
 
@@ -182,7 +181,6 @@ xec_expr_key::xec_expr_key( int sloc, xec_ast_node* object, const char* key )
     :   xec_ast_node( XEC_EXPR_KEY, sloc )
     ,   object( object )
     ,   key( key )
-    ,   test( false )
 {
 }
 
@@ -192,7 +190,6 @@ xec_expr_inkey::xec_expr_inkey(
     :   xec_ast_node( XEC_EXPR_INKEY, sloc )
     ,   object( object )
     ,   key( key )
-    ,   test( false )
 {
 }
 

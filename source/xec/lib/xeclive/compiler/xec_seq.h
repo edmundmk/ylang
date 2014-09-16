@@ -118,10 +118,6 @@ enum xec_seq_opcode
     XEC_SEQ_INKEY,
     XEC_SEQ_INDEX,
     
-    XEC_SEQ_TGLOBAL,
-    XEC_SEQ_TKEY,
-    XEC_SEQ_TINKEY,
-    
     // Assignments.
     XEC_SEQ_DECLARE,
     XEC_SEQ_SETVAR,

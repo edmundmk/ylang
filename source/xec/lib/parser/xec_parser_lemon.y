@@ -511,7 +511,6 @@ expr_unary(x)   ::= MINUS(token) expr_unary(expr) .
                 }
 expr_unary(x)   ::= XMARK(token) expr_unary(expr) .
                 {
-                    expr = p->test_expr( expr );
                     x = p->alloc< xec_expr_unary >(
                              token->sloc, XEC_ASTOP_LOGICNOT, expr );
                     p->destroy( token );
@@ -708,7 +707,6 @@ expr_and(x)     ::= expr_compare(expr) .
                 }
 expr_and(x)     ::= expr_and(lhs) LOGICAND(token) expr_compare(rhs) .
                 {
-                    lhs = p->test_expr( lhs );
                     x = p->alloc< xec_expr_logical >( lhs->sloc,
                                     XEC_ASTOP_LOGICAND, lhs, rhs );
                     p->destroy( token );
@@ -720,8 +718,6 @@ expr_xor(x)     ::= expr_and(expr) .
                 }
 expr_xor(x)     ::= expr_xor(lhs) LOGICXOR(token) expr_and(rhs) .
                 {
-                    lhs = p->test_expr( lhs );
-                    lhs = p->test_expr( rhs );
                     x = p->alloc< xec_expr_logical >( lhs->sloc,
                                     XEC_ASTOP_LOGICXOR, lhs, rhs );
                     p->destroy( token );
@@ -733,7 +729,6 @@ expr_or(x)      ::= expr_xor(expr) .
                 }
 expr_or(x)      ::= expr_or(lhs) LOGICOR(token) expr_xor(rhs) .
                 {
-                    lhs = p->test_expr( lhs );
                     x = p->alloc< xec_expr_logical >( lhs->sloc,
                                     XEC_ASTOP_LOGICOR, lhs, rhs );
                     p->destroy( token );
@@ -747,7 +742,6 @@ expr_nolbr(x)   ::= expr_or(expr) .
 expr_nolbr(x)   ::= expr_or(condition) QMARK
                                 expr_value(iftrue) COLON expr_value(iffalse) .
                 {
-                    condition = p->test_expr( condition );
                     x = p->alloc< xec_expr_qmark >(
                             condition->sloc, condition, iftrue, iffalse );
                 }
@@ -1136,7 +1130,6 @@ stmt_common(x)  ::= sexpr_assign(expr) SEMICOLON .
                 }
 stmt_common(x)  ::= stmt_if(stmt) LPN condition(expr) RPN stmt(block) .
                 {
-                    expr = p->test_expr( expr );
                     stmt->condition = expr;
                     stmt->iftrue    = block;
                     p->close_scope( stmt->scope );
@@ -1145,7 +1138,6 @@ stmt_common(x)  ::= stmt_if(stmt) LPN condition(expr) RPN stmt(block) .
 stmt_common(x)  ::= stmt_if(stmt) LPN condition(expr) RPN stmt(block)
                                 ELSE stmt(orblock) .
                 {
-                    expr = p->test_expr( expr );
                     stmt->condition = expr;
                     stmt->iftrue    = block;
                     stmt->iffalse   = orblock;
@@ -1163,7 +1155,6 @@ stmt_common(x)  ::= stmt_switch(stmt) LPN condition(expr) RPN
 stmt_common(x)  ::= stmt_while(stmt) LPN condition(expr) RPN
                                 stmt_reuse(block) .
                 {
-                    expr = p->test_expr( expr );
                     stmt->condition = expr;
                     stmt->body      = block;
                     p->close_scope( stmt->scope );
@@ -1172,7 +1163,6 @@ stmt_common(x)  ::= stmt_while(stmt) LPN condition(expr) RPN
 stmt_common(x)  ::= stmt_doblock(stmt)
                             WHILE LPN expr_assign(expr) RPN SEMICOLON .
                 {
-                    expr = p->test_expr( expr );
                     stmt->condition = expr;
                     p->close_scope( stmt->scope );
                     x = stmt;
@@ -1221,6 +1211,7 @@ stmt_common(x)  ::= CONTINUE(token) SEMICOLON .
                     xec_ast_scope* target = p->continue_target( token->sloc );
                     x = p->alloc< xec_stmt_continue >(
                                 token->sloc, p->get_scope(), target );
+                    target->continued = true;
                     p->destroy( token );
                 }
 stmt_common(x)  ::= BREAK(token) SEMICOLON .
@@ -1337,7 +1328,6 @@ stmt_for(x)     ::= scope_for(forscope) LPN
                             for_expr(expr) SEMICOLON
                                 for_expr(eupdate) RPN .
                 {
-                    expr = p->test_expr( expr );
                     x = p->alloc< xec_stmt_for >( forscope.token->sloc );
                     forscope.scope->node = x;
                     x->scope        = forscope.scope;

@@ -405,7 +405,6 @@ struct xec_expr_global : public xec_ast_node
 
     const char*         name;
     bool                gexplicit;
-    bool                test;
 };
 
 
@@ -436,7 +435,6 @@ struct xec_expr_key : public xec_ast_node
 
     xec_ast_node*       object;
     const char*         key;
-    bool                test;
 };
 
 
@@ -446,7 +444,6 @@ struct xec_expr_inkey : public xec_ast_node
 
     xec_ast_node*       object;
     xec_ast_node*       key;
-    bool                test;
 };
 
 

@@ -86,7 +86,6 @@ public:
     xec_expr_list*      expr_list( xec_ast_node* list );
     xec_ast_node*       mono( xec_ast_node* expr );
     xec_ast_node*       unpack( xec_ast_node* expr );
-    xec_ast_node*       test_expr( xec_ast_node* expr );
     xec_ast_node*       compare( int sloc, xec_ast_opkind op,
                                 xec_ast_node* lhs, xec_ast_node* rhs );
     xec_ast_node*       assign( int sloc, xec_ast_opkind op,

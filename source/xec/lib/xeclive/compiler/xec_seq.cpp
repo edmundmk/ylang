@@ -246,10 +246,6 @@ public:
         add( XEC_SEQ_INKEY,     "inkey     %a %b"       );
         add( XEC_SEQ_INDEX,     "index     %a %b"       );
         
-        add( XEC_SEQ_TGLOBAL,   "tglobal   %k"          );
-        add( XEC_SEQ_TKEY,      "tkey      %a %k"       );
-        add( XEC_SEQ_TINKEY,    "tinkey    %a %b"       );
-
         add( XEC_SEQ_DECLARE,   "declare   %n %v"       );
         add( XEC_SEQ_SETVAR,    "setvar    %n %v"       );
         add( XEC_SEQ_SETGLOBAL, "setglobal %k %v"       );

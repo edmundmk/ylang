@@ -10,6 +10,7 @@
 #define XEC_LIVE_TARGET_H
 
 
+#include <list>
 #include <unordered_map>
 #include "xec_seq.h"
 
@@ -43,7 +44,10 @@ protected:
 
 private:
 
+    void realize( xec_seq_op* op, int precedence );
+
     std::unordered_map< int, xec_live_opformat > opformats;
+    
 
 };
 

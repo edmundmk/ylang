@@ -434,23 +434,6 @@ void xec_parser::statement( xec_ast_node* stmt )
 
 
     /*
-        If we are continuing inside a do-while statement then mark the
-        scope as 'continued'.  This allows us to detect the error where
-        you continue past a declaration of a name you use in the condition.
-    */
-
-    if ( stmt->kind == XEC_STMT_CONTINUE )
-    {
-        xec_stmt_continue* contstmt = (xec_stmt_continue*)stmt;
-        if ( contstmt->target->node->kind == XEC_STMT_DO )
-        {
-            contstmt->target->continued = true;
-        }
-    }
-
-
-
-    /*
         case statements are only allowed inside a switch block.
     */
     
@@ -830,41 +813,6 @@ xec_ast_node* xec_parser::unpack( xec_ast_node* expr )
 }
 
 
-
-xec_ast_node* xec_parser::test_expr( xec_ast_node* expr )
-{
-    // Expression used in a boolean context, where it does not throw
-    // an exception on a missing key but return false instead.
-        
-    switch ( expr->kind )
-    {
-    case XEC_EXPR_GLOBAL:
-    {
-        xec_expr_global* global = (xec_expr_global*)expr;
-        global->test = true;
-        break;
-    }
-    
-    case XEC_EXPR_KEY:
-    {
-        xec_expr_key* key = (xec_expr_key*)expr;
-        key->test = true;
-        break;
-    }
-    
-    case XEC_EXPR_INKEY:
-    {
-        xec_expr_inkey* inkey = (xec_expr_inkey*)expr;
-        inkey->test = true;
-        break;
-    }
-    
-    default:
-        break;
-    }
-    
-    return expr;
-}
 
 
 

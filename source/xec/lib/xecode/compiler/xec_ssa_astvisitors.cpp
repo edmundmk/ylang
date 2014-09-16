@@ -607,15 +607,6 @@ void xec_ssa_build_unpack::visit(
         break;
     }
     
-    case XEC_EXPR_INDEX:
-    {
-        xec_expr_index* index = (xec_expr_index*)node->function;
-        thisval = b->expr( index->object );
-        xec_ssa_opref idxval = b->expr( index->index );
-        function = b->op( index->sloc, XEC_SSA_INDEX, thisval, idxval );
-        break;
-    }
-    
     default:
     {
         // Call function without implicit this.

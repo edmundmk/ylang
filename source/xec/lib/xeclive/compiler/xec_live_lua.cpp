@@ -9,6 +9,7 @@
 #include "xec_live_lua.h"
 
 
+#if 0
 
 xec_live_lua::xec_live_lua()
 {
@@ -22,7 +23,7 @@ xec_live_lua::xec_live_lua()
 
     opformat( XEC_SEQ_MUL,      MULTIPLY,   "%a * %b"                   );
     opformat( XEC_SEQ_DIV,      MULTIPLY,   "%a / %b"                   );
-    opformat( XEC_SEQ_MOD,      MULTIPLY,   "%a % %b"                   );
+    opformat( XEC_SEQ_MOD,      MULTIPLY,   "%a %% %b"                   );
     opformat( XEC_SEQ_INTDIV,   BASIC,      "__xec_intdiv( %a, %b )"    );
     opformat( XEC_SEQ_ADD,      ADD,        "%a + %b"                   );
     opformat( XEC_SEQ_SUB,      ADD,        "%a - %b"                   );
@@ -48,10 +49,6 @@ xec_live_lua::xec_live_lua()
     opformat( XEC_SEQ_KEY,      BASIC,      "%a.%k"                     );
     opformat( XEC_SEQ_INKEY,    BASIC,      "%a[ %b ]"                  );
     opformat( XEC_SEQ_INDEX,    BASIC,      "%a.__xec_index[ %b ]"      );
-    
-    opformat( XEC_SEQ_TGLOBAL,  BASIC,      "__xec_tkey( _G, \"%k\" )"  );
-    opformat( XEC_SEQ_TKEY,     BASIC,      "__xec_tkey( %a, \"%k\" )"  );
-    opformat( XEC_SEQ_TINKEY,   BASIC,      "__xec_tkey( %a, %b )"      );
 }
 
 
@@ -60,3 +57,4 @@ xec_live_lua::~xec_live_lua()
 }
 
 
+#endif
