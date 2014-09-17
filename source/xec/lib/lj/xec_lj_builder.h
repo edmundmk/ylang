@@ -53,6 +53,7 @@ public:
     xec_lj_value();
 
     bool has_prologue();
+    bool has_side_effect();
     void prologue();
     void value();
     void values();
@@ -71,6 +72,7 @@ private:
     int                 indent;
     std::unordered_set< xec_ast_node* > pronodes;
     std::unordered_map< xec_ast_node*, int > temporaries;
+    bool                callnodes;
 
 };
 

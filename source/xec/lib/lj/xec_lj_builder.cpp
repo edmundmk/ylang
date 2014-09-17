@@ -46,6 +46,9 @@ std::pair< int, bool > xec_lj_scope::temporary()
 xec_lj_value::xec_lj_value()
     :   b( NULL )
     ,   expr( NULL )
+    ,   scope( NULL )
+    ,   indent( 0 )
+    ,   callnodes( false )
 {
 }
 
@@ -53,6 +56,11 @@ xec_lj_value::xec_lj_value()
 bool xec_lj_value::has_prologue()
 {
     return ! pronodes.empty();
+}
+
+bool xec_lj_value::has_side_effect()
+{
+    return has_prologue() || callnodes;
 }
 
 
@@ -83,6 +91,8 @@ void xec_lj_value::values()
 xec_lj_lvprol::xec_lj_lvprol()
     :   b( NULL )
     ,   expr( NULL )
+    ,   scope( NULL )
+    ,   indent( 0 )
     ,   objval( -1 )
     ,   idkval( -1 )
 {

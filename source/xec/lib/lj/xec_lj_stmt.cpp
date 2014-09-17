@@ -81,12 +81,19 @@ void xec_lj_stmtvisitor::visit( xec_expr_assign* node, xec_lj_scope* scope, int 
         xec_expr_local* local = (xec_expr_local*)node->lvalue;
 
         xec_lj_value rvalue;
-        b->expr( &rvalue, node->rvalue, scope, indent );
-        rvalue.prologue();
+        if ( node->rvalue )
+        {
+            b->expr( &rvalue, node->rvalue, scope, indent );
+            rvalue.prologue();
+        }
+
         b->printf( "%*slocal ", indent, "" );
         b->local( local->name->name );
-        b->printf( " = " );
-        rvalue.value();
+        if ( node->rvalue )
+        {
+            b->printf( " = " );
+            rvalue.value();
+        }
         b->printf( "\n" );
     }
     else if ( node->assignop == XEC_ASTOP_ASSIGN )
@@ -117,12 +124,20 @@ void xec_lj_stmtvisitor::visit( xec_expr_assign* node, xec_lj_scope* scope, int 
     }
     else
     {
-        xec_lj_lvprol lvalue;
-        b->lvprol( &lvalue, node->lvalue, scope, indent );
-        lvalue.prologue();
-        
+        xec_lj_value lvsimp;
+        b->expr( &lvsimp, node->lvalue, scope, indent );
+
         xec_lj_value rvalue;
         b->expr( &rvalue, node->rvalue, scope, indent );
+
+        bool simple = true;
+        xec_lj_lvprol lvalue;
+        if ( lvsimp.has_side_effect() || rvalue.has_prologue() )
+        {
+            b->lvprol( &lvalue, node->lvalue, scope, indent );
+            lvalue.prologue();
+            simple = false;
+        }
 
         int lvval = -1;
         if ( rvalue.has_prologue() )
@@ -134,14 +149,20 @@ void xec_lj_stmtvisitor::visit( xec_expr_assign* node, xec_lj_scope* scope, int 
         }
         
         b->printf( "%*s", indent, "" );
-        lvalue.value();
+        if ( simple )
+            lvsimp.value();
+        else
+            lvalue.value();
         b->printf( " = " );
         auto op = b->op( node->assignop );
         if ( op.second == XEC_LJ_NONE )
         {
             b->printf( "%s( ", op.first );
             if ( lvval == -1 )
-                lvalue.value();
+                if ( simple )
+                    lvsimp.value();
+                else
+                    lvalue.value();
             else
                 b->printf( "__t%d", lvval );
             b->printf( ", " );
@@ -151,7 +172,10 @@ void xec_lj_stmtvisitor::visit( xec_expr_assign* node, xec_lj_scope* scope, int 
         else
         {
             if ( lvval == -1 )
-                lvalue.value();
+                if ( simple )
+                    lvsimp.value();
+                else
+                    lvalue.value();
             else
                 b->printf( "__t%d", lvval );
             b->printf( " %s ", op.first );
@@ -166,8 +190,11 @@ void xec_lj_stmtvisitor::visit( xec_expr_assign_list* node, xec_lj_scope* scope,
     if ( node->assignop == XEC_ASTOP_DECLARE )
     {
         xec_lj_value rvalues;
-        b->expr( &rvalues, node->rvalues, scope, indent );
-        rvalues.prologue();
+        if ( node->rvalues )
+        {
+            b->expr( &rvalues, node->rvalues, scope, indent );
+            rvalues.prologue();
+        }
     
         b->printf( "%*slocal ", indent, "" );
         for ( size_t i = 0; i < node->lvalues.size(); ++i )
@@ -178,8 +205,11 @@ void xec_lj_stmtvisitor::visit( xec_expr_assign_list* node, xec_lj_scope* scope,
                 b->printf( ", " );
             b->local( local->name->name );
         }
-        b->printf( " = " );
-        rvalues.values();
+        if ( node->rvalues )
+        {
+            b->printf( " = " );
+            rvalues.values();
+        }
         b->printf( "\n" );
     }
     else if ( node->assignop == XEC_ASTOP_ASSIGN )

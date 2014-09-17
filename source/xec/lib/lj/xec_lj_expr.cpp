@@ -22,6 +22,10 @@
 
 xec_lj_exprhasprologue::xec_lj_exprhasprologue(
         xec_lj_builder* b, xec_lj_value* v, xec_lj_scope* scope, int indent )
+    :   b( b )
+    ,   v( v )
+    ,   scope( scope )
+    ,   indent( indent )
 {
 }
 
@@ -110,11 +114,13 @@ bool xec_lj_exprhasprologue::visit( xec_expr_index* node )
 
 bool xec_lj_exprhasprologue::visit( xec_expr_preop* node )
 {
+    v->pronodes.insert( node );
     return true;
 }
 
 bool xec_lj_exprhasprologue::visit( xec_expr_postop* node )
 {
+    v->pronodes.insert( node );
     return true;
 }
 
@@ -165,12 +171,14 @@ bool xec_lj_exprhasprologue::visit( xec_expr_logical* node )
 
 bool xec_lj_exprhasprologue::visit( xec_expr_qmark* node )
 {
+    v->pronodes.insert( node );
     return true;
 }
 
 
 bool xec_lj_exprhasprologue::visit( xec_new_new* node )
 {
+    v->callnodes = true;
     if ( visit( node->proto ) ||
             ( node->arguments && visit( node->arguments ) ) )
     {
@@ -182,16 +190,19 @@ bool xec_lj_exprhasprologue::visit( xec_new_new* node )
 
 bool xec_lj_exprhasprologue::visit( xec_new_object* node )
 {
+    v->pronodes.insert( node );
     return true;
 }
 
 bool xec_lj_exprhasprologue::visit( xec_new_array* node )
 {
+    v->pronodes.insert( node );
     return true;
 }
 
 bool xec_lj_exprhasprologue::visit( xec_new_table* node )
 {
+    v->pronodes.insert( node );
     return true;
 }
 
@@ -208,6 +219,8 @@ bool xec_lj_exprhasprologue::visit( xec_expr_mono* node )
 
 bool xec_lj_exprhasprologue::visit( xec_expr_call* node )
 {
+    v->callnodes = true;
+
     if ( node->function->kind == XEC_EXPR_INKEY )
     {
         v->pronodes.insert( node );
@@ -235,6 +248,8 @@ bool xec_lj_exprhasprologue::visit( xec_expr_call* node )
 
 bool xec_lj_exprhasprologue::visit( xec_expr_yield* node )
 {
+    v->callnodes = true;
+
     if ( node->arguments && visit( node->arguments ) )
     {
         v->pronodes.insert( node );
@@ -280,11 +295,13 @@ bool xec_lj_exprhasprologue::visit( xec_expr_list* node )
 
 bool xec_lj_exprhasprologue::visit( xec_expr_assign* node )
 {
+    v->pronodes.insert( node );
     return true;
 }
 
 bool xec_lj_exprhasprologue::visit( xec_expr_assign_list* node )
 {
+    v->pronodes.insert( node );
     return true;
 }
 
