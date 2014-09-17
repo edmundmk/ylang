@@ -172,6 +172,10 @@ function array:length()
     return self.__index.length
 end
 
+function array:resize( length )
+    self.__index.length = length
+end
+
 function array:append( ... )
     local count = select( "#", ... )
     local length = self.__index.length;
