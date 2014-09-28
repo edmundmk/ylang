@@ -226,16 +226,15 @@ local function __using( f, ... )
     local uvalues = table.pack( ... )
 
     for i = 1, uvalues.n do
-        local ok, e = pcall( function()
-            uvalues[ i ]:acquire()
-        end
 
+        local ok, e = pcall( function() uvalues[ i ]:acquire() end )
         if not ok then
             for j = i - 1, 1, -1 do
                 uvalues[ i ]:release()
             end
             error( e )
         end
+
     end
 
     local ok, e = pcall( f )
