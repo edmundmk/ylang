@@ -221,6 +221,33 @@ local coroutine = __newobj( object )
 
 -- operators
 
+local function __using( f, ... )
+
+    local uvalues = table.pack( ... )
+
+    for i = 1, uvalues.n do
+        local ok, e = pcall( function()
+            uvalues[ i ]:acquire()
+        end
+
+        if not ok then
+            for j = i - 1, 1, -1 do
+                uvalues[ i ]:release()
+            end
+            error( e )
+        end
+    end
+
+    local ok, e = pcall( f )
+
+    for j = uvalues.n, 1, -1 do
+        uvalues[ i ]:release()
+    end
+
+    if not ok then error( e ) end
+
+end
+
 local function __mono( mono, ... )
     return mono
 end
@@ -303,6 +330,7 @@ g.__table   = table
 
 g.__pcall   = pcall
 g.__error   = error
+g.__using   = __using
 
 g.__newobj  = __newobj
 g.__new     = __new

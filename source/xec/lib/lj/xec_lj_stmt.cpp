@@ -712,10 +712,21 @@ void xec_lj_stmtvisitor::visit( xec_stmt_for* node, xec_lj_scope* scope, int ind
     b->printf( "%*send\n", indent, "" );
 }
 
+
 void xec_lj_stmtvisitor::visit( xec_stmt_using* node, xec_lj_scope* scope, int indent )
 {
+    xec_lj_value uvalues;
+    b->expr( &uvalues, node->uvalue, scope, indent );
+    uvalues.prologue();
     
-
+    b->printf( "%*s__using( function()\n", indent, "" );
+    
+    xec_lj_scope local;
+    body( node->body, &local, indent + INDENT );
+    
+    b->printf( "%*send, ", indent, "" );
+    uvalues.values();
+    b->printf( ")\n" );
 }
 
 void xec_lj_stmtvisitor::visit( xec_stmt_try* node, xec_lj_scope* scope, int indent )
@@ -794,8 +805,46 @@ void xec_lj_stmtvisitor::visit( xec_stmt_catch* node, xec_lj_scope* scope, int i
 
 void xec_lj_stmtvisitor::visit( xec_stmt_delete* node, xec_lj_scope* scope, int indent )
 {
-//  do deletions happen all at once or one by one?
-//    delete a.x, a.[ a.x ];
+    for ( size_t i = 0; i < node->delvals.size(); ++i )
+    {
+        xec_ast_node* delval = node->delvals.at( i );
+        if ( delval->kind == XEC_EXPR_KEY )
+        {
+            xec_expr_key* expr = (xec_expr_key*)node;
+            xec_lj_value object;
+            b->expr( &object, expr->object, scope, indent );
+            object.prologue();
+            b->printf( "%*s__delete( ", indent, "" );
+            object.value();
+            b->printf( ", \"%s\" )\n", expr->key );
+        }
+        else if ( delval->kind == XEC_EXPR_INKEY )
+        {
+            xec_expr_inkey* expr = (xec_expr_inkey*)node;
+            xec_lj_value object;
+            xec_lj_value key;
+            b->expr( &object, expr->object, scope, indent );
+            b->expr( &key, expr->key, scope, indent );
+            if ( key.has_prologue() )
+            {
+                int objval = b->temporary( expr->object, scope, indent );
+                key.prologue();
+                b->printf( "%*s__delete( __t%d, ", indent, "", objval );
+                key.value();
+                b->printf( " )\n" );
+            }
+            else
+            {
+                object.prologue();
+                key.prologue();
+                b->printf( "%*s__delete( ", indent, "" );
+                object.value();
+                b->printf( ", " );
+                key.value();
+                b->printf( " )\n" );
+            }
+        }
+    }
 }
 
 void xec_lj_stmtvisitor::visit( xec_stmt_case* node, xec_lj_scope* scope, int indent )

@@ -353,10 +353,18 @@ int xec_lj_builder::temporary( xec_ast_node* node, xec_lj_scope* scope, int inde
     xec_lj_value value;
     expr( &value, node, scope, indent );
     value.prologue();
-    int tmpval = temporary( scope, indent );
-    value.value();
-    printf( "\n" );
-    return tmpval;
+    auto i = value.temporaries.find( node );
+    if ( i != value.temporaries.end() )
+    {
+        return i->second;
+    }
+    else
+    {
+        int tmpval = temporary( scope, indent );
+        value.value();
+        printf( "\n" );
+        return tmpval;
+    }
 }
 
 
