@@ -16,7 +16,7 @@
 namespace std
 {
 
-template<typename object_t, typename ... arguments_t >
+template < typename object_t, typename ... arguments_t >
 unique_ptr< object_t > make_unique( arguments_t&& ... arguments )
 {
     return unique_ptr< object_t >(
