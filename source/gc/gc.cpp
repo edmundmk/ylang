@@ -12,6 +12,9 @@
 #include <unordered_set>
 #include <mutex>
 #include <thread>
+#include <intmath.h>
+#include <delegate.h>
+
 
 
 namespace gc_impl
@@ -37,34 +40,108 @@ gc_context::gc_context()
 
 
 
-
-
 /*
-    Header for GC objects.
+    The header for GC objects is laid out before the object like this:
+ 
+            size_t      length;     // only if refcount->isarray == true
+            gc_type*    type;       // only if refcount->hastype == true
+            gc_refcount refcount;
+            -------------
+            ...
 */
 
 static const int INTPTR_BITS = sizeof( intptr_t ) * 8;
 
-struct gc_header
+
+struct gc_refcount
 {
-    union
-    {
-        struct
-        {
-            gc_type*    type;
-            intptr_t    refcount : INTPTR_BITS - 1;
-            bool        marked   : 1;
-        };
-        std::max_align_t align;
-    };
+    intptr_t    refcount    : INTPTR_BITS - 3;
+    bool        marked      : 1;
+    bool        isarray     : 1;
+    bool        hastype     : 1;
 };
 
-gc_header* gc_headerof( void* p )
+
+gc_refcount* gc_refcountof( void* p )
 {
-    return (gc_header*)p - 1;
+    return (gc_refcount*)( (void**)p - 1 );
 }
 
+gc_type* gc_typeof( void* p )
+{
+    gc_refcount* objref = gc_refcountof( p );
+    if ( objref->hastype )
+    {
+        return *(gc_type**)( (void**)p - 2 );
+    }
+    else
+    {
+        return NULL;
+    }
+}
 
+size_t gc_lengthof( void* p )
+{
+    gc_refcount* objref = gc_refcountof( p );
+    if ( objref->isarray )
+    {
+        if ( objref->hastype )
+        {
+            return *(size_t*)( (void**)p - 3 );
+        }
+        else
+        {
+            return *(size_t*)( (void**)p - 2 );
+        }
+    }
+    else
+    {
+        return 1;
+    }
+}
+
+void* gc_alloc( gc_type* type, size_t length )
+{
+    assert( sizeof( size_t ) == sizeof( void* ) );
+    assert( sizeof( gc_type* ) == sizeof( void* ) );
+    assert( sizeof( gc_refcount ) == sizeof( void* ) );
+    
+    length = std::max( length, (size_t)1 );
+    
+    size_t header_size = 0;
+    header_size += length != 1 ? sizeof( size_t ) : 0;
+    header_size += type ? sizeof( gc_type* ) : 0;
+    header_size += sizeof( gc_refcount );
+    header_size = align( header_size, type ? type->align : alignof( void* ) );
+    size_t data_size = ( type ? type->size : sizeof( void* ) ) * length;
+    
+    void* p = malloc( header_size + data_size );
+    void* object = (char*)p + header_size;
+    
+    gc_refcount* objref = gc_refcountof( object );
+    objref->refcount    = 0;
+    objref->marked      = false;
+    objref->isarray     = length != 1;
+    objref->hastype     = type != nullptr;
+    
+    if ( type )
+    {
+        gc_type** ptype = (gc_type**)( objref - 1 );
+        *ptype = type;
+        
+        if ( length != 1 )
+        {
+        }
+    }
+    else if ( length != 1 )
+    {
+        
+    }
+}
+
+void gc_free( void* object )
+{
+}
 
 
 
@@ -104,23 +181,28 @@ private:
         QUIT,
     };
     
+
     void collector();
+    void update_slot( gc_colour dirty, gc_slot_impl* slot, uintptr_t oldvalue );
+    void sweep( std::vector< void* >* dead, void* object );
     
     std::thread                     thread;
-    
-    
+
+    std::mutex                      root_mutex;
+    gc_root_impl                    root_list;
+
     std::mutex                      mutex;
     std::condition_variable         condition;
 
     state                           state;
     gc_colour                       colour;
-    gc_root_impl                    root_list;
     std::list< gc_context* >        contexts;
 
     int                             countdown;
     std::vector< gc_slot_buffer* >  slot_buffers;
     std::vector< gc_mark_buffer* >  mark_buffers;
     
+    std::unordered_set< void* >     new_objects_table;
     std::unordered_set< void* >     zero_count_table;
     
     
@@ -136,18 +218,16 @@ class gc_scope_impl
 {
 public:
 
-    gc_scope_impl( gc_heap* h, gc_mark_callback mark, void* token );
+    gc_scope_impl( gc_heap* h );
     ~gc_scope_impl();
 
     gc_heap_impl* get_heap();
-    void safepoint( void* safepoint );
+    void safepoint();
 
 
 private:
 
     gc_heap_impl*       heap;
-    gc_mark_callback    mark_callback;
-    void*               mark_token;
     
 };
 
@@ -162,23 +242,27 @@ class gc_slot_buffer
 {
 public:
 
+    struct record
+    {
+        gc_slot_impl*   slot;
+        uintptr_t       value;
+    };
+
+
     gc_slot_buffer();
     ~gc_slot_buffer();
 
-    bool add( gc_slot_impl* slot );
-    std::pair< bool, void* > find( gc_slot_impl* slot );
+    bool add( gc_slot_impl* slot, uintptr_t value );
+    std::pair< bool, uintptr_t > find( gc_slot_impl* slot );
     void clear();
 
+    record* begin();
+    record* end();
+    
 
 private:
 
     static const size_t RECORD_COUNT = 128;
-
-    struct record
-    {
-        gc_slot_impl*   slot;
-        void*           value;
-    };
 
     std::atomic_size_t  count;
     record              records[ RECORD_COUNT ];
@@ -302,7 +386,7 @@ gc_heap_impl::~gc_heap_impl()
 void gc_heap_impl::link_root( gc_root_impl* proot )
 {
     assert( proot->heap == nullptr );
-    std::lock_guard< std::mutex > lock( mutex );
+    std::lock_guard< std::mutex > lock( root_mutex );
     proot->next = &root_list;
     proot->prev = root_list.next;
     proot->prev->next = proot;
@@ -313,7 +397,7 @@ void gc_heap_impl::link_root( gc_root_impl* proot )
 void gc_heap_impl::lose_root( gc_root_impl* proot )
 {
     assert( proot->heap == this );
-    std::lock_guard< std::mutex > lock( mutex );
+    std::lock_guard< std::mutex > lock( root_mutex );
     proot->prev->next = proot->next;
     proot->next->prev = proot->prev;
     proot->prev = nullptr;
@@ -380,8 +464,8 @@ void gc_heap_impl::begin_handshake( gc_context* context )
     countdown -= 1;
     if ( countdown == 0 )
     {
+        // All threads have paused at the handshake.
         state = STOPPED;
-        countdown = (int)contexts.size();
         condition.notify_all();
     }
 }
@@ -411,6 +495,7 @@ void gc_heap_impl::complete_handshake( gc_context* context )
     countdown -= 1;
     if ( countdown == 0 )
     {
+        // All threads have completed marking.
         state = RUNNING;
         condition.notify_all();
     }
@@ -420,6 +505,8 @@ void gc_heap_impl::complete_handshake( gc_context* context )
 
 void gc_heap_impl::collector()
 {
+    gc_colour dirty = BLACK;
+
     while ( true )
     {
         {
@@ -460,22 +547,28 @@ void gc_heap_impl::collector()
             // Mark all roots.
             assert( state == STOPPED );
             gc_mark_buffer* mark = new gc_mark_buffer();
-            for ( gc_root_impl* root = root_list.next;
-                            root != &root_list; root = root->next )
-            {
-                assert( root->p );
-                gc_headerof( root->p )->marked = true;
-                mark->add( root->p );
-            }
             
+            {
+                std::lock_guard< std::mutex > lock( root_mutex );
+                for ( gc_root_impl* root = root_list.next;
+                                root != &root_list; root = root->next )
+                {
+                    assert( root->p );
+                    gc_refcountof( root->p )->marked = true;
+                    mark->add( root->p );
+                }
+            }
+
             mark_buffers.push_back( mark );
 
 
             // Now all threads have begun the handshake (and nothing is
             // marking with the old colour), we can release mutator threads
             // to mark with the new colour.
-            colour = colour == PURPLE ? ORANGE : PURPLE;
             state = MARKING;
+            dirty = colour;
+            colour = dirty == PURPLE ? ORANGE : PURPLE;
+            countdown = (int)contexts.size();
             condition.notify_all();
             
         }
@@ -483,10 +576,29 @@ void gc_heap_impl::collector()
         
         // Update refcounts using the buffers given to us during the
         // handshake (and peeking into the new buffers).  After this step
-        // is complete the heap contains no slots of the old colour.
+        // is complete the heap contains no slots of the dirty colour.
         
+        // We are guaranteed that each slot only appears once in the slot
+        // buffers, as any time one thread writes to a slot and then another
+        // thread writes to that same slot should have been protected by a
+        // client lock.
+        
+        for ( auto i = slot_buffers.begin(); i != slot_buffers.end(); ++i )
+        {
+            gc_slot_buffer* slots = *i;
+            
+            // Update with slots.
+            for ( auto j = slots->begin(); j != slots->end(); ++j )
+            {
+                update_slot( dirty, j->slot, j->value );
+            }
+            
+            // Done with this slot buffer.
+            delete slots;
+        }
+        
+        slot_buffers.clear();
 
-        
         
         // Wait for all marking to complete.
         {
@@ -499,27 +611,192 @@ void gc_heap_impl::collector()
         
         
         // Sweep unmarked objects with zero refcounts.
+        std::vector< void* > dead;
+        for ( auto i = zero_count_table.begin();
+                        i != zero_count_table.end(); )
+        {
+            void* object = *i;
+            if ( gc_refcountof( object )->marked )
+            {
+                // Marked, still alive.
+                ++i;
+            }
+            else
+            {
+                // Unmarked, garbage.
+                i = zero_count_table.erase( i );
+                sweep( &dead, object );
+            }
+        }
+        
+        while ( dead.size() )
+        {
+            void* object = dead.back();
+            dead.pop_back();
+            sweep( &dead, object );
+        }
         
         
-        // Perform cycle detection.
-        
+        // Reset marks.
+        for ( auto i = mark_buffers.begin(); i != mark_buffers.end(); ++i )
+        {
+            gc_mark_buffer* marks = *i;
 
+            for ( auto j = marks->begin(); j != marks->end(); ++j )
+            {
+                void* object = *j;
+                gc_refcountof( object )->marked = false;
+            }
+            
+            delete marks;
+        }
+        
+        mark_buffers.clear();
     
     }
+
+
+    // TODO SOMEWHERE: Perform cycle detection.
+        
+        
+
 }
 
 
 
+void gc_heap_impl::update_slot(
+            gc_colour dirty, gc_slot_impl* slot, uintptr_t oldvalue )
+{
+    // Check current colour of slot.
+    uintptr_t newvalue = slot->p.load( std::memory_order_relaxed );
+    gc_colour colour = (gc_colour)( newvalue & COLOUR );
+    
+    if ( colour == dirty )
+    {
+        // Attempt to turn slot from dirty to green.
+        uintptr_t expected = newvalue;
+        uintptr_t greenvalue = ( newvalue & ~COLOUR ) | GREEN;
+        slot->p.compare_exchange_strong(
+                        expected, greenvalue, std::memory_order_relaxed );
+    }
+    else
+    {
+        // The only way the slot can be green is if we encountered it already,
+        // which should be impossible unless there was a data race caused by
+        // mutators updating the same slot without locking.
+        assert( colour != GREEN );
+    
+        // Slot is not dirty but instead the new mark colour.  Value at the
+        // snapshot will be stored in the slot buffers of one of the mutators.
+        
+        // Search through current slot buffers.  Hopefully this case is rare,
+        // and when it does trigger it will hopefully be quickly after the
+        // mutators have resumed, so mutators' slot buffers should be
+        // relatively empty.
+
+        std::lock_guard< std::mutex > lock( mutex );
+        auto found = std::make_pair( false, (uintptr_t)0 );
+        for ( auto i = contexts.begin(); i != contexts.end(); ++i )
+        {
+            gc_context* context = *i;
+            found = context->slots->find( slot );
+            if ( found.first )
+            {
+                break;
+            }
+        }
+        
+        assert( found.first );
+        newvalue = found.second;
+    }
+    
+    
+    // oldvalue and newvalue are now correct.  Perform reference count update.
+    void* oldobject = (void*)( oldvalue & ~COLOUR );
+    void* newobject = (void*)( newvalue & ~COLOUR );
+    gc_refcount* oldref = gc_refcountof( oldobject );
+    gc_refcount* newref = gc_refcountof( newobject );
+
+    assert( newref->refcount >= 0 );
+    if ( newref->refcount == 0 )
+    {
+        size_t erased = zero_count_table.erase( newobject );
+        assert( erased );
+    }
+
+    newref->refcount += 1;
+    oldref->refcount -= 1;
+
+    assert( oldref->refcount >= 0 );
+    if ( oldref->refcount == 0 )
+    {
+        zero_count_table.insert( oldobject );
+    }
+}
+                
+                
+void gc_heap_impl::sweep( std::vector< void* >* dead, void* object )
+{
+    assert( gc_refcountof( object )->refcount == 0 );
+    assert( gc_refcountof( object )->marked == false );
+    
+    // Get type.
+    gc_type* type = gc_typeof( object );
+    if ( ! type || ! type->slots )
+    {
+        // No slots.
+        gc_free( object );
+        return;
+    }
+    
+    // Decref all slots.
+    size_t length = gc_lengthof( object );
+    for ( size_t i = 0; i < length; ++i )
+    {
+        void* address = (char*)object + type->size * i;
+
+        for ( size_t j = 0; type->slots[ j ] != gc_type::END_SLOTS; ++j )
+        {
+            void* slotaddr = (char*)address + type->slots[ j ];
+            gc_slot_impl* slot = (gc_slot_impl*)slotaddr;
+            
+            // Load value of slot.
+            uintptr_t p = slot->p.load( std::memory_order_relaxed );
+            void* object = (void*)( p & ~COLOUR );
+
+            // Decref.
+            gc_refcount* objref = gc_refcountof( object );
+            objref->refcount -= 1;
+            assert( objref->refcount >= 0 );
+            if ( objref->refcount == 0 )
+            {
+                if ( objref->marked )
+                {
+                    // Still alive with zero refcount.
+                    zero_count_table.insert( object );
+                }
+                else
+                {
+                    // Dead, sweep it.
+                    dead->push_back( objref );
+                }
+            }
+        }
+    }
+    
+    
+    // Free memory.
+    gc_free( object );
+}
+                
 
 
 
 
 
-gc_scope_impl::gc_scope_impl(
-                gc_heap* h, gc_mark_callback mark, void* token )
+
+gc_scope_impl::gc_scope_impl( gc_heap* h )
     :   heap( h->get() )
-    ,   mark_callback( mark )
-    ,   mark_token( token )
 {
     assert( context == nullptr );
 
@@ -548,7 +825,7 @@ gc_heap_impl* gc_scope_impl::get_heap()
     return heap;
 }
 
-void gc_scope_impl::safepoint( void* safepoint )
+void gc_scope_impl::safepoint()
 {
     // Begin handshake.
     heap->begin_handshake( context );
@@ -559,12 +836,11 @@ void gc_scope_impl::safepoint( void* safepoint )
         gc_mark( a->p );
     }
     
-    // Invoke user marking callback.
-    if ( mark_callback )
+    for ( gc_mark_scope_impl* m = context->mark_scopes; m != NULL; m = m->prev )
     {
-        mark_callback( mark_token, safepoint );
+        m->mark();
     }
-
+    
     // Syncronize with the GC thread.
     heap->complete_handshake( context );
 }
@@ -587,7 +863,7 @@ gc_slot_buffer::~gc_slot_buffer()
 }
 
 
-bool gc_slot_buffer::add( gc_slot_impl* slot )
+bool gc_slot_buffer::add( gc_slot_impl* slot, uintptr_t value )
 {
     // There is only a single thread modifying a slot buffer, but both the
     // mutator thread and the collector thread can be reading it at the same
@@ -602,9 +878,8 @@ bool gc_slot_buffer::add( gc_slot_impl* slot )
     }
     
     // Write the slot record.
-    uintptr_t v = slot->p.load( std::memory_order_relaxed );
     records[ count ].slot   = slot;
-    records[ count ].value  = (void*)( v & ~COLOUR );
+    records[ count ].value  = value;
     
     // Update count with release order (so that the writes above complete
     // before the write to count is visible to the collector).
@@ -615,7 +890,7 @@ bool gc_slot_buffer::add( gc_slot_impl* slot )
 }
 
 
-std::pair< bool, void* > gc_slot_buffer::find( gc_slot_impl* slot )
+std::pair< bool, uintptr_t > gc_slot_buffer::find( gc_slot_impl* slot )
 {
     // We're now on the collector thread.
     
@@ -629,13 +904,11 @@ std::pair< bool, void* > gc_slot_buffer::find( gc_slot_impl* slot )
         const record& record = records[ i ];
         if ( record.slot == slot )
         {
-            // TODO: Could do some reordering of records (move found records
-            // to the end) to make subsequent finds for other slots faster.
             return std::make_pair( true, record.value );
         }
     }
     
-    return std::make_pair( false, nullptr );
+    return std::make_pair( false, 0 );
 }
 
 
@@ -740,12 +1013,6 @@ gc_mark_buffer::iterator gc_mark_buffer::end()
 
 
 
-gc_type* gc_typeof_impl( void* p )
-{
-    return gc_headerof( p )->type;
-}
-
-
 void* gc_alloc_impl( gc_type* type )
 {
     // TODO.
@@ -772,15 +1039,15 @@ void gc_delete_root( gc_root_impl* proot )
 }
 
 
-void gc_record_slot( gc_slot_impl* pslot )
+void gc_record_slot( gc_slot_impl* slot, uintptr_t value )
 {
     // Write barrier has encountered a clean slot.  Remember slot and its
     // current value in the slot buffer.
-    if ( ! context->slots->add( pslot ) )
+    if ( ! context->slots->add( slot, value ) )
     {
         // Ran out of space in the slot buffer.
         context->scope->get_heap()->refresh_slot_buffer( context );
-        context->slots->add( pslot );
+        context->slots->add( slot, value );
     }
 
     // Ensure the write to the slot buffer is visible before the slot
@@ -789,16 +1056,16 @@ void gc_record_slot( gc_slot_impl* pslot )
 }
 
 
-void gc_safepoint_impl( void* safepoint )
+void gc_safepoint_impl()
 {
-    context->scope->safepoint( safepoint );
+    context->scope->safepoint();
 }
 
 
 void gc_mark_impl( void* p )
 {
     // Mark an object reachable from locals or roots.
-    gc_headerof( p )->marked = true;
+    gc_refcountof( p )->marked = true;
     context->mark->add( p );
 }
 
@@ -827,8 +1094,8 @@ gc_impl::gc_heap_impl* gc_heap::get() const
 }
 
 
-gc_scope::gc_scope( gc_heap* heap, gc_mark_callback mark, void* token )
-    :   p( new gc_impl::gc_scope_impl( heap, mark, token ) )
+gc_scope::gc_scope( gc_heap* heap )
+    :   p( new gc_impl::gc_scope_impl( heap ) )
 {
     
 }
@@ -845,6 +1112,41 @@ gc_impl::gc_scope_impl* gc_scope::get() const
 
 
 
+
+#define GC_TYPEOF_FUNDAMENTAL( x ) \
+    template <> gc_type* gc_typeof< x >() \
+    { \
+        if ( sizeof( x ) <= sizeof( void* ) \
+                && alignof( x ) <= alignof( void* ) ) \
+        { \
+            return NULL; \
+        } \
+        else \
+        { \
+            static gc_type TYPE = { sizeof( x ), alignof( x ), NULL }; \
+            return &TYPE; \
+        } \
+    }
+
+
+GC_TYPEOF_FUNDAMENTAL( bool );
+GC_TYPEOF_FUNDAMENTAL( signed char );
+GC_TYPEOF_FUNDAMENTAL( unsigned char );
+GC_TYPEOF_FUNDAMENTAL( char );
+GC_TYPEOF_FUNDAMENTAL( wchar_t );
+GC_TYPEOF_FUNDAMENTAL( char16_t );
+GC_TYPEOF_FUNDAMENTAL( char32_t );
+GC_TYPEOF_FUNDAMENTAL( short int );
+GC_TYPEOF_FUNDAMENTAL( unsigned short int );
+GC_TYPEOF_FUNDAMENTAL( int );
+GC_TYPEOF_FUNDAMENTAL( unsigned int );
+GC_TYPEOF_FUNDAMENTAL( long int );
+GC_TYPEOF_FUNDAMENTAL( unsigned long int );
+GC_TYPEOF_FUNDAMENTAL( long long int );
+GC_TYPEOF_FUNDAMENTAL( unsigned long long int );
+GC_TYPEOF_FUNDAMENTAL( float );
+GC_TYPEOF_FUNDAMENTAL( double );
+GC_TYPEOF_FUNDAMENTAL( long double );
 
 
 

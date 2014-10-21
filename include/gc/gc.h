@@ -15,6 +15,7 @@
 #include <cstddef>
 #include <new>
 #include <atomic>
+#include <functional>
 
 
 
@@ -92,28 +93,22 @@ private:
 
 
 /*
-    A scope inside which GC objects can be manipulated.  Pass in a callback if
-    you need to do custom marking of locals (i.e. other than gc_auto).
-    
+    A scope inside which GC objects can be manipulated.
+ 
     No interaction with a GC heap is valid outside of a gc_scope.  Interacting
     with GC heaps (or objects allocated from such heaps) other than the one
     associated with the current gc_scope is not valid and is likely to cause
     major problems.
     
-    Nesting of GC scopes is not valid.
+    Nesting of GC scopes is not supported.
 */
-
-
-typedef void (*gc_mark_callback)( void* token, void* safepoint );
-void gc_mark( void* p );
 
 
 class gc_scope
 {
 public:
 
-    gc_scope( gc_heap* heap,
-                    gc_mark_callback mark = nullptr, void* token = nullptr );
+    explicit gc_scope( gc_heap* heap );
     gc_scope( const gc_scope& ) = delete;
     gc_scope& operator = ( const gc_scope& ) = delete;
     ~gc_scope();
@@ -130,11 +125,12 @@ private:
 
 
 
+
 /*
     Kick off garbage collection.
 */
 
-void gc_collect( void* safepoint = nullptr );
+void gc_collect();
 
 
 
@@ -147,11 +143,9 @@ void gc_collect( void* safepoint = nullptr );
     than one mutator, at least one of which will not reach a safepoint for
     a non-trivial period.  It's impossible to check for a safepoint when a
     thread is blocked (e.g. on a mutex or condition, or on an IO operation).
-    
-    You can achieve a similar effect by leaving the GC scope.
 */
 
-void gc_safepoint( void* safepoint = nullptr );
+void gc_safepoint();
 
 
 
@@ -163,20 +157,23 @@ void gc_safepoint( void* safepoint = nullptr );
 
 struct gc_type
 {
+    static const ptrdiff_t END_SLOTS = -1;
+
+    size_t      size;
+    size_t      align;
+    ptrdiff_t*  slots;
 };
 
 
 template< typename object_t >
 gc_type* gc_typeof();
 
-template < typename object_t >
-gc_type* gc_typeof( gc_auto< object_t > p );
 
-template< typename object_t >
-gc_auto< object_t > gc_alloc( gc_type* type );
-
-template< typename object_t, typename ... arguments_t >
+template < typename object_t, typename ... arguments_t >
 gc_auto< object_t > gc_new( arguments_t&& ... arguments );
+
+template < typename object_t >
+gc_auto< object_t > gc_new_array( size_t length );
 
 
 
@@ -184,6 +181,9 @@ gc_auto< object_t > gc_new( arguments_t&& ... arguments );
 
 /*
     A global reference.
+    
+    Roots are neither atomic nor thread-safe.  Two mutators writing to the
+    same root without locking is wrong.
 */
 
 namespace gc_impl
@@ -221,6 +221,7 @@ public:
     explicit operator bool () const;
     object_t& operator * () const;
     object_t* operator -> () const;
+    object_t& operator [] ( size_t index ) const;
     
     object_t* get() const;
 
@@ -238,6 +239,10 @@ private:
 
 /*
     A heap slot.
+    
+    Slots are neither atomic nor thread-safe - two mutators writing to the same
+    slot without locking can cause a data race which will break the assumptions
+    made by the GC and probably cause the program to crash.
 */
 
 namespace gc_impl
@@ -273,6 +278,7 @@ public:
     explicit operator bool() const;
     object_t& operator * () const;
     object_t* operator -> () const;
+    object_t& operator [] ( size_t index ) const;
     
     object_t* get() const;
 
@@ -290,10 +296,16 @@ private:
 
 /*
     A reference from the C++ stack to a GC object.
+    
+    Autos must exist only on the stack of a mutator thread inside a GC scope,
+    and must only be accessed by that particular mutator thread.
 */
 
 namespace gc_impl
 {
+
+template < typename object_t >
+gc_auto< object_t > make_gc_auto( object_t* p );
 
 struct gc_auto_impl
 {
@@ -324,11 +336,14 @@ public:
     explicit operator bool() const;
     object_t& operator * () const;
     object_t* operator -> () const;
+    object_t& operator [] ( size_t index ) const;
     
     object_t* get() const;
 
 
 private:
+
+    friend gc_auto gc_impl::make_gc_auto< object_t >( object_t* p );
 
     explicit gc_auto( object_t* p );
     gc_auto& operator = ( object_t* p );
@@ -339,6 +354,41 @@ private:
 
 
 
+
+/*
+    A scope with custom marking of locals (i.e. not gc_autos).
+*/
+
+namespace gc_impl
+{
+
+struct gc_mark_scope_impl
+{
+    std::function< void() > mark;
+    gc_mark_scope_impl*     prev;
+};
+
+}
+
+
+class gc_mark_scope
+{
+public:
+
+    explicit gc_mark_scope( std::function< void() > mark_function );
+    gc_mark_scope( const gc_mark_scope& ) = delete;
+    gc_mark_scope& operator = ( const gc_mark_scope& ) = delete;
+    gc_mark_scope();
+    
+    
+private:
+
+    gc_impl::gc_mark_scope_impl g;
+
+};
+
+
+void gc_mark( void* p );
 
 
 
@@ -352,31 +402,6 @@ private:
 
 namespace gc_impl
 {
-
-
-/*
-    Ensures that only pointers to GC objects are managed by our smart pointers.
-*/
-
-template < typename object_t >
-class gc_pointer
-{
-public:
-
-    gc_pointer( std::nullptr_t );
-    explicit gc_pointer( object_t* o );
-    template < typename derived_t > gc_pointer( gc_pointer< derived_t > p );
-    template < typename derived_t > gc_pointer( const gc_root< derived_t >& p );
-    template < typename derived_t > gc_pointer( const gc_slot< derived_t >& p );
-    template < typename derived_t > gc_pointer( const gc_auto< derived_t >& p );
-    object_t* get() const;
-    
-private:
-
-    object_t* g;
-    
-};
-
 
 
 /*
@@ -408,6 +433,7 @@ struct gc_context
     gc_colour           colour;
     gc_scope_impl*      scope;
     gc_auto_impl*       autos;
+    gc_mark_scope_impl* mark_scopes;
     gc_slot_buffer*     slots;
     gc_mark_buffer*     mark;
     std::atomic_bool    handshake;
@@ -420,13 +446,20 @@ struct gc_context
     Internal routines.
 */
 
-gc_type* gc_typeof_impl( void* p );
-void* gc_alloc_impl( gc_type* type );
+void* gc_alloc( gc_type* type, size_t length );
 void gc_new_root( gc_root_impl* proot );
 void gc_delete_root( gc_root_impl* proot );
-void gc_record_slot( gc_slot_impl* pslot );
-void gc_safepoint_impl( void* safepoint );
+void gc_record_slot( gc_slot_impl* slot, uintptr_t value );
+void gc_safepoint_impl();
 void gc_mark_impl( void* p );
+
+
+
+template < typename object_t >
+gc_auto< object_t > make_gc_auto( object_t* p )
+{
+    return gc_auto< object_t >( p );
+}
 
 
 };
@@ -435,11 +468,11 @@ void gc_mark_impl( void* p );
 
 
 
-inline void gc_safepoint( void* safepoint )
+inline void gc_safepoint()
 {
     if ( gc_impl::context->handshake.load( std::memory_order_relaxed ) )
     {
-        gc_impl::gc_safepoint_impl( safepoint );
+        gc_impl::gc_safepoint_impl();
     }
 }
 
@@ -456,26 +489,26 @@ inline void gc_mark( void* p )
 
 
 
-template < typename object_t >
-inline gc_type* gc_typeof( gc_impl::gc_pointer< object_t > p )
-{
-    return gc_typeof_impl( p.get() );
-}
-
-template < typename object_t >
-inline gc_impl::gc_pointer< object_t > gc_alloc( gc_type* type )
-{
-    object_t* o = (object_t*)gc_impl::gc_alloc_impl( type );
-    return gc_impl::gc_pointer< object_t >( o );
-}
 
 template < typename object_t, typename ... arguments_t >
-inline gc_impl::gc_pointer< object_t > gc_new( arguments_t&& ... arguments )
+inline gc_auto< object_t > gc_new( arguments_t&& ... arguments )
 {
-    void* p = gc_impl::gc_alloc_impl( gc_typeof< object_t >() );
+    void* p = gc_impl::gc_alloc( gc_typeof< object_t >(), 1 );
     object_t* o = new ( p ) object_t(
                     std::forward< arguments_t >( arguments ... ) ... );
-    return gc_impl::gc_pointer< object_t >( o );
+    return gc_impl::make_gc_auto( o );
+}
+
+template < typename object_t >
+inline gc_auto< object_t > gc_new_array( size_t length )
+{
+    void* p = gc_impl::gc_alloc( gc_typeof< object_t >(), length );
+    for ( size_t i = 0; i < length; ++i )
+    {
+        void* q = (object_t*)p + i;
+        new ( q ) object_t();
+    }
+    return gc_impl::make_gc_auto( (object_t*)p );
 }
 
 
@@ -720,28 +753,30 @@ inline object_t* gc_slot< object_t >::get() const
 
 template < typename object_t >
 inline gc_slot< object_t >::gc_slot( object_t* p )
-    :   g( (uintptr_t)p )
+    :   g( (uintptr_t)p | gc_impl::context->colour )
 {
+    // Note that slots in new objects start off as marked.
 }
 
 template < typename object_t >
 inline gc_slot< object_t >& gc_slot< object_t >::operator = ( object_t* p )
 {
     // Write barrier.
+    uintptr_t value = g.p.load( std::memory_order_relaxed );
     gc_impl::gc_colour mark_colour = gc_impl::context->colour;
-    gc_impl::gc_colour slot_colour = (gc_impl::gc_colour )(
-            g.p.load( std::memory_order_relaxed ) & gc_impl::COLOUR );
+    gc_impl::gc_colour slot_colour =
+                    (gc_impl::gc_colour)( value & gc_impl::COLOUR );
     assert( slot_colour != gc_impl::BLACK );
     
     // If the slot is clean (i.e. not the mark colour) then record the slot.
     if ( slot_colour != mark_colour )
     {
-        gc_impl::gc_record_slot( &g );
+        gc_impl::gc_record_slot( &g, value );
     }
     
     // Update slot with mark colour.
     assert( ( (uintptr_t)p & gc_impl::COLOUR ) == 0 );
-    uintptr_t value = (uintptr_t)p | mark_colour;
+    value = (uintptr_t)p | mark_colour;
     g.p.store( value, std::memory_order_relaxed );
     
     return *this;
