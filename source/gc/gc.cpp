@@ -30,10 +30,12 @@ __thread gc_context* context = nullptr;
 
 gc_context::gc_context()
     :   colour( BLACK )
-    ,   scope( nullptr )
+    ,   heap( nullptr )
     ,   autos( nullptr )
+    ,   markers( nullptr )
     ,   slots( nullptr )
     ,   mark( nullptr )
+    ,   allocs( nullptr )
     ,   handshake( false )
 {
 }
@@ -100,50 +102,6 @@ size_t gc_lengthof( void* p )
     }
 }
 
-void* gc_alloc( gc_type* type, size_t length )
-{
-    assert( sizeof( size_t ) == sizeof( void* ) );
-    assert( sizeof( gc_type* ) == sizeof( void* ) );
-    assert( sizeof( gc_refcount ) == sizeof( void* ) );
-    
-    length = std::max( length, (size_t)1 );
-    
-    size_t header_size = 0;
-    header_size += length != 1 ? sizeof( size_t ) : 0;
-    header_size += type ? sizeof( gc_type* ) : 0;
-    header_size += sizeof( gc_refcount );
-    header_size = align( header_size, type ? type->align : alignof( void* ) );
-    size_t data_size = ( type ? type->size : sizeof( void* ) ) * length;
-    
-    void* p = malloc( header_size + data_size );
-    void* object = (char*)p + header_size;
-    
-    gc_refcount* objref = gc_refcountof( object );
-    objref->refcount    = 0;
-    objref->marked      = false;
-    objref->isarray     = length != 1;
-    objref->hastype     = type != nullptr;
-    
-    if ( type )
-    {
-        gc_type** ptype = (gc_type**)( objref - 1 );
-        *ptype = type;
-        
-        if ( length != 1 )
-        {
-        }
-    }
-    else if ( length != 1 )
-    {
-        
-    }
-}
-
-void gc_free( void* object )
-{
-}
-
-
 
 
 /*
@@ -164,13 +122,20 @@ public:
     void link_context( gc_context* context );
     void lose_context( gc_context* context );
     
-    void refresh_slot_buffer( gc_context* buffer );
-    void begin_handshake( gc_context* context );
-    void complete_handshake( gc_context* context );
+    void request_collection( gc_context* context );
+    void refresh_slot_buffer( gc_context* context );
+    void handshake( gc_context* context );
     
     
     
 private:
+    
+    enum request
+    {
+        IDLE,       // Don't do anything.
+        COLLECT,    // Run a GC collection.
+        QUIT,       // Run a GC collection and quit.
+    };
     
     enum state
     {
@@ -178,7 +143,6 @@ private:
         PAUSING,    // Mutators begin handshake at next safepoint.
         STOPPED,    // Collector marks roots.
         MARKING,    // Some mutators running, some still marking locals.
-        QUIT,
     };
     
 
@@ -194,15 +158,17 @@ private:
     std::mutex                      mutex;
     std::condition_variable         condition;
 
+    request                         request;
     state                           state;
     gc_colour                       colour;
     std::list< gc_context* >        contexts;
+    std::vector< gc_slot_buffer* >  full_slot_buffers;
+    std::vector< gc_mark_buffer* >  abandoned_allocs;
 
     int                             countdown;
     std::vector< gc_slot_buffer* >  slot_buffers;
     std::vector< gc_mark_buffer* >  mark_buffers;
     
-    std::unordered_set< void* >     new_objects_table;
     std::unordered_set< void* >     zero_count_table;
     
     
@@ -222,7 +188,6 @@ public:
     ~gc_scope_impl();
 
     gc_heap_impl* get_heap();
-    void safepoint();
 
 
 private:
@@ -336,6 +301,93 @@ private:
 
 
 
+/*
+    Collect, alloc, free.
+*/
+
+
+void gc_collect()
+{
+    context->heap->request_collection( context );
+}
+
+
+
+void* gc_alloc( gc_type* type, size_t length )
+{
+    // Make sure header items have the expected sizes.
+    assert( sizeof( size_t ) == sizeof( void* ) );
+    assert( sizeof( gc_type* ) == sizeof( void* ) );
+    assert( sizeof( gc_refcount ) == sizeof( void* ) );
+    
+    
+    // Work out size of header and size of object data.
+    size_t header_size = sizeof( void* );
+    header_size += type != nullptr ? sizeof( void* ) : 0;
+    header_size += length != 1 ? sizeof( void* ) : 0;
+    header_size = align( header_size, type ? type->align : alignof( void* ) );
+
+
+    // This is a safepoint.
+    gc_safepoint();
+
+
+    // Allocate object.
+    size_t data_size = ( type ? type->size : sizeof( void* ) ) * length;
+    
+    void* p = malloc( header_size + data_size );
+    void* object = (char*)p + header_size;
+    
+    
+    // Fill in header.
+    gc_refcount* objref = gc_refcountof( object );
+    objref->refcount    = 0;
+    objref->marked      = false;
+    objref->isarray     = length != 1;
+    objref->hastype     = type != nullptr;
+    
+    if ( objref->hastype )
+    {
+        *(gc_type**)( (void**)p - 2 ) = type;
+
+        if ( objref->isarray )
+        {
+            *(size_t*)( (void**) p - 3 ) = length;
+        }
+    }
+    else if ( length != 1 )
+    {
+        *(size_t*)( (void**)p - 2 ) = length;
+    }
+
+
+    // Add object to the alloc buffer.
+    context->allocs->add( object );
+    
+    return object;
+}
+
+void gc_free( void* object )
+{
+    // Free object memory only - should be called as part of sweeping.
+    gc_refcount* objref = gc_refcountof( object );
+    gc_type* type = gc_typeof( object );
+
+    size_t header_size = sizeof( void* );
+    header_size += objref->hastype ? sizeof( void* ) : 0;
+    header_size += objref->isarray ? sizeof( void* ) : 0;
+    header_size = align( header_size, type ? type->align : alignof( void* ) );
+    
+    void* p = (char*)object - header_size;
+    free( p );
+}
+
+
+
+
+
+
+
 
 
 
@@ -346,6 +398,7 @@ private:
 
 gc_heap_impl::gc_heap_impl()
     :   state( RUNNING )
+    ,   request( IDLE )
     ,   colour( PURPLE )
 {
     // Root node list sentinel node.
@@ -360,33 +413,33 @@ gc_heap_impl::gc_heap_impl()
 
 gc_heap_impl::~gc_heap_impl()
 {
+    // Request collection and for the GC thread to quit.
     {
         std::unique_lock< std::mutex > lock( mutex );
 
         // There should be no active scopes and the root list should be empty.
         assert( contexts.empty() );
         assert( root_list.next = &root_list );
+        
+        // Make request.
+        request = QUIT;
+        condition.notify_all();
     }
-
-
-    // Perform full collection.
-    
-    // Request GC thread exit.
 
     // Wait for GC thread to complete.
     thread.join();
 
-    // And the root list should be empty.
-    
-    // And all objects should be dead.
-    
+    // All objects should be dead.
+    assert( zero_count_table.empty() );
 }
 
 
 void gc_heap_impl::link_root( gc_root_impl* proot )
 {
-    assert( proot->heap == nullptr );
     std::lock_guard< std::mutex > lock( root_mutex );
+
+    // Add to linked list of roots.
+    assert( proot->heap == nullptr );
     proot->next = &root_list;
     proot->prev = root_list.next;
     proot->prev->next = proot;
@@ -396,8 +449,10 @@ void gc_heap_impl::link_root( gc_root_impl* proot )
 
 void gc_heap_impl::lose_root( gc_root_impl* proot )
 {
-    assert( proot->heap == this );
     std::lock_guard< std::mutex > lock( root_mutex );
+
+    // Remove from linked list of roots.
+    assert( proot->heap == this );
     proot->prev->next = proot->next;
     proot->next->prev = proot->prev;
     proot->prev = nullptr;
@@ -410,13 +465,21 @@ void gc_heap_impl::link_context( gc_context* context )
 {
     std::unique_lock< std::mutex > lock( mutex );
     
-    while ( state != RUNNING )
+    assert( context->heap == nullptr );
+    assert( context->slots == nullptr );
+    assert( context->allocs == nullptr );
+    
+    // Avoid in-progress handshake.
+    while ( state != RUNNING && state != MARKING )
     {
         condition.wait( lock );
     }
 
-    context->slots  = new gc_slot_buffer();
+    // Add context.
     context->colour = colour;
+    context->heap   = this;
+    context->slots  = new gc_slot_buffer();
+    context->allocs = new gc_mark_buffer();
     contexts.push_back( context );
 }
 
@@ -424,80 +487,145 @@ void gc_heap_impl::lose_context( gc_context* context )
 {
     std::unique_lock< std::mutex > lock( mutex );
 
-    while ( state != RUNNING )
+    assert( context->heap == this );
+    assert( context->autos == nullptr );
+    assert( context->markers == nullptr );
+
+    // If we're pausing then we need to handshake to avoid deadlock.
+    if ( state == PAUSING )
+    {
+        handshake( context );
+    }
+
+    // Remove context.
+    assert( ! context->handshake.load( std::memory_order_relaxed ) );
+    contexts.remove( context );
+
+    // Submit in-progress slot buffer.
+    full_slot_buffers.push_back( context->slots );
+    context->slots = nullptr;
+    
+    // And the table of allocs.
+    abandoned_allocs.push_back( context->allocs );
+    context->allocs = nullptr;
+}
+
+
+void gc_heap_impl::request_collection( gc_context* context )
+{
+    std::unique_lock< std::mutex > lock( mutex );
+    
+    // Request collection.
+    request = COLLECT;
+    condition.notify_all();
+    
+    // Wait for next handshake.
+    while ( state != PAUSING )
     {
         condition.wait( lock );
     }
     
-    // Submit in-progress slot buffer.
-    slot_buffers.push_back( context->slots );
-    context->slots = nullptr;
+    // Perform handshake.
+    assert( context->handshake.load( std::memory_order_relaxed ) );
+    handshake( context );
 }
 
 
 void gc_heap_impl::refresh_slot_buffer( gc_context* context )
 {
     std::lock_guard< std::mutex > lock( mutex );
-    assert( state == RUNNING || state == PAUSING );
 
     // Slot buffer is full, submit the old one.
-    slot_buffers.push_back( context->slots );
+    full_slot_buffers.push_back( context->slots );
     context->slots = new gc_slot_buffer();
+    
+    // Request GC at next opportunity (slot updates are not safepoints).
+    request = COLLECT;
+    condition.notify_all();
 }
 
 
-void gc_heap_impl::begin_handshake( gc_context* context )
+void gc_heap_impl::handshake( gc_context* context )
 {
-    std::lock_guard< std::mutex > lock( mutex );
-    assert( state == PAUSING );
-
-    // Submit slot buffer to be used in the refcount update stage.
-    slot_buffers.push_back( context->slots );
-    context->slots = new gc_slot_buffer();
-    
-    // Get mark buffer for local marking.
-    context->mark = new gc_mark_buffer();
-    
-    // This thread has paused at the handshake.
-    context->handshake.store( false, std::memory_order_relaxed );
-    assert( countdown > 0 );
-    countdown -= 1;
-    if ( countdown == 0 )
+    // Handshake entry.
     {
-        // All threads have paused at the handshake.
-        state = STOPPED;
-        condition.notify_all();
+        std::lock_guard< std::mutex > lock( mutex );
+    
+        // Handshake should be in response to a request from the GC thread.
+        assert( context->handshake.load( std::memory_order_relaxed ) );
+        assert( state == PAUSING );
+
+        // Add all newly allocated objects to the zero-count-table.
+        for ( auto i = context->allocs->begin();
+                        i != context->allocs->end(); ++i )
+        {
+            void* object = *i;
+            assert( gc_refcountof( object )->refcount == 0 );
+            zero_count_table.insert( object );
+        }
+        context->allocs->clear();
+
+        // Submit slot buffer to be used in the refcount update stage.
+        slot_buffers.push_back( context->slots );
+        context->slots = new gc_slot_buffer();
+        
+        // Get mark buffer for local marking.
+        context->mark = new gc_mark_buffer();
+        
+        // This thread has paused at the handshake.
+        context->handshake.store( false, std::memory_order_relaxed );
+        assert( countdown > 0 );
+        countdown -= 1;
+        if ( countdown == 0 )
+        {
+            // All threads have paused at the handshake.
+            state = STOPPED;
+            condition.notify_all();
+        }
     }
-}
 
 
-void gc_heap_impl::complete_handshake( gc_context* context )
-{
-    std::unique_lock< std::mutex > lock( mutex );
-    assert( state == STOPPED || state == MARKING );
 
-    // Wait for the collector thread to release us.
-    while ( state == STOPPED )
+    // Mark all local stack references.
+    for ( gc_auto_impl* a = context->autos; a != NULL; a = a->prev )
     {
-        condition.wait( lock );
+        gc_mark( a->p );
     }
-    assert( state == MARKING );
     
-    // Switch to marking with the new colour for this cycle.
-    context->colour = colour;
-
-    // Submit local marks.
-    mark_buffers.push_back( context->mark );
-    context->mark = nullptr;
-    
-    // This thread has completed marking.
-    assert( countdown > 0 );
-    countdown -= 1;
-    if ( countdown == 0 )
+    // And run custom local marking routines.
+    for ( gc_mark_scope_impl* m = context->markers; m != NULL; m = m->prev )
     {
-        // All threads have completed marking.
-        state = RUNNING;
-        condition.notify_all();
+        m->mark();
+    }
+
+
+    // Handshake completion.
+    {
+        std::unique_lock< std::mutex > lock( mutex );
+
+        // Submit local marks.
+        mark_buffers.push_back( context->mark );
+        context->mark = nullptr;
+        
+        // Switch to marking with the new colour for this cycle.
+        context->colour = colour;
+
+        // Wait for the collector thread to release us.
+        while ( state != MARKING )
+        {
+            assert( state == STOPPED );
+            condition.wait( lock );
+        }
+        
+        // This thread has completed marking.
+        assert( countdown > 0 );
+        countdown -= 1;
+        if ( countdown == 0 )
+        {
+            // All threads have completed marking.
+            state = RUNNING;
+            condition.notify_all();
+        }
     }
 
 }
@@ -506,46 +634,76 @@ void gc_heap_impl::complete_handshake( gc_context* context )
 void gc_heap_impl::collector()
 {
     gc_colour dirty = BLACK;
+    enum request action = IDLE;
 
-    while ( true )
+    while ( action != QUIT )
     {
+        // Wait for collection request, and handshake with mutators.
         {
             std::unique_lock< std::mutex > lock( mutex );
 
 
-            // Wait for a request to collect.
-            while ( state == RUNNING )
+            // Wait for a request.
+            while ( request == IDLE )
             {
                 condition.wait( lock );
             }
             
-            
-            // Check for quit.
-            if ( state == QUIT )
-            {
-                return;
-            }
-        
-        
+            action = request;
+
+
             // Request a handshake with every active thread.
-            assert( state == PAUSING );
             countdown = (int)contexts.size();
+
             for ( auto i = contexts.begin(); i != contexts.end(); ++i )
             {
                 gc_context* context = *i;
                 context->handshake.store( true, std::memory_order_relaxed );
             }
+
+            if ( countdown )
+            {
+                // Waiting for one or more mutator threads to pause.
+                state = PAUSING;
+            }
+            else
+            {
+                // No mutator threads to wait for.
+                state = STOPPED;
+            }
+            
+            condition.notify_all();
             
 
             // Wait until all threads have begun the handshake.
-            while ( state == PAUSING )
+            while ( state != STOPPED )
             {
+                assert( state == PAUSING );
                 condition.wait( lock );
             }
+            
 
+            // Submit full slot buffers.
+            slot_buffers.insert( slot_buffers.end(),
+                    full_slot_buffers.begin(), full_slot_buffers.end() );
+            full_slot_buffers.clear();
+
+
+            // Add all abandoned allocs to the zero-count-table.
+            for ( auto i = abandoned_allocs.begin();
+                            i != abandoned_allocs.end(); ++i )
+            {
+                gc_mark_buffer* allocs = *i;
+                for ( auto i = allocs->begin(); i != allocs->end(); ++i )
+                {
+                    zero_count_table.insert( *i );
+                }
+                delete allocs;
+            }
+            abandoned_allocs.clear();
+            
 
             // Mark all roots.
-            assert( state == STOPPED );
             gc_mark_buffer* mark = new gc_mark_buffer();
             
             {
@@ -565,10 +723,28 @@ void gc_heap_impl::collector()
             // Now all threads have begun the handshake (and nothing is
             // marking with the old colour), we can release mutator threads
             // to mark with the new colour.
-            state = MARKING;
+
+            // Mark with new colour - but remember current dirty colour.
             dirty = colour;
             colour = dirty == PURPLE ? ORANGE : PURPLE;
+
+            // New collect requests after this point should kick off a new
+            // collection.
+            request = IDLE;
+            
+            // Release threads.
             countdown = (int)contexts.size();
+            if ( countdown )
+            {
+                // Release mutators to finish marking locals.
+                state = MARKING;
+            }
+            else
+            {
+                // No mutators to finish marking locals.
+                state = RUNNING;
+            }
+
             condition.notify_all();
             
         }
@@ -603,8 +779,9 @@ void gc_heap_impl::collector()
         // Wait for all marking to complete.
         {
             std::unique_lock< std::mutex > lock( mutex );
-            while ( state == MARKING )
+            while ( state != RUNNING )
             {
+                assert( state == MARKING );
                 condition.wait( lock );
             }
         }
@@ -654,11 +831,6 @@ void gc_heap_impl::collector()
         mark_buffers.clear();
     
     }
-
-
-    // TODO SOMEWHERE: Perform cycle detection.
-        
-        
 
 }
 
@@ -795,62 +967,12 @@ void gc_heap_impl::sweep( std::vector< void* >* dead, void* object )
 
 
 
-gc_scope_impl::gc_scope_impl( gc_heap* h )
-    :   heap( h->get() )
-{
-    assert( context == nullptr );
-
-    // Open GC scope on this thread.
-    context = new gc_context();
-    context->scope = this;
-    context->handshake.store( false, std::memory_order_relaxed );
-
-    // Register this context with heap.
-    heap->link_context( context );
-}
-
-gc_scope_impl::~gc_scope_impl()
-{
-    assert( context->scope == this );
-    assert( context->autos == nullptr );
-    
-    // Close GC scope on this thread.
-    heap->lose_context( context );
-    delete context;
-    context = nullptr;
-}
-
-gc_heap_impl* gc_scope_impl::get_heap()
-{
-    return heap;
-}
-
-void gc_scope_impl::safepoint()
-{
-    // Begin handshake.
-    heap->begin_handshake( context );
-
-    // Mark all local stack references.
-    for ( gc_auto_impl* a = context->autos; a != NULL; a = a->prev )
-    {
-        gc_mark( a->p );
-    }
-    
-    for ( gc_mark_scope_impl* m = context->mark_scopes; m != NULL; m = m->prev )
-    {
-        m->mark();
-    }
-    
-    // Syncronize with the GC thread.
-    heap->complete_handshake( context );
-}
 
 
 
-
-
-
-
+/*
+    Slot buffer.
+*/
 
 
 gc_slot_buffer::gc_slot_buffer()
@@ -918,9 +1040,24 @@ void gc_slot_buffer::clear()
 }
 
 
+gc_slot_buffer::record* gc_slot_buffer::begin()
+{
+    return records;
+}
+
+gc_slot_buffer::record* gc_slot_buffer::end()
+{
+    size_t count = this->count.load( std::memory_order_acquire );
+    return records + count;
+}
 
 
 
+
+
+/*
+    Mark buffer.
+*/
 
 
 gc_mark_buffer::gc_mark_buffer()
@@ -972,7 +1109,17 @@ gc_mark_buffer::iterator::iterator( chunk* chunk, size_t index )
     ,   index( index )
 {
 }
-        
+
+bool gc_mark_buffer::iterator::operator == ( const iterator& o ) const
+{
+    return ichunk == o.ichunk && index == o.index;
+}
+
+bool gc_mark_buffer::iterator::operator != ( const iterator& o ) const
+{
+    return !( *this == o );
+}
+    
 void* gc_mark_buffer::iterator::operator * () const
 {
     return ichunk->elements[ index ];
@@ -1008,16 +1155,9 @@ gc_mark_buffer::iterator gc_mark_buffer::end()
 
 
 
-
-
-
-
-
-void* gc_alloc_impl( gc_type* type )
-{
-    // TODO.
-    return nullptr;
-}
+/*
+    Semi-public interface.
+*/
 
 
 void gc_new_root( gc_root_impl* proot )
@@ -1029,7 +1169,7 @@ void gc_new_root( gc_root_impl* proot )
     }
     
     // Add to this thread's current heap.
-    context->scope->get_heap()->link_root( proot );
+    context->heap->link_root( proot );
 }
 
 
@@ -1046,7 +1186,7 @@ void gc_record_slot( gc_slot_impl* slot, uintptr_t value )
     if ( ! context->slots->add( slot, value ) )
     {
         // Ran out of space in the slot buffer.
-        context->scope->get_heap()->refresh_slot_buffer( context );
+        context->heap->refresh_slot_buffer( context );
         context->slots->add( slot, value );
     }
 
@@ -1058,7 +1198,7 @@ void gc_record_slot( gc_slot_impl* slot, uintptr_t value )
 
 void gc_safepoint_impl()
 {
-    context->scope->safepoint();
+    context->heap->handshake( context );
 }
 
 
@@ -1075,6 +1215,11 @@ void gc_mark_impl( void* p )
 
 
 
+
+
+/*
+    Public interface.
+*/
 
 
 
@@ -1094,23 +1239,50 @@ gc_impl::gc_heap_impl* gc_heap::get() const
 }
 
 
+
+
+
+
 gc_scope::gc_scope( gc_heap* heap )
-    :   p( new gc_impl::gc_scope_impl( heap ) )
 {
-    
+    assert( gc_impl::context == nullptr );
+    gc_impl::context = new gc_impl::gc_context();
+    heap->get()->link_context( gc_impl::context );
 }
 
 gc_scope::~gc_scope()
 {
-    delete p;
+    assert( gc_impl::context );
+    gc_impl::context->heap->lose_context( gc_impl::context );
+    delete gc_impl::context;
 }
 
-gc_impl::gc_scope_impl* gc_scope::get() const
+
+
+
+
+gc_mark_scope::gc_mark_scope( std::function< void() > mark )
 {
-    return p;
+    g.mark = mark;
+    g.prev = gc_impl::context->markers;
+    gc_impl::context->markers = &g;
+}
+
+gc_mark_scope::~gc_mark_scope()
+{
+    assert( gc_impl::context->markers == &g );
+    gc_impl::context->markers = g.prev;
 }
 
 
+
+
+
+
+
+/*
+    gc_typeof<>() for primitive types.
+*/
 
 
 #define GC_TYPEOF_FUNDAMENTAL( x ) \

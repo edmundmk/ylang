@@ -50,8 +50,6 @@ namespace gc_impl
 {
 
 class gc_heap_impl;
-class gc_scope_impl;
-
 struct gc_context;
 extern __thread gc_context* context;
 
@@ -113,14 +111,6 @@ public:
     gc_scope& operator = ( const gc_scope& ) = delete;
     ~gc_scope();
     
-    gc_impl::gc_scope_impl* get() const;
-
-    
-private:
-
-    gc_impl::gc_scope_impl* p;
-    
-
 };
 
 
@@ -375,10 +365,10 @@ class gc_mark_scope
 {
 public:
 
-    explicit gc_mark_scope( std::function< void() > mark_function );
+    explicit gc_mark_scope( std::function< void() > mark );
     gc_mark_scope( const gc_mark_scope& ) = delete;
     gc_mark_scope& operator = ( const gc_mark_scope& ) = delete;
-    gc_mark_scope();
+    ~gc_mark_scope();
     
     
 private:
@@ -431,11 +421,12 @@ struct gc_context
     gc_context();
 
     gc_colour           colour;
-    gc_scope_impl*      scope;
+    gc_heap_impl*       heap;
     gc_auto_impl*       autos;
-    gc_mark_scope_impl* mark_scopes;
+    gc_mark_scope_impl* markers;
     gc_slot_buffer*     slots;
     gc_mark_buffer*     mark;
+    gc_mark_buffer*     allocs;
     std::atomic_bool    handshake;
 };
 
@@ -753,9 +744,9 @@ inline object_t* gc_slot< object_t >::get() const
 
 template < typename object_t >
 inline gc_slot< object_t >::gc_slot( object_t* p )
-    :   g( (uintptr_t)p | gc_impl::context->colour )
+    :   g( (uintptr_t)p | gc_impl::GREEN )
 {
-    // Note that slots in new objects start off as marked.
+    // Note that slots in new objects start green.
 }
 
 template < typename object_t >
