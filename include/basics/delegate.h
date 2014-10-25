@@ -10,6 +10,153 @@
 #define DELEGATE_H
 
 
+
+/*
+    Delegate class based on fast delegates:
+    
+    http://www.codeproject.com/Articles/7150/Member-Function-Pointers-and-the-Fastest-Possible
+    http://www.codeproject.com/Articles/11015/The-Impossibly-Fast-C-Delegates
+
+
+    I think, thanks to the one definition rule, comparison of delegates is
+    valid even though the dispatch functions we are comparing may be
+    instantiated in multiple translation units:
+    
+    http://stackoverflow.com/questions/7670000/addresses-of-identical-function-template-instantiations-across-compilation-units
+    
+ 
+*/
+
+
+#include <cstddef>
+
+
+template < typename signature_t >
+class delegate;
+
+template < typename return_t, typename ... arguments_t >
+class delegate< return_t( arguments_t ... ) >
+{
+public:
+
+    delegate();
+    delegate( std::nullptr_t );
+    delegate( return_t (*function)( arguments_t ... ) );
+    template < typename target_t > delegate( target_t* target, return_t (target_t::*method)( arguments_t ... ) );
+    template < typename target_t > delegate( const target_t* target, return_t (target_t::*method)( arguments_t ... ) const );
+    delegate& operator = ( std::nullptr_t );
+    delegate& operator = ( return_t (*function)( arguments_t ... ) );
+
+    operator bool () const;
+    bool operator == ( const delegate& b ) const;
+    bool operator != ( const delegate& b ) const;
+    
+    return_t operator () ( arguments_t ... );
+
+
+private:
+    
+    class undefined;
+    
+    void* target;
+    union
+    {
+        return_t (*function)( arguments_t ... );
+        return_t (undefined::*method)( arguments_t ... );
+    };
+    
+};
+
+
+template < typename target_t, typename return_t, typename ... arguments_t >
+delegate< return_t( arguments_t ... ) > bind( target_t* target, return_t (target_t::*method)( arguments_t ... ) );
+template < typename target_t, typename return_t, typename ... arguments_t >
+delegate< return_t( arguments_t ... ) > bind( const target_t* target, return_t (target_t::*method)( arguments_t ... ) );
+
+
+namespace delegate_impl
+{
+
+template < typename object_t, typename signature_t >
+struct member_pointer;
+
+template < typename object_t, typename return_t, typename ... arguments_t >
+struct member_pointer< object_t, return_t ( arguments_t ... ) >
+{
+    typedef return_t (object_t::*type)( arguments_t ... );
+    typedef return_t (object_t::*const_type)( arguments_t ... ) const;
+};
+
+}
+
+template < typename signature_t, typename target_t >
+delegate< signature_t > bind( target_t* target, typename delegate_impl::member_pointer< target_t, signature_t >::type method );
+template < typename signature_t, typename target_t >
+delegate< signature_t > bind( const target_t* target, typename delegate_impl::member_pointer< target_t, signature_t >::const_type method );
+
+
+
+
+
+template < typename return_t, typename ... arguments_t >
+delegate< return_t( arguments_t ... ) >::delegate()
+    :   delegate( nullptr )
+{
+}
+
+template < typename return_t, typename ... arguments_t >
+delegate< return_t( arguments_t ... ) >::delegate( std::nullptr_t )
+    :   target( nullptr )
+    ,   function( nullptr )
+{
+}
+
+template < typename return_t, typename ... arguments_t >
+delegate< return_t( arguments_t ... ) >::delegate(
+                return_t (*function)( arguments_t ... ) )
+    :   target( nullptr )
+    ,   function( function )
+{
+}
+
+template < typename return_t, typename ... arguments_t >
+template < typename target_t >
+delegate< return_t( arguments_t ... ) >::delegate(
+            target_t* target, return_t (target_t::*method)( arguments_t ... ) )
+    :   target( target )
+    ,   dispatch( &method_dispatch< target_t, method > )
+{
+}
+
+template < typename return_t, typename ... arguments_t >
+template < typename target_t >
+delegate< return_t( arguments_t ... ) >::delegate(
+            const target_t* target, return_t (target_t::*method)( arguments_t ... ) const )
+    :   target( target )
+    ,   dispatch( )
+{
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#if USING_STD_BIND
+
+
 /*
     Returns a std::function which calls a method on an object.
     
@@ -173,6 +320,9 @@ std::function< signature_t > delegate( const object_t& object,
     return delegate( object, method );
 }
 
+
+
+#endif
 
 
 #endif

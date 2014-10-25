@@ -744,9 +744,9 @@ inline object_t* gc_slot< object_t >::get() const
 
 template < typename object_t >
 inline gc_slot< object_t >::gc_slot( object_t* p )
-    :   g( (uintptr_t)p | gc_impl::GREEN )
+    :   g( (uintptr_t)p | gc_impl::context->colour )
 {
-    // Note that slots in new objects start green.
+    // Note that slots in new objects start dirty - they are never .
 }
 
 template < typename object_t >

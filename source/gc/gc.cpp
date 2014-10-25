@@ -17,6 +17,109 @@
 
 
 
+/*
+    This is a refcounting snapshot collector, with a corresponding cycle
+    collector, based on the ideas in:
+
+        An On-the-Fly Reference Counting Garbage Collector for Java
+            Levanoni and Petrank, 2001
+            
+        An Efficient On-the-Fly Cycle Collection
+            Paz, Bacon, Kolodner, Petrank, and Rajan, 2003
+            
+    Unlike the on-the-fly collectors described, my collector does stop the
+    world briefly during the handshake - we operate not on a sliding view
+    of the heap but on a heap snapshot from the time of the handshake.  This
+    makes implementation much simpler.  We can avoid the need to clear dirty
+    flags on slots by switching between two different dirty 'colours'.
+    
+    A cycle collector also operates on this snapshot.
+    
+    
+    Instead of marking whole objects dirty, individual slots are marked.  This
+    is because we want this to be implementable in C++ without too much hassle.
+    Trying to find the object containing a particular slot is possible (we
+    could template slots with an offset) but tedious and difficult to set up.
+ 
+    Slots have four colours, stored in the bottom four bits of the pointer:
+    
+        GREEN slots are clean and unmodified since the mark phase cleared them.
+        PURPLE or ORANGE slots are either clean (they were dirty in the
+            previous cycle) or dirty (slots are being marked this colour
+            in this cycle).  Each cycle, PURPLE and ORANGE switch roles.
+        BLACK slots are for immutable slots which should not participate
+            in garbage collection.  This is useful for xoi data images.
+ 
+    
+    The slot write barrier checks for clean slots and stores the clean value
+    in a thread-local slot buffer before updating the slot with the new (dirty)
+    value.
+    
+ 
+    A garbage collection cycle proceeds like this:
+    
+        RUNNING
+            mutators mutate, dirtying slots.
+            all heap slots are either GREEN or new dirty.
+        PAUSING
+            a collection has been requested.
+            mutators enter the handshake at their next safepoint.
+            mutators which have entered the handshake:
+                submit their slot buffers to the collector.
+                begin marking locals.
+            other mutators continue mutating, marking slots dirty.
+        STOPPED
+            all mutators have entered the handshake.
+            from this point it is impossible for a slot to
+                become the (now old) dirty colour.
+            global roots are marked.
+        MARKING
+            mutators are free to resume mutating, but with new dirty colour.
+            some mutators may still be marking locals.
+            updated slots are those in the submitted buffers.
+            the slot value at the snapshot is searched for:
+                in the heap, if the slot is still the old dirty colour.  in
+                    this case, the slot is atomically made GREEN instead.
+                in the current slot buffers, if a mutator has
+                    already dirtied it this cycle.
+            refcounts are updated.
+        RUNNING
+            entering this stage all heap slots are either GREEN or marked with
+                the new dirty colour.  all old dirty slots were made GREEN.
+            all mutators have finished marking locals.
+            collector begins sweeping objects given new refcounts and marks.
+            collector then waits until next GC cycle is requested.
+ 
+ 
+    Most reference updates will be in new objects, and new objects must be
+    treated as candidates for cycle detection.  To reduce traffic on the slot
+    buffers, newly allocated objects are born with their slots already marked
+    dirty.  Increments for these slots are generated on the first collection
+    after the object is allocated.
+    
+    
+    The cycle collector has as its candidates for cycle roots:
+        all objects marked as local or global roots in the last snapshot.
+            (may no longer be roots in this snapshot - effectively a decref).
+        all objects allocated since the previous collection.
+            (can form dead cycles without decref).
+        any objects decrefed but not dead during the current collection.
+            (including those decrefed due to the sweeping of other objects).
+        
+    But can exclude from its set:
+        objects we can prove to be acyclic using the type system.
+            (most trivially, objects with no slots at all).
+        objects marked as roots in the current snapshot.
+            (effectively have an extra reference outside of any cycle).
+        objects with slots dirtied after the snapshot.
+            (it must be live if a mutator can reach it).
+ 
+ 
+*/
+
+
+
+
 namespace gc_impl
 {
 
@@ -57,10 +160,11 @@ static const int INTPTR_BITS = sizeof( intptr_t ) * 8;
 
 struct gc_refcount
 {
-    intptr_t    refcount    : INTPTR_BITS - 3;
+    intptr_t    refcount    : INTPTR_BITS - 4;
     bool        marked      : 1;
     bool        isarray     : 1;
     bool        hastype     : 1;
+    bool        acyclic     : 1;
 };
 
 
@@ -361,7 +465,8 @@ void* gc_alloc( gc_type* type, size_t length )
     }
 
 
-    // Add object to the alloc buffer.
+    // Add object to the alloc buffer.  The caller must ensure that slots
+    // are initialized before the next safepoint.
     context->allocs->add( object );
     
     return object;
