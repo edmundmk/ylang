@@ -36,9 +36,9 @@ private:
         element_t   elements[];
     };
 
-    template < typename value_t >
+    template < typename result_t >
     class basic_iterator
-        :   public std::iterator< std::forward_iterator_tag, value_t >
+        :   public std::iterator< std::forward_iterator_tag, result_t >
     {
     public:
     
@@ -49,8 +49,8 @@ private:
         basic_iterator& operator ++ ();
         basic_iterator operator ++ ( int );
         
-        value_t& operator * () const;
-        value_t* operator -> () const;
+        result_t& operator * () const;
+        result_t* operator -> () const;
     
     private:
     
@@ -71,8 +71,7 @@ public:
     typedef const element_t& const_reference;
     typedef basic_iterator< element_t > iterator;
     typedef basic_iterator< const element_t > const_iterator;
-    typedef typename std::iterator_traits< iterator >::difference_type
-                    difference_type;
+    typedef ptrdiff_t difference_type;
     typedef size_t size_type;
     
     seglist();
@@ -103,7 +102,6 @@ public:
     void            push_back( const element_t& element );
     template < typename ... arguments_t > void emplace_back( arguments_t ... arguments );
     void            pop_back();
-    
     void            clear();
 
     void            swap( seglist& s );
@@ -130,8 +128,8 @@ void swap( seglist< element_t >& a, seglist< element_t >& b );
 
 
 template < typename element_t >
-template < typename value_t >
-seglist< element_t >::basic_iterator< value_t >::basic_iterator(
+template < typename result_t >
+seglist< element_t >::basic_iterator< result_t >::basic_iterator(
                 segment* current, size_t index )
     :   current( current )
     ,   index( index )
@@ -139,8 +137,8 @@ seglist< element_t >::basic_iterator< value_t >::basic_iterator(
 }
 
 template < typename element_t >
-template < typename value_t >
-seglist< element_t >::basic_iterator< value_t >::basic_iterator(
+template < typename result_t >
+seglist< element_t >::basic_iterator< result_t >::basic_iterator(
                 const basic_iterator< const element_t >& iterator )
     :   current( iterator.current )
     ,   index( iterator.index )
@@ -148,17 +146,17 @@ seglist< element_t >::basic_iterator< value_t >::basic_iterator(
 }
 
 template < typename element_t >
-template < typename value_t >
-bool seglist< element_t >::basic_iterator< value_t >::operator != (
+template < typename result_t >
+bool seglist< element_t >::basic_iterator< result_t >::operator != (
                 const basic_iterator& b ) const
 {
     return current != b.current || index != b.index;
 }
 
 template < typename element_t >
-template < typename value_t >
-seglist< element_t >::basic_iterator< value_t >&
-        seglist< element_t >::basic_iterator< value_t >::operator ++ ()
+template < typename result_t >
+seglist< element_t >::basic_iterator< result_t >&
+        seglist< element_t >::basic_iterator< result_t >::operator ++ ()
 {
     index += 1;
     if ( index >= ELEMENT_COUNT )
@@ -169,9 +167,9 @@ seglist< element_t >::basic_iterator< value_t >&
 }
 
 template < typename element_t >
-template < typename value_t >
-seglist< element_t >::basic_iterator< value_t >
-        seglist< element_t >::basic_iterator< value_t >::operator ++ ( int )
+template < typename result_t >
+seglist< element_t >::basic_iterator< result_t >
+        seglist< element_t >::basic_iterator< result_t >::operator ++ ( int )
 {
     basic_iterator result( *this );
     operator ++ ();
@@ -179,15 +177,15 @@ seglist< element_t >::basic_iterator< value_t >
 }
 
 template < typename element_t >
-template < typename value_t >
-value_t& seglist< element_t >::basic_iterator< value_t >::operator * () const
+template < typename result_t >
+result_t& seglist< element_t >::basic_iterator< result_t >::operator * () const
 {
     return current->elements[ index ];
 }
 
 template < typename element_t >
-template < typename value_t >
-value_t* seglist< element_t >::basic_iterator< value_t >::operator -> () const
+template < typename result_t >
+result_t* seglist< element_t >::basic_iterator< result_t >::operator -> () const
 {
     return current->elements + index;
 }
