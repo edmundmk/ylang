@@ -89,15 +89,17 @@ enum xec_opcode
     XEC_JMP,        // pc = address of next instruction + j
     XEC_IFTRUE,     // if (bool)r pc = address of next instruction + j
     XEC_IFFALSE,    // if not (bool)r pc = address of next instruction + j
+    
+        // TODO RETHINK THIS A LOT.  ITERATORS SHOULD NOT BE GC OBJECTS.
+    XEC_ITER,       // push iterator over indexes of a
+    XEC_ITERKEY,    // push iterator over keys of a
+    XEC_NEXT1,      // r = generate from top iterator, set/clear @iter
+    XEC_NEXT2,      // r, a = generate from top iterator, set/clear @iter
+    XEC_NEXT,       // r .. r + b = generate (iterator)a, set/clear @iter
     XEC_IFITER,     // if @iter pc = address of next instruction + j
     XEC_IFDONE,     // if not @iter pc = address of next instruction + j
-
-    XEC_ITER,       // r = iterator over indexes of a
-    XEC_ITERKEY,    // r = iterator over keys of a
-    XEC_NEXT1,      // r = generate (iterator)a, set/clear @iter
-    XEC_NEXT2,      // r, a = generator (iterator)b, set/clear @iter
-    XEC_NEXT,       // r .. r + b = generate (iterator)a, set/clear @iter
-
+    XEC_DONE,       // pop top iterator
+    
     XEC_TABLE,      // r = new table (reserve c indexes)
     XEC_OBJECT,     // r = new object with proto a.
 
