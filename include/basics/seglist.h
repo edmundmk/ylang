@@ -217,6 +217,7 @@ template < typename element_t >
 seglist< element_t >& seglist< element_t >::operator = ( seglist&& s )
 {
     swap( s );
+    return *this;
 }
 
 template < typename element_t >
@@ -227,6 +228,7 @@ seglist< element_t >& seglist< element_t >::operator = ( const seglist& s )
     {
         push_back( *i );
     }
+    return *this;
 }
 
 template < typename element_t >
