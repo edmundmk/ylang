@@ -129,6 +129,7 @@ private:
 
     void            rehash( size_t new_capacity );
     bucket*         main_position( const key_t& key );
+    bucket*         free_position( bucket* near );
 
     size_t          capacity;
     size_t          occupancy;
@@ -549,6 +550,24 @@ typename hashtable< key_t, value_t >::bucket*
     return buckets + index;
 }
 
+
+template < typename key_t, typename value_t >
+typename hashtable< key_t, value_t >::bucket*
+                hashtable< key_t, value_t >::free_position( bucket* near )
+{
+    for ( bucket* free = near + 1; free < buckets + capacity; free += 1 )
+    {
+        if ( free->next == bucket::EMPTY )
+            return free;
+    }
+    for ( bucket* free = near - 1; near >= buckets; free -= 1 )
+    {
+        if ( free->next == bucket::EMPTY )
+            return free;
+    }
+    assert( ! "no free bucket" );
+    return nullptr;
+}
 
 
 
