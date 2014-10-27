@@ -11,7 +11,6 @@
 
 
 #include <hashtable.h>
-#include "osymbol.h"
 
 
 class oexpand;
@@ -33,9 +32,9 @@ public:
 
     static oexpand* alloc();
     
-    ovalue  getkey( osymref key ) const;
-    void    setkey( osymref key, ovalue value );
-    void    delkey( osymref key );
+    ovalue  getkey( osymbol key ) const;
+    void    setkey( osymbol key, ovalue value );
+    void    delkey( osymbol key );
 
 
 protected:
@@ -53,6 +52,12 @@ protected:
     An expandclass describes the layout of an expand's dynamic properties.
 */
 
+// clean up expandclasses if:
+//  they have no instances
+//  they have no child expandclasses left alive.
+
+
+
 class oexpandclass
 {
 private:
@@ -61,9 +66,11 @@ private:
 
     ometaclass*     metaclass;
     oexpand*        prototype;
-    size_t          count;
-    hashtable< osymref, size_t > lookup;
-    hashtable< osymref, oexpandclass* > expand;
+    uint32_t        instance_count;
+    uint32_t        property_count;
+    hashtable< osymbol, size_t > lookup;
+    oexpandclass*   parent;
+    hashtable< osymbol, oexpandclass* > children;
     
 };
 
@@ -89,7 +96,7 @@ class ometaclass
 /*
 */
 
-inline ovalue oexpand::getkey( osymref key ) const
+inline ovalue oexpand::getkey( osymbol key ) const
 {
     auto lookup = expandclass->lookup.lookup( key );
     if ( lookup )
@@ -111,7 +118,7 @@ inline ovalue oexpand::getkey( osymref key ) const
     throw oerror( "key not found" );
 }
 
-inline void oexpand::setkey( osymref key, ovalue value )
+inline void oexpand::setkey( osymbol key, ovalue value )
 {
     auto lookup = expandclass->lookup.lookup( key );
     if ( lookup )
@@ -125,7 +132,7 @@ inline void oexpand::setkey( osymref key, ovalue value )
     }
 }
 
-inline void oexpand::delkey( osymref key )
+inline void oexpand::delkey( osymbol key )
 {
     auto lookup = expandclass->lookup.lookup( key );
     if ( lookup )

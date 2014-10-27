@@ -10,14 +10,29 @@
 #define OERROR_H
 
 
+#include <exception>
 
-class oerror
+
+/*
+    Only throw errors with string literals (for now).
+*/
+
+
+class oerror : public std::exception
 {
 public:
 
-    explicit oerror( const char* );
+    explicit oerror( const char* error );
+    virtual const char* what() const throw();
+    
+private:
+
+    const char* error;
 
 };
+
+
+
 
 
 

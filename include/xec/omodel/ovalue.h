@@ -89,8 +89,8 @@ public:
 
 private:
 
-    friend std::hash< ovalue >;
     friend bool operator == ( ovalue a, ovalue b );
+    friend struct std::hash< ovalue >;
     
     static const uint64_t POSITIVE_NAN      = INT64_C( 0x7FF8000000000000 );
     static const uint64_t NEGATIVE_NAN      = INT64_C( 0xFFF8000000000000 );
@@ -268,9 +268,22 @@ inline void* ovalue::as_native() const
 inline bool operator == ( ovalue a, ovalue b )
 {
     if ( ! a.is_string() )
-        return ( a.x == b.x ) && !( ( a.x & ovalue::SIGN_MASK ) == ovalue::POSITIVE_NAN );
+    {
+        return ( a.x == b.x ) &&
+                !( ( a.x & ovalue::SIGN_MASK ) == ovalue::POSITIVE_NAN );
+    }
     else
-        return ostring::strcmp( a.as_string(), b.as_string() ) == 0;
+    {
+        ostring* astr = a.as_string();
+        ostring* bstr = b.as_string();
+        if ( astr == bstr )
+            return true;
+        if ( astr->size() != bstr->size() )
+            return false;
+        if ( astr->hash() != bstr->hash() )
+            return false;
+        return ostring::strcmp( astr, bstr ) == 0;
+    }
 }
 
 inline bool operator != ( ovalue a, ovalue b )
@@ -309,6 +322,22 @@ inline bool operator >= ( ovalue a, ovalue b )
     else
         return ostring::strcmp( a.as_string(), b.as_string() ) >= 0;
 }
+
+
+namespace std
+{
+template <> struct hash< ovalue >
+{
+    size_t operator () ( ovalue v )
+    {
+        if ( v.is_string() )
+            return v.as_string()->hash();
+        else
+            return std::hash< uintptr_t >()( v.x );
+    }
+};
+}
+
 
 
 

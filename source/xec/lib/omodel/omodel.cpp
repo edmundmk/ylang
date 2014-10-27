@@ -8,4 +8,13 @@
 
 #include "omodel.h"
 #include "ovalue.h"
-#include "oclass.h"
+#include "oexpand.h"
+
+
+
+oexpand* expand = oexpand::alloc();
+
+void blah()
+{
+    expand->getkey( osymbol( "" ) );
+}
