@@ -11,25 +11,26 @@
 
 
 #include <hashtable.h>
+#include "omodel.h"
+#include "ovalue.h"
 
 
 class oexpand;
+class oexpanddata;
 class oexpandclass;
-class ometaclass;
 
 
 
 /*
-    oexpand is the base class for every omodel object (except strings).  Each
-    instance points to an expandclass, which points to a metaclass.  The
-    expandclass of an instance can change at runtime as properties are added.
-    The metaclass remains fixed, however.
+    oexpand is the base class for every omodel object (except strings).  Expand
+    properties are stored in the expand data using a hidden class system.
 */
 
-class oexpand
+class oexpand : public ogcbase
 {
 public:
 
+    static oimpl::ogctype gctype;
     static oexpand* alloc();
     
     ovalue  getkey( osymbol key ) const;
@@ -39,24 +40,31 @@ public:
 
 protected:
 
-    explicit oexpand( oexpandclass* expandclass );
+    void    addkey( osymbol key, ovalue value );
 
-    oexpandclass*   expandclass;
-    ovalue*         properties;
+    oexpanddata* expand;
 
 };
 
 
 
 /*
-    An expandclass describes the layout of an expand's dynamic properties.
+    Expand data stores expand properties.
 */
 
-// clean up expandclasses if:
-//  they have no instances
-//  they have no child expandclasses left alive.
+struct oexpanddata
+{
+    oexpandclass*   expandclass;
+    ovalue          properties[];
+};
 
 
+
+/*
+    An expandclass describes the layout of an expand's dynamic properties.
+    expandclasses should be cleaned up if they have no instances and they
+    have no child expandclasses left alive.
+*/
 
 class oexpandclass
 {
@@ -64,81 +72,90 @@ private:
 
     friend class oexpand;
 
-    ometaclass*     metaclass;
-    oexpand*        prototype;
-    uint32_t        instance_count;
-    uint32_t        property_count;
-    hashtable< osymbol, size_t > lookup;
-    oexpandclass*   parent;
+    oexpand*                            prototype;
+    uint32_t                            instance_count;
+    uint32_t                            property_count;
+    hashtable< osymbol, size_t >        lookup;
+    oexpandclass*                       parent;
     hashtable< osymbol, oexpandclass* > children;
     
 };
 
 
 
+
 /*
-    A metaclass describes the static layout and behaviour of an expand.  Many
-    object types (arrays, tables, functions, closures, etc.) are subclasses of
-    oexpand in native code.  An expand's metaclass is fixed at compile time.
 */
 
-class ometaclass
+template < typename object_t >
+inline bool ovalue::is() const
 {
-    ovalue  (*get_index_func)( oexpand*, ovalue );
-    void    (*set_index_func)( oexpand*, ovalue, ovalue );
-    void    (*mark_func)( oexpand* );
-    void    (*free_func)( oexpand* );
-};
+    return is_expand() && ( (oexpand*)( x & POINTER_MASK ) )->is< object_t >();
+}
+
+template < typename object_t >
+inline object_t* ovalue::as() const
+{
+    if ( is< object_t >() )
+        return (object_t*)( x & POINTER_MASK );
+    else
+        throw oerror( "expected %s", object_t::gctype->name );
+}
 
 
 
-
-/*
-*/
 
 inline ovalue oexpand::getkey( osymbol key ) const
 {
-    auto lookup = expandclass->lookup.lookup( key );
-    if ( lookup )
+    if ( expand )
     {
-        ovalue property = properties[ lookup->value ];
-        if ( ! property.is_undefined() )
+        auto lookup = expand->expandclass->lookup.lookup( key );
+        if ( lookup )
         {
-            return property;
+            ovalue property = expand->properties[ lookup->value ];
+            if ( ! property.is_undefined() )
+            {
+                return property;
+            }
+        }
+
+        if ( expand->expandclass->prototype )
+        {
+            return expand->expandclass->prototype->getkey( key );
         }
     }
 
-    if ( expandclass->prototype )
-    {
-        // Might it possible to cache prototype properties in the lookup?  The
-        // cache would have to be invalidated when a prototype was assigned to.
-        return expandclass->prototype->getkey( key );
-    }
-
-    throw oerror( "key not found" );
+    throw oerror( "lookup failed .%s", key.c_str() );
 }
 
 inline void oexpand::setkey( osymbol key, ovalue value )
 {
-    auto lookup = expandclass->lookup.lookup( key );
-    if ( lookup )
+    write_barrier();
+
+    if ( expand )
     {
-        // TODO: do gc barrier on previous value.
-        properties[ lookup->value ] = value;
+        auto lookup = expand->expandclass->lookup.lookup( key );
+        if ( lookup )
+        {
+            expand->properties[ lookup->value ] = value;
+            return;
+        }
     }
-    else
-    {
-        // TODO: expand the object by finding/building new expandclass.
-    }
+    
+    addkey( key, value );
 }
 
 inline void oexpand::delkey( osymbol key )
 {
-    auto lookup = expandclass->lookup.lookup( key );
-    if ( lookup )
+    write_barrier();
+
+    if ( expand )
     {
-        // TODO: do gc barrier on previous value.
-        properties[ lookup->value ] = ovalue::undefined;
+        auto lookup = expand->expandclass->lookup.lookup( key );
+        if ( lookup )
+        {
+            expand->properties[ lookup->value ] = ovalue::undefined;
+        }
     }
 }
 

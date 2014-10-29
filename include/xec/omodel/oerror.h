@@ -11,28 +11,22 @@
 
 
 #include <exception>
+#include <string>
 
-
-/*
-    Only throw errors with string literals (for now).
-*/
 
 
 class oerror : public std::exception
 {
 public:
 
-    explicit oerror( const char* error );
+    explicit oerror( const char* format, ... );
     virtual const char* what() const throw();
     
 private:
 
-    const char* error;
+    std::string message;
 
 };
-
-
-
 
 
 

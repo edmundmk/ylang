@@ -21,12 +21,8 @@ class osymbol;
 
 
 /*
-    A string.  String data is stored inline.  Strings are the only GC object
-    without a class pointer, as strings never have references to other objects
-    and have their own inline tag in the value representation.
-    
-    String hashes are calculated lazily.  They are useful to early-out when
-    comparing strings for equality.
+    A string.  String data is stored inline.  String hashes are calculated
+    lazily.  They are useful to early-out when comparing strings for equality.
 
     Strings are also used as object keys.  Only strings which are symbols can
     be used for key lookup.  Symbolizing a string involves adding them to the
@@ -34,10 +30,12 @@ class osymbol;
     symbol.  This avoids the need to compare symbols byte-by-byte.
 */
 
-class ostring : public obase
+class ostring : public ogcbase
 {
 public:
 
+    static oimpl::ogctype gctype;
+    
     static ostring* alloc( const char* string );
     static ostring* alloc( size_t size );
     
@@ -54,6 +52,7 @@ public:
     
 private:
 
+    friend class osymbol;
     friend struct std::hash< osymbol >;
     
     mutable hash32_t    shash;
@@ -75,8 +74,11 @@ class osymbol
 {
 public:
 
-    osymbol( const char* string );
-    osymbol( ostring* string );
+    osymbol( const char* s );
+    osymbol( ostring* s );
+    
+    const char* c_str();
+    
     
 private:
 
@@ -131,6 +133,11 @@ inline char* ostring::buffer()
 
 
 
+
+inline const char* osymbol::c_str()
+{
+    return string->c_str();
+}
 
 inline bool operator == ( osymbol a, osymbol b )
 {

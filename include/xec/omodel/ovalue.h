@@ -84,7 +84,10 @@ public:
     oexpand*    as_expand() const;
     void*       as_native() const;
     
-    void* get() const;
+    template < typename object_t > bool is() const;
+    template < typename object_t > object_t* as() const;
+    
+    void*       get() const;
 
 
 private:
@@ -261,7 +264,6 @@ inline void* ovalue::as_native() const
     else
         throw oerror( "expected native pointer" );
 }
-
 
 
 

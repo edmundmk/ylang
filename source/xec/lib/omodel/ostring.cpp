@@ -8,7 +8,33 @@
 
 #include "ostring.h"
 #include <algorithm>
+#include "omodel_impl.h"
 
+
+
+oimpl::ogctype ostring::gctype = { nullptr, nullptr, "string" };
+
+
+
+ostring* ostring::alloc( const char* string )
+{
+    ostring* result = alloc( strlen( string ) );
+    memcpy( result->buffer(), string, result->size() );
+    return result;
+}
+
+
+ostring* ostring::alloc( size_t size )
+{
+    ostring* s = (ostring*)oimpl::context->model->alloc(
+            oimpl::context, &gctype, sizeof( ostring ) + size + 1 );
+    s->shash    = 0;
+    s->ssize    = (uint32_t)size;
+    s->shashed  = false;
+    s->ssymbol  = false;
+    s->sdata[ size ] = '\0';
+    return s;
+}
 
 
 ostring* ostring::strcat( ostring* a, ostring* b )
@@ -36,3 +62,20 @@ int ostring::strcmp( ostring* a, ostring* b )
     else
         return 0;
 }
+
+
+
+
+osymbol::osymbol( const char* s )
+{
+    string = oimpl::context->model->symbol( oimpl::context, s );
+}
+
+osymbol::osymbol( ostring* s )
+{
+    if ( s->ssymbol )
+        string = s;
+    else
+        string = oimpl::context->model->symbol( oimpl::context, s );
+}
+
