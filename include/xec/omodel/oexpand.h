@@ -30,7 +30,6 @@ class oexpand : public ogcbase
 {
 public:
 
-    static oimpl::ogctype gctype;
     static oexpand* alloc();
     
     ovalue  getkey( osymbol key ) const;
@@ -38,9 +37,14 @@ public:
     void    delkey( osymbol key );
 
 
-protected:
+private:
 
-    void    addkey( osymbol key, ovalue value );
+    friend class ogcbase;
+    static oimpl::ogctype gctype;
+    static void mark( ogcbase*, oimpl::oworklist*, oimpl::ocolour, oimpl::ocolour );
+    static void free( ogcbase* );
+
+    void expand_key( osymbol key, ovalue value );
 
     oexpanddata* expand;
 
@@ -66,11 +70,17 @@ struct oexpanddata
     have no child expandclasses left alive.
 */
 
-class oexpandclass
+class oexpandclass : public ogcbase
 {
 private:
 
+    friend class ogcbase;
+    static oimpl::ogctype gctype;
+    static void mark( ogcbase*, oimpl::oworklist*, oimpl::ocolour, oimpl::ocolour );
+    static void free( ogcbase* );
+
     friend class oexpand;
+    friend class omodel;
 
     oexpand*                            prototype;
     uint32_t                            instance_count;
@@ -142,7 +152,7 @@ inline void oexpand::setkey( osymbol key, ovalue value )
         }
     }
     
-    addkey( key, value );
+    expand_key( key, value );
 }
 
 inline void oexpand::delkey( osymbol key )

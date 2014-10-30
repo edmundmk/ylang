@@ -12,8 +12,10 @@
 
 #include <list>
 #include <thread>
+#include <symbol.h>
 #include "omodel.h"
 #include "ostring.h"
+#include "oexpand.h"
 
 
 
@@ -65,10 +67,14 @@ class omodel
 {
 public:
 
+    omodel();
+    ~omodel();
+
+
     // Allocations.
     ogcbase*    alloc( ocontext* context, ogctype* type, size_t size );
-    ostring*    symbol( ocontext* context, ostring* s );
     ostring*    symbol( ocontext* context, const char* s );
+    ostring*    symbol( ocontext* context, ostring* s );
 
     // Garbage collection contexts.
     ocontext*   new_context();
@@ -81,26 +87,58 @@ public:
     void        safepoint();
     
     // Write barrier.
-    void        barrier( ocontext* context, ogcbase* object, ocolour objcol );
+    void        barrier( ocontext* context, ogcbase* object, uintptr_t word );
 
+    // Expand.
+    void        expand_key( oexpand* expand, osymbol key, ovalue value );
 
 
 private:
 
-    // Collector thread.
-    void        collector_thread();
+
+    // Collector threads.
+    void marker();
+    void sweeper();
+    
+    
+    // Private functions.
+    void add_roots( oworklist* work );
 
 
     // List of objects.
+    ogcbase*                objects;
     std::mutex              allocs_mutex;
     ogcbase*                allocs;
-    std::mutex              objects_mutex;
-    ogcbase*                objects;
+
+
+    // Expand classes.
+    oexpandclass*           empty;
+
+
+    // Symbol table.
+    std::mutex              symbols_mutex;
+    hashtable< symkey, ostring* > symbols;
+
     
-    // Collector state.
-    std::thread             thread;
-    ocolour                 mark_colour;
+    // Collector.
+    std::thread             mark_thread;
+    std::thread             sweep_thread;
+    
+    // List of active contexts.
     std::list< ocontext* >  contexts;
+    
+    // Current mark colours.
+    ocolour                 marked_colour;
+    ocolour                 unmarked_colour;
+    ocolour                 dead_colour;
+    
+    // Guards for transitioning into and out of 'locked' mark state.
+    std::mutex              locked_mutex;
+    std::condition_variable locked_condition;
+    
+    // Roots to be marked.
+    std::mutex              roots_mutex;
+    seglist< ogcbase* >     roots;
 
 
 };

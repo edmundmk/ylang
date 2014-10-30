@@ -34,8 +34,6 @@ class ostring : public ogcbase
 {
 public:
 
-    static oimpl::ogctype gctype;
-    
     static ostring* alloc( const char* string );
     static ostring* alloc( size_t size );
     
@@ -52,13 +50,17 @@ public:
     
 private:
 
+    friend class ogcbase;
+    static oimpl::ogctype gctype;
+
     friend class osymbol;
+    friend class oimpl::omodel;
     friend struct std::hash< osymbol >;
     
     mutable hash32_t    shash;
     uint32_t            ssize   : 30;
     mutable bool        shashed : 1;
-    mutable bool        ssymbol : 1;
+    bool                ssymbol : 1;
     char                sdata[];
 
 };
@@ -77,7 +79,8 @@ public:
     osymbol( const char* s );
     osymbol( ostring* s );
     
-    const char* c_str();
+    const char* c_str() const;
+    ostring* get() const;
     
     
 private:
@@ -134,9 +137,14 @@ inline char* ostring::buffer()
 
 
 
-inline const char* osymbol::c_str()
+inline const char* osymbol::c_str() const
 {
     return string->c_str();
+}
+
+inline ostring* osymbol::get() const
+{
+    return string;
 }
 
 inline bool operator == ( osymbol a, osymbol b )

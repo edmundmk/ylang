@@ -12,7 +12,13 @@
 
 
 
-oimpl::ogctype ostring::gctype = { nullptr, nullptr, "string" };
+oimpl::ogctype ostring::gctype =
+{
+    nullptr,
+    nullptr,
+    nullptr,
+    "string"
+};
 
 
 
@@ -78,4 +84,8 @@ osymbol::osymbol( ostring* s )
     else
         string = oimpl::context->model->symbol( oimpl::context, s );
 }
+
+
+
+
 

@@ -49,8 +49,8 @@ private:
     {
         static const bucket* EMPTY;
     
-        char       data[ sizeof( keyval ) ];
-        bucket*    next;
+        alignas( keyval ) char data[ sizeof( keyval ) ];
+        bucket* next;
     };
 
 
@@ -183,10 +183,9 @@ hashtable< key_t, value_t >::basic_iterator< result_t >&
     {
         current += 1;
         if ( current->next != bucket::EMPTY )
-        {
-            return;
-        }
+            break;
     }
+    return *this;
 }
 
 template < typename key_t, typename value_t >
@@ -486,7 +485,7 @@ void hashtable< key_t, value_t >::clear()
     {
         for ( size_t i = 0; i < capacity; ++i )
         {
-            bucket* bucket = buckets[ i ];
+            bucket* bucket = buckets + i;
             if ( bucket->next != bucket::EMPTY )
             {
                 ( (keyval*)bucket->data )->~keyval();

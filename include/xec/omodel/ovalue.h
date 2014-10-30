@@ -84,11 +84,14 @@ public:
     oexpand*    as_expand() const;
     void*       as_native() const;
     
+    ostring*    as_string_unchecked() const;
+    oexpand*    as_expand_unchecked() const;
+
     template < typename object_t > bool is() const;
     template < typename object_t > object_t* as() const;
     
     void*       get() const;
-
+    
 
 private:
 
@@ -178,7 +181,7 @@ inline ovalue::ovalue( uint64_t x )
 
 inline ovalue::operator bool() const
 {
-    return ( x >= VALUE_FALSE ) || ( x & SIGN_MASK ) == POSITIVE_ZERO;
+    return ( x < VALUE_FALSE ) && ( x & SIGN_MASK ) != POSITIVE_ZERO;
 }
 
 inline const char* ovalue::c_str() const
@@ -265,6 +268,18 @@ inline void* ovalue::as_native() const
         throw oerror( "expected native pointer" );
 }
 
+inline ostring* ovalue::as_string_unchecked() const
+{
+    assert( is_string() );
+    return (ostring*)( x & POINTER_MASK );
+}
+
+inline oexpand* ovalue::as_expand_unchecked() const
+{
+    assert( is_expand() );
+    return (oexpand*)( x & POINTER_MASK );
+}
+
 
 
 inline bool operator == ( ovalue a, ovalue b )
@@ -298,7 +313,7 @@ inline bool operator <  ( ovalue a, ovalue b )
     if ( ! a.is_string() )
         return a.as_number() < b.as_number();
     else
-        return ostring::strcmp( a.as_string(), b.as_string() ) < 0;
+        return ostring::strcmp( a.as_string_unchecked(), b.as_string() ) < 0;
 }
 
 inline bool operator <= ( ovalue a, ovalue b )
@@ -306,7 +321,7 @@ inline bool operator <= ( ovalue a, ovalue b )
     if ( ! a.is_string() )
         return a.as_number() < b.as_number();
     else
-        return ostring::strcmp( a.as_string(), b.as_string() ) <= 0;
+        return ostring::strcmp( a.as_string_unchecked(), b.as_string() ) <= 0;
 }
 
 inline bool operator >  ( ovalue a, ovalue b )
@@ -314,7 +329,7 @@ inline bool operator >  ( ovalue a, ovalue b )
     if ( ! a.is_string() )
         return a.as_number() < b.as_number();
     else
-        return ostring::strcmp( a.as_string(), b.as_string() ) > 0;
+        return ostring::strcmp( a.as_string_unchecked(), b.as_string() ) > 0;
 }
 
 inline bool operator >= ( ovalue a, ovalue b )
@@ -322,7 +337,7 @@ inline bool operator >= ( ovalue a, ovalue b )
     if ( ! a.is_string() )
         return a.as_number() < b.as_number();
     else
-        return ostring::strcmp( a.as_string(), b.as_string() ) >= 0;
+        return ostring::strcmp( a.as_string_unchecked(), b.as_string() ) >= 0;
 }
 
 
@@ -333,7 +348,7 @@ template <> struct hash< ovalue >
     size_t operator () ( ovalue v )
     {
         if ( v.is_string() )
-            return v.as_string()->hash();
+            return v.as_string_unchecked()->hash();
         else
             return std::hash< uintptr_t >()( v.x );
     }

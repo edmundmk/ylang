@@ -26,18 +26,21 @@ namespace oimpl
 {
 
 class omodel;
+
 struct ocontext;
 struct ogctype;
 
+typedef seglist< ogcbase* > oworklist;
+
 enum ocolour
 {
-    GREEN   = 0x00, // unmarked/marked/dead
-    ORANGE  = 0x01, // unmarked/marked/dead
-    PURPLE  = 0x02, // unmarked/marked/dead
+    GREEN   = 0x00,     // unmarked/marked/dead
+    ORANGE  = 0x01,     // unmarked/marked/dead
+    PURPLE  = 0x02,     // unmarked/marked/dead
     
-    PENDING = 0x04, // added to work/global list
-    MARKING = 0x05, // marking in progress
-    LOCKED  = 0x06, // one or more mutators are blocked until mark completes
+    PENDING = 0x04,     // added to work/global list
+    MARKING = 0x05,     // marking in progress
+    LOCKED  = 0x06,     // mutators are blocked until mark completes
     
     COLOUR  = 0x07,
 };
@@ -106,16 +109,24 @@ public:
 
     template < typename object_t > bool is();
     template < typename object_t > object_t* as();
+    template < typename object_t > object_t* unchecked_as();
+
+    void gcmark( oimpl::oworklist* work, oimpl::ocolour unmarked );
+    void gcmark( oimpl::ocolour marked );
 
 
 protected:
+
+    ~ogcbase();
 
     void write_barrier();
 
 
 private:
 
-    void write_barrier_real( oimpl::ocolour object_colour );
+    friend class oimpl::omodel;
+
+    void write_barrier_real( uintptr_t word );
     
     std::atomic_uintptr_t   gctype_colour;
     ogcbase*                gcnext;
@@ -132,17 +143,19 @@ private:
 namespace oimpl
 {
 
-struct ogctype
+struct alignas( 8 ) ogctype
 {
     ogctype*    parent;
-    void        (*mark)( seglist< ogcbase* >* work );
+    void        (*mark)( ogcbase*, oworklist*, ocolour, ocolour );
+    void        (*free)( ogcbase* );
     const char* name;
 };
 
 struct ocontext
 {
     omodel*     model;
-    ocolour     mark_colour;
+    ocolour     marked_colour;
+    ocolour     unmarked_colour;
 };
 
 extern __thread ocontext* context;
@@ -151,10 +164,11 @@ extern __thread ocontext* context;
 
 
 template < typename object_t >
-bool ogcbase::is()
+inline bool ogcbase::is()
 {
-    uintptr_t t = gctype_colour.load( std::memory_order_relaxed );
-    oimpl::ogctype* gctype = (oimpl::ogctype*)( t & ~oimpl::COLOUR );
+    uintptr_t word = gctype_colour.load( std::memory_order_relaxed );
+    oimpl::ogctype* gctype = (oimpl::ogctype*)( word & ~oimpl::COLOUR );
+    
     do
     {
         if ( gctype == &object_t::gctype )
@@ -162,12 +176,13 @@ bool ogcbase::is()
         gctype = gctype->parent;
     }
     while ( gctype );
+    
     return false;
 }
 
 
 template < typename object_t >
-object_t* ogcbase::as()
+inline object_t* ogcbase::as()
 {
     if ( ! is< object_t >() )
     {
@@ -176,15 +191,59 @@ object_t* ogcbase::as()
 }
 
 
-
-void ogcbase::write_barrier()
+inline void ogcbase::write_barrier()
 {
-    uintptr_t c = gctype_colour.load( std::memory_order_relaxed );
-    oimpl::ocolour colour = (oimpl::ocolour)( c & oimpl::COLOUR );
-    if ( colour != oimpl::context->mark_colour )
+    // Check colour.
+    uintptr_t word = gctype_colour.load( std::memory_order_relaxed );
+    oimpl::ocolour colour = (oimpl::ocolour)( word & oimpl::COLOUR );
+    
+    // If we're not marked, we have work to do to unfreeze this object.
+    if ( colour != oimpl::context->marked_colour )
     {
-        write_barrier_real( colour );
+        write_barrier_real( word );
     }
+}
+
+
+inline void ogcbase::gcmark( oimpl::oworklist* work, oimpl::ocolour unmarked )
+{
+    // Load gc word.
+    uintptr_t word = gctype_colour.load( std::memory_order_relaxed );
+    oimpl::ogctype* gctype = (oimpl::ogctype*)( word & ~oimpl::COLOUR );
+    oimpl::ocolour colour = (oimpl::ocolour)( word & oimpl::COLOUR );
+
+    // Objects with references require full marking.
+    assert( gctype->mark );
+
+    // Attempt unmarked -> pending transition.
+    if ( colour == unmarked )
+    {
+        uintptr_t pending_word = (uintptr_t)gctype | oimpl::PENDING;
+        if ( gctype_colour.compare_exchange_strong(
+                        word, pending_word, std::memory_order_relaxed ) )
+        {
+            work->push_back( this );
+        }
+        else
+        {
+            // We were beaten to the punch, nothing to do.
+        }
+    }
+}
+
+
+inline void ogcbase::gcmark( oimpl::ocolour marked )
+{
+    // Load gc word.
+    uintptr_t word = gctype_colour.load( std::memory_order_relaxed );
+    oimpl::ogctype* gctype = (oimpl::ogctype*)( word & ~oimpl::COLOUR );
+
+    // Objects without references can do unmarked -> marked directly.
+    assert( ! gctype->mark );
+    
+    // Just update unconditionally.
+    uintptr_t marked_word = (uintptr_t)gctype | marked;
+    gctype_colour.store( marked_word, std::memory_order_relaxed );
 }
 
 
