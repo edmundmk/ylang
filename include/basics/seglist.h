@@ -164,6 +164,7 @@ seglist< element_t >::basic_iterator< result_t >&
         current = current->next;
         index = 0;
     }
+    return *this;
 }
 
 template < typename element_t >

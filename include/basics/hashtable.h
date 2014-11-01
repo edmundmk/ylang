@@ -47,7 +47,7 @@ private:
 
     struct bucket
     {
-        static const bucket* EMPTY;
+        static bucket* const EMPTY;
     
         alignas( keyval ) char data[ sizeof( keyval ) ];
         bucket* next;
@@ -139,7 +139,7 @@ private:
 
 
 template < typename key_t, typename value_t >
-const typename hashtable< key_t, value_t >::bucket*
+typename hashtable< key_t, value_t >::bucket* const
             hashtable< key_t, value_t >::bucket::EMPTY =
                         (typename hashtable< key_t, value_t >::bucket*)-1;
 
@@ -345,6 +345,8 @@ template < typename key_t, typename value_t >
 typename hashtable< key_t, value_t >::keyval*
                 hashtable< key_t, value_t >::lookup( const key_t& key )
 {
+    if ( occupancy == 0 )
+        return nullptr;
     bucket* lookup = main_position( key );
     if ( lookup->next == bucket::EMPTY )
         return nullptr;
@@ -361,6 +363,14 @@ typename hashtable< key_t, value_t >::keyval*
 template < typename key_t, typename value_t >
 void hashtable< key_t, value_t >::insert( const key_t& key, const value_t& value )
 {
+    // Lookup in case key already exists.
+    keyval* lk = lookup( key );
+    if ( lk )
+    {
+        lk->value = value;
+        return;
+    }
+
     // Grow hash if necessary.  Possibly show grow at lower occupancy rather
     // than waiting until the hash is completely full.
     if ( occupancy >= capacity )
@@ -381,7 +391,8 @@ void hashtable< key_t, value_t >::insert( const key_t& key, const value_t& value
     else
     {
         // Find main position of occupying element.
-        bucket* cuckoo = main_position( insert->key );
+        keyval* kv = (keyval*)insert->data;
+        bucket* cuckoo = main_position( kv->key );
         assert( cuckoo->next != bucket::EMPTY );
         
         // Find free bucket near the main position of the occupying element.
@@ -411,7 +422,6 @@ void hashtable< key_t, value_t >::insert( const key_t& key, const value_t& value
             free->next = insert->next;
         
             // Move occupying element from insert to free.
-            keyval* kv = (keyval*)insert->data;
             new ( free->data ) keyval( std::move( *kv ) );
             kv->~keyval();
             
@@ -427,6 +437,9 @@ void hashtable< key_t, value_t >::insert( const key_t& key, const value_t& value
 template < typename key_t, typename value_t >
 void hashtable< key_t, value_t >::remove( const key_t& key )
 {
+    if ( ! occupancy )
+        return;
+
     bucket* lookup = main_position( key );
 
     if ( lookup->next == bucket::EMPTY )
@@ -434,9 +447,9 @@ void hashtable< key_t, value_t >::remove( const key_t& key )
         return;
     }
     
-    if ( lookup->key == key )
+    keyval* kv = (keyval*)lookup->data;
+    if ( kv->key == key )
     {
-        keyval* kv = (keyval*)lookup->data;
         kv->~keyval();
         if ( lookup->next )
         {
@@ -463,16 +476,15 @@ void hashtable< key_t, value_t >::remove( const key_t& key )
         bucket* previous = lookup;
         lookup = lookup->next;
 
-        if ( lookup->key == key )
+        keyval* kv = (keyval*)lookup->data;
+        if ( kv->key == key )
         {
             // Delete this item.
-            keyval* kv = (keyval*)lookup->data;
             kv->~keyval();
             
             // And skip over it in the linked list.
-            bucket* next = lookup->next;
+            previous->next = lookup->next;
             lookup->next = bucket::EMPTY;
-            previous->next = next;
             return;
         }
     }
@@ -516,16 +528,16 @@ void hashtable< key_t, value_t >::rehash( size_t new_capacity )
     capacity = std::max( new_capacity, occupancy );
     capacity = ceil_pow2( capacity );
     occupancy = 0;
-    buckets = malloc( capacity * sizeof( bucket ) );
+    buckets = (bucket*)malloc( capacity * sizeof( bucket ) );
     for ( size_t i = 0; i < capacity; ++i )
     {
-        buckets[ i ]->next = bucket::EMPTY;
+        buckets[ i ].next = bucket::EMPTY;
     }
     
     // Reinsert elements.
     for ( size_t i = 0; i < old_capacity; ++i )
     {
-        bucket* bucket = old_buckets[ i ];
+        bucket* bucket = old_buckets + i;
         if ( bucket->next != bucket::EMPTY )
         {
             keyval* kv = (keyval*)bucket->data;
