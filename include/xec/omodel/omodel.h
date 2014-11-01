@@ -117,6 +117,7 @@ public:
 
 protected:
 
+    ogcbase();
     ~ogcbase();
 
     void write_barrier();

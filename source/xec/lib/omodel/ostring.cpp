@@ -32,7 +32,7 @@ ostring* ostring::alloc( const char* string )
 
 ostring* ostring::alloc( size_t size )
 {
-    ostring* s = (ostring*)oimpl::context->model->alloc(
+    ostring* s = oimpl::context->model->alloc< ostring >(
             oimpl::context, &gctype, sizeof( ostring ) + size + 1 );
     s->shash    = 0;
     s->ssize    = (uint32_t)size;

@@ -8,6 +8,7 @@
 
 #include "omodel.h"
 #include "omodel_impl.h"
+#include <intmath.h>
 #include "ovalue.h"
 #include "oexpand.h"
 
@@ -21,15 +22,16 @@
     modified.  The object containing the slot is marked in its entirety.  This
     means we always mark objects using their state at the GC snapshot (since
     objects may only be modified after they are marked).  This causes mutators
-    to stall, but is preferable to long pauses.
+    to stall in order to do the mark, but many momentary stalls are better
+    than one long pause.
     
     The marker thread works in the background, marking roots and following
     references from newly marked objects.
     
     
     The mark colours green/orange/purple are cycled through.  One colour is the
-    current mark colour.  The previous colour is objects reachable at the last
-    snapshot but not yet considered in this cycle: the unmarked colour.
+    current mark colour.  The next colour is for objects reachable at the
+    last snapshot but not yet considered in this cycle: the unmarked colour.
     Objects of the final colour are unreachable (they were not reachable at
     the last snapshot time) that have not yet been swept.
  
@@ -48,6 +50,12 @@
     are additionally restricted - they must only be performed with the marking
     mutex held.  This ensures that mutator threads cannot miss the mark
     completion broadcast.
+    
+    There is no ABA problem as in each collection epoch each object is
+    coloured somewhere along the following progression, with no way to move
+    backwards along the chain:
+
+                unmarked -> pending -> marking -> locked -> marked
 
 */
 
@@ -67,12 +75,8 @@ omodel::~omodel()
 }
 
 
-ogcbase* omodel::alloc( ocontext* context, ogctype* type, size_t size )
+void omodel::new_object( ocontext* context, ogctype* type, ogcbase* object )
 {
-    // Allocate object.
-    assert( size > sizeof( ogcbase ) );
-    ogcbase* object = (ogcbase*)malloc( size );
-
     // It begins life already marked.
     uintptr_t marked_word = (uintptr_t)type | context->marked_colour;
     object->gctype_colour.store( marked_word, std::memory_order_relaxed );
@@ -81,8 +85,6 @@ ogcbase* omodel::alloc( ocontext* context, ogctype* type, size_t size )
     std::lock_guard< std::mutex > lock( allocs_mutex );
     object->gcnext = allocs;
     allocs = object;
-
-    return object;
 }
 
 ostring* omodel::symbol( ocontext* context, const char* s )
@@ -254,11 +256,13 @@ void omodel::barrier( ocontext* context, ogcbase* object, uintptr_t word )
 }
 
 
-void omodel::expand_key( oexpand* expand, osymbol key, ovalue value )
+void omodel::add_roots( oworklist* work )
 {
-    
-    
-    
+    std::lock_guard< std::mutex > lock( roots_mutex );
+    if ( roots.size() < work->size() )
+        roots.swap( *work );
+    for ( auto i = work->begin(); i != work->end(); ++i )
+        roots.push_back( *i );
 }
 
 
@@ -279,6 +283,94 @@ void omodel::sweeper()
 
 
 
+
+
+
+
+void omodel::expand_key(
+                ocontext* context, oexpand* expand, osymbol key, ovalue value )
+{
+    // Locate current expand class.
+    oexpandclass* oldclass = expand->expand->expandclass;
+    if ( oldclass == nullptr )
+    {
+        oldclass = expand_empty;
+    }
+    
+    
+    // Note that property updates are NOT thread-safe - this lock ensures that
+    // the expandclass structures remain consistent, but nothing more.
+    std::lock_guard< std::mutex > lock( expand_mutex );
+    
+
+    // Find expandclass to update to.
+    oexpandclass* newclass = nullptr;
+    auto lookup = oldclass->children.lookup( key );
+    if ( lookup )
+    {
+        // Already exists.
+        newclass = lookup->value;
+    }
+    else
+    {
+        // Requires creation.
+        newclass = alloc< oexpandclass >( context, &oexpandclass::gctype );
+        
+        newclass->prototype = oldclass->prototype;
+        newclass->capacity  = ceil_pow2( oldclass->size + 1 );
+        newclass->size      = oldclass->size + 1;
+        for ( auto i = oldclass->lookup.begin();
+                        i != oldclass->lookup.end(); ++i )
+        {
+            newclass->lookup.insert( i->key, i->value );
+        }
+        newclass->lookup.insert( key, oldclass->size );
+        
+        newclass->refcount      = 0;
+        newclass->parent        = oldclass;
+        newclass->parent_key    = key;
+    }
+    
+    
+    // Incref newclass.
+    newclass->refcount += 1;
+    
+    
+    // Switch expandclass.  This is the non-thread-safe bit - property updates
+    // in other threads could be accessing expanddata while we modify it.
+    if ( oldclass->capacity == newclass->capacity )
+    {
+        // No need to reallocate expanddata.
+        expand->expand->expandclass = newclass;
+        expand->expand->properties[ oldclass->size ] = value;
+    }
+    else
+    {
+        // Build new expanddata.
+        oexpanddata* olddata = expand->expand;
+        oexpanddata* newdata = (oexpanddata*)malloc(
+            sizeof( oexpanddata ) + sizeof( ovalue ) * newclass->capacity );
+
+        newdata->expandclass = newclass;
+        for ( size_t i = 0; i < oldclass->size; ++i )
+        {
+            newdata->properties[ i ] = olddata->properties[ i ];
+        }
+        newdata->properties[ oldclass->size ] = value;
+        
+        expand->expand = newdata;
+    }
+    
+    
+    // Decref oldclass, possibly unlinking it so it can be garbage collected.
+    oldclass->refcount -= 1;
+    if ( oldclass->refcount == 0 )
+    {
+        oldclass->parent->children.remove( oldclass->parent_key );
+        
+    }
+    
+}
 
 
 }

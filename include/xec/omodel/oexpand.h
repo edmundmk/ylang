@@ -30,14 +30,23 @@ class oexpand : public ogcbase
 {
 public:
 
-    static oexpand* alloc();
+    static oexpand* alloc( oexpand* prototype );
     
-    ovalue  getkey( osymbol key ) const;
-    void    setkey( osymbol key, ovalue value );
-    void    delkey( osymbol key );
+    oexpand*    prototype() const;
+    ovalue      getkey( osymbol key ) const;
+    void        setkey( osymbol key, ovalue value );
+    void        delkey( osymbol key );
+
+
+protected:
+
+    oexpand();
+    ~oexpand();
 
 
 private:
+
+    friend class oimpl::omodel;
 
     friend class ogcbase;
     static oimpl::ogctype gctype;
@@ -72,7 +81,15 @@ struct oexpanddata
 
 class oexpandclass : public ogcbase
 {
+protected:
+
+    oexpandclass();
+    ~oexpandclass();
+
+
 private:
+
+    friend class oimpl::omodel;
 
     friend class ogcbase;
     static oimpl::ogctype gctype;
@@ -83,10 +100,14 @@ private:
     friend class omodel;
 
     oexpand*                            prototype;
-    uint32_t                            instance_count;
-    uint32_t                            property_count;
+    uint32_t                            capacity;
+    uint32_t                            size;
     hashtable< osymbol, size_t >        lookup;
+    uint32_t                            derivedindex;
+    
+    uint32_t                            refcount;
     oexpandclass*                       parent;
+    osymbol                             parent_key;
     hashtable< osymbol, oexpandclass* > children;
     
 };
@@ -135,7 +156,7 @@ inline ovalue oexpand::getkey( osymbol key ) const
         }
     }
 
-    throw oerror( "lookup failed .%s", key.c_str() );
+    return ovalue::undefined;
 }
 
 inline void oexpand::setkey( osymbol key, ovalue value )

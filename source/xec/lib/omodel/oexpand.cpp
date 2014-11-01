@@ -20,18 +20,25 @@ oimpl::ogctype oexpand::gctype =
 
 
 
-oexpand* oexpand::alloc()
+oexpand* oexpand::alloc( oexpand* prototype )
 {
-    oexpand* e = (oexpand*)oimpl::context->model->alloc(
-                    oimpl::context, &gctype, sizeof( oexpand ) );
-    e->expand = nullptr;
+    oimpl::omodel* model = oimpl::context->model;
+    oexpand* e = model->alloc< oexpand >( oimpl::context, &gctype );
+    if ( prototype == nullptr )
+    {
+        e->expand = nullptr;
+    }
+    else
+    {
+        // TODO!
+    }
     return e;
 }
 
 
 void oexpand::expand_key( osymbol key, ovalue value )
 {
-    oimpl::context->model->expand_key( this, key, value );
+    oimpl::context->model->expand_key( oimpl::context, this, key, value );
 }
 
 
@@ -43,7 +50,7 @@ void oexpand::mark( ogcbase* object, oimpl::oworklist* work,
     if ( expdata )
     {
         expdata->expandclass->gcmark( work, unmarked );
-        for ( size_t i = 0; i < expdata->expandclass->property_count; ++i )
+        for ( size_t i = 0; i < expdata->expandclass->size; ++i )
         {
             ovalue value = expdata->properties[ i ];
             if ( value.is_string() )
@@ -87,6 +94,7 @@ void oexpandclass::mark( ogcbase* object, oimpl::oworklist* work,
     }
     
     expclass->parent->gcmark( work, unmarked );
+    expclass->parent_key.get()->gcmark( marked );
     for ( auto i = expclass->children.begin();
                     i != expclass->children.end(); ++i )
     {

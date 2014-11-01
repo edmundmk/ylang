@@ -10,6 +10,7 @@
 #define OMODEL_IMPL_H
 
 
+#include <new>
 #include <list>
 #include <thread>
 #include <symbol.h>
@@ -71,8 +72,13 @@ public:
     ~omodel();
 
 
-    // Allocations.
-    ogcbase*    alloc( ocontext* context, ogctype* type, size_t size );
+    // Allocation.
+    template < typename object_t >
+    object_t*   alloc( ocontext* context,
+                        ogctype* type, size_t size = sizeof( object_t ) );
+
+
+    // Symbols.
     ostring*    symbol( ocontext* context, const char* s );
     ostring*    symbol( ocontext* context, ostring* s );
 
@@ -90,7 +96,8 @@ public:
     void        barrier( ocontext* context, ogcbase* object, uintptr_t word );
 
     // Expand.
-    void        expand_key( oexpand* expand, osymbol key, ovalue value );
+    void        expand_key( ocontext* context,
+                        oexpand* expand, osymbol key, ovalue value );
 
 
 private:
@@ -102,6 +109,7 @@ private:
     
     
     // Private functions.
+    void new_object( ocontext* context, ogctype* type, ogcbase* object );
     void add_roots( oworklist* work );
 
 
@@ -112,7 +120,8 @@ private:
 
 
     // Expand classes.
-    oexpandclass*           empty;
+    std::mutex              expand_mutex;
+    oexpandclass*           expand_empty;
 
 
     // Symbol table.
@@ -132,7 +141,7 @@ private:
     ocolour                 unmarked_colour;
     ocolour                 dead_colour;
     
-    // Guards for transitioning into and out of 'locked' mark state.
+    // Guards for transitioning into and out of LOCKED colour.
     std::mutex              locked_mutex;
     std::condition_variable locked_condition;
     
@@ -142,6 +151,20 @@ private:
 
 
 };
+
+
+
+template < typename object_t >
+object_t* omodel::alloc( ocontext* context, ogctype* type, size_t size )
+{
+    // Allocate object.
+    void* p = malloc( size );
+    object_t* object = new ( p ) object_t();
+    new_object( context, type, object );
+    return object;
+}
+
+
 
 
 }
