@@ -6,9 +6,106 @@
 //
 
 
-#ifndef OCLASS_H
-#define OCLASS_H
+#ifndef OEXPAND_H
+#define OEXPAND_H
 
+
+#include "obase.h"
+#include "otuple.h"
+#include "okeytable.h"
+#include "ostring.h"
+
+class oexpand;
+class oclass;
+class ovalue;
+
+
+/*
+    oexpand is the base class for objects that can have arbitrary properties
+    added.  These properties are stored using a 'dynamic hidden class' system
+    which builds classes on-the-fly.
+*/
+
+class oexpand : public obase
+{
+public:
+
+    static oexpand* alloc();
+    static oexpand* alloc( oexpand* prototype );
+    
+    oexpand*    prototype() const;
+    ovalue      getkey( osymbol key ) const;
+    void        setkey( osymbol key, ovalue value );
+    void        delkey( osymbol key );
+
+
+protected:
+
+    static ometatype metatype;
+    static void mark_expand( oworklist* work, obase* object, ocolour colour );
+
+    oexpand( ometatype* metatype, oclass* klass );
+
+
+private:
+
+    owb< oclass* >                  klass;
+    owb< otuple< ovalue >* >        props;
+
+}; 
+
+
+
+
+
+/*
+    An oclass describes the layout of an expand's dynamic properties.  The
+    class for empty objects is per-context and is the root of the class tree.
+
+    An object with the same properties but a different prototype object will
+    have a different class.  This allows easier caching of property lookups.
+    The root of a prototype's class tree is a hidden property at index 0.  The
+    first time an object becomes a prototype its own class changes in order
+    to add this hidden property.
+*/
+
+
+class oclass : public obase
+{
+public:
+
+
+private:
+
+    owb< oexpand* >                 prototype;
+    okeytable< osymbol, size_t >    lookup;
+    owb< oclass* >                  parent;
+    owb< osymbol >                  parent_key;
+    okeytable< osymbol, oclass* >   children;
+    bool                            is_prototype;
+    
+};
+
+
+
+
+
+/*
+
+*/
+
+
+
+
+
+
+
+
+
+#endif
+
+
+#if OLD
 
 #include <hashtable.h>
 #include "omodel.h"

@@ -13,9 +13,9 @@
 ovalue ovalue::undefined( ovalue::VALUE_UNDEFINED );
 
 
-void* ovalue::get() const
+obase* ovalue::get() const
 {
-    return (void*)( x & POINTER_MASK );
+    return (obase*)( x & POINTER_MASK );
 }
 
 

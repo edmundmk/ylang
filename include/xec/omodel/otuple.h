@@ -43,8 +43,8 @@ protected:
 
 private:
     
-    size_t  ssize;
-    elem_type  slots[];
+    size_t      ssize;
+    elem_type   slots[];
     
 };
 

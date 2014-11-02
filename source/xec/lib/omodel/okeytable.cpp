@@ -7,9 +7,12 @@
 
 
 #include "okeytable.h"
+#include "ostring.h"
+#include "oexpand.h"
 
 
 
+template class okeytable< osymbol, size_t >;
+template class okeytable< osymbol, oclass* >;
 
-template class okeytable< obase*, size_t >;
-template class okeytable< obase*, obase* >;
+

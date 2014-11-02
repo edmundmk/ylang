@@ -107,7 +107,7 @@ inline okeyval< key_t, value_t >::okeyval()
 template < typename key_t, typename value_t >
 inline okeytable< key_t, value_t >::okeytable()
     :   count( 0 )
-    ,   keyvals( nullptr )
+    ,   keyvals()
 {
 }
 

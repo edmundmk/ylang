@@ -12,13 +12,13 @@
 
 #include <cstddef>
 #include <stdint.h>
-#include <math.h>
-#include <assert.h>
+#include <atomic>
 #include <functional>
-#include "ostring.h"
-#include "oerror.h"
+#include "oheap.h"
 
 
+class obase;
+class ostring;
 class oexpand;
 
 
@@ -34,7 +34,9 @@ class oexpand;
     qnan      s111111111111zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
 
     On a system with 48-bit pointers (or less), we NaN-box values into doubles.
-    Bit patterns of non-float values are all negative quiet NaNs:
+    Bit patterns of non-float values are all negative quiet NaNs.  This has
+    the desirable property that 'falsey' values are clustered together as the
+    maximum possible values:
 
                  F   F   F   x   0   0   0   0   0   0   0   0   0   0   0   0
     nan       s111111111111000000000000000000000000000000000000000000000000000
@@ -44,7 +46,7 @@ class oexpand;
     true      1111111111111111111111111111111111111111111111111111111111111100
     string    1111111111111110pppppppppppppppppppppppppppppppppppppppppppppppp
     expand    1111111111111101pppppppppppppppppppppppppppppppppppppppppppppppp
-    native    1111111111111100pppppppppppppppppppppppppppppppppppppppppppppppp
+    object    1111111111111100pppppppppppppppppppppppppppppppppppppppppppppppp
 
     On systems with a truly 64-bit address space, we should ensure that values
     are allocated from the low 48-bits (or from a 48-bit heap).
@@ -52,20 +54,21 @@ class oexpand;
 */
 
 
+
 class ovalue
 {
 public:
 
     static ovalue undefined;
-
+    
     ovalue();
     ovalue( std::nullptr_t );
     ovalue( bool value );
     ovalue( double value );
     ovalue( const char* string );
+    ovalue( obase* object );
     ovalue( ostring* string );
     ovalue( oexpand* expand );
-    static ovalue native( void* native );
 
     explicit operator bool() const;
     const char* c_str() const;
@@ -74,27 +77,23 @@ public:
     bool        is_undefined() const;
     bool        is_bool() const;
     bool        is_number() const;
+    bool        is_object() const;
     bool        is_string() const;
     bool        is_expand() const;
-    bool        is_native() const;
 
     bool        as_bool() const;
     double      as_number() const;
+    obase*      as_object() const;
     ostring*    as_string() const;
     oexpand*    as_expand() const;
-    void*       as_native() const;
     
-    ostring*    as_string_unchecked() const;
-    oexpand*    as_expand_unchecked() const;
-
-    template < typename object_t > bool is() const;
-    template < typename object_t > object_t* as() const;
-    
-    void*       get() const;
+    obase*      get() const;
     
 
 private:
 
+    friend class owb< ovalue >;
+    friend struct omark< ovalue >;
     friend bool operator == ( ovalue a, ovalue b );
     friend struct std::hash< ovalue >;
     
@@ -110,13 +109,13 @@ private:
     static const uint64_t VALUE_TRUE        = INT64_C( 0xFFFFFFFFFFFFFFFC );
     static const uint64_t TAG_STRING        = INT64_C( 0xFFFE000000000000 );
     static const uint64_t TAG_EXPAND        = INT64_C( 0xFFFD000000000000 );
-    static const uint64_t TAG_NATIVE        = INT64_C( 0xFFFC000000000000 );
+    static const uint64_t TAG_OBJECT        = INT64_C( 0xFFFC000000000000 );
     static const uint64_t TAG_MASK          = INT64_C( 0xFFFF000000000000 );
     static const uint64_t POINTER_MASK      = INT64_C( 0x0000FFFFFFFFFFFF );
     static const uint64_t HIGHEST_FLOAT     = INT64_C( 0xFFF8000000000000 );
     
-    ovalue( uint64_t x );
-
+    explicit ovalue( uint64_t x );
+    
     union
     {
         double      n;
@@ -126,10 +125,96 @@ private:
 };
 
 
+bool operator == ( ovalue a, ovalue b );
+bool operator != ( ovalue a, ovalue b );
+bool operator <  ( ovalue a, ovalue b );
+bool operator <= ( ovalue a, ovalue b );
+bool operator >  ( ovalue a, ovalue b );
+bool operator >= ( ovalue a, ovalue b );
+
+
+namespace std
+{
+template <> struct hash< ovalue >
+{
+    size_t operator () ( const ovalue& v ) const;
+};
+}
 
 
 
 
+/*
+    As ovalues can be references they need an atomic, write-barriered type.
+*/
+
+template <>
+class owb< ovalue >
+{
+public:
+
+    owb();
+    owb& operator = ( ovalue q );
+    owb& operator = ( const owb& q );
+
+    operator ovalue () const;
+
+    explicit operator bool() const      { return value().operator bool(); }
+    const char* c_str() const           { return value().c_str(); }
+
+    bool        is_null() const         { return value().is_null(); }
+    bool        is_undefined() const    { return value().is_undefined(); }
+    bool        is_bool() const         { return value().is_bool(); }
+    bool        is_number() const       { return value().is_number(); }
+    bool        is_object() const       { return value().is_object(); }
+    bool        is_string() const       { return value().is_string(); }
+    bool        is_expand() const       { return value().is_expand(); }
+
+    bool        as_bool() const         { return value().as_bool(); }
+    double      as_number() const       { return value().as_number(); }
+    obase*      as_object() const       { return value().as_object(); }
+    ostring*    as_string() const       { return value().as_string(); }
+    oexpand*    as_expand() const       { return value().as_expand(); }
+
+    obase*      get() const;
+
+
+private:
+
+    friend struct omark< ovalue >;
+
+    ovalue value() const;
+
+    std::atomic< uint64_t > v;
+    
+};
+
+
+template <>
+struct omark< ovalue >
+{
+    typedef owb< ovalue > wb_type;
+    static void mark( const wb_type& value, oworklist* work, ocolour colour );
+};
+
+
+
+
+
+/*
+
+*/
+
+
+#include <math.h>
+#include "ostring.h"
+#include "oerror.h"
+
+
+inline ovalue::ovalue( uint64_t x )
+    :   x( x )
+{
+}
 
 inline ovalue::ovalue()
     :   ovalue( VALUE_NULL )
@@ -156,6 +241,12 @@ inline ovalue::ovalue( const char* string )
 {
 }
 
+inline ovalue::ovalue( obase* object )
+    :   ovalue( TAG_OBJECT | (uintptr_t)object )
+{
+    assert( object );
+}
+
 inline ovalue::ovalue( ostring* string )
     :   ovalue( TAG_STRING | (uintptr_t)string )
 {
@@ -166,16 +257,6 @@ inline ovalue::ovalue( oexpand* expand )
     :   ovalue( TAG_EXPAND | (uintptr_t)expand )
 {
     assert( expand );
-}
-
-inline ovalue ovalue::native( void* native )
-{
-    return ovalue( TAG_NATIVE | (uintptr_t)native );
-}
-
-inline ovalue::ovalue( uint64_t x )
-    :   x( x )
-{
 }
 
 
@@ -210,6 +291,11 @@ inline bool ovalue::is_number() const
     return x <= HIGHEST_FLOAT;
 }
 
+inline bool ovalue::is_object() const
+{
+    return ( x & TAG_MASK ) == TAG_OBJECT;
+}
+
 inline bool ovalue::is_string() const
 {
     return ( x & TAG_MASK ) == TAG_STRING;
@@ -218,11 +304,6 @@ inline bool ovalue::is_string() const
 inline bool ovalue::is_expand() const
 {
     return ( x & TAG_MASK ) == TAG_EXPAND;
-}
-
-inline bool ovalue::is_native() const
-{
-    return ( x & TAG_MASK ) == TAG_NATIVE;
 }
 
 
@@ -244,6 +325,14 @@ inline double ovalue::as_number() const
         throw oerror( "expected number" );
 }
 
+inline obase* ovalue::as_object() const
+{
+    if ( is_object() )
+        return (obase*)( x & POINTER_MASK );
+    else
+        throw oerror( "expected native pointer" );
+}
+
 inline ostring* ovalue::as_string() const
 {
     if ( is_string() )
@@ -260,25 +349,6 @@ inline oexpand* ovalue::as_expand() const
         throw oerror( "expected object" );
 }
 
-inline void* ovalue::as_native() const
-{
-    if ( is_native() )
-        return (void*)( x & POINTER_MASK );
-    else
-        throw oerror( "expected native pointer" );
-}
-
-inline ostring* ovalue::as_string_unchecked() const
-{
-    assert( is_string() );
-    return (ostring*)( x & POINTER_MASK );
-}
-
-inline oexpand* ovalue::as_expand_unchecked() const
-{
-    assert( is_expand() );
-    return (oexpand*)( x & POINTER_MASK );
-}
 
 
 
@@ -313,7 +383,7 @@ inline bool operator <  ( ovalue a, ovalue b )
     if ( ! a.is_string() )
         return a.as_number() < b.as_number();
     else
-        return ostring::strcmp( a.as_string_unchecked(), b.as_string() ) < 0;
+        return ostring::strcmp( a.as_string(), b.as_string() ) < 0;
 }
 
 inline bool operator <= ( ovalue a, ovalue b )
@@ -321,7 +391,7 @@ inline bool operator <= ( ovalue a, ovalue b )
     if ( ! a.is_string() )
         return a.as_number() < b.as_number();
     else
-        return ostring::strcmp( a.as_string_unchecked(), b.as_string() ) <= 0;
+        return ostring::strcmp( a.as_string(), b.as_string() ) <= 0;
 }
 
 inline bool operator >  ( ovalue a, ovalue b )
@@ -329,7 +399,7 @@ inline bool operator >  ( ovalue a, ovalue b )
     if ( ! a.is_string() )
         return a.as_number() < b.as_number();
     else
-        return ostring::strcmp( a.as_string_unchecked(), b.as_string() ) > 0;
+        return ostring::strcmp( a.as_string(), b.as_string() ) > 0;
 }
 
 inline bool operator >= ( ovalue a, ovalue b )
@@ -337,25 +407,96 @@ inline bool operator >= ( ovalue a, ovalue b )
     if ( ! a.is_string() )
         return a.as_number() < b.as_number();
     else
-        return ostring::strcmp( a.as_string_unchecked(), b.as_string() ) >= 0;
+        return ostring::strcmp( a.as_string(), b.as_string() ) >= 0;
 }
 
 
-namespace std
+size_t std::hash< ovalue >::operator () ( const ovalue& v ) const
 {
-template <> struct hash< ovalue >
+    if ( v.is_string() )
+        return v.as_string()->hash();
+    else
+        return std::hash< uint64_t >()( v.x );
+}
+
+
+
+
+/*
+    owb< ovalue >
+*/
+
+
+inline owb< ovalue >::owb()
+    :   v( ovalue::VALUE_UNDEFINED )
 {
-    size_t operator () ( ovalue v )
+}
+
+inline owb< ovalue >& owb< ovalue >::operator = ( ovalue q )
+{
+    // Check current value and mark it if necessary.
+    uint64_t x = v.load( std::memory_order_relaxed );
+    uint64_t tag = x & ovalue::TAG_MASK;
+    if ( tag == ovalue::TAG_OBJECT || tag == ovalue::TAG_EXPAND )
     {
-        if ( v.is_string() )
-            return v.as_string_unchecked()->hash();
-        else
-            return std::hash< uintptr_t >()( v.x );
+        // Mark expands or other objects.
+        obase* p = (obase*)( x & ovalue::POINTER_MASK );
+        if ( p->mark( ocontext::context->mark_colour, O_GREY ) )
+        {
+            ocontext::context->heap->marked_grey( p );
+        }
     }
-};
+    else if ( tag == ovalue::TAG_STRING )
+    {
+        // Just mark strings directly without marking them grey first.
+        ostring * s = (ostring*)( x & ovalue::POINTER_MASK );
+        ocolour mark_colour = ocontext::context->mark_colour;
+        s->mark( mark_colour, mark_colour );
+    }
+    
+    // Update slot.
+    v.store( q.x, std::memory_order_relaxed );
+    return *this;
+}
+
+inline owb< ovalue >& owb< ovalue >::operator = ( const owb& q )
+{
+    return this->operator = ( (ovalue)q );
+}
+
+inline owb< ovalue >::operator ovalue() const
+{
+    return value();
+}
+
+inline ovalue owb< ovalue >::value() const
+{
+    return ovalue( v.load( std::memory_order_relaxed ) );
 }
 
 
+inline void omark< ovalue >::mark(
+                const wb_type& value, oworklist* work, ocolour colour )
+{
+    // Read reference from mark thread, must be a consume operation.
+    uint64_t x = value.v.load( std::memory_order_consume );
+
+    // Mark reference appropriately (if it is a reference).
+    uint64_t tag = x & ovalue::TAG_MASK;
+    if ( tag == ovalue::TAG_OBJECT || tag == ovalue::TAG_EXPAND )
+    {
+        obase* p = (obase*)( x & ovalue::POINTER_MASK );
+        if ( p->mark( colour, O_GREY ) )
+        {
+            work->push_back( p );
+        }
+    }
+    else if ( tag == ovalue::TAG_STRING )
+    {
+        ostring * s = (ostring*)( x & ovalue::POINTER_MASK );
+        s->mark( colour, colour );
+    }
+}
 
 
 

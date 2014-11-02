@@ -7,6 +7,20 @@
 
 
 #include "ostring.h"
+
+
+ometatype ostring::metatype = { mark_string };
+
+
+void ostring::mark_string( oworklist* work, obase* object, ocolour colour )
+{
+    assert( ! "ostring added to work queue" );
+}
+
+
+
+/*
+
 #include <algorithm>
 #include "omodel_impl.h"
 
@@ -86,6 +100,9 @@ osymbol::osymbol( ostring* s )
 }
 
 
+
+
+*/
 
 
 

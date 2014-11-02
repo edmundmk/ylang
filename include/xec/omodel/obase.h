@@ -54,13 +54,12 @@ class owb< reftype_t* >
 public:
 
     owb();
-    owb( reftype_t* q );
     owb& operator = ( reftype_t* q );
     owb& operator = ( const owb& q );
 
     operator reftype_t* () const;
-    reftype_t& operator * () const;
     reftype_t* operator -> () const;
+    reftype_t* consume() const;
     
 
 private:
@@ -95,6 +94,11 @@ inline obase::obase( ometatype* metatype )
     ,   next( ocontext::context->allocs )
 {
     ocontext::context->allocs = this;
+    
+    // Ensure that the initialization of our word (with its colour) is
+    // visible before any store of this new object into a slot visible
+    // to the collector thread.
+    std::atomic_thread_fence( std::memory_order_release );
 }
 
 inline bool obase::mark( ocolour check, ocolour mark )
@@ -118,12 +122,6 @@ inline bool obase::mark( ocolour check, ocolour mark )
 template < typename reftype_t >
 inline owb< reftype_t* >::owb()
     :   p( nullptr )
-{
-}
-
-template < typename reftype_t >
-inline owb< reftype_t* >::owb( reftype_t* q )
-    :   p( q )
 {
 }
 
@@ -155,15 +153,15 @@ inline owb< reftype_t* >::operator reftype_t* () const
 }
 
 template < typename reftype_t >
-inline reftype_t& owb< reftype_t* >::operator * () const
-{
-    return *p.load( std::memory_order_relaxed );
-}
-
-template < typename reftype_t >
 inline reftype_t* owb< reftype_t* >::operator -> () const
 {
     return p.load( std::memory_order_relaxed );
+}
+
+template < typename reftype_t >
+inline reftype_t* owb< reftype_t* >::consume() const
+{
+    return p.load( std::memory_order_consume );
 }
 
 
@@ -171,7 +169,7 @@ template < typename reftype_t >
 inline void omark< reftype_t* >::mark(
                 const wb_type& value, oworklist* work, ocolour colour )
 {
-    reftype_t* p = value;
+    reftype_t* p = value.consume();
     if ( p && p->mark( colour, O_GREY ) )
     {
         work->push_back( p );
