@@ -60,6 +60,73 @@ private:
 
 
 /*
+    Hidden classes are typed.
+    
+    We have a problem with storing ovalues as Nan-boxed values in objects.
+    Concurrent garbage collection forces pointer updates to be atomic.  On
+    32-bit systems, atomic 64-bit accesses are slow.  So we have to know if
+    a value is a pointer or not by looking at only 32 bits of it.  This makes
+    NaN-boxing impossible from the point of view of the garbage collector -
+    it cannot decide between a real pointer and the low bits of a double.
+    Using pointer tag bits does not help, as we cannot fit a double in 63 bits.
+ 
+    Some solutions considered:
+        -   Box numbers (or possibly, numbers which aren't 31-bit ints).
+        -   Make write-barriered ovalues 128-bit.
+ 
+    These are both wasteful.
+    
+    The better solution is to use the hidden class system to store not only
+    the locations of properties but their type.  The hidden class system knows
+    about only 3 types:
+        -   References.
+        -   Numbers.
+        -   A dualval, which can store either a reference or a number.
+        
+    References are pointer-sized and we get efficient concurrency with the
+    garbage collector back.  Numbers are double-sized, and can store any
+    number.  Either a reference or a number can store the 'special' values
+    null, undefined, true, or false.
+    
+    The type of a property is inferred by the first value that is stored to
+    it.  If a number is stored into a reference property, or vice-versa, then
+    the property becomes a dualval, the class is transitioned and the layout
+    updated.  If the first store is a special, we assume a pointer.
+    
+    References are pointers with the two low bits as a tag:
+    
+            00  expand
+            01  string
+            10  object
+            11  special - the high bits identify which one.
+
+    There is a special bit pattern reserved to represent the pointer part
+    of a dualval which currently contains a number.
+ 
+    Numbers are doubles, with the special values encoded in as NaNs.
+ 
+    So an oexpand's olayout is a special garbage collected object which stores:
+        -   The total size of the layout.
+        -   The number of references currently allocated in it.
+    
+    Pointers are always allocated at the start of the layout, and numbers from
+    the end backwards.  The number of references in a layout can only increase.
+    Dualvals always require allocation of both a reference and a number.  If
+    the layout runs out of space, a new layout is allocated and the old one is
+    left to the garbage collector.  Empty space is initialized to a bit pattern
+    meaning 'undefined' in both the reference and number representations.
+    
+    These properties ensure that no matter which version of an object, or what
+    layout updates that object has had, even with race conditions the garbage
+    collector will always find a valid layout at least containing the number
+    of references it had when the collection cycle began.
+*/
+
+
+
+
+
+/*
     An oclass describes the layout of an expand's dynamic properties.  The
     class for empty objects is per-context and is the root of the class tree.
 
@@ -96,7 +163,10 @@ private:
 */
 
 
-
+oexpand::oexpand( ometatype* metatype, oclass* klass )
+    :   obase( metatype )
+{
+}
 
 
 

@@ -371,7 +371,7 @@ inline owb< osymbol >& owb< osymbol >::operator = ( osymbol q )
     ostring* string = this->string.load( std::memory_order_relaxed );
     if ( string )
     {
-        ocolour mark_colour= ocontext::context->mark_colour;
+        ocolour mark_colour = ocontext::context->mark_colour;
         string->mark( mark_colour, mark_colour );
     }
     
