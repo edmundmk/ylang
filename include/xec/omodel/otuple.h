@@ -35,6 +35,7 @@ public:
     
 protected:
 
+    friend class obase;
     static ometatype metatype;
     static void mark_tuple( oworklist* work, obase* object, ocolour colour );
 

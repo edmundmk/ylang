@@ -25,6 +25,9 @@ class obase
 {
 public:
 
+    template < typename object_t > bool is();
+    
+
     bool mark( ocolour check, ocolour mark );
 
 
@@ -89,6 +92,7 @@ struct omark< reftype_t* >
     obase
 */
 
+
 inline obase::obase( ometatype* metatype )
     :   word( (uintptr_t)metatype | ocontext::context->mark_colour )
     ,   next( ocontext::context->allocs )
@@ -100,6 +104,16 @@ inline obase::obase( ometatype* metatype )
     // to the collector thread.
     std::atomic_thread_fence( std::memory_order_release );
 }
+
+
+template < typename object_t >
+inline bool obase::is()
+{
+    uintptr_t word = this->word.load( std::memory_order_relaxed );
+    ometatype* metatype = (ometatype*)( word & ~O_COLOUR );
+    return metatype == &object_t::metatype;
+}
+
 
 inline bool obase::mark( ocolour check, ocolour mark )
 {

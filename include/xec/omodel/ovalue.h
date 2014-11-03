@@ -15,9 +15,9 @@
 #include <atomic>
 #include <functional>
 #include "oheap.h"
+#include "obase.h"
 
 
-class obase;
 class ostring;
 class oexpand;
 
@@ -35,8 +35,8 @@ class oexpand;
 
     On a system with 48-bit pointers (or less), we NaN-box values into doubles.
     Bit patterns of non-float values are all negative quiet NaNs.  This has
-    the desirable property that 'falsey' values are clustered together as the
-    maximum possible values:
+    the desirable property that 'falsey' values are clustered together at the
+    top of the value space (when seen as an unsigned integer):
 
                  F   F   F   x   0   0   0   0   0   0   0   0   0   0   0   0
     nan       s111111111111000000000000000000000000000000000000000000000000000
@@ -44,13 +44,13 @@ class oexpand;
     undefined 1111111111111111111111111111111111111111111111111111111111111110
     false     1111111111111111111111111111111111111111111111111111111111111101
     true      1111111111111111111111111111111111111111111111111111111111111100
-    string    1111111111111110pppppppppppppppppppppppppppppppppppppppppppppppp
-    expand    1111111111111101pppppppppppppppppppppppppppppppppppppppppppppppp
-    object    1111111111111100pppppppppppppppppppppppppppppppppppppppppppppppp
+    string    1111111111111110pppppppppppppppppppppppppppppppppppppppppppppp00
+    expand    1111111111111101pppppppppppppppppppppppppppppppppppppppppppppp00
+    object    1111111111111100pppppppppppppppppppppppppppppppppppppppppppppp00
 
     On systems with a truly 64-bit address space, we should ensure that values
     are allocated from the low 48-bits (or from a 48-bit heap).
-
+    
 */
 
 
@@ -77,6 +77,7 @@ public:
     bool        is_undefined() const;
     bool        is_bool() const;
     bool        is_number() const;
+    bool        is_integer() const;
     bool        is_object() const;
     bool        is_string() const;
     bool        is_expand() const;
@@ -145,8 +146,77 @@ template <> struct hash< ovalue >
 
 
 /*
+
     As ovalues can be references they need an atomic, write-barriered type.
+    On 64-bit systems this is an atomic version of the value bits.
+
+    But we have a problem with concurrent GC on 32-bit systems, as on these
+    systems (x86, ARM32) atomic 64-bit loads and stores are expensive.  On
+    these systems we fall back to a tagged-pointer representation.  Most of
+    the time values do actually fit in 32 bits.
+ 
+            special         ------------------------------11
+                null        11111111111111111111111111111111
+                undefined   11111111111111111111111111111011
+                false       11111111111111111111111111110111
+                true        11111111111111111111111111110011
+            signed integer  iiiiiiiiiiiiiiiiiiiiiiiiiiiiii10
+            boxed number    pppppppppppppppppppppppppppppp01
+            object          pppppppppppppppppppppppppppppp00
+    
+    Any numbers which aren't 31-bit signed integers get boxed.  Note that
+    we only compress values into this representation when they are actually
+    stored into the write-barriered value.
+  
+    We also reuse boxes as values are updated - if a boxed double is assigned
+    into a slot it's likely that subsequent stores will also be numbers.  We
+    assume that numbers in different objects are likely to be different, or at
+    least the results of different calculations.
+    
+    I'm not sure if small ints are a win or not, considering we have to check
+    for them on every assignment.  The special cases (string, expand, small
+    ints, boxed floats) are adding up.  Might be better to box _all_ numbers
+    and to treat _all_ objects as of unknown type (including in the write
+    barrier and when marking - means adding strings to the grey list).
+
 */
+
+
+#if ! defined( __x86_64__ ) && ! defined( __arm64__ )
+#define OVALUE_BOXING 1
+#endif
+
+
+
+#ifdef OVALUE_BOXING
+
+class oboxed : public obase
+{
+public:
+
+    static oboxed* alloc( double number );
+    
+    void    set( double number );
+    double  get() const;
+
+
+protected:
+
+    friend class obase;
+    static ometatype metatype;
+    static void mark_boxed( oworklist* work, obase* object, ocolour colour );
+
+    oboxed( ometatype* metatype, double number );
+
+    
+private:
+
+    double number;
+
+};
+
+#endif
+
 
 template <>
 class owb< ovalue >
@@ -185,7 +255,26 @@ private:
 
     ovalue value() const;
 
+#ifdef OVALUE_BOXING
+
+    static const uint64_t  SPECIAL_HIBITS   = INT64_C( 0xFFFFFFFFC0000000 );
+    static const uintptr_t VALUE_UNDEFINED  = 0xFFFFFFFBu;
+    static const uintptr_t TAG_SPECIAL      = 0x00000003u;
+    static const uintptr_t TAG_INTEGER      = 0x00000002u;
+    static const uintptr_t TAG_BOXED        = 0x00000001u;
+    static const uintptr_t TAG_OBJECT       = 0x00000000u;
+    static const uintptr_t TAG_MASK         = 0x00000003u;
+    static const uintptr_t POINTER_MASK     = 0xFFFFFFFCu;
+    static const intptr_t  MAX_INTEGER      = 0x1FFFFFFF;
+    static const intptr_t  MIN_INTEGER      = -MAX_INTEGER - 1;
+    
+    std::atomic< uintptr_t > v;
+
+#else
+
     std::atomic< uint64_t > v;
+
+#endif
     
 };
 
@@ -209,6 +298,7 @@ struct omark< ovalue >
 #include <math.h>
 #include "ostring.h"
 #include "oerror.h"
+#include "oexpand.h"
 
 
 inline ovalue::ovalue( uint64_t x )
@@ -427,6 +517,9 @@ size_t std::hash< ovalue >::operator () ( const ovalue& v ) const
 */
 
 
+#ifndef OVALUE_BOXING
+
+
 inline owb< ovalue >::owb()
     :   v( ovalue::VALUE_UNDEFINED )
 {
@@ -464,7 +557,7 @@ inline owb< ovalue >& owb< ovalue >::operator = ( const owb& q )
     return this->operator = ( (ovalue)q );
 }
 
-inline owb< ovalue >::operator ovalue() const
+inline owb< ovalue >::operator ovalue () const
 {
     return value();
 }
@@ -478,7 +571,7 @@ inline ovalue owb< ovalue >::value() const
 inline void omark< ovalue >::mark(
                 const wb_type& value, oworklist* work, ocolour colour )
 {
-    // Read reference from mark thread, must be a consume operation.
+    // Reading reference from mark thread, must be a consume operation.
     uint64_t x = value.v.load( std::memory_order_consume );
 
     // Mark reference appropriately (if it is a reference).
@@ -497,6 +590,194 @@ inline void omark< ovalue >::mark(
         s->mark( colour, colour );
     }
 }
+
+
+#else
+
+
+inline oboxed* oboxed::alloc( double number )
+{
+    void* p = malloc( sizeof( oboxed ) );
+    return new ( p ) oboxed( &metatype, number );
+}
+
+inline oboxed::oboxed( ometatype* metatype, double number )
+    :   obase( metatype )
+    ,   number( number )
+{
+}
+
+inline void oboxed::set( double number )
+{
+    this->number = number;
+}
+
+inline double oboxed::get() const
+{
+    return number;
+}
+
+
+
+inline owb< ovalue >::owb()
+    :   v( VALUE_UNDEFINED )
+{
+}
+
+inline owb< ovalue >& owb< ovalue >::operator = ( ovalue q )
+{
+    // Check previous value, marking it.
+    uintptr_t v = this->v.load( std::memory_order_relaxed );
+    uintptr_t tag = v & TAG_MASK;
+    ocolour mark_colour = ocontext::context->mark_colour;
+    
+    if ( tag == TAG_OBJECT )
+    {
+        obase* p = (obase*)v;
+        if ( p->is< ostring >() )
+        {
+            // Mark strings without adding to grey list.
+            p->mark( mark_colour, mark_colour );
+        }
+        else
+        {
+            // Add to grey list.
+            if ( p->mark( mark_colour, O_GREY ) )
+            {
+                ocontext::context->heap->marked_grey( p );
+            }
+        }
+    }
+    else if ( tag == TAG_BOXED )
+    {
+        oboxed* boxed = (oboxed*)( v & POINTER_MASK );
+
+        // If q is a number, early out without modifying reference.
+        if ( q.x <= ovalue::HIGHEST_FLOAT )
+        {
+            boxed->set( q.n );
+            return *this;
+        }
+        
+        // Otherwise mark boxed without adding to grey list.
+        boxed->mark( mark_colour, mark_colour );
+    }
+    
+
+    // Box value.
+    if ( q.x <= ovalue::HIGHEST_FLOAT )
+    {
+        intptr_t i = (intptr_t)q.n;
+        if ( i == q.n && i >= MIN_INTEGER && i <= MAX_INTEGER )
+        {
+            this->v.store( i << 2 | TAG_INTEGER, std::memory_order_relaxed );
+        }
+        else
+        {
+            oboxed* b = oboxed::alloc( q.n );
+            this->v.store( (uintptr_t)b | TAG_BOXED, std::memory_order_relaxed );
+        }
+    }
+    else if ( q.x >= ovalue::TAG_OBJECT && q.x < ovalue::TAG_MASK )
+    {
+        obase* p = (obase*)( q.x & ovalue::POINTER_MASK );
+        this->v.store( (uintptr_t)p | TAG_OBJECT, std::memory_order_relaxed );
+    }
+    else
+    {
+        assert( ( q.x & SPECIAL_HIBITS ) == SPECIAL_HIBITS );
+        uintptr_t s = (uintptr_t)q.x << 2 | TAG_SPECIAL;
+        this->v.store( s, std::memory_order_relaxed );
+    }
+    
+    return *this;
+}
+
+inline owb< ovalue >& owb< ovalue >::operator = ( const owb& q )
+{
+    // Could do a fast-path since the incoming value already uses boxing.
+    // Remember, however, that boxed numbers are mutable so we'd need our
+    // own copy of any boxed value.  For now, unpack and repack value.
+    return this->operator = ( (ovalue)q );
+}
+
+inline owb< ovalue >::operator ovalue () const
+{
+    return value();
+}
+
+inline ovalue owb< ovalue >::value() const
+{
+    // Reconstruct boxed value.
+    uintptr_t v = this->v.load( std::memory_order_relaxed );
+    uintptr_t tag = v & TAG_MASK;
+    if ( tag == TAG_OBJECT )
+    {
+        obase* p = (obase*)v;
+        if ( p->is< ostring >() )
+            return ovalue( (ostring*)p );
+        else if ( p->is< oexpand >() )
+            return ovalue( (oexpand*)p );
+        else
+            return ovalue( p );
+    }
+    else if ( tag == TAG_BOXED )
+    {
+        oboxed* b = (oboxed*)( v & POINTER_MASK );
+        return ovalue( b->get() );
+    }
+    else if ( tag == TAG_INTEGER )
+    {
+        intptr_t i = (intptr_t)v >> 2;
+        return ovalue( (double)i );
+    }
+    else if ( tag == TAG_SPECIAL )
+    {
+        return ovalue( SPECIAL_HIBITS | v >> 2 );
+    }
+    
+    assert( ! "unknown boxed tag" );
+    return ovalue();
+}
+
+
+inline void omark< ovalue >::mark(
+                const wb_type& value, oworklist* work, ocolour colour )
+{
+    // Reading reference from mark thread, must be a consume operation.
+    uintptr_t v = value.v.load( std::memory_order_consume );
+    
+    // Check pointer tag.
+    uintptr_t tag = v & wb_type::TAG_MASK;
+    if ( tag == wb_type::TAG_OBJECT )
+    {
+        obase* p = (obase*)v;
+        if ( p->is< ostring >() )
+        {
+            // Mark string values directly.
+            p->mark( colour, colour );
+        }
+        else
+        {
+            // Mark objects grey and add to work list.
+            if ( p->mark( colour, O_GREY ) )
+            {
+                work->push_back( p );
+            }
+        }
+    }
+    else if ( tag == wb_type::TAG_BOXED )
+    {
+        // Mark boxed values directly.
+        oboxed* b = (oboxed*)( v & wb_type::POINTER_MASK );
+        b->mark( colour, colour );
+    }
+}
+
+
+
+
+#endif
 
 
 

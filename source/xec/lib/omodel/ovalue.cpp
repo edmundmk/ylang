@@ -19,3 +19,18 @@ obase* ovalue::get() const
 }
 
 
+
+
+
+#ifdef OVALUE_BOXING
+
+
+ometatype oboxed::metatype = { &mark_boxed };
+
+void oboxed::mark_boxed( oworklist* work, obase* object, ocolour colour )
+{
+    assert( ! "oboxed added to work queue" );
+}
+
+
+#endif

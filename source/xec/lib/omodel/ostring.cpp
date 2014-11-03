@@ -9,7 +9,7 @@
 #include "ostring.h"
 
 
-ometatype ostring::metatype = { mark_string };
+ometatype ostring::metatype = { &mark_string };
 
 
 void ostring::mark_string( oworklist* work, obase* object, ocolour colour )

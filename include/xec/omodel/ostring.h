@@ -40,6 +40,7 @@ public:
 
 protected:
 
+    friend class obase;
     static ometatype metatype;
     static void mark_string( oworklist* work, obase* object, ocolour colour );
     
