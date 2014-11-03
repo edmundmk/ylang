@@ -118,8 +118,16 @@ private:
 
 struct olindex
 {
-    int16_t slot;
-    int16_t offset;
+    enum kind { REFERENCE, NUMBER, DUAL };
+
+    bool is_reference() { return kind == REFERENCE; }
+    bool is_number()    { return kind == NUMBER; }
+    bool is_dual()      { return kind == DUAL; }
+
+    kind        kind;
+    size_t      slot;
+    ptrdiff_t   offset;
+
 };
 
     
@@ -212,20 +220,21 @@ inline ovalue oexpand::getkey( osymbol key ) const
 #if IS32BIT
     
         olindex index = lookup->value;
-        if ( index.slot >= 0 )
+        if ( index.is_reference() )
         {
-            // Reference or dual slot.
             v = layout->reference_at( index.slot );
-            if ( index.slot >= 0 && v.is_undefined() )
-            {
-                // Dual slot with undefined reference part.
-                v = layout->number_at( index.offset );
-            }
+        }
+        else if ( index.is_number() )
+        {
+            v = layout->number_at( index.offset );
         }
         else
         {
-            // Number slot.
-            v = layout->number_at( index.offset );
+            v = layout->reference_at( index.slot );
+            if ( v.is_undefined() )
+            {
+                v = layout->number_at( index.offset );
+            }
         }
         
 #else
@@ -253,41 +262,23 @@ inline void oexpand::setkey( osymbol key, ovalue value )
 #if IS32BIT
 
         olindex index = lookup->value;
-
-        if ( index.slot >= 0 && index.offset >= 0 )
+        if ( index.is_reference() && ! value.is_number() )
         {
-            // Dual slot.
-            if ( ! value.is_number() )
-            {
-                layout->reference_at( index.slot ) = value;
-                if ( value.is_undefined() )
-                    layout->number_at( index.offset ) = value;
-            }
-            else
-            {
-                layout->reference_at( index.slot ) = ovalue::undefined;
-                layout->number_at( index.offset ) = value;
-            }
-            
+            layout->reference_at( index.slot ) = value;
             return;
         }
-        else if ( index.slot >= 0 )
+        else if ( index.is_number() && ! value.is_reference() )
         {
-            // Reference slot.
-            if ( ! value.is_number() )
-            {
-                layout->reference_at( index.slot ) = value;
-                return;
-            }
+            layout->number_at( index.offset ) = value;
+            return;
         }
-        else
+        else if ( index.is_dual() )
         {
-            // Number slot.
+            if ( ! value.is_number() )
+                layout->reference_at( index.slot ) = value;
             if ( ! value.is_reference() )
-            {
                 layout->number_at( index.offset ) = value;
-                return;
-            }
+            return;
         }
         
 #else
@@ -303,16 +294,26 @@ inline void oexpand::setkey( osymbol key, ovalue value )
 
 inline void oexpand::delkey( osymbol key )
 {
+    setkey( key, ovalue::undefined );
     auto lookup = klass->lookup.lookup( key );
     if ( lookup )
     {
 #if IS32BIT
     
         olindex index = lookup->value;
-        if ( index.slot >= 0 )
+        if ( index.is_reference() )
+        {
             layout->reference_at( index.slot ) = ovalue::undefined;
-        if ( index.offset >= 0 )
+        }
+        else if ( index.is_number() )
+        {
             layout->number_at( index.slot ) = ovalue::undefined;
+        }
+        else
+        {
+            layout->reference_at( index.slot ) = ovalue::undefined;
+            layout->number_at( index.slot ) = ovalue::undefined;
+        }
         
 #else
 
