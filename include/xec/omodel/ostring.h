@@ -72,6 +72,7 @@ class owb< ostring* >
 public:
 
     owb();
+    owb( ostring* q );
     owb& operator = ( ostring* q );
     owb& operator = ( const owb& q );
     
@@ -146,6 +147,7 @@ class owb< osymbol >
 public:
 
     owb();
+    owb( osymbol q );
     owb& operator = ( osymbol q );
     owb& operator = ( const owb& q );
 
@@ -274,6 +276,11 @@ inline owb< ostring* >::owb()
 {
 }
 
+inline owb< ostring* >::owb( ostring* q )
+    :   p( q )
+{
+}
+
 inline owb< ostring* >& owb< ostring* >::operator = ( ostring* q )
 {
     // If old value is not marked, mark it.  Strings contain no references
@@ -363,6 +370,11 @@ size_t std::hash< osymbol >::operator () ( const osymbol& a ) const
 
 inline owb< osymbol >::owb()
     :   string( nullptr )
+{
+}
+
+inline owb< osymbol >::owb( osymbol q )
+    :   string( q.string )
 {
 }
 

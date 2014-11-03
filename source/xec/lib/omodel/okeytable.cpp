@@ -12,7 +12,11 @@
 
 
 
+#if IS32BIT
+template class okeytable< osymbol, olindex >;
+#else
 template class okeytable< osymbol, size_t >;
+#endif
 template class okeytable< osymbol, oclass* >;
 
 

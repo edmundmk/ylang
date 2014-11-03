@@ -10,6 +10,13 @@
 
 
 
+oclass* oexpand::empty()
+{
+    // TODO: recover the expand.
+    return nullptr;
+}
+
+
 
 
 

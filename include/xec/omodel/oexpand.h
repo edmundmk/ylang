@@ -14,10 +14,14 @@
 #include "otuple.h"
 #include "okeytable.h"
 #include "ostring.h"
+#include "ovalue.h"
+
 
 class oexpand;
 class oclass;
-class ovalue;
+#if IS32BIT
+class olayout;
+#endif
 
 
 /*
@@ -38,6 +42,8 @@ public:
     void        setkey( osymbol key, ovalue value );
     void        delkey( osymbol key );
 
+    oclass*     empty();
+    
 
 protected:
 
@@ -50,79 +56,74 @@ protected:
 
 private:
 
-    owb< oclass* >                  klass;
-    owb< otuple< ovalue >* >        props;
+    void        expandkey( osymbol key, ovalue value );
 
+    owb< oclass* >              klass;
+#if IS32BIT
+    owb< olayout* >             layout;
+#else
+    owb< otuple< ovalue >* >    layout;
+#endif
 }; 
 
 
 
-
+#if IS32BIT
 
 /*
-    Hidden classes are typed.
+    On 32-bit systems references and numbers must be stored separately, as the
+    garbage collector (which is running concurrently) cannot differentiate
+    between numbers and references with only 32-bit atomic operations.
     
-    We have a problem with storing ovalues as Nan-boxed values in objects.
-    Concurrent garbage collection forces pointer updates to be atomic.  On
-    32-bit systems, atomic 64-bit accesses are slow.  So we have to know if
-    a value is a pointer or not by looking at only 32 bits of it.  This makes
-    NaN-boxing impossible from the point of view of the garbage collector -
-    it cannot decide between a real pointer and the low bits of a double.
-    Using pointer tag bits does not help, as we cannot fit a double in 63 bits.
- 
-    Some solutions considered:
-        -   Box numbers (or possibly, numbers which aren't 31-bit ints).
-        -   Make write-barriered ovalues 128-bit.
- 
-    These are both wasteful.
-    
-    The better solution is to use the hidden class system to store not only
-    the locations of properties but their type.  The hidden class system knows
-    about only 3 types:
-        -   References.
-        -   Numbers.
-        -   A dualval, which can store either a reference or a number.
-        
-    References are pointer-sized and we get efficient concurrency with the
-    garbage collector back.  Numbers are double-sized, and can store any
-    number.  Either a reference or a number can store the 'special' values
-    null, undefined, true, or false.
-    
-    The type of a property is inferred by the first value that is stored to
-    it.  If a number is stored into a reference property, or vice-versa, then
-    the property becomes a dualval, the class is transitioned and the layout
-    updated.  If the first store is a special, we assume a pointer.
-    
-    References are pointers with the two low bits as a tag:
-    
-            00  expand
-            01  string
-            10  object
-            11  special - the high bits identify which one.
-
-    There is a special bit pattern reserved to represent the pointer part
-    of a dualval which currently contains a number.
- 
-    Numbers are doubles, with the special values encoded in as NaNs.
- 
-    So an oexpand's olayout is a special garbage collected object which stores:
-        -   The total size of the layout.
-        -   The number of references currently allocated in it.
-    
-    Pointers are always allocated at the start of the layout, and numbers from
-    the end backwards.  The number of references in a layout can only increase.
-    Dualvals always require allocation of both a reference and a number.  If
-    the layout runs out of space, a new layout is allocated and the old one is
-    left to the garbage collector.  Empty space is initialized to a bit pattern
-    meaning 'undefined' in both the reference and number representations.
-    
-    These properties ensure that no matter which version of an object, or what
-    layout updates that object has had, even with race conditions the garbage
-    collector will always find a valid layout at least containing the number
-    of references it had when the collection cycle began.
+    A layout is a block of memory where references (otagrefs) are allocated
+    from the start of the block, while numbers are allocated from the end.
+    If a reference is written to a number slot, or a number is written to a
+    reference slot, the expand's class must be updated and the slot becomes a
+    'dual' slot with both reference and number parts.
 */
 
 
+class olayout : public obase
+{
+public:
+
+    static olayout alloc( size_t size );
+    
+    size_t      size() const;
+
+    void        set_count( size_t count );
+    otagref&    reference_at( size_t index );
+    ovalue&     number_at( ptrdiff_t offset );
+
+
+protected:
+
+    friend class obase;
+    static ometatype metatype;
+    static void mark_layout( oworklist* work, obase* object, ocolour colour );
+    
+
+private:
+
+    uint32_t    lsize;
+    uint32_t    lcount;
+    otagref     lslots[];
+
+};
+
+
+/*
+    This tells us which slot/offset a particular property uses.
+*/
+
+struct olindex
+{
+    int16_t slot;
+    int16_t offset;
+};
+
+    
+#endif
 
 
 
@@ -142,11 +143,26 @@ class oclass : public obase
 {
 public:
 
+    static oclass* alloc();
+
+
+protected:
+
+    friend class obase;
+    static ometatype metatype;
+    static void mark_class( oworklist* work, obase* object, ocolour colour );
+
 
 private:
 
+    friend class oexpand;
+
     owb< oexpand* >                 prototype;
+#if IS32BIT
+    okeytable< osymbol, olindex >   lookup;
+#else
     okeytable< osymbol, size_t >    lookup;
+#endif
     owb< oclass* >                  parent;
     owb< osymbol >                  parent_key;
     okeytable< osymbol, oclass* >   children;
@@ -162,10 +178,148 @@ private:
 
 */
 
-
-oexpand::oexpand( ometatype* metatype, oclass* klass )
-    :   obase( metatype )
+inline oexpand* oexpand::alloc()
 {
+    void* p = malloc( sizeof( oexpand ) );
+    return new ( p ) oexpand( &metatype, ocontext::context->empty );
+}
+
+inline oexpand* oexpand::alloc( oexpand* prototype )
+{
+    void* p = malloc( sizeof( oexpand ) );
+    return new ( p ) oexpand( &metatype, prototype->empty() );
+}
+
+
+inline oexpand::oexpand( ometatype* metatype, oclass* klass )
+    :   obase( metatype )
+    ,   klass( klass )
+{
+}
+
+inline oexpand* oexpand::prototype() const
+{
+    return klass->prototype;
+}
+
+inline ovalue oexpand::getkey( osymbol key ) const
+{
+    ovalue v;
+
+    auto lookup = klass->lookup.lookup( key );
+    if ( lookup )
+    {
+#if IS32BIT
+    
+        olindex index = lookup->value;
+        if ( index.slot >= 0 )
+        {
+            // Reference or dual slot.
+            v = layout->reference_at( index.slot );
+            if ( index.slot >= 0 && v.is_undefined() )
+            {
+                // Dual slot with undefined reference part.
+                v = layout->number_at( index.offset );
+            }
+        }
+        else
+        {
+            // Number slot.
+            v = layout->number_at( index.offset );
+        }
+        
+#else
+
+        v = layout->at( lookup->value );
+
+#endif
+    }
+    
+    
+    if ( v.is_undefined() && klass->prototype )
+    {
+        // Delegate to prototype.
+        v = klass->prototype->getkey( key );
+    }
+
+    return v;
+}
+
+inline void oexpand::setkey( osymbol key, ovalue value )
+{
+    auto lookup = klass->lookup.lookup( key );
+    if ( lookup )
+    {
+#if IS32BIT
+
+        olindex index = lookup->value;
+
+        if ( index.slot >= 0 && index.offset >= 0 )
+        {
+            // Dual slot.
+            if ( ! value.is_number() )
+            {
+                layout->reference_at( index.slot ) = value;
+                if ( value.is_undefined() )
+                    layout->number_at( index.offset ) = value;
+            }
+            else
+            {
+                layout->reference_at( index.slot ) = ovalue::undefined;
+                layout->number_at( index.offset ) = value;
+            }
+            
+            return;
+        }
+        else if ( index.slot >= 0 )
+        {
+            // Reference slot.
+            if ( ! value.is_number() )
+            {
+                layout->reference_at( index.slot ) = value;
+                return;
+            }
+        }
+        else
+        {
+            // Number slot.
+            if ( ! value.is_reference() )
+            {
+                layout->number_at( index.offset ) = value;
+                return;
+            }
+        }
+        
+#else
+
+        v = layout->at( lookup->value ) = value;
+        return;
+#endif
+    }
+
+    // If the key doesn't exist or the types don't match we have to expand.
+    expandkey( key, value );
+}
+
+inline void oexpand::delkey( osymbol key )
+{
+    auto lookup = klass->lookup.lookup( key );
+    if ( lookup )
+    {
+#if IS32BIT
+    
+        olindex index = lookup->value;
+        if ( index.slot >= 0 )
+            layout->reference_at( index.slot ) = ovalue::undefined;
+        if ( index.offset >= 0 )
+            layout->number_at( index.slot ) = ovalue::undefined;
+        
+#else
+
+        layout->at( lookup->value ) = ovalue::undefined;
+
+#endif
+    }
 }
 
 

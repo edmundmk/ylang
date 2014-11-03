@@ -57,6 +57,7 @@ class owb< reftype_t* >
 public:
 
     owb();
+    owb( reftype_t* q );
     owb& operator = ( reftype_t* q );
     owb& operator = ( const owb& q );
 
@@ -136,6 +137,12 @@ inline bool obase::mark( ocolour check, ocolour mark )
 template < typename reftype_t >
 inline owb< reftype_t* >::owb()
     :   p( nullptr )
+{
+}
+
+template < typename reftype_t >
+inline owb< reftype_t* >::owb( reftype_t* q )
+    :   p( q )
 {
 }
 
