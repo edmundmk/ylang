@@ -17,6 +17,16 @@
 #include "ovalue.h"
 
 
+#if OVALUE32
+#define OEXPANDSLOTS 1
+#endif
+
+
+#if OEXPANDSLOTS
+#include "oslotlist.h"
+#endif
+
+
 class oexpand;
 class oclass;
 
@@ -55,10 +65,16 @@ protected:
 private:
 
     void        expandkey( osymbol key, ovalue value );
+#if OEXPANDSLOTS
+    void        dualkey( osymbol key, oslotindex index, ovalue value );
+#endif
 
     owb< oclass* >              klass;
-    owb< otuple< ovalue >* >    props;
-    
+#if OEXPANDSLOTS
+    owb< oslotlist* >           slots;
+#else
+    owb< otuple< ovalue >* >    slots;
+#endif
 };
 
 
@@ -97,12 +113,21 @@ private:
 
     friend class oexpand;
 
-    owb< oexpand* >                 prototype;
-    okeytable< osymbol, size_t >    lookup;
-    owb< oclass* >                  parent;
-    owb< osymbol >                  parent_key;
-    okeytable< osymbol, oclass* >   children;
-    bool                            is_prototype;
+    owb< oexpand* >                     prototype;
+#if OEXPANDSLOTS
+    okeytable< osymbol, oslotindex >    lookup;
+#else
+    okeytable< osymbol, size_t >        lookup;
+#endif
+    owb< oclass* >                      parent;
+    owb< osymbol >                      parent_key;
+#if OEXPANDSLOTS
+    okeytable< osymbol, oclass* >       children_addref;
+    okeytable< osymbol, oclass* >       children_addnum;
+#else
+    okeytable< osymbol, oclass* >       children;
+#endif
+    bool                                is_prototype;
     
 };
 
@@ -145,7 +170,11 @@ inline ovalue oexpand::getkey( osymbol key ) const
     auto lookup = klass->lookup.lookup( key );
     if ( lookup )
     {
+#if OEXPANDSLOTS
+        v = slots->load( lookup->value.slot );
+#else
         v = props->at( lookup->value );
+#endif
     }
     
     if ( v.is_undefined() && klass->prototype )
@@ -161,7 +190,15 @@ inline void oexpand::setkey( osymbol key, ovalue value )
     auto lookup = klass->lookup.lookup( key );
     if ( lookup )
     {
+#if OEXPANDSLOTS
+        oslotindex index = lookup->value;
+        if ( value.is_number() == index.dual )
+            slots->store( index.slot, value );
+        else
+            dualkey( key, index, value );
+#else
         props->at( lookup->value ) = value;
+#endif
     }
     else
     {
@@ -169,207 +206,9 @@ inline void oexpand::setkey( osymbol key, ovalue value )
     }
 }
 
-inline void oexpand::delkey( osymbol key )
-{
-    auto lookup = klass->lookup.lookup( key );
-    if ( lookup )
-    {
-        props->at( lookup->value ) = ovalue::undefined;
-    }
-}
-
 
 
 
 
 
 #endif
-
-
-#if OLD
-
-#include <hashtable.h>
-#include "omodel.h"
-#include "ovalue.h"
-
-
-class oexpand;
-class oexpanddata;
-class oexpandclass;
-
-
-
-/*
-    oexpand is the base class for every omodel object (except strings).  Expand
-    properties are stored in the expand data using a hidden class system.
-*/
-
-class oexpand : public ogcbase
-{
-public:
-
-    static oexpand* alloc( oexpand* prototype );
-    
-    oexpand*    prototype() const;
-    ovalue      getkey( osymbol key ) const;
-    void        setkey( osymbol key, ovalue value );
-    void        delkey( osymbol key );
-
-
-protected:
-
-    oexpand();
-    ~oexpand();
-
-
-private:
-
-    friend class oimpl::omodel;
-
-    friend class ogcbase;
-    static oimpl::ogctype gctype;
-    static void mark( ogcbase*, oimpl::oworklist*, oimpl::ocolour, oimpl::ocolour );
-    static void free( ogcbase* );
-
-    void expand_key( osymbol key, ovalue value );
-
-    oexpanddata* expand;
-
-};
-
-
-
-/*
-    Expand data stores expand properties.
-*/
-
-struct oexpanddata
-{
-    oexpandclass*   expandclass;
-    ovalue          properties[];
-};
-
-
-
-/*
-    An expandclass describes the layout of an expand's dynamic properties.
-    expandclasses should be cleaned up if they have no instances and they
-    have no child expandclasses left alive.
-*/
-
-class oexpandclass : public ogcbase
-{
-protected:
-
-    oexpandclass();
-    ~oexpandclass();
-
-
-private:
-
-    friend class oimpl::omodel;
-
-    friend class ogcbase;
-    static oimpl::ogctype gctype;
-    static void mark( ogcbase*, oimpl::oworklist*, oimpl::ocolour, oimpl::ocolour );
-    static void free( ogcbase* );
-
-    friend class oexpand;
-    friend class omodel;
-
-    oexpand*                            prototype;
-    uint32_t                            capacity;
-    uint32_t                            size;
-    hashtable< osymbol, size_t >        lookup;
-    uint32_t                            derivedindex;
-    
-    uint32_t                            refcount;
-    oexpandclass*                       parent;
-    osymbol                             parent_key;
-    hashtable< osymbol, oexpandclass* > children;
-    
-};
-
-
-
-
-/*
-*/
-
-template < typename object_t >
-inline bool ovalue::is() const
-{
-    return is_expand() && ( (oexpand*)( x & POINTER_MASK ) )->is< object_t >();
-}
-
-template < typename object_t >
-inline object_t* ovalue::as() const
-{
-    if ( is< object_t >() )
-        return (object_t*)( x & POINTER_MASK );
-    else
-        throw oerror( "expected %s", object_t::gctype->name );
-}
-
-
-
-
-inline ovalue oexpand::getkey( osymbol key ) const
-{
-    if ( expand )
-    {
-        auto lookup = expand->expandclass->lookup.lookup( key );
-        if ( lookup )
-        {
-            ovalue property = expand->properties[ lookup->value ];
-            if ( ! property.is_undefined() )
-            {
-                return property;
-            }
-        }
-
-        if ( expand->expandclass->prototype )
-        {
-            return expand->expandclass->prototype->getkey( key );
-        }
-    }
-
-    return ovalue::undefined;
-}
-
-inline void oexpand::setkey( osymbol key, ovalue value )
-{
-    write_barrier();
-
-    if ( expand )
-    {
-        auto lookup = expand->expandclass->lookup.lookup( key );
-        if ( lookup )
-        {
-            expand->properties[ lookup->value ] = value;
-            return;
-        }
-    }
-    
-    expand_key( key, value );
-}
-
-inline void oexpand::delkey( osymbol key )
-{
-    write_barrier();
-
-    if ( expand )
-    {
-        auto lookup = expand->expandclass->lookup.lookup( key );
-        if ( lookup )
-        {
-            expand->properties[ lookup->value ] = ovalue::undefined;
-        }
-    }
-}
-
-
-#endif
-
-
-

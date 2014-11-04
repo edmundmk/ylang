@@ -19,6 +19,26 @@ oclass* oexpand::empty()
 
 
 
+inline void oexpand::delkey( osymbol key )
+{
+    auto lookup = klass->lookup.lookup( key );
+    if ( lookup )
+    {
+#if OEXPANDSLOTS
+        oslotindex index = lookup->value;
+        slots->store( index.slot, ovalue::undefined );
+        if ( index.dual >= 2 )
+            slots->store( index.dual - 2, ovalue::undefined );
+#else
+        props->at( lookup->value ) = ovalue::undefined;
+#endif
+    }
+}
+
+
+
+
+
 
 
 

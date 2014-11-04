@@ -10,8 +10,6 @@
 
 
 
-#if OVALUE64
-
 ovalue ovalue::undefined( VALUE_UNDEFINED );
 
 obase* ovalue::get() const
@@ -26,32 +24,6 @@ obase* ovalue::get() const
     }
 }
 
-
-#endif
-
-
-
-#if OVALUE32
-
-ometatype oboxed::metatype = { nullptr };
-
-ovalue ovalue::undefined( VALUE_UNDEFINED );
-
-obase* ovalue::get() const
-{
-    if ( ( x & TAG_MASK ) < TAG_BOXED )
-    {
-        return (obase*)( x & POINTER_MASK );
-    }
-    else
-    {
-        return nullptr;
-    }
-}
-
-
-
-#endif
 
 
 
