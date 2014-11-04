@@ -49,9 +49,10 @@ public:
     void            remove( const key_t& key );
     void            clear();
 
-    void            mark( oworklist* work, ocolour colour );
 
 private:
+
+    friend struct omark< okeytable >;
 
     void            rehash( size_t new_capacity );
     keyval_type*    main_position( const key_t& key );
@@ -343,12 +344,6 @@ typename okeytable< key_t, value_t >::keyval_type*
 }
 
 
-template < typename key_t, typename value_t >
-inline void okeytable< key_t, value_t >::mark( oworklist* work, ocolour colour )
-{
-    omark< otuple< keyval_type >* >::mark( keyvals, work, colour );
-}
-
 
 
 
@@ -365,7 +360,7 @@ template < typename key_t, typename value_t >
 inline void omark< okeytable< key_t, value_t > >::mark(
                 const wb_type& value, oworklist* work, ocolour colour )
 {
-    value.mark( work, colour );
+    omark< otuple< okeyval< key_t, value_t > >* >::mark( value.keyvals, work, colour );
 }
 
 

@@ -10,27 +10,50 @@
 
 
 
-ovalue ovalue::undefined( ovalue::VALUE_UNDEFINED );
+#if OVALUE64
 
+ovalue ovalue::undefined( VALUE_UNDEFINED );
 
 obase* ovalue::get() const
 {
-    return (obase*)( x & POINTER_MASK );
-}
-
-
-
-
-
-#ifdef OVALUE_BOXING
-
-
-ometatype oboxed::metatype = { &mark_boxed };
-
-void oboxed::mark_boxed( oworklist* work, obase* object, ocolour colour )
-{
-    assert( ! "oboxed added to work queue" );
+    if ( x >= MIN_REFERENCE && x <= MAX_REFERENCE )
+    {
+        return (obase*)( x & POINTER_MASK );
+    }
+    else
+    {
+        return nullptr;
+    }
 }
 
 
 #endif
+
+
+
+#if OVALUE32
+
+ometatype oboxed::metatype = { nullptr };
+
+ovalue ovalue::undefined( VALUE_UNDEFINED );
+
+obase* ovalue::get() const
+{
+    if ( ( x & TAG_MASK ) < TAG_BOXED )
+    {
+        return (obase*)( x & POINTER_MASK );
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+
+
+#endif
+
+
+
+
+

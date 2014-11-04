@@ -14,7 +14,7 @@ __thread ocontext* ocontext::context = nullptr;
 
 
 
-void oheap::marked_grey( obase* object )
+void oheap::mark_grey( obase* object )
 {
     // TODO: Add object to work list.
 }

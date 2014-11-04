@@ -19,9 +19,7 @@
 
 class oexpand;
 class oclass;
-#if IS32BIT
-class olayout;
-#endif
+
 
 
 /*
@@ -59,79 +57,13 @@ private:
     void        expandkey( osymbol key, ovalue value );
 
     owb< oclass* >              klass;
-#if IS32BIT
-    owb< olayout* >             layout;
-#else
-    owb< otuple< ovalue >* >    layout;
-#endif
-}; 
-
-
-
-#if IS32BIT
-
-/*
-    On 32-bit systems references and numbers must be stored separately, as the
-    garbage collector (which is running concurrently) cannot differentiate
-    between numbers and references with only 32-bit atomic operations.
+    owb< otuple< ovalue >* >    props;
     
-    A layout is a block of memory where references (otagrefs) are allocated
-    from the start of the block, while numbers are allocated from the end.
-    If a reference is written to a number slot, or a number is written to a
-    reference slot, the expand's class must be updated and the slot becomes a
-    'dual' slot with both reference and number parts.
-*/
-
-
-class olayout : public obase
-{
-public:
-
-    static olayout alloc( size_t size );
-    
-    size_t      size() const;
-
-    void        set_count( size_t count );
-    otagref&    reference_at( size_t index );
-    ovalue&     number_at( ptrdiff_t offset );
-
-
-protected:
-
-    friend class obase;
-    static ometatype metatype;
-    static void mark_layout( oworklist* work, obase* object, ocolour colour );
-    
-
-private:
-
-    uint32_t    lsize;
-    uint32_t    lcount;
-    otagref     lslots[];
-
 };
 
 
-/*
-    This tells us which slot/offset a particular property uses.
-*/
 
-struct olindex
-{
-    enum kind { REFERENCE, NUMBER, DUAL };
 
-    bool is_reference() { return kind == REFERENCE; }
-    bool is_number()    { return kind == NUMBER; }
-    bool is_dual()      { return kind == DUAL; }
-
-    kind        kind;
-    size_t      slot;
-    ptrdiff_t   offset;
-
-};
-
-    
-#endif
 
 
 
@@ -166,11 +98,7 @@ private:
     friend class oexpand;
 
     owb< oexpand* >                 prototype;
-#if IS32BIT
-    okeytable< osymbol, olindex >   lookup;
-#else
     okeytable< osymbol, size_t >    lookup;
-#endif
     owb< oclass* >                  parent;
     owb< osymbol >                  parent_key;
     okeytable< osymbol, oclass* >   children;
@@ -217,37 +145,11 @@ inline ovalue oexpand::getkey( osymbol key ) const
     auto lookup = klass->lookup.lookup( key );
     if ( lookup )
     {
-#if IS32BIT
-    
-        olindex index = lookup->value;
-        if ( index.is_reference() )
-        {
-            v = layout->reference_at( index.slot );
-        }
-        else if ( index.is_number() )
-        {
-            v = layout->number_at( index.offset );
-        }
-        else
-        {
-            v = layout->reference_at( index.slot );
-            if ( v.is_undefined() )
-            {
-                v = layout->number_at( index.offset );
-            }
-        }
-        
-#else
-
-        v = layout->at( lookup->value );
-
-#endif
+        v = props->at( lookup->value );
     }
-    
     
     if ( v.is_undefined() && klass->prototype )
     {
-        // Delegate to prototype.
         v = klass->prototype->getkey( key );
     }
 
@@ -259,67 +161,20 @@ inline void oexpand::setkey( osymbol key, ovalue value )
     auto lookup = klass->lookup.lookup( key );
     if ( lookup )
     {
-#if IS32BIT
-
-        olindex index = lookup->value;
-        if ( index.is_reference() && ! value.is_number() )
-        {
-            layout->reference_at( index.slot ) = value;
-            return;
-        }
-        else if ( index.is_number() && ! value.is_reference() )
-        {
-            layout->number_at( index.offset ) = value;
-            return;
-        }
-        else if ( index.is_dual() )
-        {
-            if ( ! value.is_number() )
-                layout->reference_at( index.slot ) = value;
-            if ( ! value.is_reference() )
-                layout->number_at( index.offset ) = value;
-            return;
-        }
-        
-#else
-
-        v = layout->at( lookup->value ) = value;
-        return;
-#endif
+        props->at( lookup->value ) = value;
     }
-
-    // If the key doesn't exist or the types don't match we have to expand.
-    expandkey( key, value );
+    else
+    {
+        expandkey( key, value );
+    }
 }
 
 inline void oexpand::delkey( osymbol key )
 {
-    setkey( key, ovalue::undefined );
     auto lookup = klass->lookup.lookup( key );
     if ( lookup )
     {
-#if IS32BIT
-    
-        olindex index = lookup->value;
-        if ( index.is_reference() )
-        {
-            layout->reference_at( index.slot ) = ovalue::undefined;
-        }
-        else if ( index.is_number() )
-        {
-            layout->number_at( index.slot ) = ovalue::undefined;
-        }
-        else
-        {
-            layout->reference_at( index.slot ) = ovalue::undefined;
-            layout->number_at( index.slot ) = ovalue::undefined;
-        }
-        
-#else
-
-        layout->at( lookup->value ) = ovalue::undefined;
-
-#endif
+        props->at( lookup->value ) = ovalue::undefined;
     }
 }
 

@@ -120,7 +120,7 @@ public:
     ostring* make_symbol( const char* s );
     ostring* make_symbol( ostring* s );
     
-    void marked_grey( obase* object );
+    void mark_grey( obase* object );
     
 
 };

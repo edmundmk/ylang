@@ -27,8 +27,8 @@ public:
 
     template < typename object_t > bool is();
     
-
-    bool mark( ocolour check, ocolour mark );
+    void mark();
+    void mark( oworklist* work, ocolour mark_colour );
 
 
 protected:
@@ -63,11 +63,12 @@ public:
 
     operator reftype_t* () const;
     reftype_t* operator -> () const;
-    reftype_t* consume() const;
     
 
 private:
 
+    friend class omark< reftype_t* >;
+    
     std::atomic< reftype_t* > p;
     
 };
@@ -116,18 +117,51 @@ inline bool obase::is()
 }
 
 
-inline bool obase::mark( ocolour check, ocolour mark )
+inline void obase::mark()
+{
+    ocolour mark_colour = ocontext::context->mark_colour;
+
+    uintptr_t word = this->word.load( std::memory_order_relaxed );
+    ometatype* metatype = (ometatype*)( word & ~O_COLOUR );
+    ocolour colour = (ocolour)( word & O_COLOUR );
+    
+    if ( colour != O_GREY && colour != mark_colour )
+    {
+        if ( metatype->mark )
+        {
+            ocontext::context->heap->mark_grey( this );
+        }
+        else
+        {
+            word = (uintptr_t)metatype | mark_colour;
+            this->word.store( word, std::memory_order_relaxed );
+        }
+    }
+}
+
+inline void obase::mark( oworklist* work, ocolour mark_colour )
 {
     uintptr_t word = this->word.load( std::memory_order_relaxed );
+    ometatype* metatype = (ometatype*)( word & ~O_COLOUR );
     ocolour colour = (ocolour)( word & O_COLOUR );
-    if ( colour != O_GREY && colour != check )
+    
+    if ( colour != O_GREY && colour != mark_colour )
     {
-        word = ( word & ~O_COLOUR ) | mark;
-        this->word.store( word, std::memory_order_relaxed );
-        return true;
+        if ( metatype->mark )
+        {
+            work->push_back( this );
+            word = (uintptr_t)metatype | O_GREY;
+            this->word.store( word, std::memory_order_relaxed );
+        }
+        else
+        {
+            word = (uintptr_t)metatype | mark_colour;
+            this->word.store( word, std::memory_order_relaxed );
+        }
     }
-    return false;
+    
 }
+
 
 
 /*
@@ -151,9 +185,9 @@ inline owb< reftype_t* >& owb< reftype_t* >::operator = ( reftype_t* q )
 {
     // If old value is not marked, mark grey and submit to mutator.
     reftype_t* p = this->p.load( std::memory_order_relaxed );
-    if ( p && p->mark( ocontext::context->mark_colour, O_GREY ) )
+    if ( p )
     {
-        ocontext::context->heap->marked_grey( p );
+        p->mark();
     }
 
     // Update value.
@@ -179,21 +213,17 @@ inline reftype_t* owb< reftype_t* >::operator -> () const
     return p.load( std::memory_order_relaxed );
 }
 
-template < typename reftype_t >
-inline reftype_t* owb< reftype_t* >::consume() const
-{
-    return p.load( std::memory_order_consume );
-}
 
 
 template < typename reftype_t >
 inline void omark< reftype_t* >::mark(
                 const wb_type& value, oworklist* work, ocolour colour )
 {
-    reftype_t* p = value.consume();
-    if ( p && p->mark( colour, O_GREY ) )
+    // On mark thread must use consume memory ordering.
+    reftype_t* p = value.p.load( std::memory_order_consume );
+    if ( p )
     {
-        work->push_back( p );
+        p->mark( work, colour );
     }
 }
 

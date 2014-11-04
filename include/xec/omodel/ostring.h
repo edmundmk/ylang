@@ -42,7 +42,6 @@ protected:
 
     friend class obase;
     static ometatype metatype;
-    static void mark_string( oworklist* work, obase* object, ocolour colour );
     
     ostring( ometatype* metatype, size_t size );
     
@@ -57,42 +56,6 @@ private:
     bool                ssymbol : 1;
     char                sdata[];
 
-};
-
-
-
-/*
-    Strings have a specialized write barrier which marks them without adding
-    them to the grey list.
-*/
-
-template <>
-class owb< ostring* >
-{
-public:
-
-    owb();
-    owb( ostring* q );
-    owb& operator = ( ostring* q );
-    owb& operator = ( const owb& q );
-    
-    operator ostring* () const;
-    ostring* operator -> () const;
-    
-
-private:
-
-    friend struct omark< ostring* >;
-
-    std::atomic< ostring* > p;
-
-};
-
-template <>
-struct omark< ostring* >
-{
-    typedef owb< ostring* > wb_type;
-    static void mark( const wb_type& value, oworklist* work, ocolour colour );
 };
 
 
@@ -271,62 +234,6 @@ inline char* ostring::buffer()
 
 
 
-inline owb< ostring* >::owb()
-    :   p( nullptr )
-{
-}
-
-inline owb< ostring* >::owb( ostring* q )
-    :   p( q )
-{
-}
-
-inline owb< ostring* >& owb< ostring* >::operator = ( ostring* q )
-{
-    // If old value is not marked, mark it.  Strings contain no references
-    // and therefore have no need to be marked grey and added to the work list.
-    ostring* p = this->p.load( std::memory_order_relaxed );
-    if ( p )
-    {
-        ocolour mark_colour = ocontext::context->mark_colour;
-        p->mark( mark_colour, mark_colour );
-    }
-    
-    // Update value.
-    this->p.store( q, std::memory_order_relaxed );
-    return *this;
-}
-
-inline owb< ostring* >& owb< ostring* >::operator = ( const owb& q )
-{
-    return this->operator = ( (ostring*)q );
-}
-
-inline owb< ostring* >::operator ostring* () const
-{
-    return p.load( std::memory_order_relaxed );
-}
-
-inline ostring* owb< ostring* >::operator -> () const
-{
-    return p.load( std::memory_order_relaxed );
-}
-
-inline void omark< ostring* >::mark(
-                const wb_type& value, oworklist* work, ocolour colour )
-{
-    // Again, just mark without submitting to work list.  As this is the
-    // collector thread, we must consume the pointer to ensure we see the
-    // correct mark colour of newly created objects.
-    ostring* p = value.p.load( std::memory_order_consume );
-    if ( p )
-    {
-        p->mark( colour, colour );
-    }
-}
-
-
-
 /*
     osymbol
 */
@@ -383,8 +290,7 @@ inline owb< osymbol >& owb< osymbol >::operator = ( osymbol q )
     ostring* string = this->string.load( std::memory_order_relaxed );
     if ( string )
     {
-        ocolour mark_colour = ocontext::context->mark_colour;
-        string->mark( mark_colour, mark_colour );
+        string->mark();
     }
     
     this->string.store( q.string, std::memory_order_relaxed );
@@ -415,7 +321,7 @@ inline void omark< osymbol >::mark(
     ostring* string = value.string.load( std::memory_order_consume );
     if ( string )
     {
-        string->mark( colour, colour );
+        string->mark( work, colour );
     }
 }
 
