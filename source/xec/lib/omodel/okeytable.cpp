@@ -12,8 +12,8 @@
 
 
 
-#if IS32BIT
-template class okeytable< osymbol, olindex >;
+#if OEXPANDSLOTS
+template class okeytable< osymbol, oslotindex >;
 #else
 template class okeytable< osymbol, size_t >;
 #endif
