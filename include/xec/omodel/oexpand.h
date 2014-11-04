@@ -173,7 +173,7 @@ inline ovalue oexpand::getkey( osymbol key ) const
 #if OEXPANDSLOTS
         v = slots->load( lookup->value.slot );
 #else
-        v = props->at( lookup->value );
+        v = slots->at( lookup->value );
 #endif
     }
     
@@ -197,7 +197,7 @@ inline void oexpand::setkey( osymbol key, ovalue value )
         else
             dualkey( key, index, value );
 #else
-        props->at( lookup->value ) = value;
+        slots->at( lookup->value ) = value;
 #endif
     }
     else

@@ -30,7 +30,7 @@ inline void oexpand::delkey( osymbol key )
         if ( index.dual >= 2 )
             slots->store( index.dual - 2, ovalue::undefined );
 #else
-        props->at( lookup->value ) = ovalue::undefined;
+        slots->at( lookup->value ) = ovalue::undefined;
 #endif
     }
 }
