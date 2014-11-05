@@ -24,6 +24,8 @@ class ostring : public obase
 {
 public:
 
+    static ometatype metatype;
+
     static ostring*     alloc( const char* string );
     static ostring*     alloc( size_t size );
 
@@ -39,9 +41,6 @@ public:
 
 
 protected:
-
-    friend class obase;
-    static ometatype metatype;
     
     ostring( ometatype* metatype, size_t size );
     
@@ -77,6 +76,7 @@ public:
     osymbol( const char* s );
     osymbol( ostring* s );
 
+    explicit operator bool () const;
     ostring* operator -> () const;
     
 
@@ -149,52 +149,6 @@ struct omark< osymbol >
     ostring
 */
 
-inline ostring* ostring::alloc( const char* string )
-{
-    ostring* s = alloc( strlen( string ) );
-    memcpy( s->buffer(), string, s->size() );
-    return s;
-}
-
-inline ostring* ostring::alloc( size_t size )
-{
-    void* p = malloc( sizeof( ostring ) + size + 1 );
-    return new ( p ) ostring( &metatype, size );
-}
-
-inline ostring::ostring( ometatype* metatype, size_t size )
-    :   obase( metatype )
-    ,   shash( 0 )
-    ,   ssize( size )
-    ,   shashed( false )
-    ,   ssymbol( false )
-{
-    sdata[ ssize ] = '\0';
-}
-
-inline ostring* ostring::strcat( ostring* a, ostring* b )
-{
-    ostring* result = alloc( a->size() + b->size() );
-    memcpy( result->buffer(), a->data(), a->size() );
-    memcpy( result->buffer() + a->size(), b->data(), b->size() );
-    return result;
-}
-
-inline int ostring::strcmp( ostring* a, ostring* b )
-{
-    if ( a == b )
-        return 0;
-    size_t size = std::min( a->size(), b->size() );
-    int result = memcmp( a->data(), b->data(), size );
-    if ( result != 0 )
-        return result;
-    else if ( a->size() < b->size() )
-        return -1;
-    else if ( a->size() > b->size() )
-        return 1;
-    else
-        return 0;
-}
 
 inline hash32_t ostring::hash() const
 {
@@ -253,6 +207,11 @@ inline osymbol::osymbol( ostring* s )
 {
 }
 
+inline osymbol::operator bool () const
+{
+    return string != nullptr;
+}
+
 inline ostring* osymbol::operator -> () const
 {
     return string;
@@ -260,12 +219,12 @@ inline ostring* osymbol::operator -> () const
 
 
 
-bool operator == ( osymbol a, osymbol b )
+inline bool operator == ( osymbol a, osymbol b )
 {
     return a.string == b.string;
 }
 
-size_t std::hash< osymbol >::operator () ( const osymbol& a ) const
+inline size_t std::hash< osymbol >::operator () ( const osymbol& a ) const
 {
     return a->hash();
 }

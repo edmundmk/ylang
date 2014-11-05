@@ -42,6 +42,8 @@ class oexpand : public obase
 {
 public:
 
+    static ometatype metatype;
+
     static oexpand* alloc();
     static oexpand* alloc( oexpand* prototype );
     
@@ -55,8 +57,6 @@ public:
 
 protected:
 
-    friend class obase;
-    static ometatype metatype;
     static void mark_expand( oworklist* work, obase* object, ocolour colour );
 
     oexpand( ometatype* metatype, oclass* klass );
@@ -64,10 +64,10 @@ protected:
 
 private:
 
-    void        expandkey( osymbol key, ovalue value );
 #if OEXPANDSLOTS
     void        dualkey( osymbol key, oslotindex index, ovalue value );
 #endif
+    void        expandkey( osymbol key, ovalue value );
 
     owb< oclass* >              klass;
 #if OEXPANDSLOTS
@@ -99,14 +99,16 @@ class oclass : public obase
 {
 public:
 
+    static ometatype metatype;
+
     static oclass* alloc();
 
 
 protected:
 
-    friend class obase;
-    static ometatype metatype;
     static void mark_class( oworklist* work, obase* object, ocolour colour );
+
+    oclass( ometatype* metatype );
 
 
 private:
@@ -116,16 +118,11 @@ private:
     owb< oexpand* >                     prototype;
 #if OEXPANDSLOTS
     okeytable< osymbol, oslotindex >    lookup;
+    okeytable< osymbol, oclass* >       expandref;
+    okeytable< osymbol, oclass* >       expandnum;
 #else
     okeytable< osymbol, size_t >        lookup;
-#endif
-    owb< oclass* >                      parent;
-    owb< osymbol >                      parent_key;
-#if OEXPANDSLOTS
-    okeytable< osymbol, oclass* >       children_addref;
-    okeytable< osymbol, oclass* >       children_addnum;
-#else
-    okeytable< osymbol, oclass* >       children;
+    okeytable< osymbol, oclass* >       expand;
 #endif
     bool                                is_prototype;
     
@@ -139,25 +136,6 @@ private:
 
 */
 
-inline oexpand* oexpand::alloc()
-{
-    void* p = malloc( sizeof( oexpand ) );
-    return new ( p ) oexpand( &metatype, ocontext::context->empty );
-}
-
-inline oexpand* oexpand::alloc( oexpand* prototype )
-{
-    void* p = malloc( sizeof( oexpand ) );
-    return new ( p ) oexpand( &metatype, prototype->empty() );
-}
-
-
-inline oexpand::oexpand( ometatype* metatype, oclass* klass )
-    :   obase( metatype )
-    ,   klass( klass )
-{
-}
-
 inline oexpand* oexpand::prototype() const
 {
     return klass->prototype;
@@ -165,6 +143,7 @@ inline oexpand* oexpand::prototype() const
 
 inline ovalue oexpand::getkey( osymbol key ) const
 {
+    oclass* klass = this->klass;
     ovalue v;
 
     auto lookup = klass->lookup.lookup( key );
@@ -205,6 +184,7 @@ inline void oexpand::setkey( osymbol key, ovalue value )
         expandkey( key, value );
     }
 }
+
 
 
 

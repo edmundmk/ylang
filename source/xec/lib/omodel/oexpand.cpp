@@ -9,17 +9,32 @@
 #include "oexpand.h"
 
 
+ometatype oexpand::metatype = { &mark_expand, "object" };
 
-oclass* oexpand::empty()
+
+
+oexpand* oexpand::alloc()
 {
-    // TODO: recover the expand.
-    return nullptr;
+    void* p = malloc( sizeof( oexpand ) );
+    return new ( p ) oexpand( &metatype, ocontext::context->empty );
+}
+
+oexpand* oexpand::alloc( oexpand* prototype )
+{
+    void* p = malloc( sizeof( oexpand ) );
+    return new ( p ) oexpand( &metatype, prototype->empty() );
+}
+
+
+oexpand::oexpand( ometatype* metatype, oclass* klass )
+    :   obase( metatype )
+    ,   klass( klass )
+{
 }
 
 
 
-
-inline void oexpand::delkey( osymbol key )
+void oexpand::delkey( osymbol key )
 {
     auto lookup = klass->lookup.lookup( key );
     if ( lookup )
@@ -37,117 +52,218 @@ inline void oexpand::delkey( osymbol key )
 
 
 
-
-
-
-
-
-/*
-#include "omodel_impl.h"
-
-
-oimpl::ogctype oexpand::gctype =
+oclass* oexpand::empty()
 {
-    nullptr,
-    oexpand::mark,
-    oexpand::free,
-    "object"
-};
-
-
-
-oexpand* oexpand::alloc( oexpand* prototype )
-{
-    oimpl::omodel* model = oimpl::context->model;
-    oexpand* e = model->alloc< oexpand >( oimpl::context, &gctype );
-    if ( prototype == nullptr )
+    if ( klass->is_prototype )
     {
-        e->expand = nullptr;
+#if OEXPANDSLOTS
+        return slots->load( 0 ).as< oclass >();
+#else
+        return slots->at( 0 ).load().as< oclass >();
+#endif
     }
     else
     {
-        // TODO!
+        // Create empty.
+        oclass* empty = oclass::alloc();
+        empty->prototype = this;
+        
+        // Assign to appropriate slot.  The class we expand to will
+        // have is_prototype set and empty will be assigned slot 0.
+        expandkey( osymbol(), empty );
+        
+        // Return the created empty.
+        return empty;
     }
-    return e;
 }
 
 
-void oexpand::expand_key( osymbol key, ovalue value )
-{
-    oimpl::context->model->expand_key( oimpl::context, this, key, value );
-}
 
+#if OEXPANDSLOTS
 
-void oexpand::mark( ogcbase* object, oimpl::oworklist* work,
-                        oimpl::ocolour marked, oimpl::ocolour unmarked )
+void oexpand::dualkey( osymbol key, oslotindex index, ovalue value )
 {
-    oexpand* expand = (oexpand*)object;
-    oexpanddata* expdata = expand->expand;
-    if ( expdata )
+    if ( index.dual >= oslotindex::DUALSLOT )
     {
-        expdata->expandclass->gcmark( work, unmarked );
-        for ( size_t i = 0; i < expdata->expandclass->size; ++i )
+        // Dual property write.  Remember, slot is the _number_ slot, and
+        // dual is the reference.  This is because any value can safely be
+        // stored in 'number' slots, while references can't hold numbers.
+        size_t dualslot = index.dual - oslotindex::DUALSLOT;
+        if ( value.is_number() )
         {
-            ovalue value = expdata->properties[ i ];
-            if ( value.is_string() )
-                value.as_string_unchecked()->gcmark( marked );
-            else if ( value.is_expand() )
-                value.as_expand_unchecked()->gcmark( unmarked );
+            // Write number to number slot, and undefined to reference slot.
+            slots->store( index.slot, value );
+            slots->store( dualslot, ovalue::undefined );
+        }
+        else
+        {
+            // Write reference to both slots.
+            slots->store( index.slot, value );
+            slots->store( dualslot, value );
         }
     }
-}
-
-void oexpand::free( ogcbase* object )
-{
-    oexpand* expand = (oexpand*)object;
-    expand->~oexpand();
-}
-
-
-
-
-
-
-oimpl::ogctype oexpandclass::gctype =
-{
-    nullptr,
-    oexpandclass::mark,
-    oexpandclass::free,
-    "expandclass"
-};
-
-
-void oexpandclass::mark( ogcbase* object, oimpl::oworklist* work,
-                        oimpl::ocolour marked, oimpl::ocolour unmarked )
-{
-    oexpandclass* expclass = (oexpandclass*)object;
-
-    expclass->prototype->gcmark( work, unmarked );
-    for ( auto i = expclass->lookup.begin();
-                    i != expclass->lookup.end(); ++i )
+    else
     {
-        i->key.get()->gcmark( marked );
+        // Otherwise, we need to promote the slot to a dual slot and
+        // construct a new class.
+        
+    
+    
+    }
+}
+
+
+void oexpand::expandkey( osymbol key, ovalue value )
+{
+}
+
+
+
+
+#else
+
+
+
+void oexpand::expandkey( osymbol key, ovalue value )
+{
+    oclass* klass = this->klass;
+    otuple< ovalue >* slots = this->slots;
+    oclass* expand = nullptr;
+    
+    // If key is null then we're allocating slot 0 for the prototype.
+    size_t offset = key ? 0 : 1;
+
+    // Find class describing expanded object.
+    auto lookup = klass->expand.lookup( key );
+    if ( lookup )
+    {
+        // Expand class already exists, use it.
+        expand = lookup->value;
+    }
+    else
+    {
+        // Build new class.
+        expand = oclass::alloc();
+        expand->prototype = klass->prototype;
+        
+        for ( auto i = klass->lookup.iter();
+                        i != nullptr; i = klass->lookup.next( i ) )
+        {
+            expand->lookup.insert( i->key, offset + i->value );
+        }
+        
+        if ( key )
+        {
+            expand->lookup.insert( key, klass->lookup.size() );
+            expand->is_prototype = klass->is_prototype;
+        }
+        else
+        {
+            expand->lookup.insert( key, 0 );
+            expand->is_prototype = true;
+        }
+        
+        // Link it in so it gets reused.
+        klass->expand.insert( key, expand );
     }
     
-    expclass->parent->gcmark( work, unmarked );
-    expclass->parent_key.get()->gcmark( marked );
-    for ( auto i = expclass->children.begin();
-                    i != expclass->children.end(); ++i )
+    // Update class.
+    this->klass = expand;
+    
+    if ( ! slots || slots->size() < expand->lookup.size() )
     {
-        i->key.get()->gcmark( marked );
-        i->value->gcmark( work, unmarked );
+        // Slots require reallocation.
+        size_t size = ceil_pow2( expand->lookup.size() );
+        size = std::min( size, (size_t)8 );
+
+        otuple< ovalue >* newslots = otuple< ovalue >::alloc( size );
+        for ( size_t i = 0; i < klass->lookup.size(); ++i )
+        {
+            newslots->at( i + offset ) = slots->at( i );
+        }
+        
+        if ( key )
+            newslots->at( klass->lookup.size() ) = value;
+        else
+            newslots->at( 0 ) = value;
+        
+        this->slots = slots;
+    }
+    else if ( key )
+    {
+        // Add new value in its position.
+        slots->at( klass->lookup.size() ) = value;
+    }
+    else
+    {
+        // Shuffle slots downwards to make room for slot 0.
+        for ( size_t i = klass->lookup.size(); i > 0; --i )
+        {
+            slots->at( i ) = slots->at( i - 1 );
+        }
+        
+        slots->at( 0 ) = value;
     }
 }
 
-void oexpandclass::free( ogcbase* object )
+
+#endif
+
+
+
+void oexpand::mark_expand( oworklist* work, obase* object, ocolour colour )
 {
-    oexpandclass* expclass = (oexpandclass*)object;
-    expclass->~oexpandclass();
+    oexpand* expand = (oexpand*)object;
+    omark< oclass* >::mark( expand->klass, work, colour );
+#if OEXPANDSLOTS
+    omark< oslotlist* >::mark( expand->slots, work, colour );
+#else
+    omark< otuple< ovalue >* >::mark( expand->slots, work, colour );
+#endif
 }
 
 
 
-*/
+
+
+
+
+
+ometatype oclass::metatype = { &mark_class, "class" };
+
+
+oclass* oclass::alloc()
+{
+    void* p = malloc( sizeof( oclass ) );
+    return new ( p ) oclass( &metatype );
+}
+
+
+oclass::oclass( ometatype* metatype )
+    :   obase( metatype )
+    ,   is_prototype( false )
+{
+}
+
+
+void oclass::mark_class( oworklist* work, obase* object, ocolour colour )
+{
+    oclass* klass = (oclass*)object;
+    omark< oexpand* >::mark( klass->prototype, work, colour );
+#if OEXPANDSLOTS
+    omark< okeytable< osymbol, oslotindex > >::mark( klass->lookup, work, colour );
+    omark< okeytable< osymbol, oclass* > >::mark( klass->expandref, work, colour );
+    omark< okeytable< osymbol, oclass* > >::mark( klass->expandnum, work, colour );
+#else
+    omark< okeytable< osymbol, size_t > >::mark( klass->lookup, work, colour );
+    omark< okeytable< osymbol, oclass* > >::mark( klass->expand, work, colour );
+#endif
+}
+
+
+
+
+
 
 
 

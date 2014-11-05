@@ -10,7 +10,27 @@
 
 
 
-ometatype oslotlist::metatype = { &mark_slotlist };
+ometatype oslotlist::metatype = { &mark_slotlist, "slotlist" };
+
+
+
+oslotlist* oslotlist::alloc( size_t size )
+{
+    void* p = malloc( sizeof( oslotlist ) + sizeof( slot ) * size );
+    return new ( p ) oslotlist( &metatype, size );
+}
+
+
+oslotlist::oslotlist( ometatype* metatype, size_t size )
+    :   obase( metatype )
+    ,   ssize( (uint32_t)size )
+    ,   smark( 0 )
+{
+    for ( size_t i = 0; i < ssize; ++i )
+    {
+        new ( slots + i ) slot();
+    }
+}
 
 
 void oslotlist::mark_slotlist( oworklist* work, obase* object, ocolour colour )

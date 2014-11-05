@@ -88,6 +88,9 @@ public:
     ostring*    as_string() const;
     oexpand*    as_expand() const;
     
+    template < typename object_t > bool is() const;
+    template < typename object_t > object_t* as() const;
+    
     obase*      get() const;
     
 
@@ -184,6 +187,7 @@ public:
     owb& operator = ( const owb& q );
 
     operator ovalue () const;
+    ovalue load() const;
 
 
 private:
@@ -452,6 +456,22 @@ inline oexpand* ovalue::as_expand() const
 }
 
 
+template < typename object_t >
+inline bool ovalue::is() const
+{
+    return is_object() && as_object()->is< object_t >();
+}
+
+template < typename object_t >
+inline object_t* ovalue::as() const
+{
+    if ( is< object_t >() )
+        return (object_t*)as_object();
+    else
+        throw oerror( "expected %s", object_t::metatype.name );
+}
+
+
 #ifdef OVALUE32
 #undef HI
 #endif
@@ -572,6 +592,11 @@ inline owb< ovalue >& owb< ovalue >::operator = ( const owb& q )
 }
 
 inline owb< ovalue >::operator ovalue () const
+{
+    return ovalue( x.load( std::memory_order_relaxed ) );
+}
+
+inline ovalue owb< ovalue >::load() const
 {
     return ovalue( x.load( std::memory_order_relaxed ) );
 }

@@ -12,6 +12,7 @@
 
 #include <atomic>
 #include "oheap.h"
+#include "oerror.h"
 
 
 
@@ -26,6 +27,7 @@ class obase
 public:
 
     template < typename object_t > bool is();
+    template < typename object_t > bool as();
     
     void mark();
     void mark( oworklist* work, ocolour mark_colour );
@@ -95,26 +97,21 @@ struct omark< reftype_t* >
 */
 
 
-inline obase::obase( ometatype* metatype )
-    :   word( (uintptr_t)metatype | ocontext::context->mark_colour )
-    ,   next( ocontext::context->allocs )
-{
-    ocontext::context->allocs = this;
-    
-    // Ensure that the initialization of our word (with its colour) is
-    // visible before any store of this new object into a slot visible
-    // to the collector thread.  This is the reason that the mark thread
-    // must use consume memory ordering when reading references.
-    std::atomic_thread_fence( std::memory_order_release );
-}
-
-
 template < typename object_t >
 inline bool obase::is()
 {
     uintptr_t word = this->word.load( std::memory_order_relaxed );
     ometatype* metatype = (ometatype*)( word & ~O_COLOUR );
     return metatype == &object_t::metatype;
+}
+
+template < typename object_t >
+inline bool obase::as()
+{
+    if ( is< object_t >() )
+        return (object_t*)this;
+    else
+        throw oerror( "expected %s", object_t::metatype.name );
 }
 
 

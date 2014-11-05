@@ -49,6 +49,8 @@ public:
     void            remove( const key_t& key );
     void            clear();
 
+    keyval_type*    iter();
+    keyval_type*    next( keyval_type* prev );
 
 private:
 
@@ -97,7 +99,7 @@ struct omark< okeytable< key_t, value_t > >
 
 
 template < typename key_t, typename value_t >
-inline okeyval< key_t, value_t >::okeyval()
+okeyval< key_t, value_t >::okeyval()
     :   key()
     ,   value()
     ,   next( nullptr )
@@ -106,7 +108,7 @@ inline okeyval< key_t, value_t >::okeyval()
 
 
 template < typename key_t, typename value_t >
-inline okeytable< key_t, value_t >::okeytable()
+okeytable< key_t, value_t >::okeytable()
     :   count( 0 )
     ,   keyvals()
 {
@@ -288,6 +290,44 @@ void okeytable< key_t, value_t >::clear()
 
 
 template < typename key_t, typename value_t >
+typename okeytable< key_t, value_t >::keyval_type*
+                okeytable< key_t, value_t >::iter()
+{
+    // Empty list contains no items.
+    if ( ! keyvals )
+        return nullptr;
+
+    // Find first non-empty bucket.
+    for ( size_t i = 0; i < keyvals->size(); ++i )
+    {
+        keyval_type& kv = keyvals->at( i );
+        if ( kv.next != nullptr )
+        {
+            return &kv;
+        }
+    }
+    
+    return nullptr;
+}
+
+template < typename key_t, typename value_t >
+typename okeytable< key_t, value_t >::keyval_type*
+                okeytable< key_t, value_t >::next( keyval_type* prev )
+{
+    keyval_type* final = &keyvals->at( 0 ) + keyvals->size();
+    for ( keyval_type* kv = prev + 1; kv < final; ++kv )
+    {
+        if ( kv->next != nullptr )
+        {
+            return kv;
+        }
+    }
+    
+    return nullptr;
+}
+
+
+template < typename key_t, typename value_t >
 void okeytable< key_t, value_t >::rehash( size_t new_capacity )
 {
     // Round up new capacity.
@@ -342,7 +382,6 @@ typename okeytable< key_t, value_t >::keyval_type*
     assert( ! "no free bucket" );
     return 0;
 }
-
 
 
 

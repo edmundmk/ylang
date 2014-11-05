@@ -24,6 +24,8 @@ class otuple : public obase
 {
 public:
 
+    static ometatype metatype;
+
     typedef typename omark< element_t >::wb_type elem_type;
 
     static otuple* alloc( size_t size );
@@ -35,8 +37,6 @@ public:
     
 protected:
 
-    friend class obase;
-    static ometatype metatype;
     static void mark_tuple( oworklist* work, obase* object, ocolour colour );
 
     otuple( ometatype* metatype, size_t size );
@@ -57,14 +57,14 @@ private:
 
 
 template < typename element_t >
-inline otuple< element_t >* otuple< element_t >::alloc( size_t size )
+otuple< element_t >* otuple< element_t >::alloc( size_t size )
 {
     void* p = malloc( sizeof( otuple ) + sizeof( elem_type ) * size );
     return new ( p ) otuple( &metatype, size );
 }
 
 template < typename element_t >
-inline otuple< element_t >::otuple( ometatype* metatype, size_t size )
+otuple< element_t >::otuple( ometatype* metatype, size_t size )
     :   obase( metatype )
     ,   ssize( size )
 {
@@ -95,7 +95,7 @@ inline typename otuple< element_t >::elem_type&
 }
 
 template < typename element_t >
-ometatype otuple< element_t >::metatype = { &mark_tuple };
+ometatype otuple< element_t >::metatype = { &mark_tuple, "tuple" };
 
 template < typename element_t >
 void otuple< element_t >::mark_tuple(

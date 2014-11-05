@@ -66,6 +66,8 @@ class oslotlist : public obase
 {
 public:
 
+    static ometatype metatype;
+
     static oslotlist* alloc( size_t size );
     
     size_t  size() const;
@@ -77,8 +79,6 @@ public:
 
 protected:
 
-    friend class obase;
-    static ometatype metatype;
     static void mark_slotlist( oworklist* work, obase* object, ocolour colour );
 
     oslotlist( ometatype* type, size_t size );
@@ -119,6 +119,11 @@ private:
 
 struct oslotindex
 {
+    static const size_t INVALID     = (size_t)-1;
+    static const size_t REFERENCE   = 0;
+    static const size_t NUMBER      = 1;
+    static const size_t DUALSLOT    = 2;
+
     oslotindex();
     oslotindex( size_t slot, size_t dual );
 
@@ -134,23 +139,6 @@ struct oslotindex
 */
 
 
-
-inline oslotlist* oslotlist::alloc( size_t size )
-{
-    void* p = malloc( sizeof( oslotlist ) + sizeof( slot ) * size );
-    return new ( p ) oslotlist( &metatype, size );
-}
-
-inline oslotlist::oslotlist( ometatype* metatype, size_t size )
-    :   obase( metatype )
-    ,   ssize( (uint32_t)size )
-    ,   smark( 0 )
-{
-    for ( size_t i = 0; i < ssize; ++i )
-    {
-        new ( slots + i ) slot();
-    }
-}
 
 inline size_t oslotlist::size() const
 {

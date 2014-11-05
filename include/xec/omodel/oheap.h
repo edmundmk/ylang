@@ -154,6 +154,7 @@ struct ocontext
 struct ometatype
 {
     void (*mark)( oworklist*, obase*, ocolour );
+    const char* name;
 };
 
 
