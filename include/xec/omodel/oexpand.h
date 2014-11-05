@@ -28,6 +28,7 @@
 
 class oexpand;
 class oclass;
+class ovalue;
 
 
 
