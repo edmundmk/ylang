@@ -14,7 +14,6 @@
 #include "otuple.h"
 #include "okeytable.h"
 #include "ostring.h"
-#include "ovalue.h"
 
 
 #if 1//OVALUE32
@@ -68,6 +67,7 @@ private:
     void        dualkey( osymbol key, oslotindex index, ovalue value );
     void        expandkey( osymbol key, ovalue value );
     void        expanddual( osymbol key, oslotindex index, ovalue value );
+    void        storedual( oslotindex index, size_t newslot, ovalue value );
 #else
     void        expandkey( osymbol key, ovalue value );
 #endif
@@ -139,6 +139,10 @@ private:
 /*
 
 */
+
+#include "ovalue.h"
+
+
 
 inline oexpand* oexpand::prototype() const
 {

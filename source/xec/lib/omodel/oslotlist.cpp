@@ -47,12 +47,24 @@ void oslotlist::mark_slotlist( oworklist* work, obase* object, ocolour colour )
     {
         // Must use consume in case we are reading a reference to an
         // object allocated in this cycle.
-        uint3_t lo = sl->slots[ i ].lo.load( std::memory_order_consume );
+#if OVALUE64
+        uint64_t x = sl->slots[ i ].x.load( std::memory_order_consume );
+        if ( x <= ovalue::MAX_REFERENCE )
+        {
+            obase* p = (obase*)( x & ovalue::POINTER_MASK );
+            p->mark();
+        }
+#else
+        uint32_t lo = sl->slots[ i ].lo.load( std::memory_order_consume );
         if ( lo != UNDEFINED )
         {
             obase* p = (obase*)lo;
             p->mark( work, colour );
         }
+#endif
     }
 
 }
+
+
+

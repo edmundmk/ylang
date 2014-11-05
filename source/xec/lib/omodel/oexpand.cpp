@@ -243,38 +243,39 @@ void oexpand::expanddual( osymbol key, oslotindex index, ovalue value )
     if ( size != expand_size )
     {
         // Slots require reallocation.
-    }
-    else if ( key )
-    {
-        if ( index.slot != oslotindex::INVALID )
+        oslotlist* newslots = oslotlist::alloc( expand_size );
+        for ( size_t i = 0; i < watermark; ++i )
         {
-            // Slot existed before the expand, this is now a dual slot.
-            if ( is_number )
-            {
-                assert( index.dual == oslotindex::REFERENCE );
-                slots->store( index.slot, ovalue::undefined );
-                slots->store( number_slot, value );
-            }
-            else
-            {
-                assert( index.dual == oslotindex::NUMBER );
-                slots->store( index.slot, value );
-                slots->store( reference_slot, value );
-                slots->set_watermark( watermark + 1 );
-            }
+            newslots->store( offset + i, slots->load( i ) );
+        }
+        for ( size_t i = size - klass->numbercount; i < size; ++i )
+        {
+            newslots->store( i + expand_size - size, slots->load( i ) );
+        }
+        
+        if ( key )
+        {
+            size_t slot = is_number ? number_slot : reference_slot;
+            storedual( index, slot, value );
+            newslots->set_watermark( watermark + ( is_number ? 0 : 1 ) );
         }
         else
         {
-            // Single slot.
-            if ( is_number )
-            {
-                slots->store( number_slot, value );
-            }
-            else
-            {
-                slots->store( reference_slot, value );
-                slots->set_watermark( watermark + 1 );
-            }
+            assert( ! is_number );
+            slots->store( 0, value );
+            slots->set_watermark( watermark + 1 );
+        }
+        
+        this->slots = slots;
+    }
+    else if ( key )
+    {
+        // Store new slot.
+        size_t slot = is_number ? number_slot : reference_slot;
+        storedual( index, slot, value );
+        if ( ! is_number )
+        {
+            slots->set_watermark( watermark + 1 );
         }
     }
     else
@@ -289,7 +290,40 @@ void oexpand::expanddual( osymbol key, oslotindex index, ovalue value )
         slots->store( 0, value );
         slots->set_watermark( watermark + 1 );
     }
-    
+}
+
+
+void oexpand::storedual( oslotindex index, size_t newslot, ovalue value )
+{
+    bool is_number = value.is_number();
+    if ( index.slot != oslotindex::INVALID )
+    {
+        // Slot existed before the expand, this is now a dual slot.
+        if ( is_number )
+        {
+            assert( index.dual == oslotindex::REFERENCE );
+            slots->store( index.slot, ovalue::undefined );
+            slots->store( newslot, value );
+        }
+        else
+        {
+            assert( index.dual == oslotindex::NUMBER );
+            slots->store( index.slot, value );
+            slots->store( newslot, value );
+        }
+    }
+    else
+    {
+        // Single slot.
+        if ( is_number )
+        {
+            slots->store( newslot, value );
+        }
+        else
+        {
+            slots->store( newslot, value );
+        }
+    }
 }
 
 

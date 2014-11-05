@@ -12,8 +12,9 @@
 
 #include <atomic>
 #include "obase.h"
-#include "ovalue.h"
 
+
+class ovalue;
 
 
 
@@ -138,6 +139,7 @@ struct oslotindex
 
 */
 
+#include "ovalue.h"
 
 
 inline size_t oslotlist::size() const
@@ -158,7 +160,7 @@ inline void oslotlist::set_watermark( size_t watermark )
 inline ovalue oslotlist::load( size_t index ) const
 {
 #if OVALUE64
-    return ovalue( slots[ index ].x );
+    return ovalue( slots[ index ].x.load( std::memory_order_relaxed ) );
 #else
     uint32_t lo = slots[ index ].lo.load( std::memory_order_relaxed );
     uint32_t hi = slots[ index ].hi;

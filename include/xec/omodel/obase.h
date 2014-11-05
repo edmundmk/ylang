@@ -12,8 +12,19 @@
 
 #include <atomic>
 #include "oheap.h"
-#include "oerror.h"
 
+
+/*
+    32 and 64-bit systems differ in important ways.
+*/
+
+#if defined( __x86_64__ ) || defined( __arm64__ )
+#define OVALUE64 1
+#else
+#define OVALUE32 1
+#endif
+
+g
 
 
 /*
@@ -87,8 +98,11 @@ struct omark< reftype_t* >
 
 
 /*
+
 */
 
+
+#include "oerror.h"
 
 
 

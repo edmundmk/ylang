@@ -48,13 +48,6 @@ class oslotlist;
 */
 
 
-#if defined( __x86_64__ ) || defined( __arm64__ )
-#define OVALUE64 1
-#else
-#define OVALUE32 1
-#endif
-
-
 class ovalue
 {
 public:
