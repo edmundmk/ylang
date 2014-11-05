@@ -16,7 +16,7 @@
 #include "ostring.h"
 
 
-#if 1//OVALUE32
+#if OVALUE32
 #define OEXPANDSLOTS 1
 #endif
 
