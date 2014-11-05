@@ -131,7 +131,7 @@ void oexpand::expanddual( osymbol key, oslotindex index, ovalue value )
     // are allocated from the bottom up) will end up in different locations.
     size_t size = slots->size();
     size_t watermark = slots->watermark();
-    size_t expand_size = klass->expandref.size() + klass->expandnum.size() + 1;
+    size_t expand_size = watermark + klass->numbercount + 1;
     expand_size = std::max( ceil_pow2( expand_size ), (size_t)8 );
     
     // Where we would place the new value (assuming it's not slot 0).
