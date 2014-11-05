@@ -106,17 +106,191 @@ void oexpand::dualkey( osymbol key, oslotindex index, ovalue value )
     {
         // Otherwise, we need to promote the slot to a dual slot and
         // construct a new class.
-        
-    
-    
+        expanddual( key, index, value );
     }
 }
 
 
 void oexpand::expandkey( osymbol key, ovalue value )
 {
+    // Expand a new slot.
+    expanddual( key, oslotindex(), value );
 }
 
+
+
+void oexpand::expanddual( osymbol key, oslotindex index, ovalue value )
+{
+    oclass* klass = this->klass;
+    oslotlist* slots = this->slots;
+
+    // If key is null then we're allocating slot 0 for the prototype.
+    size_t offset = key ? 0 : 1;
+
+    // If the new class resizes the slotlist then number slots (which
+    // are allocated from the bottom up) will end up in different locations.
+    size_t size = slots->size();
+    size_t watermark = slots->watermark();
+    size_t expand_size = klass->expandref.size() + klass->expandnum.size() + 1;
+    expand_size = std::max( ceil_pow2( expand_size ), (size_t)8 );
+    
+    // Where we would place the new value (assuming it's not slot 0).
+    size_t reference_slot = watermark;
+    size_t number_slot = expand_size - 1 - klass->numbercount;
+    assert( number_slot >= reference_slot );
+        
+    // Find class describing expanded object.
+    oclass* expand = nullptr;
+    bool is_number = value.is_number();
+    auto& expandtable = is_number ? klass->expandnum : klass->expandref;
+    auto lookup = expandtable.lookup( key );
+    if ( lookup )
+    {
+        // Expand class already exists, use it.
+        expand = lookup->value;
+    }
+    else
+    {
+        // Build new class.
+        expand = oclass::alloc();
+        expand->prototype = klass->prototype;
+        
+        bool made_dual = false;
+        for ( auto i = klass->lookup.iter();
+                        i != nullptr; i = klass->lookup.next( i ) )
+        {
+            oslotindex index = i->value;
+            
+            // Numbers, or the number part of dual slots, may end up moving.
+            // References may be pushed downwards due to addition of slot 0.
+            if ( index.dual == oslotindex::REFERENCE )
+            {
+                index.slot += offset;
+            }
+            else if ( index.dual == oslotindex::NUMBER )
+            {
+                index.slot += expand_size - size;
+            }
+            else if ( index.dual >= oslotindex::DUALSLOT )
+            {
+                index.slot += expand_size - size;
+                index.dual += offset;
+            }
+            
+            // If this is the key that is expanding, then it needs to become
+            // a dual slot.
+            if ( i->key == key )
+            {
+                assert( key );
+                if ( is_number )
+                {
+                    index.dual = oslotindex::DUALSLOT + index.slot;
+                    index.slot = number_slot;
+                }
+                else
+                {
+                    index.dual = oslotindex::DUALSLOT + reference_slot;
+                }
+                
+                made_dual = true;
+            }
+            
+            expand->lookup.insert( i->key, index );
+        }
+        
+        expand->numbercount = klass->numbercount + ( is_number ? 1 : 0 );
+        
+        if ( key )
+        {
+            // Add key, if it wasn't a key that expanded.
+            if ( ! made_dual )
+            {
+                oslotindex index;
+                if ( is_number )
+                {
+                    index.slot = number_slot;
+                    index.dual = oslotindex::NUMBER;
+                }
+                else
+                {
+                    index.slot = reference_slot;
+                    index.dual = oslotindex::REFERENCE;
+                }
+                
+                expand->lookup.insert( key, index );
+            }
+            
+            expand->is_prototype = klass->prototype;
+        }
+        else
+        {
+            // Add prototype reference at slot 0.
+            assert( ! is_number );
+            assert( ! klass->is_prototype );
+            oslotindex index( 0, oslotindex::REFERENCE );
+            expand->lookup.insert( key, index );
+            expand->is_prototype = true;
+        }
+        
+        
+        // Remember new class.
+        expandtable.insert( key, expand );
+    }
+    
+    // Update class.
+    this->klass = expand;
+    
+    if ( size != expand_size )
+    {
+        // Slots require reallocation.
+    }
+    else if ( key )
+    {
+        if ( index.slot != oslotindex::INVALID )
+        {
+            // Slot existed before the expand, this is now a dual slot.
+            if ( is_number )
+            {
+                assert( index.dual == oslotindex::REFERENCE );
+                slots->store( index.slot, ovalue::undefined );
+                slots->store( number_slot, value );
+            }
+            else
+            {
+                assert( index.dual == oslotindex::NUMBER );
+                slots->store( index.slot, value );
+                slots->store( reference_slot, value );
+                slots->set_watermark( watermark + 1 );
+            }
+        }
+        else
+        {
+            // Single slot.
+            if ( is_number )
+            {
+                slots->store( number_slot, value );
+            }
+            else
+            {
+                slots->store( reference_slot, value );
+                slots->set_watermark( watermark + 1 );
+            }
+        }
+    }
+    else
+    {
+        // Shuffle slots and add at slot 0.
+        for ( size_t i = watermark; i > 0; --i )
+        {
+            slots->store( i, slots->load( i - 1 ) );
+        }
+        
+        assert( ! is_number );
+        slots->store( 0, value );
+        slots->set_watermark( watermark + 1 );
+    }
+    
+}
 
 
 
@@ -128,12 +302,12 @@ void oexpand::expandkey( osymbol key, ovalue value )
 {
     oclass* klass = this->klass;
     otuple< ovalue >* slots = this->slots;
-    oclass* expand = nullptr;
     
     // If key is null then we're allocating slot 0 for the prototype.
     size_t offset = key ? 0 : 1;
 
     // Find class describing expanded object.
+    oclass* expand = nullptr;
     auto lookup = klass->expand.lookup( key );
     if ( lookup )
     {
@@ -159,6 +333,7 @@ void oexpand::expandkey( osymbol key, ovalue value )
         }
         else
         {
+            assert( ! klass->is_prototype );
             expand->lookup.insert( key, 0 );
             expand->is_prototype = true;
         }
@@ -174,7 +349,7 @@ void oexpand::expandkey( osymbol key, ovalue value )
     {
         // Slots require reallocation.
         size_t size = ceil_pow2( expand->lookup.size() );
-        size = std::min( size, (size_t)8 );
+        size = std::max( size, (size_t)8 );
 
         otuple< ovalue >* newslots = otuple< ovalue >::alloc( size );
         for ( size_t i = 0; i < klass->lookup.size(); ++i )
@@ -241,6 +416,9 @@ oclass* oclass::alloc()
 
 oclass::oclass( ometatype* metatype )
     :   obase( metatype )
+#if OEXPANDCLASS
+    ,   numbercount( 0 )
+#endif
     ,   is_prototype( false )
 {
 }

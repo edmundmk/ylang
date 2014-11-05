@@ -17,7 +17,7 @@
 #include "ovalue.h"
 
 
-#if OVALUE32
+#if 1//OVALUE32
 #define OEXPANDSLOTS 1
 #endif
 
@@ -66,8 +66,11 @@ private:
 
 #if OEXPANDSLOTS
     void        dualkey( osymbol key, oslotindex index, ovalue value );
-#endif
     void        expandkey( osymbol key, ovalue value );
+    void        expanddual( osymbol key, oslotindex index, ovalue value );
+#else
+    void        expandkey( osymbol key, ovalue value );
+#endif
 
     owb< oclass* >              klass;
 #if OEXPANDSLOTS
@@ -120,6 +123,7 @@ private:
     okeytable< osymbol, oslotindex >    lookup;
     okeytable< osymbol, oclass* >       expandref;
     okeytable< osymbol, oclass* >       expandnum;
+    size_t                              numbercount;
 #else
     okeytable< osymbol, size_t >        lookup;
     okeytable< osymbol, oclass* >       expand;
