@@ -15,7 +15,7 @@
 
 
 /*
-    32 and 64-bit systems differ in important ways.
+    32 bit systems are a pain!
 */
 
 #if defined( __x86_64__ ) || defined( __arm64__ )
@@ -46,7 +46,7 @@ public:
 
 protected:
 
-    obase( ometatype* metatype );
+    explicit obase( ometatype* metatype );
     
 
 private:

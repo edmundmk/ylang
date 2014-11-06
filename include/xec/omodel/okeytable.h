@@ -43,8 +43,8 @@ public:
     
     okeytable();
     
-    size_t          size();
-    keyval_type*    lookup( const key_t& key );
+    size_t          size() const;
+    keyval_type*    lookup( const key_t& key ) const;
     void            insert( const key_t& key, const value_t& value );
     void            remove( const key_t& key );
     void            clear();
@@ -57,7 +57,7 @@ private:
     friend struct omark< okeytable >;
 
     void            rehash( size_t new_capacity );
-    keyval_type*    main_position( const key_t& key );
+    keyval_type*    main_position( const key_t& key ) const;
     keyval_type*    free_position( keyval_type* near );
 
     size_t                          count;
@@ -115,14 +115,14 @@ okeytable< key_t, value_t >::okeytable()
 }
 
 template < typename key_t, typename value_t >
-inline size_t okeytable< key_t, value_t >::size()
+inline size_t okeytable< key_t, value_t >::size() const
 {
     return count;
 }
 
 template < typename key_t, typename value_t >
 inline typename okeytable< key_t, value_t >::keyval_type*
-                okeytable< key_t, value_t >::lookup( const key_t& key )
+                okeytable< key_t, value_t >::lookup( const key_t& key ) const
 {
     // Lookups fail if keytable is empty.
     if ( ! keyvals )
@@ -355,14 +355,14 @@ void okeytable< key_t, value_t >::rehash( size_t new_capacity )
 
 template < typename key_t, typename value_t >
 inline typename okeytable< key_t, value_t >::keyval_type*
-                okeytable< key_t, value_t >::main_position( const key_t& key )
+        okeytable< key_t, value_t >::main_position( const key_t& key ) const
 {
     return &keyvals->at( std::hash< key_t >()( key ) % count );
 }
 
 template < typename key_t, typename value_t >
 typename okeytable< key_t, value_t >::keyval_type*
-                okeytable< key_t, value_t >::free_position( keyval_type* near )
+        okeytable< key_t, value_t >::free_position( keyval_type* near )
 {
     keyval_type* start = &keyvals->at( 0 );
     keyval_type* final = &keyvals->at( 0 ) + keyvals->size();

@@ -25,25 +25,26 @@ class oslotlist;
 
 
 /*
-    ovalues are NaN-boxed values.  We assume that GC pointers fit in 48 bits
-    on all platforms.  Strings and expands have different tag bits (despite
-    all being GC objects) to speed up type checks for string operations and
-    lookups.
- 
- 
-    float     seeeeeeeeeeemmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
-    infinity  s111111111110000000000000000000000000000000000000000000000000000
-    snan      s111111111110zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
-    qnan      s111111111111zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+    ovalues are NaN-boxed values.
     
-    nan       s111111111111000000000000000000000000000000000000000000000000000
-    undefined 1111111111111111111111111111111111111111111111111111111111111111
-    null      1111111111111111111111111111111011111111111111111111111111111111
-    false     1111111111111111111111111111110111111111111111111111111111111111
-    true      1111111111111111111111111111110011111111111111111111111111111111
-    string    1111111111111110pppppppppppppppppppppppppppppppppppppppppppppppp
-    object    1111111111111101pppppppppppppppppppppppppppppppppppppppppppppppp
-    expand    1111111111111100pppppppppppppppppppppppppppppppppppppppppppppppp
+    We assume that GC pointers fit in 48 bits on all platforms.  Strings and
+    expands have different tag bits (despite all being GC objects) to speed
+    up type checks for string operations and lookups.
+ 
+ 
+    float     seeeeeeeeeeemmmmmmmmmmmmmmmmmmmm mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+    infinity  s1111111111100000000000000000000 00000000000000000000000000000000
+    snan      s111111111110zzzzzzzzzzzzzzzzzzz zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+    qnan      s111111111111zzzzzzzzzzzzzzzzzzz zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+    
+    nan       s1111111111110000000000000000000 00000000000000000000000000000000
+    undefined 11111111111111111111111111111111 11111111111111111111111111111111
+    null      11111111111111111111111111111110 11111111111111111111111111111111
+    false     11111111111111111111111111111101 11111111111111111111111111111111
+    true      11111111111111111111111111111100 11111111111111111111111111111111
+    string    1111111111111110pppppppppppppppp pppppppppppppppppppppppppppppppp
+    object    1111111111111101pppppppppppppppp pppppppppppppppppppppppppppppppp
+    expand    1111111111111100pppppppppppppppp pppppppppppppppppppppppppppppppp
 
 */
 
@@ -204,11 +205,71 @@ struct omark< ovalue >
 
 
 /*
-    Prevent write-barrers for ovalues.
+    On 32-bit platforms we lack fast atomic 64-bit accesses.
+    
+    The garbage collector must be able to decide if a value is a valid pointer
+    with only one atomic access.  However, with NaN-boxing, you must check the
+    entire value to determine this.  Even using one or two bits as a tag means
+    that we can no longer fit doubles into our 64-bit values.
+    
+    And having to box real numbers into objects onto the heap is just icky.
+
+    So this solution is to have write-barriered ovalues expand into fat values
+    which store both a reference part and a number part.
+    
+    We can avoid using fat values in expands at the cost of slightly more
+    complicated lookup logic.  We can build hidden classes that know if a slot
+    contains a number or a reference (or both).  Most keys are one or the
+    other.
+    
+    We could avoid using fat values for arrays (again, at the cost of slightly
+    more complex indexing) by having two parallel buffers.  This would use less
+    memory in the case where an array stores only numbers, or only references.
+
+    However building a table that separates numbers and references for both
+    keys and values is just too complicated.  So I have given in - this fat
+    value solution is the result of the compromise.
+ 
+    My other idea was to have a global table of 2^20 objects, and store the
+    index of the object (instead of a pointer) in the hi word.  Both this
+    index and an all-ones mantissa fit in 32 bits, enabling the mark thread
+    to discriminate between the high bits of a number and those of a reference.
+    But - though I think it likely that a million objects will usually be
+    enough - this would place a hard limit on the number of objects in the
+    system a few orders of magnitude lower than is really desirable.
 */
 
-template <> class owb< ovalue >;
-template <> struct omark< ovalue >;
+template <>
+class owb< ovalue >
+{
+public:
+
+    owb();
+    owb( ovalue q );
+    owb& operator = ( ovalue q );
+    owb& operator = ( const owb& q );
+
+    operator ovalue () const;
+    ovalue load() const;
+
+
+private:
+
+    friend struct omark< ovalue >;
+
+    std::atomic< obase* >   p;
+    uint32_t                lo;
+    uint32_t                hi;
+ 
+};
+
+
+template <>
+struct omark< ovalue >
+{
+    typedef owb< ovalue > wb_type;
+    static void mark( const wb_type& value, oworklist* work, ocolour colour );
+};
 
 
 #endif
@@ -607,6 +668,70 @@ inline void omark< ovalue >::mark(
         p->mark( work, colour );
     }
 }
+
+
+
+#else
+
+
+
+inline owb< ovalue >::owb()
+    :   owb( ovalue::undefined )
+{
+}
+
+inline owb< ovalue >::owb( ovalue q )
+    :   p( q.is_object() ? (obase*)q.lo : nullptr )
+    ,   lo( q.lo )
+    ,   hi( q.hi )
+{
+}
+
+inline owb< ovalue >& owb< ovalue >::operator = ( ovalue q )
+{
+    // Perform write barrier.
+    obase* p = this->p.load( std::memory_order_relaxed );
+    if ( p )
+    {
+        p->mark();
+    }
+    
+    // Store new value.
+    p = q.is_object() ? (obase*)q.lo : nullptr;
+    this->p.store( p, std::memory_order_relaxed );
+    lo = q.lo;
+    hi = q.hi;
+    return *this;
+}
+
+inline owb< ovalue >& owb< ovalue >::operator = ( const owb& q )
+{
+    return this->operator = ( (ovalue)q );
+}
+
+inline owb< ovalue >::operator ovalue () const
+{
+    return ovalue( lo, hi );
+}
+
+inline ovalue owb< ovalue >::load() const
+{
+    return ovalue( lo, hi );
+}
+
+
+
+inline void omark< ovalue >::mark(
+                const wb_type& value, oworklist* work, ocolour colour )
+{
+    // On mark thread must use consume memory ordering.
+    obase* p = value.p.load( std::memory_order_consume );
+    if ( p )
+    {
+        p->mark( work, colour );
+    }
+}
+
 
 
 

@@ -12,7 +12,7 @@
 
 
 
-#if OEXPANDSLOTS
+#if OSLOTLIST
 template class okeytable< osymbol, oslotindex >;
 #else
 template class okeytable< osymbol, size_t >;

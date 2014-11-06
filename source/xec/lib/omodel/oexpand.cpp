@@ -39,7 +39,7 @@ void oexpand::delkey( osymbol key )
     auto lookup = klass->lookup.lookup( key );
     if ( lookup )
     {
-#if OEXPANDSLOTS
+#if OSLOTLIST
         oslotindex index = lookup->value;
         slots->store( index.slot, ovalue::undefined );
         if ( index.dual >= 2 )
@@ -56,7 +56,7 @@ oclass* oexpand::empty()
 {
     if ( klass->is_prototype )
     {
-#if OEXPANDSLOTS
+#if OSLOTLIST
         return slots->load( 0 ).as< oclass >();
 #else
         return slots->at( 0 ).load().as< oclass >();
@@ -70,7 +70,7 @@ oclass* oexpand::empty()
         
         // Assign to appropriate slot.  The class we expand to will
         // have is_prototype set and empty will be assigned slot 0.
-#if OEXPANDSLOTS
+#if OSLOTLIST
         expanddual( osymbol(), oslotindex(), empty );
 #else
         expandkey( osymbol(), empty );
@@ -83,7 +83,7 @@ oclass* oexpand::empty()
 
 
 
-#if OEXPANDSLOTS
+#if OSLOTLIST
 
 void oexpand::dualkey( osymbol key, oslotindex index, ovalue value )
 {
@@ -420,7 +420,7 @@ void oexpand::mark_expand( oworklist* work, obase* object, ocolour colour )
 {
     oexpand* expand = (oexpand*)object;
     omark< oclass* >::mark( expand->klass, work, colour );
-#if OEXPANDSLOTS
+#if OSLOTLIST
     omark< oslotlist* >::mark( expand->slots, work, colour );
 #else
     omark< otuple< ovalue >* >::mark( expand->slots, work, colour );
@@ -458,7 +458,7 @@ void oclass::mark_class( oworklist* work, obase* object, ocolour colour )
 {
     oclass* klass = (oclass*)object;
     omark< oexpand* >::mark( klass->prototype, work, colour );
-#if OEXPANDSLOTS
+#if OSLOTLIST
     omark< okeytable< osymbol, oslotindex > >::mark( klass->lookup, work, colour );
     omark< okeytable< osymbol, oclass* > >::mark( klass->expandref, work, colour );
     omark< okeytable< osymbol, oclass* > >::mark( klass->expandnum, work, colour );

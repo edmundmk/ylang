@@ -16,16 +16,6 @@
 #include "ostring.h"
 
 
-#if OVALUE32
-#define OEXPANDSLOTS 1
-#endif
-
-
-#if OEXPANDSLOTS
-#include "oslotlist.h"
-#endif
-
-
 class oexpand;
 class oclass;
 class ovalue;
@@ -64,7 +54,7 @@ protected:
 
 private:
 
-#if OEXPANDSLOTS
+#if OSLOTLIST
     void        dualkey( osymbol key, oslotindex index, ovalue value );
     void        expanddual( osymbol key, oslotindex index, ovalue value );
     void        storedual( oslotindex index, size_t newslot, ovalue value );
@@ -73,7 +63,7 @@ private:
 #endif
 
     owb< oclass* >              klass;
-#if OEXPANDSLOTS
+#if OSLOTLIST
     owb< oslotlist* >           slots;
 #else
     owb< otuple< ovalue >* >    slots;
@@ -119,7 +109,7 @@ private:
     friend class oexpand;
 
     owb< oexpand* >                     prototype;
-#if OEXPANDSLOTS
+#if OSLOTLIST
     okeytable< osymbol, oslotindex >    lookup;
     okeytable< osymbol, oclass* >       expandref;
     okeytable< osymbol, oclass* >       expandnum;
@@ -157,7 +147,7 @@ inline ovalue oexpand::getkey( osymbol key ) const
     auto lookup = klass->lookup.lookup( key );
     if ( lookup )
     {
-#if OEXPANDSLOTS
+#if OSLOTLIST
         v = slots->load( lookup->value.slot );
 #else
         v = slots->at( lookup->value );
@@ -174,7 +164,7 @@ inline ovalue oexpand::getkey( osymbol key ) const
 
 inline void oexpand::setkey( osymbol key, ovalue value )
 {
-#if OEXPANDSLOTS
+#if OSLOTLIST
     auto lookup = klass->lookup.lookup( key );
     if ( lookup )
     {

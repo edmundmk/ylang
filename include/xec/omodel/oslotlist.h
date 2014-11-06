@@ -14,6 +14,14 @@
 #include "obase.h"
 
 
+#if OVALUE32
+#define OSLOTLIST 1
+#endif
+
+
+#if OSLOTLIST
+
+
 class ovalue;
 
 
@@ -236,6 +244,9 @@ inline oslotindex::oslotindex( size_t slot, size_t dual )
     ,   dual( dual )
 {
 }
+
+
+#endif
 
 
 #endif

@@ -9,6 +9,8 @@
 #include "oslotlist.h"
 
 
+#if OSLOTLIST
+
 
 ometatype oslotlist::metatype = { &mark_slotlist, "slotlist" };
 
@@ -65,6 +67,11 @@ void oslotlist::mark_slotlist( oworklist* work, obase* object, ocolour colour )
     }
 
 }
+
+
+
+#endif
+
 
 
 
