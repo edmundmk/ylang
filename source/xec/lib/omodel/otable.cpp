@@ -30,6 +30,7 @@ otable::otable( ometatype* metatype )
 void otable::mark_table( oworklist* work, obase* object, ocolour colour )
 {
     otable* t = (otable*)object;
+    mark_expand( work, object, colour );
     omark< okeytable< ovalue, ovalue > >::mark( t->table, work, colour );
 }
 
