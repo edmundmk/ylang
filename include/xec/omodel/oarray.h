@@ -26,6 +26,8 @@ public:
 
     static ometatype metatype;
     
+    static oarray* alloc();
+    
     ovalue  getindex( size_t i ) const;
     void    setindex( size_t i, ovalue value );
 
@@ -33,6 +35,8 @@ public:
 protected:
 
     static void mark_array( oworklist* work, obase* object, ocolour colour );
+
+    explicit oarray( ometatype* metatype );
 
 
 private:

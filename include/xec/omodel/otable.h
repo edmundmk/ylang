@@ -37,6 +37,7 @@ protected:
 
     explicit otable( ometatype* metatype );
 
+
 private:
 
     okeytable< ovalue, ovalue > table;
