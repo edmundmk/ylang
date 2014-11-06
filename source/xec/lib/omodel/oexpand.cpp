@@ -70,7 +70,11 @@ oclass* oexpand::empty()
         
         // Assign to appropriate slot.  The class we expand to will
         // have is_prototype set and empty will be assigned slot 0.
+#if OEXPANDSLOTS
+        expanddual( osymbol(), oslotindex(), empty );
+#else
         expandkey( osymbol(), empty );
+#endif
         
         // Return the created empty.
         return empty;
@@ -109,14 +113,6 @@ void oexpand::dualkey( osymbol key, oslotindex index, ovalue value )
         expanddual( key, index, value );
     }
 }
-
-
-void oexpand::expandkey( osymbol key, ovalue value )
-{
-    // Expand a new slot.
-    expanddual( key, oslotindex(), value );
-}
-
 
 
 void oexpand::expanddual( osymbol key, oslotindex index, ovalue value )

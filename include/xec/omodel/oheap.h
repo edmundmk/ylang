@@ -78,11 +78,16 @@
 */
 
 
+#include <thread>
+#include <unordered_map>
+#include <symbol.h>
 #include <seglist.h>
+
 
 class obase;
 class oclass;
 class ostring;
+class osymbol;
 
 
 
@@ -121,6 +126,15 @@ public:
     ostring* make_symbol( ostring* s );
     
     void mark_grey( obase* object );
+    
+    
+private:
+
+    std::mutex symbols_mutex;
+    std::unordered_map< symkey, osymbol > symbols;
+    
+    std::mutex greylist_mutex;
+    oworklist greylist;
     
 
 };

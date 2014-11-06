@@ -47,6 +47,7 @@ protected:
 
 private:
 
+    friend class oheap;
     friend class osymbol;
 
     mutable hash32_t    shash;
@@ -78,6 +79,7 @@ public:
 
     explicit operator bool () const;
     ostring* operator -> () const;
+    ostring* get() const;
     
 
 private:
@@ -213,6 +215,11 @@ inline osymbol::operator bool () const
 }
 
 inline ostring* osymbol::operator -> () const
+{
+    return string;
+}
+
+inline ostring* osymbol::get() const
 {
     return string;
 }

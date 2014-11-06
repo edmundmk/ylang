@@ -66,7 +66,6 @@ private:
 
 #if OEXPANDSLOTS
     void        dualkey( osymbol key, oslotindex index, ovalue value );
-    void        expandkey( osymbol key, ovalue value );
     void        expanddual( osymbol key, oslotindex index, ovalue value );
     void        storedual( oslotindex index, size_t newslot, ovalue value );
 #else
@@ -175,23 +174,31 @@ inline ovalue oexpand::getkey( osymbol key ) const
 
 inline void oexpand::setkey( osymbol key, ovalue value )
 {
+#if OEXPANDSLOTS
     auto lookup = klass->lookup.lookup( key );
     if ( lookup )
     {
-#if OEXPANDSLOTS
         oslotindex index = lookup->value;
         if ( value.is_number() == index.dual )
             slots->store( index.slot, value );
         else
             dualkey( key, index, value );
+    }
+    else
+    {
+        expanddual( key, oslotindex(), value );
+    }
 #else
+    auto lookup = klass->lookup.lookup( key );
+    if ( lookup )
+    {
         slots->at( lookup->value ) = value;
-#endif
     }
     else
     {
         expandkey( key, value );
     }
+#endif
 }
 
 
