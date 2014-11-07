@@ -134,7 +134,7 @@ public:
         add( XEC_SSA_DELINKEY,  "delinkey"  );
         add( XEC_SSA_OBJECT,    "object"    );
         add( XEC_SSA_ITER,      "iter"      );
-        add( XEC_SSA_EACH,      "each"      );
+        add( XEC_SSA_ITERKEY,   "iterkey"   );
         add( XEC_SSA_APPEND,    "append"    );
         add( XEC_SSA_EXTEND,    "extend"    );
 

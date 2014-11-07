@@ -9,10 +9,6 @@
 #include "xec_ssa_buildcode.h"
 #include "xec_ssa.h"
 #include "xec_ssa_cfganalysis.h"
-#include "xec_string.h"
-#include "xec_code.h"
-#include "xec_script.h"
-#include "xec_inline.h"
 
 
 
@@ -233,7 +229,7 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
         case XEC_SSA_ITER:
             inst( XEC_ITER, o( op->r ), o( op->operanda ), 0 );
             break;
-        case XEC_SSA_EACH:
+        case XEC_SSA_ITERKEY:
             inst( XEC_ITERKEY, o( op->r ), o( op->operanda ), 0 );
             break;
         case XEC_SSA_APPEND:
@@ -1200,7 +1196,7 @@ void xec_ssa_buildcode::branch(
     xec_ssa_op* condop = func->getop( func->operand( condition ) );
     if ( condop->opcode == XEC_SSA_NEXT )
     {
-        xec_opcode opcode = iftrue ? XEC_IFITER : XEC_IFDONE;
+        xec_opcode opcode = iftrue ? XEC_IFITER : XEC_IFNITER;
         jump( opcode, 0, label );
     }
     else

@@ -917,9 +917,9 @@ void xec_ssa_build_stmt::visit( xec_stmt_do* node )
 void xec_ssa_build_stmt::visit( xec_stmt_foreach* node )
 {
     // Construct iterator.
-    xec_ssa_opcode opcode = node->eachkey ? XEC_SSA_EACH : XEC_SSA_ITER;
+    xec_ssa_opcode opcode = node->eachkey ? XEC_SSA_ITERKEY : XEC_SSA_ITER;
     xec_ssa_opref list = b->expr( node->list );
-    xec_ssa_opref iter = b->op( node->sloc, opcode, list );
+    b->op( node->sloc, opcode, list );
 
     // Begin loop.
     b->loopopen( false );
@@ -927,7 +927,6 @@ void xec_ssa_build_stmt::visit( xec_stmt_foreach* node )
     // Get values for this iteration.
     int request = (int)node->lvalues.size();
     xec_ssa_args* args = b->args( request );
-    args->args.push_back( iter );
     xec_ssa_opref next = b->op( node->sloc, XEC_SSA_NEXT, args );
     for ( int i = 0; i < node->lvalues.size(); ++i )
     {
@@ -948,6 +947,9 @@ void xec_ssa_build_stmt::visit( xec_stmt_foreach* node )
     
     // Close scopes.
     b->close_scope( node->scope );
+    
+    // Pop iterator.
+    b->op( node->sloc, XEC_SSA_POPITER );
 }
 
 void xec_ssa_build_stmt::visit( xec_stmt_for* node )
@@ -1071,6 +1073,17 @@ void xec_ssa_build_stmt::visit( xec_stmt_return* node )
     while ( true )
     {
         b->close_scope( scope );
+        if ( scope->node->kind == XEC_AST_FUNC )
+            break;
+        scope = scope->outer;
+    }
+    
+    // Pop iterators.
+    scope = node->scope;
+    while ( true )
+    {
+        if ( scope->node->kind == XEC_STMT_FOREACH )
+            b->op( scope->node->sloc, XEC_SSA_POPITER );
         if ( scope->node->kind == XEC_AST_FUNC )
             break;
         scope = scope->outer;

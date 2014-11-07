@@ -196,8 +196,9 @@ enum xec_ssa_opcode
     XEC_SSA_INDEX,      // container[ index ]
     XEC_SSA_DELINKEY,   // delete object.[ key ]
     XEC_SSA_OBJECT,     // create new object with prototype
-    XEC_SSA_ITER,       // make iterator for a list
-    XEC_SSA_EACH,       // make iterator for object key
+    XEC_SSA_ITER,       // push iterator for a list
+    XEC_SSA_ITERKEY,    // push iterator for object key
+    XEC_SSA_POPITER,    // pop iterator
     XEC_SSA_APPEND,     // append to an array
     
     XEC_SSA_FIRST_REF   = XEC_SSA_REF,

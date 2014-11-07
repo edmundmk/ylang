@@ -12,10 +12,8 @@
 
 #include <vector>
 #include <unordered_map>
-#include "xec_code.h"
-#include "xec_object.h"
+#include "omodel.h"
 #include "xec_ssa.h"
-#include "xec_value.h"
 
 
 /*
