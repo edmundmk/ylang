@@ -104,7 +104,7 @@ void otuple< element_t >::mark_tuple(
     otuple< element_t >* tuple = (otuple< element_t >*)object;
     for ( size_t i = 0; i < tuple->ssize; ++i )
     {
-        omark< element_t >::mark( tuple->at( i ), work, colour );
+        omarkwb( tuple->at( i ), work, colour );
     }
 }
 

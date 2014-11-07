@@ -390,8 +390,8 @@ template < typename key_t, typename value_t >
 inline void omark< okeyval< key_t, value_t > >::mark(
                 const wb_type& value, oworklist* work, ocolour colour )
 {
-    omark< key_t >::mark( value.key, work, colour );
-    omark< value_t >::mark( value.value, work, colour );
+    omarkwb( value.key, work, colour );
+    omarkwb( value.value, work, colour );
 }
 
 
@@ -399,7 +399,7 @@ template < typename key_t, typename value_t >
 inline void omark< okeytable< key_t, value_t > >::mark(
                 const wb_type& value, oworklist* work, ocolour colour )
 {
-    omark< otuple< okeyval< key_t, value_t > >* >::mark( value.keyvals, work, colour );
+    omarkwb( value.keyvals, work, colour );
 }
 
 

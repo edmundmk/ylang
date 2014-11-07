@@ -419,12 +419,8 @@ void oexpand::expandkey( osymbol key, ovalue value )
 void oexpand::mark_expand( oworklist* work, obase* object, ocolour colour )
 {
     oexpand* expand = (oexpand*)object;
-    omark< oclass* >::mark( expand->klass, work, colour );
-#if OSLOTLIST
-    omark< oslotlist* >::mark( expand->slots, work, colour );
-#else
-    omark< otuple< ovalue >* >::mark( expand->slots, work, colour );
-#endif
+    omarkwb( expand->klass, work, colour );
+    omarkwb( expand->slots, work, colour );
 }
 
 
@@ -457,14 +453,13 @@ oclass::oclass( ometatype* metatype )
 void oclass::mark_class( oworklist* work, obase* object, ocolour colour )
 {
     oclass* klass = (oclass*)object;
-    omark< oexpand* >::mark( klass->prototype, work, colour );
+    omarkwb( klass->prototype, work, colour );
+    omarkwb( klass->lookup, work, colour );
 #if OSLOTLIST
-    omark< okeytable< osymbol, oslotindex > >::mark( klass->lookup, work, colour );
-    omark< okeytable< osymbol, oclass* > >::mark( klass->expandref, work, colour );
-    omark< okeytable< osymbol, oclass* > >::mark( klass->expandnum, work, colour );
+    omarkwb( klass->expandref, work, colour );
+    omarkwb( klass->expandnum, work, colour );
 #else
-    omark< okeytable< osymbol, size_t > >::mark( klass->lookup, work, colour );
-    omark< okeytable< osymbol, oclass* > >::mark( klass->expand, work, colour );
+    omarkwb( klass->expand, work, colour );
 #endif
 }
 

@@ -203,6 +203,23 @@ struct omark
     static void mark( const wb_type& value, oworklist* work, ocolour colour );
 };
 
+template < typename wb_t >
+struct owbtraits
+{
+    typedef wb_t reference_type;
+};
+
+template < typename reference_t >
+struct owbtraits< owb< reference_t > >
+{
+    typedef reference_t reference_type;
+};
+
+
+template < typename wb_t >
+void omarkwb( const wb_t& value, oworklist* work, ocolour colour );
+
+
 
 
 
@@ -215,6 +232,14 @@ inline void omark< value_t >::mark(
                 const wb_type& value, oworklist* work, ocolour colour )
 {
     // Type does not require marking.
+}
+
+
+template < typename wb_t >
+void omarkwb( const wb_t& value, oworklist* work, ocolour colour )
+{
+    typedef typename owbtraits< wb_t >::reference_type reference_type;
+    omark< reference_type >::mark( value, work, colour );
 }
 
 
