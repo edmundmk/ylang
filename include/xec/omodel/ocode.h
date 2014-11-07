@@ -84,10 +84,10 @@ enum ocode
     O_ITERKEY,      // push iterator over keys of a
     O_NEXT1,        // r = generate from top iterator, set/clear @iter
     O_NEXT2,        // r, a = generate from top iterator, set/clear @iter
-    O_NEXT,         // r .. r + b = generate (iterator)a, set/clear @iter
+    O_NEXT,         // r .. r + b = generate from top iterator, set/clear @iter
     O_IFITER,       // if @iter pc = address of next instruction + j
-    O_IFDONE,       // if not @iter pc = address of next instruction + j
-    O_DONE,         // pop top iterator
+    O_IFNITER,      // if not @iter pc = address of next instruction + j
+    O_POPITER,      // pop c iterators
     
     O_TABLE,        // r = new table (reserve c indexes)
     O_OBJECT,       // r = new object with proto a.
