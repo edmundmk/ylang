@@ -244,47 +244,14 @@ void yexpand::storedual( yslotindex index, size_t newslot, yvalue value )
 
 void yexpand::expandkey( ysymbol key, yvalue value )
 {
+    ymodel* model = ycontext::context->model;
     yclass* klass = this->klass;
-    otuple< yvalue >* slots = this->slots;
-    
-    // If key is null then we're allocating slot 0 for the prototype.
-    size_t offset = key ? 0 : 1;
+    ytuple< yvalue >* slots = this->slots;
 
-    // Find class describing expanded object.
-    yclass* expand = nullptr;
-    auto lookup = klass->expand.lookup( key );
-    if ( lookup )
-    {
-        // Expand class already exists, use it.
-        expand = lookup->value;
-    }
-    else
-    {
-        // Build new class.
-        expand = yclass::alloc();
-        expand->prototype = klass->prototype;
-        
-        for ( auto i = klass->lookup.iter();
-                        i != nullptr; i = klass->lookup.next( i ) )
-        {
-            expand->lookup.insert( i->key, offset + i->value );
-        }
-        
-        if ( key )
-        {
-            expand->lookup.insert( key, klass->lookup.size() );
-            expand->is_prototype = klass->is_prototype;
-        }
-        else
-        {
-            assert( ! klass->is_prototype );
-            expand->lookup.insert( key, 0 );
-            expand->is_prototype = true;
-        }
-        
-        // Link it in so it gets reused.
-        klass->expand.insert( key, expand );
-    }
+
+    // Get (or create) expanded class.
+    yclass* expand = model->expand_class( klass, key );
+
     
     // Update class.
     this->klass = expand;
@@ -295,7 +262,13 @@ void yexpand::expandkey( ysymbol key, yvalue value )
         size_t size = ceil_pow2( expand->lookup.size() );
         size = std::max( size, (size_t)8 );
 
-        otuple< yvalue >* newslots = otuple< yvalue >::alloc( size );
+
+        // If key is null then we're allocating slot 0 for the prototype.
+        size_t offset = key ? 0 : 1;
+
+
+        // Copy slots over.
+        ytuple< yvalue >* newslots = ytuple< yvalue >::alloc( size );
         for ( size_t i = 0; i < klass->lookup.size(); ++i )
         {
             newslots->at( i + offset ) = slots->at( i );

@@ -36,7 +36,7 @@ class yexpand;
     Whether to differentiate between references and numbers in yclasses.
 */
 
-#if 1//! Y64BIT
+#if ! Y64BIT
 #define YSLOTS 1
 #endif
 

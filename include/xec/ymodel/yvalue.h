@@ -274,7 +274,7 @@ struct ywbtraits< yvalue >
 template <>
 struct ymarktraits< ywb< yvalue > >
 {
-    static void mark( ywb< yvalue >& wb, oworklist* work, ocolour colour );
+    static void mark( ywb< yvalue >& wb, yworklist* work, ycolour colour );
 };
 
 
@@ -739,7 +739,7 @@ inline ywb< yvalue >::operator yvalue () const
     return yvalue( lo, hi );
 }
 
-inline yvalue ywb< yvalue >::load() const
+inline yvalue ywb< yvalue >::get() const
 {
     return yvalue( lo, hi );
 }
