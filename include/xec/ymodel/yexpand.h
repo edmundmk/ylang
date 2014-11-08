@@ -1,19 +1,19 @@
 //
-//  oexpand.h
+//  yexpand.h
 //
 //  Created by Edmund Kapusniak on 26/10/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef OEXPAND_H
-#define OEXPAND_H
+#ifndef YEXPAND_H
+#define YEXPAND_H
 
 
-#include "obase.h"
-#include "otuple.h"
-#include "okeytable.h"
-#include "ostring.h"
+#include "yobject.h"
+#include "ytuple.h"
+#include "ykeytable.h"
+#include "ystring.h"
 
 
 class oexpand;
@@ -130,7 +130,7 @@ private:
 
 */
 
-#include "ovalue.h"
+#include "yvalue.h"
 
 
 

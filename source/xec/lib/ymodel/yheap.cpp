@@ -1,14 +1,14 @@
 //
-//  oheap.cpp
+//  yheap.cpp
 //
 //  Created by Edmund Kapusniak on 01/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "oheap.h"
-#include "obase.h"
-#include "ostring.h"
+#include "yheap.h"
+#include "yobject.h"
+#include "ystring.h"
 
 
 

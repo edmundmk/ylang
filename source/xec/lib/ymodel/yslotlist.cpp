@@ -1,12 +1,12 @@
 //
-//  oslotlist.cpp
+//  yslotlist.cpp
 //
 //  Created by Edmund Kapusniak on 04/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "oslotlist.h"
+#include "yslotlist.h"
 
 
 #if OSLOTLIST

@@ -1,17 +1,17 @@
 //
-//  otable.h
+//  ytable.h
 //
 //  Created by Edmund Kapusniak on 06/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef OTABLE_H
-#define OTABLE_H
+#ifndef YTABLE_H
+#define YTABLE_H
 
 
-#include "oexpand.h"
-#include "okeytable.h"
+#include "yexpand.h"
+#include "ykeytable.h"
 
 
 /*

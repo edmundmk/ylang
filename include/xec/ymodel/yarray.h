@@ -1,18 +1,18 @@
 //
-//  oarray.h
+//  yarray.h
 //
 //  Created by Edmund Kapusniak on 06/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef OARRAY_H
-#define OARRAY_H
+#ifndef YARRAY_H
+#define YARRAY_H
 
 
-#include "oexpand.h"
-#include "otuple.h"
-#include "oerror.h"
+#include "yexpand.h"
+#include "ytuple.h"
+#include "yerror.h"
 
 
 /*
@@ -51,7 +51,7 @@ private:
 
 */
 
-ovalue oarray::getindex( size_t i ) const
+inline ovalue oarray::getindex( size_t i ) const
 {
     if ( values && i < values->size() )
         return values->at( i );
@@ -59,7 +59,7 @@ ovalue oarray::getindex( size_t i ) const
         return ovalue::undefined;
 }
 
-void oarray::setindex( size_t i, ovalue value )
+inline void oarray::setindex( size_t i, ovalue value )
 {
     if ( values && i < values->size() )
         values->at( i ) = value;

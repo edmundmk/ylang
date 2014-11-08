@@ -1,13 +1,13 @@
 //
-//  ovalue.h
+//  yvalue.h
 //
 //  Created by Edmund Kapusniak on 04/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef OVALUE_H
-#define OVALUE_H
+#ifndef YVALUE_H
+#define YVALUE_H
 
 
 
@@ -15,7 +15,8 @@
 #include <stdint.h>
 #include <atomic>
 #include <functional>
-#include "oheap.h"
+#include "yheap.h"
+#include "yobject.h"
 
 
 class ostring;
@@ -287,9 +288,9 @@ struct omark< ovalue >
 
 
 #include <math.h>
-#include "ostring.h"
-#include "oexpand.h"
-#include "oerror.h"
+#include "ystring.h"
+#include "yexpand.h"
+#include "yerror.h"
 
 
 #if OVALUE32

@@ -1,13 +1,13 @@
 //
-//  ocode.h
+//  ycode.h
 //
 //  Created by Edmund Kapusniak on 06/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef OCODE_H
-#define OCODE_H
+#ifndef YCODE_H
+#define YCODE_H
 
 
 /*

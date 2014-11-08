@@ -1,17 +1,17 @@
 //
-//  otuple.h
+//  ytuple.h
 //
 //  Created by Edmund Kapusniak on 01/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef OTUPLE_H
-#define OTUPLE_H
+#ifndef YTUPLE_H
+#define YTUPLE_H
 
 
 
-#include "obase.h"
+#include "yobject.h"
 
 
 

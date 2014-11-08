@@ -1,21 +1,21 @@
 //
-//  omodule.h
+//  ymodule.h
 //
 //  Created by Edmund Kapusniak on 06/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef OMODULE_H
-#define OMODULE_H
+#ifndef YMODULE_H
+#define YMODULE_H
 
 
-#include "obase.h"
-#include "ostring.h"
-#include "otuple.h"
-#include "oslotlist.h"
-#include "ovalue.h"
-#include "ocode.h"
+#include "yobject.h"
+#include "ystring.h"
+#include "ytuple.h"
+#include "yslotlist.h"
+#include "yvalue.h"
+#include "ycode.h"
 
 
 class omodule;

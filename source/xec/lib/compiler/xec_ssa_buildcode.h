@@ -12,7 +12,7 @@
 
 #include <vector>
 #include <unordered_map>
-#include "omodel.h"
+#include "ymodel.h"
 #include "xec_ssa.h"
 
 
@@ -34,14 +34,14 @@ class xec_ssa_buildcode
 {
 public:
 
-    explicit xec_ssa_buildcode( xec_ssa* root );
+    explicit xec_ssa_buildcode( xec_ssa* root ) {};
     
-    void build_func( xec_ssa_func* func, xec_ssa_dfo* dfo );
-    xec_module* build_module();
+    void build_func( xec_ssa_func* func, xec_ssa_dfo* dfo ) {};
+    xec_module* build_module() { return nullptr; }
 
 
 private:
-
+/*
     struct jumplabel
     {
         int                 label;
@@ -83,7 +83,7 @@ private:
     std::unordered_map< void*, jumplabel > labels;
     std::vector< xec_opinst > code;
     int maxstack;
-
+*/
 };
 
 

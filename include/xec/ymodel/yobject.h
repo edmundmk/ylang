@@ -1,17 +1,17 @@
 //
-//  obase.h
+//  ybase.h
 //
 //  Created by Edmund Kapusniak on 01/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef OBASE_H
-#define OBASE_H
+#ifndef YBASE_H
+#define YBASE_H
 
 
 #include <atomic>
-#include "oheap.h"
+#include "yheap.h"
 
 
 /*
@@ -102,7 +102,7 @@ struct omark< reftype_t* >
 */
 
 
-#include "oerror.h"
+#include "yerror.h"
 
 
 

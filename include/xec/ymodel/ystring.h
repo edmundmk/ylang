@@ -1,18 +1,18 @@
 //
-//  ostring.h
+//  ystring.h
 //
 //  Created by Edmund Kapusniak on 26/10/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef OSTRING_H
-#define OSTRING_H
+#ifndef YSTRING_H
+#define YSTRING_H
 
 
 #include <functional>
 #include <hash.h>
-#include "obase.h"
+#include "yobject.h"
 
 
 /*

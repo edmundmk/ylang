@@ -1,18 +1,18 @@
 //
-//  okeytable.h
+//  ykeytable.h
 //
 //  Created by Edmund Kapusniak on 01/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef OKEYTABLE_H
-#define OKEYTABLE_H
+#ifndef YKEYTABLE_H
+#define YKEYTABLE_H
 
 
 
-#include "oheap.h"
-#include "otuple.h"
+#include "yheap.h"
+#include "ytuple.h"
 
 
 

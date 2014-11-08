@@ -1,13 +1,13 @@
 //
-//  oerror.h
+//  yerror.h
 //
 //  Created by Edmund Kapusniak on 26/10/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef OERROR_H
-#define OERROR_H
+#ifndef YERROR_H
+#define YERROR_H
 
 
 #include <exception>

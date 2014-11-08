@@ -1,17 +1,17 @@
 //
-//  oslotlist.h
+//  yslotlist.h
 //
 //  Created by Edmund Kapusniak on 04/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef OSLOTS_H
-#define OSLOTS_H
+#ifndef YSLOTS_H
+#define YSLOTS_H
 
 
 #include <atomic>
-#include "obase.h"
+#include "yobject.h"
 
 
 #if OVALUE32
