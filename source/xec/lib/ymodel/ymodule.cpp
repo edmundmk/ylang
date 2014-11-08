@@ -152,7 +152,7 @@ public:
         add( Y_NEXT,      "next      [%r .. %b]" );
         add( Y_IFITER,    "ifiter    %j" );
         add( Y_IFNITER,   "ifniter   %j" );
-        add( Y_POPITER,   "popiter" );
+        add( Y_POPITER,   "popiter   %c" );
 
         add( Y_TABLE,     "table     %r $%c" );
         add( Y_OBJECT,    "object    %r %a" );
