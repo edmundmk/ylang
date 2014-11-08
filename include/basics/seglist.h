@@ -22,18 +22,16 @@
 #include <new>
 
 
-template < typename element_t >
+template < typename element_t, size_t segsize = 64 >
 class seglist
 {
 private:
-
-    static const size_t ELEMENT_COUNT = 250;
 
     struct segment
     {
         segment*    next;
         segment*    prev;
-        element_t   elements[];
+        element_t   elements[ segsize ];
     };
 
     template < typename result_t >
@@ -119,47 +117,47 @@ private:
 };
 
 
-template < typename element_t >
-void swap( seglist< element_t >& a, seglist< element_t >& b );
+template < typename element_t, size_t segsize >
+void swap( seglist< element_t, segsize >& a, seglist< element_t, segsize >& b );
 
 
 
 
 
 
-template < typename element_t >
+template < typename element_t, size_t segsize >
 template < typename result_t >
-seglist< element_t >::basic_iterator< result_t >::basic_iterator(
+seglist< element_t, segsize >::basic_iterator< result_t >::basic_iterator(
                 segment* current, size_t index )
     :   current( current )
     ,   index( index )
 {
 }
 
-template < typename element_t >
+template < typename element_t, size_t segsize >
 template < typename result_t >
-seglist< element_t >::basic_iterator< result_t >::basic_iterator(
+seglist< element_t, segsize >::basic_iterator< result_t >::basic_iterator(
                 const basic_iterator< const element_t >& iterator )
     :   current( iterator.current )
     ,   index( iterator.index )
 {
 }
 
-template < typename element_t >
+template < typename element_t, size_t segsize >
 template < typename result_t >
-bool seglist< element_t >::basic_iterator< result_t >::operator != (
+bool seglist< element_t, segsize >::basic_iterator< result_t >::operator != (
                 const basic_iterator& b ) const
 {
     return current != b.current || index != b.index;
 }
 
-template < typename element_t >
+template < typename element_t, size_t segsize >
 template < typename result_t >
-seglist< element_t >::basic_iterator< result_t >&
-        seglist< element_t >::basic_iterator< result_t >::operator ++ ()
+seglist< element_t, segsize >::basic_iterator< result_t >&
+        seglist< element_t, segsize >::basic_iterator< result_t >::operator ++ ()
 {
     index += 1;
-    if ( index >= ELEMENT_COUNT )
+    if ( index >= segsize )
     {
         current = current->next;
         index = 0;
@@ -167,34 +165,34 @@ seglist< element_t >::basic_iterator< result_t >&
     return *this;
 }
 
-template < typename element_t >
+template < typename element_t, size_t segsize >
 template < typename result_t >
-seglist< element_t >::basic_iterator< result_t >
-        seglist< element_t >::basic_iterator< result_t >::operator ++ ( int )
+seglist< element_t, segsize >::basic_iterator< result_t >
+        seglist< element_t, segsize >::basic_iterator< result_t >::operator ++ ( int )
 {
     basic_iterator result( *this );
     operator ++ ();
     return result;
 }
 
-template < typename element_t >
+template < typename element_t, size_t segsize >
 template < typename result_t >
-result_t& seglist< element_t >::basic_iterator< result_t >::operator * () const
+result_t& seglist< element_t, segsize >::basic_iterator< result_t >::operator * () const
 {
     return current->elements[ index ];
 }
 
-template < typename element_t >
+template < typename element_t, size_t segsize >
 template < typename result_t >
-result_t* seglist< element_t >::basic_iterator< result_t >::operator -> () const
+result_t* seglist< element_t, segsize >::basic_iterator< result_t >::operator -> () const
 {
     return current->elements + index;
 }
 
 
 
-template < typename element_t >
-seglist< element_t >::seglist()
+template < typename element_t, size_t segsize >
+seglist< element_t, segsize >::seglist()
     :   first( nullptr )
     ,   last( nullptr )
     ,   index( 0 )
@@ -202,27 +200,27 @@ seglist< element_t >::seglist()
     first = last = new_segment();
 }
 
-template < typename element_t >
-seglist< element_t >::seglist( seglist&& s ) : seglist()
+template < typename element_t, size_t segsize >
+seglist< element_t, segsize >::seglist( seglist&& s ) : seglist()
 {
     swap( s );
 }
 
-template < typename element_t >
-seglist< element_t >::seglist( const seglist& s ) : seglist()
+template < typename element_t, size_t segsize >
+seglist< element_t, segsize >::seglist( const seglist& s ) : seglist()
 {
     operator = ( s );
 }
 
-template < typename element_t >
-seglist< element_t >& seglist< element_t >::operator = ( seglist&& s )
+template < typename element_t, size_t segsize >
+seglist< element_t, segsize >& seglist< element_t, segsize >::operator = ( seglist&& s )
 {
     swap( s );
     return *this;
 }
 
-template < typename element_t >
-seglist< element_t >& seglist< element_t >::operator = ( const seglist& s )
+template < typename element_t, size_t segsize >
+seglist< element_t, segsize >& seglist< element_t, segsize >::operator = ( const seglist& s )
 {
     clear();
     for ( auto i = s.begin(); i != s.end(); ++i )
@@ -232,8 +230,8 @@ seglist< element_t >& seglist< element_t >::operator = ( const seglist& s )
     return *this;
 }
 
-template < typename element_t >
-seglist< element_t >::~seglist()
+template < typename element_t, size_t segsize >
+seglist< element_t, segsize >::~seglist()
 {
     clear();
     for ( segment* s = first; s != nullptr; )
@@ -244,8 +242,8 @@ seglist< element_t >::~seglist()
     }
 }
 
-template < typename element_t >
-bool seglist< element_t >::operator == ( const seglist& b ) const
+template < typename element_t, size_t segsize >
+bool seglist< element_t, segsize >::operator == ( const seglist& b ) const
 {
     for ( auto i = begin(), j = b.begin(); ; ++i, ++j )
     {
@@ -258,143 +256,143 @@ bool seglist< element_t >::operator == ( const seglist& b ) const
     }
 }
 
-template < typename element_t >
-bool seglist< element_t >::operator != ( const seglist& b ) const
+template < typename element_t, size_t segsize >
+bool seglist< element_t, segsize >::operator != ( const seglist& b ) const
 {
     return ! operator == ( b );
 }
 
-template < typename element_t >
-typename seglist< element_t >::size_type seglist< element_t >::size() const
+template < typename element_t, size_t segsize >
+typename seglist< element_t, segsize >::size_type seglist< element_t, segsize >::size() const
 {
     size_t size = 0;
     for ( segment* s = first; s != last; ++s )
     {
-        size += ELEMENT_COUNT;
+        size += segsize;
     }
     size += index;
     return size;
 }
 
-template < typename element_t >
-typename seglist< element_t >::size_type seglist< element_t >::max_size() const
+template < typename element_t, size_t segsize >
+typename seglist< element_t, segsize >::size_type seglist< element_t, segsize >::max_size() const
 {
     return std::numeric_limits< size_type >::max();
 }
 
-template < typename element_t >
-bool seglist< element_t >::empty() const
+template < typename element_t, size_t segsize >
+bool seglist< element_t, segsize >::empty() const
 {
     return first == last && index == 0;
 }
 
-template < typename element_t >
-typename seglist< element_t >::const_iterator
-                seglist< element_t >::cbegin() const
+template < typename element_t, size_t segsize >
+typename seglist< element_t, segsize >::const_iterator
+                seglist< element_t, segsize >::cbegin() const
 {
     return const_iterator( first, 0 );
 }
 
-template < typename element_t >
-typename seglist< element_t >::const_iterator
-                seglist< element_t >::begin() const
+template < typename element_t, size_t segsize >
+typename seglist< element_t, segsize >::const_iterator
+                seglist< element_t, segsize >::begin() const
 {
     return cbegin();
 }
 
-template < typename element_t >
-typename seglist< element_t >::const_iterator
-                seglist< element_t >::cend() const
+template < typename element_t, size_t segsize >
+typename seglist< element_t, segsize >::const_iterator
+                seglist< element_t, segsize >::cend() const
 {
     return const_iterator( last, index );
 }
 
-template < typename element_t >
-typename seglist< element_t >::const_iterator
-                seglist< element_t >::end() const
+template < typename element_t, size_t segsize >
+typename seglist< element_t, segsize >::const_iterator
+                seglist< element_t, segsize >::end() const
 {
     return cend();
 }
 
-template < typename element_t >
-typename seglist< element_t >::const_reference
-                seglist< element_t >::back() const
+template < typename element_t, size_t segsize >
+typename seglist< element_t, segsize >::const_reference
+                seglist< element_t, segsize >::back() const
 {
     assert( ! empty() );
     if ( index > 0 )
         return last->elements[ index - 1 ];
     else
-        return last->prev->elements[ ELEMENT_COUNT - 1 ];
+        return last->prev->elements[ segsize - 1 ];
 }
 
-template < typename element_t >
-typename seglist< element_t >::iterator seglist< element_t >::begin()
+template < typename element_t, size_t segsize >
+typename seglist< element_t, segsize >::iterator seglist< element_t, segsize >::begin()
 {
     return iterator( first, 0 );
 }
 
-template < typename element_t >
-typename seglist< element_t >::iterator seglist< element_t >::end()
+template < typename element_t, size_t segsize >
+typename seglist< element_t, segsize >::iterator seglist< element_t, segsize >::end()
 {
     return iterator( last, index );
 }
 
-template < typename element_t >
-typename seglist< element_t >::reference seglist< element_t >::back()
+template < typename element_t, size_t segsize >
+typename seglist< element_t, segsize >::reference seglist< element_t, segsize >::back()
 {
     assert( ! empty() );
     if ( index > 0 )
         return last->elements[ index - 1 ];
     else
-        return last->prev->elements[ ELEMENT_COUNT - 1 ];
+        return last->prev->elements[ segsize - 1 ];
 }
 
-template < typename element_t >
-void seglist< element_t >::push_back( element_t&& element )
+template < typename element_t, size_t segsize >
+void seglist< element_t, segsize >::push_back( element_t&& element )
 {
     new ( last->elements + index ) element_t( std::move( element ) );
     pushed_back();
 }
 
-template < typename element_t >
-void seglist< element_t >::push_back( const element_t& element )
+template < typename element_t, size_t segsize >
+void seglist< element_t, segsize >::push_back( const element_t& element )
 {
     new ( last->elements + index ) element_t( element );
     pushed_back();
 }
 
-template < typename element_t >
+template < typename element_t, size_t segsize >
 template < typename ... arguments_t >
-void seglist< element_t >::emplace_back( arguments_t ... arguments )
+void seglist< element_t, segsize >::emplace_back( arguments_t ... arguments )
 {
     new ( last->elements + index ) element_t(
                     std::forward< arguments_t ... >( arguments ... ) );
     pushed_back();
 }
 
-template < typename element_t >
-void seglist< element_t >::pop_back()
+template < typename element_t, size_t segsize >
+void seglist< element_t, segsize >::pop_back()
 {
     assert( ! empty() );
 
     if ( index == 0 )
     {
         last = last->prev;
-        index = ELEMENT_COUNT;
+        index = segsize;
     }
     
     index -= 1;
     last->elements[ index ].~element_t();
 }
 
-template < typename element_t >
-void seglist< element_t >::clear()
+template < typename element_t, size_t segsize >
+void seglist< element_t, segsize >::clear()
 {
     if ( ! std::is_trivially_destructible< element_t >::value )
     {
         for ( segment* s = first; s != last; s = s->next )
         {
-            for ( size_t i = 0; i < ELEMENT_COUNT; ++i )
+            for ( size_t i = 0; i < segsize; ++i )
             {
                 s->elements[ i ].~element_t();
             }
@@ -413,28 +411,27 @@ void seglist< element_t >::clear()
     index = 0;
 }
 
-template < typename element_t >
-void seglist< element_t >::swap( seglist& s )
+template < typename element_t, size_t segsize >
+void seglist< element_t, segsize >::swap( seglist& s )
 {
     std::swap( first, s.first );
     std::swap( last, s.last );
     std::swap( index, s.index );
 }
 
-template < typename element_t >
-typename seglist< element_t >::segment* seglist< element_t >::new_segment()
+template < typename element_t, size_t segsize >
+typename seglist< element_t, segsize >::segment* seglist< element_t, segsize >::new_segment()
 {
-    size_t segsize = sizeof( segment ) + sizeof( element_t ) * ELEMENT_COUNT;
-    segment* s = (segment*)malloc( segsize );
+    segment* s = (segment*)malloc( sizeof( segment ) );
     s->next = nullptr;
     s->prev = nullptr;
     return s;
 }
 
-template < typename element_t >
-void seglist< element_t >::pushed_back()
+template < typename element_t, size_t segsize >
+void seglist< element_t, segsize >::pushed_back()
 {
-    if ( index >= ELEMENT_COUNT )
+    if ( index >= segsize )
     {
         if ( last->next == nullptr )
         {
