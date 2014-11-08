@@ -10,45 +10,45 @@
 
 
 
-ometatype omodule::metatype = { &mark_module, "module" };
+ymetatype ymodule::metatype = { &mark_module, "module" };
 
 
-omodule* omodule::alloc()
+ymodule* ymodule::alloc()
 {
-    void* p = malloc( sizeof( omodule ) );
-    return new ( p ) omodule( &metatype );
+    void* p = malloc( sizeof( ymodule ) );
+    return new ( p ) ymodule( &metatype );
 }
 
 
-omodule::omodule( ometatype* metatype )
-    :   obase( metatype )
+ymodule::ymodule( ymetatype* metatype )
+    :   yobject( metatype )
 {
 }
 
 
-void omodule::mark_module( oworklist* work, obase* object, ocolour colour )
+void ymodule::mark_module( yobject* object, yworklist* work, ycolour colour )
 {
-    omodule* module = (omodule*)object;
-    omarkwb( module->mname, work, colour );
-    omarkwb( module->symbols, work, colour );
-    omarkwb( module->values, work, colour );
-    omarkwb( module->functions, work, colour );
+    ymodule* module = (ymodule*)object;
+    ymark( module->mname, work, colour );
+    ymark( module->symbols, work, colour );
+    ymark( module->values, work, colour );
+    ymark( module->blocks, work, colour );
 }
 
 
 
 
-ometatype ofunction::metatype = { &mark_function, "function" };
+ymetatype yblock::metatype = { &mark_block, "function" };
 
-ofunction* ofunction::alloc( size_t size )
+yblock* yblock::alloc( size_t size )
 {
-    void* p = malloc( sizeof( ofunction ) + sizeof( oinstruction ) * size );
-    return new ( p ) ofunction( &metatype, size );
+    void* p = malloc( sizeof( yblock ) + sizeof( yinstruction ) * size );
+    return new ( p ) yblock( &metatype, size );
 }
 
 
-ofunction::ofunction( ometatype* metatype, size_t size )
-    :   obase( metatype )
+yblock::yblock( ymetatype* metatype, size_t size )
+    :   yobject( metatype )
     ,   fparamcount( 0 )
     ,   fupvalcount( 0 )
     ,   fnewupcount( 0 )
@@ -58,16 +58,16 @@ ofunction::ofunction( ometatype* metatype, size_t size )
 {
     for ( size_t i = 0; i < size; ++i )
     {
-        new ( fcode + i ) oinstruction();
+        new ( fcode + i ) yinstruction();
     }
 }
 
 
-void ofunction::mark_function( oworklist* work, obase* object, ocolour colour )
+void yblock::mark_block( yobject* object, yworklist* work, ycolour colour )
 {
-    ofunction* f = (ofunction*)object;
-    omarkwb( f->fmodule, work, colour );
-    omarkwb( f->fname, work, colour );
+    yblock* f = (yblock*)object;
+    ymark( f->fmodule, work, colour );
+    ymark( f->fname, work, colour );
 }
 
 
@@ -83,109 +83,109 @@ public:
 
     odisasm()
     {
-        add( O_NOP,       "nop" );
+        add( Y_NOP,       "nop" );
     
-        add( O_NULL,      "null      %r" );
-        add( O_VALUE,     "value     %r %v" );
+        add( Y_NULL,      "null      %r" );
+        add( Y_VALUE,     "value     %r %v" );
     
-        add( O_MOV,       "mov       %r %a" );
-        add( O_SWP,       "swp       %r %a" );
+        add( Y_MOV,       "mov       %r %a" );
+        add( Y_SWP,       "swp       %r %a" );
 
-        add( O_POS,       "pos       %r %a" );
-        add( O_NEG,       "neg       %r %a" );
-        add( O_NOT,       "not       %r %a" );
+        add( Y_POS,       "pos       %r %a" );
+        add( Y_NEG,       "neg       %r %a" );
+        add( Y_NOT,       "not       %r %a" );
     
-        add( O_MUL,       "mul       %r %a %b" );
-        add( O_DIV,       "div       %r %a %b" );
-        add( O_MOD,       "mod       %r %a %b" );
-        add( O_INTDIV,    "intdiv    %r %a %b" );
-        add( O_ADD,       "add       %r %a %b" );
-        add( O_SUB,       "sub       %r %a %b" );
-        add( O_LSL,       "lsl       %r %a %b" );
-        add( O_LSR,       "lsr       %r %a %b" );
-        add( O_ASR,       "asr       %r %a %b" );
-        add( O_AND,       "and       %r %a %b" );
-        add( O_XOR,       "xor       %r %a %b" );
-        add( O_OR,        "or        %r %a %b" );
-        add( O_CONCAT,    "concat    %r %a %b" );
+        add( Y_MUL,       "mul       %r %a %b" );
+        add( Y_DIV,       "div       %r %a %b" );
+        add( Y_MOD,       "mod       %r %a %b" );
+        add( Y_INTDIV,    "intdiv    %r %a %b" );
+        add( Y_ADD,       "add       %r %a %b" );
+        add( Y_SUB,       "sub       %r %a %b" );
+        add( Y_LSL,       "lsl       %r %a %b" );
+        add( Y_LSR,       "lsr       %r %a %b" );
+        add( Y_ASR,       "asr       %r %a %b" );
+        add( Y_AND,       "and       %r %a %b" );
+        add( Y_XOR,       "xor       %r %a %b" );
+        add( Y_OR,        "or        %r %a %b" );
+        add( Y_CONCAT,    "concat    %r %a %b" );
 
-        add( O_TEST,      "test      %r %a" );
-        add( O_LNOT,      "lnot      %r %a" );
-        add( O_LXOR,      "lxor      %r %a %b" );
+        add( Y_TEST,      "test      %r %a" );
+        add( Y_LNOT,      "lnot      %r %a" );
+        add( Y_LXOR,      "lxor      %r %a %b" );
     
-        add( O_KEY,       "key       %r %a %k" );
-        add( O_INKEY,     "inkey     %r %a %b" );
-        add( O_INDEX,     "index     %r %a %b" );
-        add( O_ELEM,      "elem      %r %a $%b" );
-        add( O_GLOBAL,    "global    %r %k" );
+        add( Y_KEY,       "key       %r %a %k" );
+        add( Y_INKEY,     "inkey     %r %a %b" );
+        add( Y_INDEX,     "index     %r %a %b" );
+        add( Y_ELEM,      "elem      %r %a $%b" );
+        add( Y_GLOBAL,    "global    %r %k" );
         
-        add( O_SETKEY,    "setkey    %a %k %r" );
-        add( O_SETINKEY,  "setinkey  %a %b %r" );
-        add( O_SETINDEX,  "setindex  %a %b %r" );
-        add( O_SETGLOBAL, "setglobal %k %r" );
+        add( Y_SETKEY,    "setkey    %a %k %r" );
+        add( Y_SETINKEY,  "setinkey  %a %b %r" );
+        add( Y_SETINDEX,  "setindex  %a %b %r" );
+        add( Y_SETGLOBAL, "setglobal %k %r" );
     
-        add( O_DELKEY,    "delkey    %a %k" );
-        add( O_DELINKEY,  "delinkey  %a %b" );
+        add( Y_DELKEY,    "delkey    %a %k" );
+        add( Y_DELINKEY,  "delinkey  %a %b" );
     
-        add( O_NEWUP,     "newup     !%c %r" );
-        add( O_SETNU,     "setnu     !%c %r" );
-        add( O_REFNU,     "refnu     %r !%c" );
-        add( O_CLOSE,     "close     ![%c .. %r]" );
+        add( Y_NEWUP,     "newup     !%c %r" );
+        add( Y_SETNU,     "setnu     !%c %r" );
+        add( Y_REFNU,     "refnu     %r !%c" );
+        add( Y_CLOSE,     "close     ![%c .. %r]" );
 
-        add( O_SETUP,     "setup     ^%c %r" );
-        add( O_REFUP,     "refup     %r ^%c" );
+        add( Y_SETUP,     "setup     ^%c %r" );
+        add( Y_REFUP,     "refup     %r ^%c" );
     
-        add( O_EQ,        "eq        %r %a %b" );
-        add( O_LT,        "lt        %r %a %b" );
-        add( O_LE,        "le        %r %a %b" );
-        add( O_IN,        "in        %r %a %b" );
-        add( O_IS,        "is        %r %a %b" );
+        add( Y_EQ,        "eq        %r %a %b" );
+        add( Y_LT,        "lt        %r %a %b" );
+        add( Y_LE,        "le        %r %a %b" );
+        add( Y_IN,        "in        %r %a %b" );
+        add( Y_IS,        "is        %r %a %b" );
 
-        add( O_JMP,       "jmp       %j" );
-        add( O_IFTRUE,    "iftrue    %r %j" );
-        add( O_IFFALSE,   "iffalse   %r %j" );
+        add( Y_JMP,       "jmp       %j" );
+        add( Y_IFTRUE,    "iftrue    %r %j" );
+        add( Y_IFFALSE,   "iffalse   %r %j" );
 
-        add( O_ITER,      "iter      %a" );
-        add( O_ITERKEY,   "iterkey   %a" );
-        add( O_NEXT1,     "next1     %r" );
-        add( O_NEXT2,     "next2     %r %a" );
-        add( O_NEXT,      "next      [%r .. %b]" );
-        add( O_IFITER,    "ifiter    %j" );
-        add( O_IFNITER,   "ifniter   %j" );
-        add( O_POPITER,   "popiter" );
+        add( Y_ITER,      "iter      %a" );
+        add( Y_ITERKEY,   "iterkey   %a" );
+        add( Y_NEXT1,     "next1     %r" );
+        add( Y_NEXT2,     "next2     %r %a" );
+        add( Y_NEXT,      "next      [%r .. %b]" );
+        add( Y_IFITER,    "ifiter    %j" );
+        add( Y_IFNITER,   "ifniter   %j" );
+        add( Y_POPITER,   "popiter" );
 
-        add( O_TABLE,     "table     %r $%c" );
-        add( O_OBJECT,    "object    %r %a" );
+        add( Y_TABLE,     "table     %r $%c" );
+        add( Y_OBJECT,    "object    %r %a" );
         
-        add( O_ARRAY,     "array     %r $%c" );
-        add( O_UNPACK,    "unpack    [%r .. ] %a $%b" );
-        add( O_APPEND,    "append    %a %r" );
-        add( O_EXTEND,    "extend    %a [%r .. ]" );
+        add( Y_ARRAY,     "array     %r $%c" );
+        add( Y_UNPACK,    "unpack    [%r .. ] %a $%b" );
+        add( Y_APPEND,    "append    %a %r" );
+        add( Y_EXTEND,    "extend    %a [%r .. ]" );
     
-        add( O_CLOSURE,   "closure   %r %f" );
-        add( O_ENVNU,     "envnu     !%c" );
-        add( O_ENVUP,     "envup     ^%c" );
+        add( Y_CLOSURE,   "closure   %r %f" );
+        add( Y_ENVNU,     "envnu     !%c" );
+        add( Y_ENVUP,     "envup     ^%c" );
 
-        add( O_VARARG,    "vararg    $%c" );
-        add( O_VARALL,    "varall    [%r .. ]" );
+        add( Y_VARARG,    "vararg    $%c" );
+        add( Y_VARALL,    "varall    [%r .. ]" );
     
-        add( O_CALL,      "call      [%r .. %b] [%r .. %a]" );
-        add( O_YCALL,     "ycall     [%r .. %b] [%r .. %a]" );
-        add( O_YIELD,     "yield     [%r .. %b] [%r .. %a]" );
-        add( O_NEW,       "new       %r [%a .. %b]" );
+        add( Y_CALL,      "call      [%r .. %b] [%r .. %a]" );
+        add( Y_YCALL,     "ycall     [%r .. %b] [%r .. %a]" );
+        add( Y_YIELD,     "yield     [%r .. %b] [%r .. %a]" );
+        add( Y_NEW,       "new       %r [%a .. %b]" );
     
-        add( O_RETURN,    "return    [%r .. %a]" );
+        add( Y_RETURN,    "return    [%r .. %a]" );
 
     }
     
-    const char* lookup( ocode o ) const
+    const char* lookup( ycode o ) const
     {
         return map.at( o );
     }
     
 private:
 
-    void add( ocode o, const char* n )
+    void add( ycode o, const char* n )
     {
         map.emplace( o, n );
     }
@@ -202,7 +202,7 @@ const odisasm disasm;
 
 
 
-void ofunction::print( ofunction* function )
+void yblock::print( yblock* function )
 {
     printf( "%s\n", function->name()->c_str() );
     printf( "    param_count  : %u\n", function->param_count() );
@@ -217,7 +217,7 @@ void ofunction::print( ofunction* function )
     
     for ( size_t ip = 0; ip < function->size(); ++ip )
     {
-        oinstruction i = function->code()[ ip ];
+        yinstruction i = function->code()[ ip ];
         const char* format = disasm.lookup( i.opcode() );
         
         printf( "%04u ", (unsigned)ip );
@@ -233,14 +233,14 @@ void ofunction::print( ofunction* function )
                     break;
                 
                 case 'a':
-                    if ( i.a() == O_MARK )
+                    if ( i.a() == Y_MARK )
                         printf( "@" );
                     else
                         printf( "%u", i.a() );
                     break;
 
                 case 'b':
-                    if ( i.b() == O_MARK )
+                    if ( i.b() == Y_MARK )
                         printf( "@" );
                     else
                         printf( "%u", i.b() );
@@ -256,7 +256,7 @@ void ofunction::print( ofunction* function )
                 
                 case 'v':
                 {
-                    ovalue v = function->module()->value( i.c() );
+                    yvalue v = function->module()->value( i.c() );
                     if ( v.is_bool() )
                     {
                         printf( "%s", v.as_bool() ? "true" : "false" );
@@ -267,7 +267,7 @@ void ofunction::print( ofunction* function )
                     }
                     else if ( v.is_string() )
                     {
-                        ostring* string = v.as_string();
+                        ystring* string = v.as_string();
                         printf( " \"" );
                         for ( size_t i = 0; i < string->size(); ++i )
                         {
@@ -296,14 +296,14 @@ void ofunction::print( ofunction* function )
                 
                 case 'k':
                 {
-                    osymbol key = function->module()->symbol( i.b() );
+                    ysymbol key = function->module()->symbol( i.b() );
                     printf( "'%s'", key->c_str() );
                     break;
                 }
                 
                 case 'f':
                 {
-                    ofunction* f = function->module()->function( i.c() );
+                    yblock* f = function->module()->block( i.c() );
                     printf( "function (%u) %s", i.c(), f->name()->c_str() );
                     break;
                 }
@@ -326,14 +326,14 @@ void ofunction::print( ofunction* function )
 }
 
 
-void omodule::print( omodule* module )
+void ymodule::print( ymodule* module )
 {
     printf( "%s\n\n", module->name()->c_str() );
     
-    for ( size_t i = 0; i < module->functions->size(); ++i )
+    for ( size_t i = 0; i < module->blocks->size(); ++i )
     {
         printf( "(%u) ", (unsigned)i );
-        ofunction::print( module->functions->at( i ) );
+        yblock::print( module->blocks->at( i ) );
     }
 }
 

@@ -10,42 +10,43 @@
 #define YTUPLE_H
 
 
-
 #include "yobject.h"
 
 
-
 /*
-    Tuples are fixed-length arrays of value types.
+    Tuples are fixed-length arrays of values.
 */
 
 template < typename element_t >
-class otuple : public obase
+class ytuple : public yobject
 {
 public:
 
-    static ometatype metatype;
+    typedef typename ywbtraits< element_t >::wb element_type;
 
-    typedef typename omark< element_t >::wb_type elem_type;
-
-    static otuple* alloc( size_t size );
+    static ytuple* alloc( size_t size );
     
-    size_t size() const;
-    const elem_type& at( size_t index ) const;
-    elem_type& at( size_t index );
+    size_t                  size() const;
+    const element_type&     at( size_t i ) const;
+    element_type&           at( size_t i );
+    const element_type&     get( size_t i ) const;
+    void                    set( size_t i, const element_type& v );
     
     
 protected:
 
-    static void mark_tuple( oworklist* work, obase* object, ocolour colour );
+    friend class yobject;
+    friend class yvalue;
+    static ymetatype metatype;
+    static void mark_tuple( yobject* object, yworklist* work, ycolour colour );
 
-    otuple( ometatype* metatype, size_t size );
+    ytuple( ymetatype* metatype, size_t size );
 
 
 private:
     
-    size_t      ssize;
-    elem_type   slots[];
+    size_t          tsize;
+    element_type    tvalues[];
     
 };
 
@@ -55,63 +56,73 @@ private:
 
 */
 
-
 template < typename element_t >
-otuple< element_t >* otuple< element_t >::alloc( size_t size )
+ytuple< element_t >* ytuple< element_t >::alloc( size_t size )
 {
-    void* p = malloc( sizeof( otuple ) + sizeof( elem_type ) * size );
-    return new ( p ) otuple( &metatype, size );
+    void* p = malloc( sizeof( ytuple ) + sizeof( element_type ) * size );
+    return new ( p ) ytuple( &metatype, size );
 }
 
 template < typename element_t >
-otuple< element_t >::otuple( ometatype* metatype, size_t size )
-    :   obase( metatype )
-    ,   ssize( size )
+ytuple< element_t >::ytuple( ymetatype* metatype, size_t size )
+    :   yobject( metatype )
+    ,   tsize( size )
 {
-    for ( size_t i = 0; i < size; ++i )
+    for ( size_t i = 0; i < tsize; ++i )
     {
-        new ( slots + i ) elem_type();
+        new ( tvalues + i ) element_type();
     }
 }
 
 template < typename element_t >
-inline size_t otuple< element_t >::size() const
+inline size_t ytuple< element_t >::size() const
 {
-    return ssize;
+    return tsize;
 }
 
 template < typename element_t >
-inline const typename otuple< element_t >::elem_type&
-                otuple< element_t >::at( size_t index ) const
+inline const typename ytuple< element_t >::element_type&
+                ytuple< element_t >::at( size_t i ) const
 {
-    return slots[ index ];
+    return tvalues[ i ];
 }
 
 template < typename element_t >
-inline typename otuple< element_t >::elem_type&
-                otuple< element_t >::at( size_t index )
+inline typename ytuple< element_t >::element_type&
+                ytuple< element_t >::at( size_t i )
 {
-    return slots[ index ];
+    return tvalues[ i ];
 }
 
 template < typename element_t >
-ometatype otuple< element_t >::metatype = { &mark_tuple, "tuple" };
+inline const typename ytuple< element_t >::element_type&
+                ytuple< element_t >::get( size_t i ) const
+{
+    return tvalues[ i ];
+}
+
+template< typename element_t >
+inline void ytuple< element_t >::set( size_t i, const element_type& value )
+{
+    tvalues[ i ] = value;
+}
 
 template < typename element_t >
-void otuple< element_t >::mark_tuple(
-                oworklist* work, obase* object, ocolour colour )
+ymetatype ytuple< element_t >::metatype = { &mark_tuple, "tuple" };
+
+template < typename element_t >
+void ytuple< element_t >::mark_tuple( yobject* object, yworklist* work, ycolour colour )
 {
-    otuple< element_t >* tuple = (otuple< element_t >*)object;
-    for ( size_t i = 0; i < tuple->ssize; ++i )
+    ytuple< element_t >* tuple = (ytuple< element_t >*)object;
+    for ( size_t i = 0; i < tuple->tsize; ++i )
     {
-        omarkwb( tuple->at( i ), work, colour );
+        ymark( tuple->tvalues[ i ], work, colour );
     }
 }
-
-
-
 
 
 
 
 #endif
+
+

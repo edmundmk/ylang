@@ -1,47 +1,46 @@
 //
-//  ykeytable.h
+//  ymap.h
 //
 //  Created by Edmund Kapusniak on 01/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef YKEYTABLE_H
-#define YKEYTABLE_H
+#ifndef YMAP_H
+#define YMAP_H
 
 
-
-#include "yheap.h"
+#include "yobject.h"
 #include "ytuple.h"
 
 
 
 /*
-    A key-value hash table using only garbage collected memory.  It is itself
-    a value type as hash tables are used in various objects and there's no
-    need to create more GC objects than necessary.
+    A hash table using only garbage collected memory.  It is itself a value
+    type as hash tables are used in various objects and there's no need to
+    create more GC objects than necessary.
 */
 
 
 template < typename key_t, typename value_t >
-struct okeyval
+struct ykeyval
 {
-    okeyval();
+    ykeyval();
 
-    typename omark< key_t >::wb_type    key;
-    typename omark< value_t >::wb_type  value;
-    okeyval*                            next;
+    typename ywbtraits< key_t >::wb     key;
+    typename ywbtraits< value_t >::wb   value;
+    ykeyval*                            next;
 };
 
 
 template < typename key_t, typename value_t >
-class okeytable
+class ymap
 {
 public:
 
-    typedef okeyval< key_t, value_t > keyval_type;
+    typedef ykeyval< key_t, value_t > keyval_type;
     
-    okeytable();
+    ymap();
     
     size_t          size() const;
     keyval_type*    lookup( const key_t& key ) const;
@@ -52,41 +51,40 @@ public:
     keyval_type*    iter();
     keyval_type*    next( keyval_type* prev );
 
+
 private:
 
-    friend struct omark< okeytable >;
+    friend struct ymarktraits< ymap< key_t, value_t > >;
 
     void            rehash( size_t new_capacity );
     keyval_type*    main_position( const key_t& key ) const;
     keyval_type*    free_position( keyval_type* near );
 
     size_t                          count;
-    owb< otuple< keyval_type >* >   keyvals;
+    ywb< ytuple< keyval_type >* >   keyvals;
 
 };
+
 
 
 template < typename key_t, typename value_t >
-struct omark< okeyval< key_t, value_t > >
+struct ymarktraits< ykeyval< key_t, value_t > >
 {
-    typedef okeyval< key_t, value_t > wb_type;
-    static void mark( const wb_type& value, oworklist* work, ocolour colour );
+    static void mark( ykeyval< key_t, value_t >& wb, yworklist* work, ycolour colour );
 };
-
 
 template < typename key_t, typename value_t >
-struct omark< okeytable< key_t, value_t > >
+struct ymarktraits< ymap< key_t, value_t > >
 {
-    typedef okeytable< key_t, value_t > wb_type;
-    static void mark( const wb_type& value, oworklist* work, ocolour colour );
+    static void mark( ymap< key_t, value_t >& wb, yworklist* work, ycolour colour );
 };
+
 
 
 
 /*
 
 */
-
 
 #include <algorithm>
 #include <intmath.h>
@@ -94,12 +92,12 @@ struct omark< okeytable< key_t, value_t > >
 
 
 /*
-    okeytable
+    ykeyval
 */
 
 
 template < typename key_t, typename value_t >
-okeyval< key_t, value_t >::okeyval()
+ykeyval< key_t, value_t >::ykeyval()
     :   key()
     ,   value()
     ,   next( nullptr )
@@ -107,22 +105,27 @@ okeyval< key_t, value_t >::okeyval()
 }
 
 
+/*
+    ymap
+*/
+
+
 template < typename key_t, typename value_t >
-okeytable< key_t, value_t >::okeytable()
+ymap< key_t, value_t >::ymap()
     :   count( 0 )
     ,   keyvals()
 {
 }
 
 template < typename key_t, typename value_t >
-inline size_t okeytable< key_t, value_t >::size() const
+inline size_t ymap< key_t, value_t >::size() const
 {
     return count;
 }
 
 template < typename key_t, typename value_t >
-inline typename okeytable< key_t, value_t >::keyval_type*
-                okeytable< key_t, value_t >::lookup( const key_t& key ) const
+inline typename ymap< key_t, value_t >::keyval_type*
+                ymap< key_t, value_t >::lookup( const key_t& key ) const
 {
     // Lookups fail if keytable is empty.
     if ( ! keyvals )
@@ -151,7 +154,7 @@ inline typename okeytable< key_t, value_t >::keyval_type*
 }
 
 template < typename key_t, typename value_t >
-void okeytable< key_t, value_t >::insert(
+void ymap< key_t, value_t >::insert(
                 const key_t& key, const value_t& value )
 {
     // Lookup key in case it already exists.
@@ -225,7 +228,7 @@ void okeytable< key_t, value_t >::insert(
 }
 
 template < typename key_t, typename value_t >
-void okeytable< key_t, value_t >::remove( const key_t& key )
+void ymap< key_t, value_t >::remove( const key_t& key )
 {
     // Nothing to remove if keytable is empty.
     if ( ! keyvals )
@@ -282,7 +285,7 @@ void okeytable< key_t, value_t >::remove( const key_t& key )
 }
 
 template < typename key_t, typename value_t >
-void okeytable< key_t, value_t >::clear()
+void ymap< key_t, value_t >::clear()
 {
     count = 0;
     keyvals = nullptr;
@@ -290,8 +293,8 @@ void okeytable< key_t, value_t >::clear()
 
 
 template < typename key_t, typename value_t >
-typename okeytable< key_t, value_t >::keyval_type*
-                okeytable< key_t, value_t >::iter()
+typename ymap< key_t, value_t >::keyval_type*
+                ymap< key_t, value_t >::iter()
 {
     // Empty list contains no items.
     if ( ! keyvals )
@@ -311,8 +314,8 @@ typename okeytable< key_t, value_t >::keyval_type*
 }
 
 template < typename key_t, typename value_t >
-typename okeytable< key_t, value_t >::keyval_type*
-                okeytable< key_t, value_t >::next( keyval_type* prev )
+typename ymap< key_t, value_t >::keyval_type*
+                ymap< key_t, value_t >::next( keyval_type* prev )
 {
     keyval_type* final = &keyvals->at( 0 ) + keyvals->size();
     for ( keyval_type* kv = prev + 1; kv < final; ++kv )
@@ -328,15 +331,15 @@ typename okeytable< key_t, value_t >::keyval_type*
 
 
 template < typename key_t, typename value_t >
-void okeytable< key_t, value_t >::rehash( size_t new_capacity )
+void ymap< key_t, value_t >::rehash( size_t new_capacity )
 {
     // Round up new capacity.
     new_capacity = std::max( new_capacity, count );
     new_capacity = ceil_pow2( new_capacity );
 
     // Remember old hash and allocate new one.
-    otuple< keyval_type >* oldkv = keyvals;
-    keyvals = otuple< keyval_type >::alloc( new_capacity );
+    ytuple< keyval_type >* oldkv = keyvals;
+    keyvals = ytuple< keyval_type >::alloc( new_capacity );
     
     // Reinsert elements into new hash.
     count = 0;
@@ -354,15 +357,15 @@ void okeytable< key_t, value_t >::rehash( size_t new_capacity )
 }
 
 template < typename key_t, typename value_t >
-inline typename okeytable< key_t, value_t >::keyval_type*
-        okeytable< key_t, value_t >::main_position( const key_t& key ) const
+inline typename ymap< key_t, value_t >::keyval_type*
+        ymap< key_t, value_t >::main_position( const key_t& key ) const
 {
     return &keyvals->at( std::hash< key_t >()( key ) % count );
 }
 
 template < typename key_t, typename value_t >
-typename okeytable< key_t, value_t >::keyval_type*
-        okeytable< key_t, value_t >::free_position( keyval_type* near )
+typename ymap< key_t, value_t >::keyval_type*
+        ymap< key_t, value_t >::free_position( keyval_type* near )
 {
     keyval_type* start = &keyvals->at( 0 );
     keyval_type* final = &keyvals->at( 0 ) + keyvals->size();
@@ -385,22 +388,22 @@ typename okeytable< key_t, value_t >::keyval_type*
 
 
 
+template < typename key_t, typename value_t >
+inline void ymarktraits< ykeyval< key_t, value_t > >::mark(
+        ykeyval< key_t, value_t >& wb, yworklist* work, ycolour colour )
+{
+    ymark( wb.key, work, colour );
+    ymark( wb.value, work, colour );
+}
 
 template < typename key_t, typename value_t >
-inline void omark< okeyval< key_t, value_t > >::mark(
-                const wb_type& value, oworklist* work, ocolour colour )
+inline void ymarktraits< ymap< key_t, value_t > >::mark(
+        ymap< key_t, value_t >& wb, yworklist* work, ycolour colour )
 {
-    omarkwb( value.key, work, colour );
-    omarkwb( value.value, work, colour );
+    ymark( wb.keyvals, work, colour );
 }
 
 
-template < typename key_t, typename value_t >
-inline void omark< okeytable< key_t, value_t > >::mark(
-                const wb_type& value, oworklist* work, ocolour colour )
-{
-    omarkwb( value.keyvals, work, colour );
-}
 
 
 

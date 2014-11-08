@@ -13,77 +13,76 @@
 #include "yobject.h"
 #include "ystring.h"
 #include "ytuple.h"
-#include "yslotlist.h"
+#include "yslots.h"
 #include "yvalue.h"
 #include "ycode.h"
 
 
-class omodule;
-class ofunction;
+class ymodule;
+class yblock;
 
 
 
 /*
-    An omodule is the compiled representation of a source file.
+    An ymodule is the compiled representation of a source file.
 */
 
-class omodule : public obase
+class ymodule : public yobject
 {
 public:
 
-    static void print( omodule* module );
+    static void print( ymodule* module );
+    static ymodule* alloc();
 
-    static ometatype metatype;
-    static omodule* alloc();
+    ystring*    name();
 
-    ostring*    name();
+    yblock*     script();
+    yblock*     block( unsigned f );
 
-    ofunction*  script();
-    ofunction*  function( unsigned f );
-
-    osymbol     symbol( unsigned k );
-    ovalue      value( unsigned v );
+    ysymbol     symbol( unsigned k );
+    yvalue      value( unsigned v );
     
     
 protected:
 
-    static void mark_module( oworklist* work, obase* object, ocolour colour );
+    friend class yobject;
+    friend class yvalue;
+    static ymetatype metatype;
+    static void mark_module( yobject* object, yworklist* work, ycolour colour );
     
-    explicit omodule( ometatype* metatype );
+    explicit ymodule( ymetatype* metatype );
     
 
 private:
 
     friend class xec_ssa_buildcode;
     
-    owb< ostring* >                 mname;
-    owb< otuple< osymbol >* >       symbols;
-#if OVALUE64
-    owb< otuple< ovalue >* >        values;
+    ywb< ystring* >             mname;
+    ywb< ytuple< ysymbol >* >   symbols;
+#if YSLOTS
+    ywb< yslots* >              values;
 #else
-    owb< oslotlist* >               values;
+    ywb< ytuple< yvalue >* >    values;
 #endif
-    owb< otuple< ofunction* >* >    functions;
+    ywb< ytuple< yblock* >* >   blocks;
 
 };
 
 
 
 /*
-    An ofunction contains the code for a single function.
+    An yblock contains the code for a single function.
 */
 
-class ofunction : public obase
+class yblock : public yobject
 {
 public:
 
-    static void print( ofunction* function );
-
-    static ometatype metatype;
-    static ofunction* alloc( size_t size );
+    static void print( yblock* function );
+    static yblock* alloc( size_t size );
     
-    omodule*        module();
-    ostring*        name();
+    ymodule*        module();
+    ystring*        name();
     
     unsigned        param_count();
     unsigned        upval_count();
@@ -93,22 +92,25 @@ public:
     bool            is_coroutine();
     
     size_t          size();
-    oinstruction*   code();
+    yinstruction*   code();
     
     
 protected:
-    
-    static void mark_function( oworklist* work, obase* object, ocolour colour );
 
-    ofunction( ometatype* metatype, size_t size );
+    friend class yobject;
+    friend class yvalue;
+    static ymetatype metatype;
+    static void mark_block( yobject* object, yworklist* work, ycolour colour );
+
+    yblock( ymetatype* metatype, size_t size );
     
 
 private:
 
     friend class xec_ssa_buildcode;
 
-    owb< omodule* > fmodule;
-    owb< ostring* > fname;
+    ywb< ymodule* > fmodule;
+    ywb< ystring* > fname;
     unsigned        fparamcount;
     unsigned        fupvalcount;
     unsigned        fnewupcount;
@@ -116,7 +118,7 @@ private:
     bool            fvarargs;
     bool            fcoroutine;
     size_t          fsize;
-    oinstruction    fcode[];
+    yinstruction    fcode[];
 
 };
 
@@ -128,83 +130,83 @@ private:
 */
 
 
-inline ostring* omodule::name()
+inline ystring* ymodule::name()
 {
     return mname;
 }
 
-inline ofunction* omodule::script()
+inline yblock* ymodule::script()
 {
-    return functions->at( 0 );
+    return blocks->get( 0 );
 }
 
-inline ofunction* omodule::function( unsigned f )
+inline yblock* ymodule::block( unsigned f )
 {
-    return functions->at( f );
+    return blocks->get( f );
 }
 
-inline osymbol omodule::symbol( unsigned k )
+inline ysymbol ymodule::symbol( unsigned k )
 {
-    return symbols->at( k );
+    return symbols->get( k );
 }
 
-inline ovalue omodule::value( unsigned v )
+inline yvalue ymodule::value( unsigned v )
 {
-#if OVALUE64
-    return values->at( v );
+#if YSLOTS
+    return values->get( v );
 #else
-    return values->load( v );
+    return values->get( v );
 #endif
 }
 
 
 
-inline omodule* ofunction::module()
+inline ymodule* yblock::module()
 {
     return fmodule;
 }
 
-inline ostring* ofunction::name()
+inline ystring* yblock::name()
 {
     return fname;
 }
 
-inline unsigned ofunction::param_count()
+inline unsigned yblock::param_count()
 {
     return fparamcount;
 }
 
-inline unsigned ofunction::upval_count()
+inline unsigned yblock::upval_count()
 {
     return fupvalcount;
 }
 
-inline unsigned ofunction::newup_count()
+inline unsigned yblock::newup_count()
 {
     return fnewupcount;
 }
 
-inline unsigned ofunction::stack_count()
+inline unsigned yblock::stack_count()
 {
     return fstackcount;
 }
 
-inline bool ofunction::is_varargs()
+inline bool yblock::is_varargs()
 {
     return fvarargs;
 }
 
-inline bool ofunction::is_coroutine()
+inline bool yblock::is_coroutine()
 {
     return fcoroutine;
 }
 
-inline size_t ofunction::size()
+inline size_t yblock::size()
 {
     return fsize;
 }
 
-inline oinstruction* ofunction::code()
+inline yinstruction* yblock::code()
 {
     return fcode;
 }

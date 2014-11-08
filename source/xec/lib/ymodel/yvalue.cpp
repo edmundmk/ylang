@@ -10,13 +10,13 @@
 
 
 
-ovalue ovalue::undefined( VALUE_UNDEFINED );
+yvalue yvalue::undefined( VALUE_UNDEFINED );
 
-obase* ovalue::get() const
+yobject* yvalue::get() const
 {
     if ( x >= MIN_REFERENCE && x <= MAX_REFERENCE )
     {
-        return (obase*)( x & POINTER_MASK );
+        return (yobject*)( x & POINTER_MASK );
     }
     else
     {

@@ -20,28 +20,29 @@
 */
 
 
-class oarray : public oexpand
+class yarray : public yexpand
 {
 public:
 
-    static ometatype metatype;
+    static yarray* alloc();
     
-    static oarray* alloc();
-    
-    ovalue  getindex( size_t i ) const;
-    void    setindex( size_t i, ovalue value );
+    yvalue  getindex( size_t i ) const;
+    void    setindex( size_t i, yvalue value );
 
 
 protected:
 
-    static void mark_array( oworklist* work, obase* object, ocolour colour );
+    friend class yobject;
+    friend class yvalue;
+    static ymetatype metatype;
+    static void mark_array( yobject* object, yworklist* work, ycolour colour );
 
-    explicit oarray( ometatype* metatype );
+    explicit yarray( ymetatype* metatype );
 
 
 private:
 
-    owb< otuple< ovalue >* > values;
+    ywb< ytuple< yvalue >* > values;
 
 };
 
@@ -51,20 +52,20 @@ private:
 
 */
 
-inline ovalue oarray::getindex( size_t i ) const
+inline yvalue yarray::getindex( size_t i ) const
 {
     if ( values && i < values->size() )
-        return values->at( i );
+        return values->get( i );
     else
-        return ovalue::undefined;
+        return yvalue::undefined;
 }
 
-inline void oarray::setindex( size_t i, ovalue value )
+inline void yarray::setindex( size_t i, yvalue value )
 {
     if ( values && i < values->size() )
-        values->at( i ) = value;
+        values->set( i, value );
     else
-        throw oerror( "index out of range" );
+        throw yerror( "index out of range" );
 }
 
 

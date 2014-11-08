@@ -10,7 +10,7 @@
 #include <stringf.h>
 
 
-oerror::oerror( const char* format, ... )
+yerror::yerror( const char* format, ... )
 {
     va_list arguments;
     va_start( arguments, format );
@@ -18,7 +18,7 @@ oerror::oerror( const char* format, ... )
     va_end( arguments );
 }
 
-const char* oerror::what() const throw()
+const char* yerror::what() const throw()
 {
     return message.c_str();
 }

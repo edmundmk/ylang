@@ -11,7 +11,7 @@
 
 
 #include "yexpand.h"
-#include "ykeytable.h"
+#include "ymap.h"
 
 
 /*
@@ -19,28 +19,29 @@
 */
 
 
-class otable : public oexpand
+class ytable : public yexpand
 {
 public:
 
-    static ometatype metatype;
-
-    static otable* alloc();
+    static ytable* alloc();
     
-    ovalue  getindex( ovalue key ) const;
-    void    setindex( ovalue key, ovalue value );
+    yvalue  getindex( yvalue key ) const;
+    void    setindex( yvalue key, yvalue value );
 
 
 protected:
 
-    static void mark_table( oworklist* work, obase* object, ocolour colour );
+    friend class yobject;
+    friend class yvalue;
+    static ymetatype metatype;
+    static void mark_table( yobject* object, yworklist* work, ycolour colour );
 
-    explicit otable( ometatype* metatype );
+    explicit ytable( ymetatype* metatype );
 
 
 private:
 
-    okeytable< ovalue, ovalue > table;
+    ymap< yvalue, yvalue > table;
 
 };
 
@@ -51,17 +52,17 @@ private:
 */
 
 
-inline ovalue otable::getindex( ovalue key ) const
+inline yvalue ytable::getindex( yvalue key ) const
 {
     auto lookup = table.lookup( key );
     if ( lookup )
         return lookup->value;
     else
-        return ovalue::undefined;
+        return yvalue::undefined;
 }
 
 
-inline void otable::setindex( ovalue key, ovalue value )
+inline void ytable::setindex( yvalue key, yvalue value )
 {
     table.insert( key, value );
 }

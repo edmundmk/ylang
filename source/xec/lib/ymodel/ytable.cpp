@@ -10,28 +10,28 @@
 
 
 
-ometatype otable::metatype = { &mark_table, "table" };
+ymetatype ytable::metatype = { &mark_table, "table" };
 
 
-otable* otable::alloc()
+ytable* ytable::alloc()
 {
-    void* p = malloc( sizeof( otable ) );
-    return new ( p ) otable( &metatype );
+    void* p = malloc( sizeof( ytable ) );
+    return new ( p ) ytable( &metatype );
 }
 
 
-otable::otable( ometatype* metatype )
-    :   oexpand( metatype, ocontext::context->empty )
+ytable::ytable( ymetatype* metatype )
+    :   yexpand( metatype, nullptr )
 {
     // TODO: Use a table class inheriting from the table prototype.
 }
 
 
-void otable::mark_table( oworklist* work, obase* object, ocolour colour )
+void ytable::mark_table( yobject* object, yworklist* work, ycolour colour )
 {
-    otable* t = (otable*)object;
-    mark_expand( work, object, colour );
-    omark< okeytable< ovalue, ovalue > >::mark( t->table, work, colour );
+    ytable* table = (ytable*)object;
+    mark_expand( table, work, colour );
+    ymark( table->table, work, colour );
 }
 
 

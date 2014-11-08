@@ -12,61 +12,64 @@
 
 #include "yobject.h"
 #include "ytuple.h"
-#include "ykeytable.h"
+#include "ymap.h"
 #include "ystring.h"
+#include "yslots.h"
 
 
-class oexpand;
-class oclass;
-class ovalue;
+class yexpand;
+class yclass;
+class yvalue;
+
 
 
 
 /*
-    oexpand is the base class for objects that can have arbitrary properties
+    yexpand is the base class for objects that can have arbitrary properties
     added.  These properties are stored using a 'dynamic hidden class' system
     which builds classes on-the-fly.
 */
 
-class oexpand : public obase
+class yexpand : public yobject
 {
 public:
 
-    static ometatype metatype;
-
-    static oexpand* alloc();
-    static oexpand* alloc( oexpand* prototype );
+    static yexpand* alloc();
+    static yexpand* alloc( yexpand* prototype );
     
-    oexpand*    prototype() const;
-    ovalue      getkey( osymbol key ) const;
-    void        setkey( osymbol key, ovalue value );
-    void        delkey( osymbol key );
+    yexpand*    prototype() const;
+    yvalue      getkey( ysymbol key ) const;
+    void        setkey( ysymbol key, yvalue value );
+    void        delkey( ysymbol key );
 
-    oclass*     empty();
+    yclass*     empty_class();
     
 
 protected:
 
-    static void mark_expand( oworklist* work, obase* object, ocolour colour );
+    friend class yobject;
+    friend class yvalue;
+    static ymetatype metatype;
+    static void mark_expand( yobject* object, yworklist* work, ycolour colour );
 
-    oexpand( ometatype* metatype, oclass* klass );
+    yexpand( ymetatype* metatype, yclass* klass );
 
 
 private:
 
-#if OSLOTLIST
-    void        dualkey( osymbol key, oslotindex index, ovalue value );
-    void        expanddual( osymbol key, oslotindex index, ovalue value );
-    void        storedual( oslotindex index, size_t newslot, ovalue value );
+#if YSLOTS
+    void        dualkey( ysymbol key, yslotindex index, yvalue value );
+    void        expanddual( ysymbol key, yslotindex index, yvalue value );
+    void        storedual( yslotindex index, size_t newslot, yvalue value );
 #else
-    void        expandkey( osymbol key, ovalue value );
+    void        expandkey( ysymbol key, yvalue value );
 #endif
 
-    owb< oclass* >              klass;
-#if OSLOTLIST
-    owb< oslotlist* >           slots;
+    ywb< yclass* >              klass;
+#if YSLOTS
+    ywb< yslots* >              slots;
 #else
-    owb< otuple< ovalue >* >    slots;
+    ywb< ytuple< yvalue >* >    slots;
 #endif
 };
 
@@ -77,7 +80,7 @@ private:
 
 
 /*
-    An oclass describes the layout of an expand's dynamic properties.  The
+    An yclass describes the layout of an expand's dynamic properties.  The
     class for empty objects is per-context and is the root of the class tree.
 
     An object with the same properties but a different prototype object will
@@ -88,37 +91,40 @@ private:
 */
 
 
-class oclass : public obase
+class yclass : public yobject
 {
 public:
 
-    static ometatype metatype;
-
-    static oclass* alloc();
+    static yclass* alloc();
 
 
 protected:
 
-    static void mark_class( oworklist* work, obase* object, ocolour colour );
+    friend class yobject;
+    friend class yvalue;
+    static ymetatype metatype;
+    static void mark_class( yobject* object, yworklist* work, ycolour colour );
 
-    oclass( ometatype* metatype );
+    explicit yclass( ymetatype* metatype );
 
 
 private:
 
-    friend class oexpand;
+    friend class ymodel;
+    friend class yexpand;
 
-    owb< oexpand* >                     prototype;
-#if OSLOTLIST
-    okeytable< osymbol, oslotindex >    lookup;
-    okeytable< osymbol, oclass* >       expandref;
-    okeytable< osymbol, oclass* >       expandnum;
-    size_t                              numbercount;
+    ywb< yexpand* >                 prototype;
+#if YSLOTS
+    ymap< ysymbol, yslotindex >     lookup;
+    ymap< ysymbol, yclass* >        expandref;
+    ymap< ysymbol, yclass* >        expandnum;
+    size_t                          refslots;
+    size_t                          numslots;
 #else
-    okeytable< osymbol, size_t >        lookup;
-    okeytable< osymbol, oclass* >       expand;
+    ymap< ysymbol, size_t >         lookup;
+    ymap< ysymbol, yclass* >        expand;
 #endif
-    bool                                is_prototype;
+    bool                            is_prototype;
     
 };
 
@@ -134,23 +140,23 @@ private:
 
 
 
-inline oexpand* oexpand::prototype() const
+inline yexpand* yexpand::prototype() const
 {
     return klass->prototype;
 }
 
-inline ovalue oexpand::getkey( osymbol key ) const
+inline yvalue yexpand::getkey( ysymbol key ) const
 {
-    oclass* klass = this->klass;
-    ovalue v;
+    yclass* klass = this->klass;
+    yvalue v;
 
     auto lookup = klass->lookup.lookup( key );
     if ( lookup )
     {
-#if OSLOTLIST
-        v = slots->load( lookup->value.slot );
+#if YSLOTS
+        v = slots->get( lookup->value.slot );
 #else
-        v = slots->at( lookup->value );
+        v = slots->get( lookup->value );
 #endif
     }
     
@@ -162,32 +168,36 @@ inline ovalue oexpand::getkey( osymbol key ) const
     return v;
 }
 
-inline void oexpand::setkey( osymbol key, ovalue value )
+inline void yexpand::setkey( ysymbol key, yvalue value )
 {
-#if OSLOTLIST
+#if YSLOTS
+
     auto lookup = klass->lookup.lookup( key );
     if ( lookup )
     {
-        oslotindex index = lookup->value;
+        yslotindex index = lookup->value;
         if ( value.is_number() == index.dual )
-            slots->store( index.slot, value );
+            slots->set( index.slot, value );
         else
             dualkey( key, index, value );
     }
     else
     {
-        expanddual( key, oslotindex(), value );
+        expanddual( key, yslotindex(), value );
     }
+
 #else
+
     auto lookup = klass->lookup.lookup( key );
     if ( lookup )
     {
-        slots->at( lookup->value ) = value;
+        slots->set( lookup->value, value );
     }
     else
     {
         expandkey( key, value );
     }
+
 #endif
 }
 

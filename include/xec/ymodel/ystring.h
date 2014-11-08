@@ -20,17 +20,15 @@
     lazily.  Hashes are used to early-out when comparing strings for equality.
 */
 
-class ostring : public obase
+class ystring : public yobject
 {
 public:
 
-    static ometatype metatype;
+    static ystring*     alloc( const char* string );
+    static ystring*     alloc( size_t size );
 
-    static ostring*     alloc( const char* string );
-    static ostring*     alloc( size_t size );
-
-    static ostring*     strcat( ostring* a, ostring* b );
-    static int          strcmp( ostring* a, ostring* b );
+    static ystring*     strcat( ystring* a, ystring* b );
+    static int          strcmp( ystring* a, ystring* b );
 
     hash32_t            hash() const;
     size_t              size() const;
@@ -41,14 +39,18 @@ public:
 
 
 protected:
+
+    friend class yobject;
+    friend class yvalue;
+    static ymetatype metatype;
     
-    ostring( ometatype* metatype, size_t size );
+    ystring( ymetatype* metatype, size_t size );
     
 
 private:
 
-    friend class oheap;
-    friend class osymbol;
+    friend class ymodel;
+    friend class ysymbol;
 
     mutable hash32_t    shash;
     size_t              ssize   : 30;
@@ -64,42 +66,41 @@ private:
 
 
 /*
-    An osymbol is a special kind of ostring* which ensures fast comparisons
+    An ysymbol is a special kind of ystring* which ensures fast comparisons
     by ensuring that symbols are in the symbol table.  Symbols are reference
     types requiring a custom write barrier.
 */
 
-class osymbol
+class ysymbol
 {
 public:
 
-    osymbol();
-    osymbol( const char* s );
-    osymbol( ostring* s );
+    ysymbol();
+    ysymbol( const char* s );
+    ysymbol( ystring* s );
 
     explicit operator bool () const;
-    ostring* operator -> () const;
-    ostring* get() const;
+    ystring* operator -> () const;
+    ystring* get() const;
     
 
 private:
 
-    friend class owb< osymbol >;
-    friend bool operator == ( osymbol a, osymbol b );
-    friend struct std::hash< osymbol >;
+    friend bool operator == ( ysymbol a, ysymbol b );
+    friend struct std::hash< ysymbol >;
     
-    ostring* string;
+    ystring* string;
 
 };
 
 
-bool operator == ( osymbol a, osymbol b );
+bool operator == ( ysymbol a, ysymbol b );
 
 namespace std
 {
-template <> struct hash< osymbol >
+template <> struct hash< ysymbol >
 {
-    size_t operator () ( const osymbol& a ) const;
+    size_t operator () ( const ysymbol& a ) const;
 };
 }
 
@@ -107,33 +108,40 @@ template <> struct hash< osymbol >
 
 
 template <>
-class owb< osymbol >
+class ywb< ysymbol >
 {
 public:
 
-    owb();
-    owb( osymbol q );
-    owb& operator = ( osymbol q );
-    owb& operator = ( const owb& q );
+    ywb();
+    ywb( const ywb& q );
+    ywb( ysymbol q );
+    ywb& operator = ( const ywb& q );
+    ywb& operator = ( ysymbol q );
 
-    operator osymbol () const;
-    ostring* operator -> () const;
+    operator ysymbol () const;
+    ystring* operator -> () const;
+    ystring* get() const;
     
 
 private:
 
-    friend struct omark< osymbol >;
+    friend struct ymarktraits< ywb< ysymbol > >;
 
-    std::atomic< ostring* > string;
+    std::atomic< ystring* > string;
 
 };
 
 
 template <>
-struct omark< osymbol >
+struct ywbtraits< ysymbol >
 {
-    typedef owb< osymbol > wb_type;
-    static void mark( const wb_type& value, oworklist* work, ocolour colour );
+    typedef ywb< ysymbol > wb;
+};
+
+template <>
+struct ymarktraits< ywb< ysymbol > >
+{
+    static void mark( ywb< ysymbol >& wb, yworklist* work, ycolour colour );
 };
 
 
@@ -148,11 +156,11 @@ struct omark< osymbol >
 
 
 /*
-    ostring
+    ystring
 */
 
 
-inline hash32_t ostring::hash() const
+inline hash32_t ystring::hash() const
 {
     if ( ! shashed )
     {
@@ -162,22 +170,22 @@ inline hash32_t ostring::hash() const
     return shash;
 }
 
-inline size_t ostring::size() const
+inline size_t ystring::size() const
 {
     return ssize;
 }
 
-inline const char* ostring::c_str() const
+inline const char* ystring::c_str() const
 {
     return sdata;
 }
 
-inline const char* ostring::data() const
+inline const char* ystring::data() const
 {
     return sdata;
 }
 
-inline char* ostring::buffer()
+inline char* ystring::buffer()
 {
     // Only call this if you know what you are doing.
     assert( ! ssymbol );
@@ -191,47 +199,47 @@ inline char* ostring::buffer()
 
 
 /*
-    osymbol
+    ysymbol
 */
 
-inline osymbol::osymbol()
+inline ysymbol::ysymbol()
     :   string( nullptr )
 {
 }
 
-inline osymbol::osymbol( const char* s )
-    :   string( ocontext::context->heap->make_symbol( s ) )
+inline ysymbol::ysymbol( const char* s )
+    :   string( ycontext::context->model->make_symbol( s ) )
 {
 }
 
-inline osymbol::osymbol( ostring* s )
-    :   string( s->ssymbol ? s : ocontext::context->heap->make_symbol( s ) )
+inline ysymbol::ysymbol( ystring* s )
+    :   string( s->ssymbol ? s : ycontext::context->model->make_symbol( s ) )
 {
 }
 
-inline osymbol::operator bool () const
+inline ysymbol::operator bool () const
 {
     return string != nullptr;
 }
 
-inline ostring* osymbol::operator -> () const
+inline ystring* ysymbol::operator -> () const
 {
     return string;
 }
 
-inline ostring* osymbol::get() const
+inline ystring* ysymbol::get() const
 {
     return string;
 }
 
 
 
-inline bool operator == ( osymbol a, osymbol b )
+inline bool operator == ( ysymbol a, ysymbol b )
 {
     return a.string == b.string;
 }
 
-inline size_t std::hash< osymbol >::operator () ( const osymbol& a ) const
+inline size_t std::hash< ysymbol >::operator () ( const ysymbol& a ) const
 {
     return a->hash();
 }
@@ -241,50 +249,55 @@ inline size_t std::hash< osymbol >::operator () ( const osymbol& a ) const
 
 
 
-inline owb< osymbol >::owb()
+inline ywb< ysymbol >::ywb()
     :   string( nullptr )
 {
 }
 
-inline owb< osymbol >::owb( osymbol q )
-    :   string( q.string )
+inline ywb< ysymbol >::ywb( const ywb& q )
+    :   ywb( (ysymbol)q )
 {
 }
 
-inline owb< osymbol >& owb< osymbol >::operator = ( osymbol q )
+inline ywb< ysymbol >::ywb( ysymbol q )
+    :   string( q.get() )
 {
-    ostring* string = this->string.load( std::memory_order_relaxed );
+}
+
+inline ywb< ysymbol >& ywb< ysymbol >::operator = ( ysymbol q )
+{
+    ystring* string = this->string.load( std::memory_order_relaxed );
     if ( string )
     {
         string->mark();
     }
     
-    this->string.store( q.string, std::memory_order_relaxed );
+    this->string.store( q.get(), std::memory_order_relaxed );
     return *this;
 }
 
-inline owb< osymbol >& owb< osymbol >::operator = ( const owb& q )
+inline ywb< ysymbol >& ywb< ysymbol >::operator = ( const ywb& q )
 {
-    return this->operator = ( (osymbol)q );
+    return this->operator = ( (ysymbol)q );
 }
 
-inline owb< osymbol >::operator osymbol () const
+inline ywb< ysymbol >::operator ysymbol () const
 {
-    return osymbol( string.load( std::memory_order_relaxed ) );
+    return ysymbol( string.load( std::memory_order_relaxed ) );
 }
 
-inline ostring* owb< osymbol >::operator -> () const
+inline ystring* ywb< ysymbol >::operator -> () const
 {
     return string.load( std::memory_order_relaxed );
 }
 
 
 
-inline void omark< osymbol >::mark(
-                const wb_type& value, oworklist* work, ocolour colour )
+inline void ymarktraits< ywb< ysymbol > >::mark(
+                ywb< ysymbol >& wb, yworklist* work, ycolour colour )
 {
     // On the mark thread, loading a reference, must be memory_order_consume.
-    ostring* string = value.string.load( std::memory_order_consume );
+    ystring* string = wb.string.load( std::memory_order_consume );
     if ( string )
     {
         string->mark( work, colour );

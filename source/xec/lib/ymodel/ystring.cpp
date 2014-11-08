@@ -9,26 +9,26 @@
 #include "ystring.h"
 
 
-ometatype ostring::metatype = { nullptr, "string" };
+ymetatype ystring::metatype = { nullptr, "string" };
 
 
-ostring* ostring::alloc( const char* string )
+ystring* ystring::alloc( const char* string )
 {
-    ostring* s = alloc( strlen( string ) );
+    ystring* s = alloc( strlen( string ) );
     memcpy( s->buffer(), string, s->size() );
     return s;
 }
 
 
-ostring* ostring::alloc( size_t size )
+ystring* ystring::alloc( size_t size )
 {
-    void* p = malloc( sizeof( ostring ) + size + 1 );
-    return new ( p ) ostring( &metatype, size );
+    void* p = malloc( sizeof( ystring ) + size + 1 );
+    return new ( p ) ystring( &metatype, size );
 }
 
 
-ostring::ostring( ometatype* metatype, size_t size )
-    :   obase( metatype )
+ystring::ystring( ymetatype* metatype, size_t size )
+    :   yobject( metatype )
     ,   shash( 0 )
     ,   ssize( size )
     ,   shashed( false )
@@ -38,16 +38,16 @@ ostring::ostring( ometatype* metatype, size_t size )
 }
 
 
-ostring* ostring::strcat( ostring* a, ostring* b )
+ystring* ystring::strcat( ystring* a, ystring* b )
 {
-    ostring* result = alloc( a->size() + b->size() );
+    ystring* result = alloc( a->size() + b->size() );
     memcpy( result->buffer(), a->data(), a->size() );
     memcpy( result->buffer() + a->size(), b->data(), b->size() );
     return result;
 }
 
 
-int ostring::strcmp( ostring* a, ostring* b )
+int ystring::strcmp( ystring* a, ystring* b )
 {
     if ( a == b )
         return 0;

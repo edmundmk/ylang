@@ -15,11 +15,11 @@
 
 
 
-class oerror : public std::exception
+class yerror : public std::exception
 {
 public:
 
-    explicit oerror( const char* format, ... );
+    explicit yerror( const char* format, ... );
     virtual const char* what() const throw();
     
 private:

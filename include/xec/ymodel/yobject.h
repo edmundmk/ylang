@@ -1,245 +1,364 @@
 //
-//  ybase.h
+//  yobject.h
 //
 //  Created by Edmund Kapusniak on 01/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef YBASE_H
-#define YBASE_H
+#ifndef YOBJECT_H
+#define YOBJECT_H
 
 
+#include <assert.h>
 #include <atomic>
-#include "yheap.h"
+#include "ymodel.h"
 
 
-/*
-    32 bit systems are a pain!
-*/
-
-#if defined( __x86_64__ ) || defined( __arm64__ )
-#define OVALUE64 1
-#else
-#define OVALUE32 1
-#endif
-
+class yobject;
+class ymetatype;
 
 
 
 /*
-    Base of all GC objects.  The atomic word contains both the mark colour
-    and an immutable pointer to the metatype.  There is a global list of
-    GC objects so the sweeper can find them all.
+    A ymodel object.  The atomic word contains both the mark colour (which
+    must be updated atomically) and also packs in an immutable pointer to the
+    metatype.  The list of yobjects is so the sweeper can find them.
 */
 
-class obase
+class yobject
 {
 public:
 
     template < typename object_t > bool is();
-    template < typename object_t > bool as();
+    template < typename object_t > object_t* as();
     
-    void mark();
-    void mark( oworklist* work, ocolour mark_colour );
-
-
 protected:
 
-    explicit obase( ometatype* metatype );
+    explicit yobject( ymetatype* metatype );
     
-
+    
 private:
 
+    friend class ymodel;
+    friend class yslots;
+    template < typename value_t > friend class ywb;
+    template < typename value_t > friend struct ymarktraits;
+
+    void mark();
+    void mark( yworklist* work, ycolour colour );
+    
+    
+private:
+    
     std::atomic< uintptr_t >    word;
-    obase*                      next;
+    yobject*                    next;
 
 };
 
 
 
+
 /*
-    Write barriers for pointers to garbage collected objects.  The pointer
-    is atomic as both the garbage collector and mutator threads access it 
-    without locking.
+    A ymetatype tells the collector how to mark an object, and identifies the
+    type for the yobject safe casts.
 */
 
-template < typename reftype_t >
-class owb< reftype_t* >
+struct ymetatype
+{
+    void (*mark)( yobject* object, yworklist* work, ycolour );
+    const char* name;
+};
+
+
+
+
+/*
+    yroot
+*/
+
+template < typename object_t >
+class yroot< object_t* >
 {
 public:
 
-    owb();
-    owb( reftype_t* q );
-    owb& operator = ( reftype_t* q );
-    owb& operator = ( const owb& q );
+    yroot();
+    yroot( const yroot& q );
+    yroot( object_t* q );
+    yroot& operator = ( const yroot& q );
+    yroot& operator = ( object_t* q );
+    ~yroot();
+    
+    operator object_t* () const;
+    object_t* operator -> () const;
 
-    operator reftype_t* () const;
-    reftype_t* operator -> () const;
+
+private:
+
+    object_t* p;
+
+};
+
+
+
+
+/*
+    Write-barrier specialization for pointers to yobjects.
+*/
+
+template < typename object_t >
+class ywb< object_t* >
+{
+public:
+
+    ywb();
+    ywb( const ywb& q );
+    ywb( object_t* q );
+    ywb& operator = ( const ywb& q );
+    ywb& operator = ( object_t* q );
+    
+    operator object_t* () const;
+    object_t* operator -> () const;
     
 
 private:
 
-    friend class omark< reftype_t* >;
+    template < typename value_t > friend struct ymarktraits;
     
-    std::atomic< reftype_t* > p;
-    
+    std::atomic< object_t* > p;
+
 };
 
 
-template < typename reftype_t >
-struct omark< reftype_t* >
+template < typename object_t >
+struct ywbtraits< object_t* >
 {
-    typedef owb< reftype_t* > wb_type;
-    static void mark( const wb_type& value, oworklist* work, ocolour colour );
+    typedef ywb< object_t* > wb;
 };
 
+
+template < typename object_t >
+struct ymarktraits< ywb< object_t* > >
+{
+    static void mark( ywb< object_t* >& wb, yworklist* work, ycolour colour );
+};
 
 
 
 /*
-
+    
 */
 
 
-#include "yerror.h"
-
-
-
 /*
-    obase
+    yobject
 */
 
 
 template < typename object_t >
-inline bool obase::is()
+inline bool yobject::is()
 {
     uintptr_t word = this->word.load( std::memory_order_relaxed );
-    ometatype* metatype = (ometatype*)( word & ~O_COLOUR );
+    ymetatype* metatype = (ymetatype*)( word & ~Y_COLOUR_MASK );
     return metatype == &object_t::metatype;
 }
 
 template < typename object_t >
-inline bool obase::as()
+inline object_t* yobject::as()
 {
     if ( is< object_t >() )
         return (object_t*)this;
     else
-        throw oerror( "expected %s", object_t::metatype.name );
+        return nullptr;
 }
 
-
-inline void obase::mark()
+inline void yobject::mark()
 {
-    ocolour mark_colour = ocontext::context->mark_colour;
+    // Called from write barriers to check if this object requires marking.
+    // Objects which contain no references are marked directly.  Other objects
+    // are added to the grey list for the mark thread to pick up.
 
+    ycolour mark_colour = ycontext::context->mark_colour;
     uintptr_t word = this->word.load( std::memory_order_relaxed );
-    ometatype* metatype = (ometatype*)( word & ~O_COLOUR );
-    ocolour colour = (ocolour)( word & O_COLOUR );
+    ymetatype* metatype = (ymetatype*)( word & ~Y_COLOUR_MASK );
+    ycolour colour = (ycolour)( word & Y_COLOUR_MASK );
     
-    if ( colour != O_GREY && colour != mark_colour )
+    if ( colour != Y_GREY && colour != mark_colour )
     {
         if ( metatype->mark )
         {
-            ocontext::context->heap->mark_grey( this );
+            // Add to the mark list.
+            ycontext::context->model->mark_grey( this );
         }
         else
         {
+            // Mark directly.
             word = (uintptr_t)metatype | mark_colour;
             this->word.store( word, std::memory_order_relaxed );
         }
     }
 }
 
-inline void obase::mark( oworklist* work, ocolour mark_colour )
+inline void yobject::mark( yworklist* work, ycolour mark_colour )
 {
+    // Called from mark thread to mark objects.  Objects are again either
+    // added to the work list or marked directly.
+    
     uintptr_t word = this->word.load( std::memory_order_relaxed );
-    ometatype* metatype = (ometatype*)( word & ~O_COLOUR );
-    ocolour colour = (ocolour)( word & O_COLOUR );
+    ymetatype* metatype = (ymetatype*)( word & ~Y_COLOUR_MASK );
+    ycolour colour = (ycolour)( word & Y_COLOUR_MASK );
     
-    if ( colour != O_GREY && colour != mark_colour )
+    if ( colour != Y_GREY && colour != mark_colour )
     {
-        if ( metatype->mark )
-        {
-            work->push_back( this );
-            word = (uintptr_t)metatype | O_GREY;
-            this->word.store( word, std::memory_order_relaxed );
-        }
-        else
-        {
-            word = (uintptr_t)metatype | mark_colour;
-            this->word.store( word, std::memory_order_relaxed );
-        }
+        // Add to work list.
+        word = (uintptr_t)metatype | Y_GREY;
+        this->word.store( word, std::memory_order_relaxed );
+        work->push_back( this );
     }
-    
+    else
+    {
+        // Mark directly.
+        word = (uintptr_t)metatype | mark_colour;
+        this->word.store( word, std::memory_order_relaxed );
+    }
 }
+
 
 
 
 /*
-    owb< reftype_t* >
+    yroot
 */
 
-template < typename reftype_t >
-inline owb< reftype_t* >::owb()
-    :   p( nullptr )
+template < typename object_t >
+inline yroot< object_t* >::yroot()
+    :   yroot( nullptr )
 {
 }
 
-template < typename reftype_t >
-inline owb< reftype_t* >::owb( reftype_t* q )
+template < typename object_t >
+inline yroot< object_t* >::yroot( const yroot& q )
+    :   yroot( q.p )
+{
+}
+
+template < typename object_t >
+inline yroot< object_t* >::yroot( object_t* q )
+    :   p( q )
+{
+    if ( q )
+        ycontext::context->model->add_root( q );
+}
+
+template < typename object_t >
+yroot< object_t* >& yroot< object_t* >::operator = ( const yroot& q )
+{
+    return this->operator = ( (object_t*)q );
+}
+
+template < typename object_t >
+yroot< object_t* >& yroot< object_t* >::operator = ( object_t* q )
+{
+    if ( p != q )
+    {
+        if ( q )
+            ycontext::context->model->add_root( q );
+        if ( p )
+            ycontext::context->model->remove_root( p );
+    }
+    p = q;
+    return this;
+}
+
+template < typename object_t >
+inline yroot< object_t* >::~yroot()
+{
+    if ( p )
+        ycontext::context->model->remove_root( p );
+}
+
+template < typename object_t >
+inline yroot< object_t* >::operator object_t* () const
+{
+    return p;
+}
+
+template < typename object_t >
+inline object_t* yroot< object_t* >::operator -> () const
+{
+    return p;
+}
+
+
+
+
+
+/*
+    ywb< object_t* >
+*/
+
+template < typename object_t >
+inline ywb< object_t* >::ywb()
+    :   ywb( nullptr )
+{
+}
+
+template < typename object_t >
+inline ywb< object_t* >::ywb( const ywb& q )
+    :   ywb( (object_t*)q )
+{
+}
+
+template < typename object_t >
+inline ywb< object_t* >::ywb( object_t* q )
     :   p( q )
 {
 }
 
-template < typename reftype_t >
-inline owb< reftype_t* >& owb< reftype_t* >::operator = ( reftype_t* q )
+template < typename object_t >
+inline ywb< object_t* >& ywb< object_t* >::operator = ( const ywb& q )
 {
-    // If old value is not marked, mark grey and submit to mutator.
-    reftype_t* p = this->p.load( std::memory_order_relaxed );
+    return this->operator = ( (object_t*)q );
+}
+
+template < typename object_t >
+inline ywb< object_t* >& ywb< object_t* >::operator = ( object_t* q )
+{
+    // Perform write barrier on previous value.
+    object_t* p = this->p.load( std::memory_order_relaxed );
     if ( p )
     {
         p->mark();
     }
-
+    
     // Update value.
     this->p.store( q, std::memory_order_relaxed );
     return *this;
 }
 
-template < typename reftype_t >
-inline owb< reftype_t* >& owb< reftype_t* >::operator = ( const owb& q )
-{
-    return this->operator = ( (reftype_t*)q );
-}
-
-template < typename reftype_t >
-inline owb< reftype_t* >::operator reftype_t* () const
+template < typename object_t >
+inline ywb< object_t* >::operator object_t* () const
 {
     return p.load( std::memory_order_relaxed );
 }
 
-template < typename reftype_t >
-inline reftype_t* owb< reftype_t* >::operator -> () const
+template < typename object_t >
+inline object_t* ywb< object_t* >::operator -> () const
 {
     return p.load( std::memory_order_relaxed );
 }
 
-
-
-template < typename reftype_t >
-inline void omark< reftype_t* >::mark(
-                const wb_type& value, oworklist* work, ocolour colour )
+template < typename object_t >
+inline void ymarktraits< ywb< object_t* > >::mark(
+        ywb< object_t* >& wb, yworklist* work, ycolour colour )
 {
-    // On mark thread must use consume memory ordering.
-    reftype_t* p = value.p.load( std::memory_order_consume );
+    // Because of the potential race with new objects, must consume.
+    object_t* p = wb.p.load( std::memory_order_consume );
     if ( p )
     {
         p->mark( work, colour );
     }
 }
-
-
 
 
 
