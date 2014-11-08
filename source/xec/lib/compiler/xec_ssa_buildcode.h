@@ -12,8 +12,10 @@
 
 #include <vector>
 #include <unordered_map>
-#include "ymodel.h"
 #include "xec_ssa.h"
+#include "ymodel.h"
+#include "yvalue.h"
+#include "ycode.h"
 
 
 /*
@@ -26,30 +28,32 @@
 
 class xec_ssa_dfo;
 struct xec_ssa_rtgraph;
-class xec_module;
-class xec_function;
+class ymodule;
+class yroutine;
 
 
 class xec_ssa_buildcode
 {
 public:
 
-    explicit xec_ssa_buildcode( xec_ssa* root ) {};
+    explicit xec_ssa_buildcode( xec_ssa* root );
     
-    void build_func( xec_ssa_func* func, xec_ssa_dfo* dfo ) {};
-    xec_module* build_module() { return nullptr; }
+    void build_func( xec_ssa_func* func, xec_ssa_dfo* dfo );
+    ymodule* build_module();
 
 
 private:
-/*
+
     struct jumplabel
     {
         int                 label;
         std::vector< int >  jumps;
     };
 
+    
     void build_ops( xec_ssa_block* block );
     void build_cfg( xec_ssa_block* block );
+    
     
     int k( int immkey );
     int o( xec_ssa_opref operand );
@@ -57,10 +61,12 @@ private:
 
     void stack( int r, int b );
     
-    void inst( xec_opcode opcode, int r, int a, int b );
-    void inst( xec_opcode opcode, int r, int c );
+    void inst( ycode opcode, int r, int a, int b );
+    void inst( ycode opcode, int r, int c );
 
-    void call( xec_opcode opcode, xec_ssa_slice* slice, int index );
+    void value( int r, yvalue value );
+
+    void call( ycode opcode, xec_ssa_slice* slice, int index );
     void arguments( xec_ssa_op* op );
     void select( xec_ssa_slice* slice, size_t index );
     void move( xec_ssa_rtgraph* rtg );
@@ -68,22 +74,25 @@ private:
     void phi( xec_ssa_rtgraph* rtg, xec_ssa_block* from, xec_ssa_block* to );
     
     void label( void* label );
-    void jump( xec_opcode opcode, int r, void* label );
+    void jump( ycode opcode, int r, void* label );
     void branch( xec_ssa_opref condition, bool iftrue, void* label );
     
 
-    xec_ssa* root;
-    xec_ssa_func* func;
-    xec_ssa_dfo* dfo;
+    void build_value_slots( ymodule* module );
+    
 
-    std::vector< xec_value > values;
-    std::vector< xec_objkey > keys;
-    std::vector< xec_function* > functions;
+    xec_ssa*                    root;
+    xec_ssa_func*               func;
+    xec_ssa_dfo*                dfo;
+
+    std::vector< yvalue >       values;
+    std::vector< ysymbol >      keys;
+    std::vector< yroutine* >    routines;
     
     std::unordered_map< void*, jumplabel > labels;
-    std::vector< xec_opinst > code;
-    int maxstack;
-*/
+    std::vector< yinstruction > code;
+    int                         maxstack;
+
 };
 
 

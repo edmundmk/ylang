@@ -1,4 +1,4 @@
- //
+//
 //  xec_ssa_buildcode.cpp
 //
 //  Created by Edmund Kapusniak on 25/08/2014.
@@ -7,8 +7,10 @@
 
 
 #include "xec_ssa_buildcode.h"
+#include "xec_script.h"
 #include "xec_ssa.h"
 #include "xec_ssa_cfganalysis.h"
+#include "ymodule.h"
 
 
 
@@ -62,11 +64,9 @@ void xec_ssa_buildcode::build_func( xec_ssa_func* func, xec_ssa_dfo* dfo )
         // Remember label at start of block.
         label( block );
         
-        
         // Translate the operations in the block.
         build_ops( block );
-        
-        
+
         // CFG edges out.
         build_cfg( block );
     }
@@ -76,22 +76,20 @@ void xec_ssa_buildcode::build_func( xec_ssa_func* func, xec_ssa_dfo* dfo )
         Build module function.
     */
     
-    xec_function* function = new xec_function();
-    function->mname = strdup( func->funcname );
-
-    function->mcode = (xec_opinst*)malloc( sizeof( xec_opinst ) * code.size() );
-    memcpy( function->mcode, code.data(), sizeof( xec_opinst ) * code.size() );
-    function->mcodecount  = (uint32_t)code.size();
-
-    function->mparamcount = func->paramcount;
-    function->mupvalcount = func->upvalcount;
-    function->mnewupcount = func->localupcount;
-    function->mstackcount = maxstack + 1;
-    function->mvarargs    = func->varargs;
-    function->mcoroutine  = func->coroutine;
-    functions.push_back( function );
+    yroutine* routine = yroutine::alloc( code.size() );
     
+    routine->fname          = ystring::alloc( func->funcname );
+    routine->fparamcount    = func->paramcount;
+    routine->fupvalcount    = func->upvalcount;
+    routine->fnewupcount    = func->localupcount;
+    routine->fstackcount    = maxstack + 1;
+    routine->fvarargs       = func->varargs;
+    routine->fcoroutine     = func->coroutine;
+    memcpy( routine->fcode, code.data(), sizeof( yinstruction ) * code.size() );
     
+    routines.push_back( routine );
+    
+        
     /*
         Clear.
     */
@@ -102,32 +100,41 @@ void xec_ssa_buildcode::build_func( xec_ssa_func* func, xec_ssa_dfo* dfo )
 }
 
 
-xec_module* xec_ssa_buildcode::build_module()
+ymodule* xec_ssa_buildcode::build_module()
 {
-    xec_module* module = new xec_module();
-    module->mname = strdup( root->script->get_filename() );
-    
-    module->mkeys = (xec_objkey*)malloc( sizeof( xec_objkey ) * keys.size() );
-    memcpy( module->mkeys, keys.data(), sizeof( xec_objkey ) * keys.size() );
-    module->mkeycount = (uint32_t)keys.size();
-    
-    module->mvalues = (xec_value*)malloc( sizeof( xec_value ) * values.size() );
-    memcpy( module->mvalues, values.data(), sizeof( xec_value ) * values.size() );
-    module->mvaluecount = (uint32_t)values.size();
-    
-    for ( size_t i = 0; i < functions.size(); ++i )
+    ymodule* module = ymodule::alloc();
+    module->mname = ystring::alloc( root->script->get_filename() );
+
+    module->symbols = ytuple< ysymbol >::alloc( keys.size() );
+    for ( size_t i = 0; i < keys.size(); ++i )
     {
-        xec_function* function = functions.at( i );
-        function->mmodule = module;
+        module->symbols->set( i, keys.at( i ) );
     }
     
-    module->mfuncs = (xec_function**)malloc( sizeof( xec_function* ) * functions.size() );
-    memcpy( module->mfuncs, functions.data(), sizeof( xec_function* ) * functions.size() );
-    module->mfunccount = (uint32_t)functions.size();
+#if YSLOTS
+
+    build_value_slots( module );
+
+#else
+
+    module->values = ytuple< yvalue >::alloc( values.size() );
+    for ( size_t i = 0; i < values.size(); ++i )
+    {
+        module->values->set( i, values.at( i ) );
+    }
+
+#endif
+
+    module->routines = ytuple< yroutine* >::alloc( routines.size() );
+    for ( size_t i = 0; i < routines.size(); ++i )
+    {
+        module->routines->set( i, routines.at( i ) );
+    }
+    
     
     keys.clear();
     values.clear();
-    functions.clear();
+    routines.clear();
     
     return module;
 }
@@ -139,542 +146,480 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
 {
     for ( size_t i = 0; i < block->ops->ops.size(); ++i )
     {
-        xec_ssa_op* op = &block->ops->ops.at( i );
+    
+    xec_ssa_op* op = &block->ops->ops.at( i );
+    switch ( op->opcode )
+    {
+    
+    case XEC_SSA_NOP:
+        break;
+    case XEC_SSA_REF:
+        break;
+    
+    case XEC_SSA_NULL:
+        inst( Y_NULL, o( op->r ), 0, 0 );
+        break;
+    case XEC_SSA_POS:
+        inst( Y_POS, o( op->r ), o( op->operanda ), 0 );
+        break;
+    case XEC_SSA_NEG:
+        inst( Y_NEG, o( op->r ), o( op->operanda ), 0 );
+        break;
+    case XEC_SSA_NOT:
+        inst( Y_LNOT, o( op->r ), o( op->operanda ), 0 );
+        break;
+    case XEC_SSA_BITNOT:
+        inst( Y_NOT, o( op->r ), o( op->operanda ), 0 );
+        break;
+    case XEC_SSA_MUL:
+        inst( Y_MUL, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_DIV:
+        inst( Y_DIV, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_MOD:
+        inst( Y_DIV, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_INTDIV:
+        inst( Y_INTDIV, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_ADD:
+        inst( Y_ADD, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_SUB:
+        inst( Y_SUB, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_LSL:
+        inst( Y_LSL, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_LSR:
+        inst( Y_LSR, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_ASR:
+        inst( Y_ASR, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_BITAND:
+        inst( Y_AND, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_BITXOR:
+        inst( Y_XOR, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_BITOR:
+        inst( Y_OR, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_CONCAT:
+        inst( Y_CONCAT, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_EQ:
+        inst( Y_EQ, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_LT:
+        inst( Y_LT, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_LE:
+        inst( Y_LE, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_IN:
+        inst( Y_IN, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_IS:
+        inst( Y_IS, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_XOR:
+        inst( Y_LXOR, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_INKEY:
+        inst( Y_INKEY, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_INDEX:
+        inst( Y_INDEX, o( op->r ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_DELINKEY:
+        inst( Y_DELINKEY, o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_ITER:
+        inst( Y_ITER, o( op->r ), o( op->operanda ), 0 );
+        break;
+    case XEC_SSA_ITERKEY:
+        inst( Y_ITERKEY, o( op->r ), o( op->operanda ), 0 );
+        break;
+    case XEC_SSA_APPEND:
+        inst( Y_APPEND, o( op->operandb ), o( op->operanda ), 0 );
+        break;
+    case XEC_SSA_KEY:
+        inst( Y_KEY, o( op->r ), o( op->operanda ), k( op->immkey ) );
+        break;
+    case XEC_SSA_DELKEY:
+        inst( Y_DELKEY, 0, o( op->operanda ), k( op->immkey ) );
+        break;
+    case XEC_SSA_GLOBAL:
+        inst( Y_GLOBAL, o( op->r ), 0, k( op->immkey ) );
+        break;
+    case XEC_SSA_SETGLOBAL:
+        inst( Y_SETGLOBAL, o( op->operanda ), 0, k( op->immkey ) );
+        break;
+    case XEC_SSA_ARRAY:
+        inst( Y_ARRAY, o( op->r ), op->immkey );
+        break;
+    case XEC_SSA_TABLE:
+        inst( Y_TABLE, o( op->r ), op->immkey );
+        break;
+    case XEC_SSA_SETINKEY:
+        inst( Y_SETINKEY, o( op->operandv ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_SETINDEX:
+        inst( Y_SETINDEX, o( op->operandv ), o( op->operanda ), o( op->operandb ) );
+        break;
+    case XEC_SSA_SETKEY:
+        inst( Y_SETKEY, o( op->operandv ), o( op->operanda ), k( op->immkey ) );
+        break;
         
-        switch ( op->opcode )
-        {
-        case XEC_SSA_NOP:
-            break;
-        case XEC_SSA_REF:
-            break;
         
-        case XEC_SSA_NULL:
-            inst( XEC_NULL, o( op->r ), 0, 0 );
-            break;
-        case XEC_SSA_POS:
-            inst( XEC_POS, o( op->r ), o( op->operanda ), 0 );
-            break;
-        case XEC_SSA_NEG:
-            inst( XEC_NEG, o( op->r ), o( op->operanda ), 0 );
-            break;
-        case XEC_SSA_NOT:
-            inst( XEC_LNOT, o( op->r ), o( op->operanda ), 0 );
-            break;
-        case XEC_SSA_BITNOT:
-            inst( XEC_NOT, o( op->r ), o( op->operanda ), 0 );
-            break;
-        case XEC_SSA_MUL:
-            inst( XEC_MUL, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_DIV:
-            inst( XEC_DIV, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_MOD:
-            inst( XEC_DIV, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_INTDIV:
-            inst( XEC_INTDIV, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_ADD:
-            inst( XEC_ADD, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_SUB:
-            inst( XEC_SUB, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_LSL:
-            inst( XEC_LSL, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_LSR:
-            inst( XEC_LSR, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_ASR:
-            inst( XEC_ASR, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_BITAND:
-            inst( XEC_AND, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_BITXOR:
-            inst( XEC_XOR, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_BITOR:
-            inst( XEC_OR, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_CONCAT:
-            inst( XEC_CONCAT, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_EQ:
-            inst( XEC_EQ, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_LT:
-            inst( XEC_LT, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_LE:
-            inst( XEC_LE, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_IS:
-            inst( XEC_IS, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_XOR:
-            inst( XEC_LXOR, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_INKEY:
-            inst( XEC_INKEY, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_INDEX:
-            inst( XEC_INDEX, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_DELINKEY:
-            inst( XEC_DELINKEY, o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_ITER:
-            inst( XEC_ITER, o( op->r ), o( op->operanda ), 0 );
-            break;
-        case XEC_SSA_ITERKEY:
-            inst( XEC_ITERKEY, o( op->r ), o( op->operanda ), 0 );
-            break;
-        case XEC_SSA_APPEND:
-            inst( XEC_APPEND, o( op->operandb ), o( op->operanda ), 0 );
-            break;
-        case XEC_SSA_KEY:
-            inst( XEC_KEY, o( op->r ), o( op->operanda ), k( op->immkey ) );
-            break;
-        case XEC_SSA_DELKEY:
-            inst( XEC_DELKEY, 0, o( op->operanda ), k( op->immkey ) );
-            break;
-        case XEC_SSA_GLOBAL:
-            inst( XEC_GLOBAL, o( op->r ), 0, k( op->immkey ) );
-            break;
-        case XEC_SSA_SETGLOBAL:
-            inst( XEC_SETGLOBAL, o( op->operanda ), 0, k( op->immkey ) );
-            break;
-        case XEC_SSA_ARRAY:
-            inst( XEC_ARRAY, o( op->r ), op->immkey );
-            break;
-        case XEC_SSA_TABLE:
-            inst( XEC_TABLE, o( op->r ), op->immkey );
-            break;
-        case XEC_SSA_SETINKEY:
-            inst( XEC_SETINKEY, o( op->operandv ),
-                            o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_SETINDEX:
-            inst( XEC_SETINDEX, o( op->operandv ),
-                            o( op->operanda ), o( op->operandb ) );
-            break;
-        case XEC_SSA_SETKEY:
-            inst( XEC_SETKEY, o( op->operandv ),
-                            o( op->operanda ), k( op->immkey ) );
-            break;
-            
-            
-        case XEC_SSA_NUMBER:
+    case XEC_SSA_NUMBER:
+        value( op->r, op->number );
+        break;
+    case XEC_SSA_BOOL:
+        value( op->r, op->boolean );
+        break;
+    case XEC_SSA_STRING:
+        value( op->r, ystring::alloc( op->string->length, op->string->string ) );
+        break;
+    
+    
+    case XEC_SSA_OBJECT:
+    {
+        int proto = op->operanda ? o( op->operanda ) : Y_NOVAL;
+        inst( Y_OBJECT, o( op->r ), proto, 0 );
+        break;
+    }
+
+        
+    case XEC_SSA_PARAM:
+    {
+        // Build register transfer graph to get parameters in correct
+        // registers.  Note that register 0, on entry to the function,
+        // is the closure itself.
+        xec_ssa_rtgraph rtg;
+        while ( op->opcode == XEC_SSA_PARAM )
         {
-            if ( op->r == -1 )
+            rtg.move( (int)op->r, op->immkey + 1 );
+            i += 1;
+            if ( i >= block->ops->ops.size() )
             {
                 break;
             }
-        
-            xec_value v = xec_value( op->number );
-            
-            size_t i = 0;
-            for ( ; i < values.size(); ++i )
-            {
-                if ( values.at( i ) == v )
-                {
-                    break;
-                }
-            }
-            
-            if ( i >= values.size() )
-            {
-                i = values.size();
-                values.push_back( v );
-            }
-            
-            inst( XEC_VALUE, o( op->r ), (int)i );
-            break;
+            op = &block->ops->ops.at( i );
         }
+        i -= 1;
+        move( &rtg );
+        break;
+    }
+    
+    case XEC_SSA_SELECT:
+    {
+        // Will have compiled selects as part of the op they select from.
+        break;
+    }
         
-        case XEC_SSA_BOOL:
+    case XEC_SSA_NEWUP:
+    {
+        assert( op->immkey >= func->upvalcount );
+        int nuindex = op->immkey - func->upvalcount;
+        inst( Y_NEWUP, o( op->operanda ), nuindex );
+        break;
+    }
+    
+    case XEC_SSA_SETUP:
+    {
+        if ( op->immkey < func->upvalcount )
         {
-            if ( op->r == -1 )
-            {
-                break;
-            }
-
-            xec_value v = xec_value( op->boolean );
-        
-            size_t i = 0;
-            for ( ; i < values.size(); ++i )
-            {
-                if ( values.at( i ) == v )
-                {
-                    break;
-                }
-            }
-            
-            if ( i >= values.size() )
-            {
-                i = values.size();
-                values.push_back( v );
-            }
-            
-            inst( XEC_VALUE, o( op->r ), (int)i );
-            break;
+            inst( Y_SETUP, o( op->operanda ), op->immkey );
         }
-        
-        case XEC_SSA_STRING:
+        else
         {
-            if ( op->r == -1 )
-            {
-                break;
-            }
-
-            xec_ssa_string* s = op->string;
-        
-            size_t i = 0;
-            for ( ; i < values.size(); ++i )
-            {
-                xec_value v = values.at( i );
-                if ( v.isstring() && v.string().size() == s->length &&
-                    memcmp( v.string().c_str(), s->string, s->length ) == 0 )
-                {
-                    break;
-                }
-            }
-            
-            if ( i >= values.size() )
-            {
-                i = values.size();
-                xec_string* t = xec_string::create( s->string, s->length );
-                values.push_back( t );
-            }
-            
-            inst( XEC_VALUE, o( op->r ), (int)i );
-            break;
+            int nuindex = op->immkey - func->upvalcount;
+            inst( Y_SETNU, o( op->operanda ), nuindex );
         }
-        
-        case XEC_SSA_IN:
+        break;
+    }
+    
+    case XEC_SSA_REFUP:
+    {
+        if ( op->immkey < func->upvalcount )
         {
-            // Hmmm.
-            inst( XEC_IN, o( op->r ), o( op->operanda ), o( op->operandb ) );
-            break;
+            inst( Y_REFUP, o( op->r ), op->immkey );
         }
+        else
+        {
+            int nuindex = op->immkey - func->upvalcount;
+            inst( Y_REFNU, o( op->r ), nuindex );
+        }
+        break;
+    }
+    
+    case XEC_SSA_CLOSE:
+    {
+        // Build ranges of upvals to close from adjacent close ops.
+        std::unordered_set< int > close;
+        int minclose = INT_MAX;
+        int maxclose = INT_MIN;
         
-        case XEC_SSA_OBJECT:
-        {
-            int proto = op->operanda ? o( op->operanda ) : XEC_NOVAL;
-            inst( XEC_OBJECT, o( op->r ), proto, 0 );
-            break;
-        }
-
-            
-        case XEC_SSA_PARAM:
-        {
-            // Build register transfer graph to get parameters in correct
-            // registers.  Note that register 0, on entry to the function,
-            // is the closure itself.
-            xec_ssa_rtgraph rtg;
-            while ( op->opcode == XEC_SSA_PARAM )
-            {
-                rtg.move( (int)op->r, op->immkey + 1 );
-                i += 1;
-                if ( i >= block->ops->ops.size() )
-                {
-                    break;
-                }
-                op = &block->ops->ops.at( i );
-            }
-            i -= 1;
-            move( &rtg );
-            break;
-        }
-        
-        case XEC_SSA_SELECT:
-        {
-            // Will have compiled selects as part of the op they select from.
-            break;
-        }
-            
-        case XEC_SSA_NEWUP:
+        while ( op->opcode == XEC_SSA_CLOSE )
         {
             assert( op->immkey >= func->upvalcount );
             int nuindex = op->immkey - func->upvalcount;
-            inst( XEC_NEWUP, o( op->operanda ), nuindex );
-            break;
+            close.insert( nuindex );
+            minclose = std::min( minclose, nuindex );
+            maxclose = std::max( maxclose, nuindex );
+            ++i;
+            if ( i >= block->ops->ops.size() )
+            {
+                break;
+            }
+            op = &block->ops->ops.at( i );
         }
+        --i;
         
-        case XEC_SSA_SETUP:
+        for ( int c = minclose; c < maxclose; ++c )
         {
-            if ( op->immkey < func->upvalcount )
+            if ( close.find( c ) == close.end() )
             {
-                inst( XEC_SETUP, o( op->operanda ), op->immkey );
+                continue;
             }
-            else
-            {
-                int nuindex = op->immkey - func->upvalcount;
-                inst( XEC_SETNU, o( op->operanda ), nuindex );
-            }
-            break;
-        }
-        
-        case XEC_SSA_REFUP:
-        {
-            if ( op->immkey < func->upvalcount )
-            {
-                inst( XEC_REFUP, o( op->r ), op->immkey );
-            }
-            else
-            {
-                int nuindex = op->immkey - func->upvalcount;
-                inst( XEC_REFNU, o( op->r ), nuindex );
-            }
-            break;
-        }
-        
-        case XEC_SSA_CLOSE:
-        {
-            // Build ranges of upvals to close from adjacent close ops.
-            std::unordered_set< int > close;
-            int minclose = INT_MAX;
-            int maxclose = INT_MIN;
             
-            while ( op->opcode == XEC_SSA_CLOSE )
+            int start = c;
+            while ( close.find( c ) != close.end() )
             {
-                assert( op->immkey >= func->upvalcount );
-                int nuindex = op->immkey - func->upvalcount;
-                close.insert( nuindex );
-                minclose = std::min( minclose, nuindex );
-                maxclose = std::max( maxclose, nuindex );
-                ++i;
-                if ( i >= block->ops->ops.size() )
+                ++c;
+            }
+            
+            inst( Y_CLOSE, ( c - 1 ) - start, start );
+        }
+        
+        break;
+    }
+        
+    case XEC_SSA_VARARG:
+    {
+        if ( op->args->rcount == -1 )
+        {
+            // Stacklike unpack of all varargs.
+            assert( op->r == op->args->stacktop );
+            inst( Y_VARALL, o( op->r ), 0 );
+        }
+        else
+        {
+            // Recover single vararg.
+            inst( Y_VARARG, o( op->r ), op->args->rcount );
+        }
+        break;
+    }
+    
+    case XEC_SSA_UNPACK:
+    {
+        // Should have a single argument, the array.
+        assert( op->args->args.size() == 1 );
+        int array = o( op->args->args.at( 0 ) );
+
+        if ( op->args->rcount == -1 )
+        {
+            // Stacklike unpack of all results.
+            assert( op->r == op->args->stacktop );
+            inst( Y_UNPACK, o( op->r ), array, 0 );
+        }
+        else
+        {
+            // Recover single array element.
+            inst( Y_ELEM, o( op->r ), array, op->args->rcount );
+        }
+        break;
+    }
+    
+    case XEC_SSA_CALL:
+    {
+        call( Y_CALL, block->ops, (int)i );
+        break;
+    }
+    
+    case XEC_SSA_YCALL:
+    {
+        call( Y_YCALL, block->ops, (int)i );
+        break;
+    }
+        
+    case XEC_SSA_YIELD:
+    {
+        call( Y_YIELD, block->ops, (int)i );
+        break;
+    }
+        
+    case XEC_SSA_NEW:
+    {
+        // Build register transfer to get arguments in correct positions.
+        arguments( op );
+        
+        // Instruction places new object in the correct place.
+        int b = op->args->unpacked ? Y_MARK : (int)op->args->args.size();
+        inst( Y_NEW, o( op->r ), op->args->stacktop, b );
+        break;
+    }
+    
+    case XEC_SSA_EXTEND:
+    {
+        // Extend should have only the array and unpacked args.
+        assert( op->args->unpacked );
+        inst( Y_EXTEND, op->args->stacktop, o( op->args->args.at( 0 ) ), 0 );
+        break;
+    }
+    
+    case XEC_SSA_NEXT:
+    {
+        // Should have a single argument, the iterator.
+        assert( op->args->args.size() == 1 );
+        int iter = o( op->args->args.at( 0 ) );
+
+        // There are special cases for next ops returning 1 and 2 values.
+        // This is the vast majority of cases (iterating through arrays,
+        // tables, or object keys).
+        if ( op->args->rcount == 1 )
+        {
+            // Simplest version.
+            int select = -1;
+            for ( size_t j = i + 1; j < block->ops->ops.size(); ++j )
+            {
+                xec_ssa_op* selop = &block->ops->ops.at( j );
+                
+                if ( selop->opcode != XEC_SSA_SELECT
+                        || func->getop( selop->operanda ) != op )
                 {
                     break;
                 }
-                op = &block->ops->ops.at( i );
-            }
-            --i;
-            
-            for ( int c = minclose; c < maxclose; ++c )
-            {
-                if ( close.find( c ) == close.end() )
-                {
-                    continue;
-                }
                 
-                int start = c;
-                while ( close.find( c ) != close.end() )
+                if ( selop->immkey == 0 )
                 {
-                    ++c;
+                    select = o( selop->r );
                 }
-                
-                inst( XEC_CLOSE, ( c - 1 ) - start, start );
             }
             
-            break;
+            inst( Y_NEXT1, select, iter, 0 );
         }
-            
-        case XEC_SSA_VARARG:
+        else if ( op->args->rcount == 2 )
         {
-            if ( op->args->rcount == -1 )
+            // Find the two following selects.
+            int select[ 2 ] = { -1, -1 };
+            for ( size_t j = i; j < block->ops->ops.size(); ++j )
             {
-                // Stacklike unpack of all varargs.
-                assert( op->r == op->args->stacktop );
-                inst( XEC_VARALL, o( op->r ), 0 );
-            }
-            else
-            {
-                // Recover single vararg.
-                inst( XEC_VARARG, o( op->r ), op->args->rcount );
-            }
-            break;
-        }
-        
-        case XEC_SSA_UNPACK:
-        {
-            // Should have a single argument, the array.
-            assert( op->args->args.size() == 1 );
-            int array = o( op->args->args.at( 0 ) );
+                xec_ssa_op* selop = &block->ops->ops.at( j );
 
-            if ( op->args->rcount == -1 )
-            {
-                // Stacklike unpack of all results.
-                assert( op->r == op->args->stacktop );
-                inst( XEC_UNPACK, o( op->r ), array, 0 );
-            }
-            else
-            {
-                // Recover single array element.
-                inst( XEC_ELEM, o( op->r ), array, op->args->rcount );
-            }
-            break;
-        }
-        
-        case XEC_SSA_CALL:
-        {
-            call( XEC_CALL, block->ops, (int)i );
-            break;
-        }
-        
-        case XEC_SSA_YCALL:
-        {
-            call( XEC_YCALL, block->ops, (int)i );
-            break;
-        }
-            
-        case XEC_SSA_YIELD:
-        {
-            call( XEC_YIELD, block->ops, (int)i );
-            break;
-        }
-            
-        case XEC_SSA_NEW:
-        {
-            // Build register transfer to get arguments in correct positions.
-            arguments( op );
-            
-            // Instruction places new object in the correct place.
-            int b = op->args->unpacked ? XEC_MARK : (int)op->args->args.size();
-            inst( XEC_NEW, o( op->r ), op->args->stacktop, b );
-            break;
-        }
-        
-        case XEC_SSA_EXTEND:
-        {
-            // Extend should have only the array and unpacked args.
-            assert( op->args->unpacked );
-            inst( XEC_EXTEND, op->args->stacktop,
-                            o( op->args->args.at( 0 ) ), 0 );
-            break;
-        }
-        
-        case XEC_SSA_NEXT:
-        {
-            // Should have a single argument, the iterator.
-            assert( op->args->args.size() == 1 );
-            int iter = o( op->args->args.at( 0 ) );
- 
-            // There are special cases for next ops returning 1 and 2 values.
-            // This is the vast majority of cases (iterating through arrays,
-            // tables, or object keys).
-            if ( op->args->rcount == 1 )
-            {
-                // Simplest version.
-                int select = -1;
-                for ( size_t j = i + 1; j < block->ops->ops.size(); ++j )
-                {
-                    xec_ssa_op* selop = &block->ops->ops.at( j );
-                    
-                    if ( selop->opcode != XEC_SSA_SELECT
-                            || func->getop( selop->operanda ) != op )
-                    {
-                        break;
-                    }
-                    
-                    if ( selop->immkey == 0 )
-                    {
-                        select = o( selop->r );
-                    }
-                }
-                
-                inst( XEC_NEXT1, select, iter, 0 );
-            }
-            else if ( op->args->rcount == 2 )
-            {
-                // Find the two following selects.
-                int select[ 2 ] = { -1, -1 };
-                for ( size_t j = i; j < block->ops->ops.size(); ++j )
-                {
-                    xec_ssa_op* selop = &block->ops->ops.at( j );
-
-                    if ( selop->opcode != XEC_SSA_SELECT
-                            || func->getop( selop->operanda ) != op )
-                    {
-                        break;
-                    }
-                    
-                    if ( selop->immkey == 0 || selop->immkey == 1 )
-                    {
-                        select[ op->immkey ] = o( op->r );
-                    }
-                }
-                
-                // Two-result version.
-                inst( XEC_NEXT2, select[ 0 ], select[ 1 ], iter );
-            }
-            else
-            {
-                // Generic version which uses stack top.
-                int b = op->args->rcount == -1 ? XEC_MARK : op->args->rcount;
-                stack( op->args->stacktop, b );
-                inst( XEC_NEXT, op->args->stacktop, iter, b );
-            
-                // Build register transfer graph from following selects to get
-                // results into the correct locations.
-                select( block->ops, (int)i );
-            }
-        }
-
-        case XEC_SSA_RETURN:
-        {
-            // Build register transfer to get arguments in correct position.
-            arguments( op );
-            
-            // Return them.
-            int a = op->args->unpacked ? XEC_MARK : (int)op->args->args.size();
-            inst( XEC_RETURN, op->args->stacktop, a, 0 );
-            break;
-        }
-        
-        case XEC_SSA_CLOSURE:
-        {
-            // Assume that functions will end up in the module in the same
-            // order as in the SSA form.
-            size_t index = 0;
-            for ( ; index < root->functions.size(); ++index )
-            {
-                if ( root->functions.at( index ) == op->closure->function )
+                if ( selop->opcode != XEC_SSA_SELECT
+                        || func->getop( selop->operanda ) != op )
                 {
                     break;
                 }
-            }
-            assert( index < root->functions.size() );
-            
-            // Output instruction.
-            inst( XEC_CLOSURE, o( op->r ), (int)index );
-            
-            // Add upvals to closure.
-            assert( op->closure->upvals.size() ==
-                            op->closure->function->upvalcount );
-            for ( size_t i = 0; i < op->closure->upvals.size(); ++i )
-            {
-                xec_ssa_opref upref = op->closure->upvals.at( i );
-                xec_ssa_op* upop = func->getop( func->operand( upref ) );
-                assert( upop->opcode == XEC_SSA_REFUP );
-                if ( upop->immkey < func->upvalcount )
+                
+                if ( selop->immkey == 0 || selop->immkey == 1 )
                 {
-                    inst( XEC_ENVUP, 0, upop->immkey );
-                }
-                else
-                {
-                    unsigned nuindex =  upop->immkey - func->upvalcount;
-                    inst( XEC_ENVNU, 0, nuindex );
+                    select[ op->immkey ] = o( op->r );
                 }
             }
             
-            break;
+            // Two-result version.
+            inst( Y_NEXT2, select[ 0 ], select[ 1 ], iter );
         }
-        
-        case XEC_SSA_PHI:
-        case XEC_SSA_LIVE:
+        else
         {
-            assert( ! "invalid opcode" );
-            break;
+            // Generic version which uses stack top.
+            int b = op->args->rcount == -1 ? Y_MARK : op->args->rcount;
+            stack( op->args->stacktop, b );
+            inst( Y_NEXT, op->args->stacktop, iter, b );
+        
+            // Build register transfer graph from following selects to get
+            // results into the correct locations.
+            select( block->ops, (int)i );
         }
+        break;
+    }
+    
+    case XEC_SSA_POPITER:
+    {
+        // Count number of adjacent popiters.
+        int count = 0;
+        while ( op->opcode == XEC_SSA_POPITER )
+        {
+            ++count;
+            ++i;
+            if ( i >= block->ops->ops.size() )
+            {
+                break;
+            }
+            op = &block->ops->ops.at( i );
+        }
+        --i;
+        
+        // Emit instruction.
+        inst( Y_POPITER, 0, count );
+        break;
+    }
+
+    case XEC_SSA_RETURN:
+    {
+        // Build register transfer to get arguments in correct position.
+        arguments( op );
+        
+        // Return them.
+        int a = op->args->unpacked ? Y_MARK : (int)op->args->args.size();
+        inst( Y_RETURN, op->args->stacktop, a, 0 );
+        break;
+    }
+    
+    case XEC_SSA_CLOSURE:
+    {
+        // Assume that functions will end up in the module in the same
+        // order as in the SSA form.
+        size_t index = 0;
+        for ( ; index < root->functions.size(); ++index )
+        {
+            if ( root->functions.at( index ) == op->closure->function )
+            {
+                break;
+            }
+        }
+        assert( index < root->functions.size() );
+        
+        // Output instruction.
+        inst( Y_CLOSURE, o( op->r ), (int)index );
+        
+        // Add upvals to closure.
+        assert( op->closure->upvals.size() ==
+                        op->closure->function->upvalcount );
+        for ( size_t i = 0; i < op->closure->upvals.size(); ++i )
+        {
+            xec_ssa_opref upref = op->closure->upvals.at( i );
+            xec_ssa_op* upop = func->getop( func->operand( upref ) );
+            assert( upop->opcode == XEC_SSA_REFUP );
+            if ( upop->immkey < func->upvalcount )
+            {
+                inst( Y_ENVUP, 0, upop->immkey );
+            }
+            else
+            {
+                unsigned nuindex =  upop->immkey - func->upvalcount;
+                inst( Y_ENVNU, 0, nuindex );
+            }
         }
         
+        break;
+    }
+    
+    case XEC_SSA_PHI:
+    case XEC_SSA_LIVE:
+        assert( ! "invalid opcode" );
+        break;
     
     }
+    
+    }
+    
 }
 
 
@@ -713,7 +658,7 @@ void xec_ssa_buildcode::build_cfg( xec_ssa_block* block )
                 
                 branch( block->condition, true, &block->condition );
                 move( &phifalse );
-                jump( XEC_JMP, 0, block->iffalse );
+                jump( Y_JMP, 0, block->iffalse );
                 label( &block->condition );
             }
             else
@@ -747,7 +692,7 @@ void xec_ssa_buildcode::build_cfg( xec_ssa_block* block )
                 
                 branch( block->condition, false, &block->condition );
                 move( &phitrue );
-                jump( XEC_JMP, 0, block->iftrue );
+                jump( Y_JMP, 0, block->iftrue );
                 label( &block->condition );
             }
             else
@@ -781,10 +726,10 @@ void xec_ssa_buildcode::build_cfg( xec_ssa_block* block )
                 
                 branch( block->condition, false, &block->condition );
                 move( &phitrue );
-                jump( XEC_JMP, 0, block->iftrue );
+                jump( Y_JMP, 0, block->iftrue );
                 label( &block->condition );
                 move( &phifalse );
-                jump( XEC_JMP, 0, block->iffalse );
+                jump( Y_JMP, 0, block->iffalse );
             }
             else if ( phitrue )
             {
@@ -796,7 +741,7 @@ void xec_ssa_buildcode::build_cfg( xec_ssa_block* block )
                 
                 branch( block->condition, false, block->iffalse );
                 move( &phitrue );
-                jump( XEC_JMP, 0, block->iftrue );
+                jump( Y_JMP, 0, block->iftrue );
             }
             else if ( phifalse )
             {
@@ -808,7 +753,7 @@ void xec_ssa_buildcode::build_cfg( xec_ssa_block* block )
                 
                 branch( block->condition, true, block->iftrue );
                 move( &phifalse );
-                jump( XEC_JMP, 0, block->iffalse );
+                jump( Y_JMP, 0, block->iffalse );
             }
             else
             {
@@ -818,7 +763,7 @@ void xec_ssa_buildcode::build_cfg( xec_ssa_block* block )
                 */
                 
                 branch( block->condition, true, block->iftrue );
-                jump( XEC_JMP, 0, block->iffalse );
+                jump( Y_JMP, 0, block->iffalse );
             }
         }
     }
@@ -835,7 +780,7 @@ void xec_ssa_buildcode::build_cfg( xec_ssa_block* block )
         // Add jump to next block.
         if ( block->next->index != block->index + 1 )
         {
-            jump( XEC_JMP, 0, block->next );
+            jump( Y_JMP, 0, block->next );
         }
     }
         
@@ -845,18 +790,18 @@ void xec_ssa_buildcode::build_cfg( xec_ssa_block* block )
 
 int xec_ssa_buildcode::k( int immkey )
 {
-    const char* ssakey = root->keys.at( immkey );
+    ysymbol ssakey = root->keys.at( immkey );
     for ( size_t i = 0; i < keys.size(); ++i )
     {
-        xec_objkey key = keys.at( i );
-        if ( strcmp( key.c_str(), ssakey ) == 0 )
+        ysymbol key = keys.at( i );
+        if ( key == ssakey )
         {
             return (int)i;
         }
     }
     
     int result = (int)keys.size();
-    keys.push_back( xec_objkey::create( ssakey ) );
+    keys.push_back( ssakey );
     return result;
 }
 
@@ -876,14 +821,14 @@ int xec_ssa_buildcode::o( int r )
 
 void xec_ssa_buildcode::stack( int r, int b )
 {
-    if ( b != XEC_MARK )
+    if ( b != Y_MARK )
     {
         maxstack = std::max( maxstack, r + b );
     }
 }
 
 
-void xec_ssa_buildcode::inst( xec_opcode opcode, int r, int a, int b )
+void xec_ssa_buildcode::inst( ycode opcode, int r, int a, int b )
 {
     if ( r == -1 || a == -1 || b == -1 )
     {
@@ -893,7 +838,7 @@ void xec_ssa_buildcode::inst( xec_opcode opcode, int r, int a, int b )
     code.emplace_back( opcode, (unsigned)r, (unsigned)a, (unsigned)b );
 }
 
-void xec_ssa_buildcode::inst( xec_opcode opcode, int r, int c )
+void xec_ssa_buildcode::inst( ycode opcode, int r, int c )
 {
     if ( r == -1 || c == -1 )
     {
@@ -904,8 +849,33 @@ void xec_ssa_buildcode::inst( xec_opcode opcode, int r, int c )
 }
 
 
-void xec_ssa_buildcode::call(
-                xec_opcode opcode, xec_ssa_slice* slice, int index )
+void xec_ssa_buildcode::value( int r, yvalue value )
+{
+    if ( r == -1 )
+    {
+        return;
+    }
+    
+    size_t i = 0;
+    for ( ; i < values.size(); ++i )
+    {
+        if ( values.at( i ) == value )
+        {
+            break;
+        }
+    }
+    
+    if ( i >= values.size() )
+    {
+        i = values.size();
+        values.push_back( value );
+    }
+        
+    inst( Y_VALUE, o( r ), (int)i );
+}
+
+
+void xec_ssa_buildcode::call( ycode opcode, xec_ssa_slice* slice, int index )
 {
     xec_ssa_op* op = &slice->ops.at( index );
 
@@ -913,8 +883,8 @@ void xec_ssa_buildcode::call(
     arguments( op );
     
     // Call.
-    int a = op->args->unpacked ? XEC_MARK : (int)op->args->args.size();
-    int b = op->args->rcount == -1 ? XEC_MARK : op->args->rcount;
+    int a = op->args->unpacked ? Y_MARK : (int)op->args->args.size();
+    int b = op->args->rcount == -1 ? Y_MARK : op->args->rcount;
     stack( op->args->stacktop, b );
     inst( opcode, op->args->stacktop, a, b );
 
@@ -1055,7 +1025,7 @@ void xec_ssa_buildcode::move( xec_ssa_rtgraph* rtg )
         int source = rtg->moves.at( target );
         
         // Perform move.
-        inst( XEC_MOV, o( target ), o( source ), 0 );
+        inst( Y_MOV, o( target ), o( source ), 0 );
         
         // Target is no longer in the set.
         zero.erase( i );
@@ -1079,7 +1049,7 @@ void xec_ssa_buildcode::move( xec_ssa_rtgraph* rtg )
         int a = rtg->moves.at( b );
         
         // Swap.
-        inst( XEC_SWP, o( a ), o( b ), 0 );
+        inst( Y_SWP, o( a ), o( b ), 0 );
         
         if ( c == a )
         {
@@ -1143,9 +1113,9 @@ void xec_ssa_buildcode::label( void* label )
         for ( size_t i = 0 ; i < l.jumps.size(); ++i )
         {
             int jumppc = l.jumps.at( i );
-            xec_opinst inst = code.at( jumppc );
+            yinstruction inst = code.at( jumppc );
             signed j = l.label - ( jumppc + 1 );
-            code[ jumppc ] = xec_opinst( inst.opcode(), inst.r(), j );
+            code[ jumppc ] = yinstruction( inst.opcode(), inst.r(), j );
         }
         l.jumps.clear();
     }
@@ -1158,7 +1128,7 @@ void xec_ssa_buildcode::label( void* label )
 }
 
 
-void xec_ssa_buildcode::jump( xec_opcode opcode, int r, void* label )
+void xec_ssa_buildcode::jump( ycode opcode, int r, void* label )
 {
     
     // Check for label.
@@ -1196,12 +1166,12 @@ void xec_ssa_buildcode::branch(
     xec_ssa_op* condop = func->getop( func->operand( condition ) );
     if ( condop->opcode == XEC_SSA_NEXT )
     {
-        xec_opcode opcode = iftrue ? XEC_IFITER : XEC_IFNITER;
+        ycode opcode = iftrue ? Y_IFITER : Y_IFNITER;
         jump( opcode, 0, label );
     }
     else
     {
-        xec_opcode opcode = iftrue ? XEC_IFTRUE : XEC_IFFALSE;
+        ycode opcode = iftrue ? Y_IFTRUE : Y_IFFALSE;
         assert( condop->r != -1 );
         jump( opcode, o( condop->r ), label );
     }

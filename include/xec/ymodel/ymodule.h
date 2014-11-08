@@ -19,7 +19,7 @@
 
 
 class ymodule;
-class yblock;
+class yroutine;
 
 
 
@@ -36,8 +36,8 @@ public:
 
     ystring*    name();
 
-    yblock*     script();
-    yblock*     block( unsigned f );
+    yroutine*   script();
+    yroutine*   routine( unsigned f );
 
     ysymbol     symbol( unsigned k );
     yvalue      value( unsigned v );
@@ -64,22 +64,22 @@ private:
 #else
     ywb< ytuple< yvalue >* >    values;
 #endif
-    ywb< ytuple< yblock* >* >   blocks;
+    ywb< ytuple< yroutine* >* > routines;
 
 };
 
 
 
 /*
-    An yblock contains the code for a single function.
+    An yroutine contains the code for a single function or coroutine.
 */
 
-class yblock : public yobject
+class yroutine : public yobject
 {
 public:
 
-    static void print( yblock* function );
-    static yblock* alloc( size_t size );
+    static void print( yroutine* routine );
+    static yroutine* alloc( size_t size );
     
     ymodule*        module();
     ystring*        name();
@@ -102,7 +102,7 @@ protected:
     static ymetatype metatype;
     static void mark_block( yobject* object, yworklist* work, ycolour colour );
 
-    yblock( ymetatype* metatype, size_t size );
+    yroutine( ymetatype* metatype, size_t size );
     
 
 private:
@@ -135,14 +135,14 @@ inline ystring* ymodule::name()
     return mname;
 }
 
-inline yblock* ymodule::script()
+inline yroutine* ymodule::script()
 {
-    return blocks->get( 0 );
+    return routines->get( 0 );
 }
 
-inline yblock* ymodule::block( unsigned f )
+inline yroutine* ymodule::routine( unsigned f )
 {
-    return blocks->get( f );
+    return routines->get( f );
 }
 
 inline ysymbol ymodule::symbol( unsigned k )
@@ -161,52 +161,52 @@ inline yvalue ymodule::value( unsigned v )
 
 
 
-inline ymodule* yblock::module()
+inline ymodule* yroutine::module()
 {
     return fmodule;
 }
 
-inline ystring* yblock::name()
+inline ystring* yroutine::name()
 {
     return fname;
 }
 
-inline unsigned yblock::param_count()
+inline unsigned yroutine::param_count()
 {
     return fparamcount;
 }
 
-inline unsigned yblock::upval_count()
+inline unsigned yroutine::upval_count()
 {
     return fupvalcount;
 }
 
-inline unsigned yblock::newup_count()
+inline unsigned yroutine::newup_count()
 {
     return fnewupcount;
 }
 
-inline unsigned yblock::stack_count()
+inline unsigned yroutine::stack_count()
 {
     return fstackcount;
 }
 
-inline bool yblock::is_varargs()
+inline bool yroutine::is_varargs()
 {
     return fvarargs;
 }
 
-inline bool yblock::is_coroutine()
+inline bool yroutine::is_coroutine()
 {
     return fcoroutine;
 }
 
-inline size_t yblock::size()
+inline size_t yroutine::size()
 {
     return fsize;
 }
 
-inline yinstruction* yblock::code()
+inline yinstruction* yroutine::code()
 {
     return fcode;
 }

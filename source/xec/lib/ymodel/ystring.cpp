@@ -12,19 +12,25 @@
 ymetatype ystring::metatype = { nullptr, "string" };
 
 
-ystring* ystring::alloc( const char* string )
-{
-    ystring* s = alloc( strlen( string ) );
-    memcpy( s->buffer(), string, s->size() );
-    return s;
-}
-
 
 ystring* ystring::alloc( size_t size )
 {
     void* p = malloc( sizeof( ystring ) + size + 1 );
     return new ( p ) ystring( &metatype, size );
 }
+
+ystring* ystring::alloc( size_t size, const char* data )
+{
+    ystring* s = alloc( size );
+    memcpy( s->buffer(), data, s->size() );
+    return s;
+}
+
+ystring* ystring::alloc( const char* string )
+{
+    return alloc( strlen( string ), string );
+}
+
 
 
 ystring::ystring( ymetatype* metatype, size_t size )

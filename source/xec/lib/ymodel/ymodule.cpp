@@ -32,22 +32,22 @@ void ymodule::mark_module( yobject* object, yworklist* work, ycolour colour )
     ymark( module->mname, work, colour );
     ymark( module->symbols, work, colour );
     ymark( module->values, work, colour );
-    ymark( module->blocks, work, colour );
+    ymark( module->routines, work, colour );
 }
 
 
 
 
-ymetatype yblock::metatype = { &mark_block, "function" };
+ymetatype yroutine::metatype = { &mark_block, "routine" };
 
-yblock* yblock::alloc( size_t size )
+yroutine* yroutine::alloc( size_t size )
 {
-    void* p = malloc( sizeof( yblock ) + sizeof( yinstruction ) * size );
-    return new ( p ) yblock( &metatype, size );
+    void* p = malloc( sizeof( yroutine ) + sizeof( yinstruction ) * size );
+    return new ( p ) yroutine( &metatype, size );
 }
 
 
-yblock::yblock( ymetatype* metatype, size_t size )
+yroutine::yroutine( ymetatype* metatype, size_t size )
     :   yobject( metatype )
     ,   fparamcount( 0 )
     ,   fupvalcount( 0 )
@@ -63,9 +63,9 @@ yblock::yblock( ymetatype* metatype, size_t size )
 }
 
 
-void yblock::mark_block( yobject* object, yworklist* work, ycolour colour )
+void yroutine::mark_block( yobject* object, yworklist* work, ycolour colour )
 {
-    yblock* f = (yblock*)object;
+    yroutine* f = (yroutine*)object;
     ymark( f->fmodule, work, colour );
     ymark( f->fname, work, colour );
 }
@@ -202,22 +202,22 @@ const odisasm disasm;
 
 
 
-void yblock::print( yblock* function )
+void yroutine::print( yroutine* routine )
 {
-    printf( "%s\n", function->name()->c_str() );
-    printf( "    param_count  : %u\n", function->param_count() );
-    printf( "    upval_count  : %u\n", function->upval_count() );
-    printf( "    newup_count  : %u\n", function->newup_count() );
-    printf( "    stack_count  : %u\n", function->stack_count() );
+    printf( "%s\n", routine->name()->c_str() );
+    printf( "    param_count  : %u\n", routine->param_count() );
+    printf( "    upval_count  : %u\n", routine->upval_count() );
+    printf( "    newup_count  : %u\n", routine->newup_count() );
+    printf( "    stack_count  : %u\n", routine->stack_count() );
     printf( "    is_varargs   : %s\n",
-                    function->is_varargs() ? "true" : "false" );
+                    routine->is_varargs() ? "true" : "false" );
     printf( "    is_coroutine : %s\n",
-                    function->is_coroutine() ? "true" : "false" );
+                    routine->is_coroutine() ? "true" : "false" );
     printf( "\n" );
     
-    for ( size_t ip = 0; ip < function->size(); ++ip )
+    for ( size_t ip = 0; ip < routine->size(); ++ip )
     {
-        yinstruction i = function->code()[ ip ];
+        yinstruction i = routine->code()[ ip ];
         const char* format = disasm.lookup( i.opcode() );
         
         printf( "%04u ", (unsigned)ip );
@@ -256,7 +256,7 @@ void yblock::print( yblock* function )
                 
                 case 'v':
                 {
-                    yvalue v = function->module()->value( i.c() );
+                    yvalue v = routine->module()->value( i.c() );
                     if ( v.is_bool() )
                     {
                         printf( "%s", v.as_bool() ? "true" : "false" );
@@ -296,15 +296,15 @@ void yblock::print( yblock* function )
                 
                 case 'k':
                 {
-                    ysymbol key = function->module()->symbol( i.b() );
+                    ysymbol key = routine->module()->symbol( i.b() );
                     printf( "'%s'", key->c_str() );
                     break;
                 }
                 
                 case 'f':
                 {
-                    yblock* f = function->module()->block( i.c() );
-                    printf( "function (%u) %s", i.c(), f->name()->c_str() );
+                    yroutine* f = routine->module()->routine( i.c() );
+                    printf( "routine (%u) %s", i.c(), f->name()->c_str() );
                     break;
                 }
                 
@@ -330,10 +330,10 @@ void ymodule::print( ymodule* module )
 {
     printf( "%s\n\n", module->name()->c_str() );
     
-    for ( size_t i = 0; i < module->blocks->size(); ++i )
+    for ( size_t i = 0; i < module->routines->size(); ++i )
     {
         printf( "(%u) ", (unsigned)i );
-        yblock::print( module->blocks->at( i ) );
+        yroutine::print( module->routines->get( i ) );
     }
 }
 

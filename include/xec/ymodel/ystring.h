@@ -24,8 +24,9 @@ class ystring : public yobject
 {
 public:
 
-    static ystring*     alloc( const char* string );
     static ystring*     alloc( size_t size );
+    static ystring*     alloc( size_t size, const char* data );
+    static ystring*     alloc( const char* string );
 
     static ystring*     strcat( ystring* a, ystring* b );
     static int          strcmp( ystring* a, ystring* b );
