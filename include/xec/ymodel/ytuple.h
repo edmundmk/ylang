@@ -36,7 +36,6 @@ public:
 protected:
 
     friend class yobject;
-    friend class yvalue;
     static ymetatype metatype;
     static void mark_tuple( yobject* object, yworklist* work, ycolour colour );
 

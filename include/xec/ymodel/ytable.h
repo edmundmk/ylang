@@ -32,7 +32,6 @@ public:
 protected:
 
     friend class yobject;
-    friend class yvalue;
     static ymetatype metatype;
     static void mark_table( yobject* object, yworklist* work, ycolour colour );
 

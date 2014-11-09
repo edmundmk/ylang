@@ -22,9 +22,7 @@ class yclass;
 class ystring;
 class ysymbol;
 class yexpand;
-class yvalue;
-class yiter;
-class yupval;
+class ystack;
 
 
 /*
@@ -147,16 +145,17 @@ private:
     friend class yobject;
     friend class ysymbol;
     friend class yexpand;
+    friend void yexec( size_t, unsigned, unsigned );
 
     static __thread yscope* scope;
     
-    yscope*                 previous;
-    ymodel*                 model;
-    ycolour                 mark_colour;
-    yobject*                allocs;
-    std::vector< yvalue >   ystack;
-    std::vector< yiter* >   yiters;
-    std::vector< yupval* >  yupvals;
+    yscope*     previous;
+    ymodel*     model;
+    
+    ycolour     mark_colour;
+    yobject*    allocs;
+
+    ystack*     stack;
     
 };
 

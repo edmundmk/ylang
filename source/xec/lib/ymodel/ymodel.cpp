@@ -10,6 +10,7 @@
 #include "yobject.h"
 #include "ystring.h"
 #include "yexpand.h"
+#include "yvm.h"
 
 
 
@@ -291,6 +292,7 @@ yscope::yscope( ymodel* model )
     ,   model( model )
     ,   mark_colour( Y_GREEN ) // TEMP - ask model for current colour
     ,   allocs( nullptr )
+    ,   stack( new ystack() )
 {
     // TODO: register scope with model.
 
@@ -304,6 +306,8 @@ yscope::~yscope()
     
     assert( scope == this );
     scope = previous;
+    
+    delete stack;
 }
 
 

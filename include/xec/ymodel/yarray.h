@@ -33,7 +33,6 @@ public:
 protected:
 
     friend class yobject;
-    friend class yvalue;
     static ymetatype metatype;
     static void mark_array( yobject* object, yworklist* work, ycolour colour );
 

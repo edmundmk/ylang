@@ -48,7 +48,6 @@ public:
 protected:
 
     friend class yobject;
-    friend class yvalue;
     static ymetatype metatype;
     static void mark_expand( yobject* object, yworklist* work, ycolour colour );
 
@@ -101,7 +100,6 @@ public:
 protected:
 
     friend class yobject;
-    friend class yvalue;
     static ymetatype metatype;
     static void mark_class( yobject* object, yworklist* work, ycolour colour );
 

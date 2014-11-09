@@ -42,7 +42,6 @@ public:
 protected:
 
     friend class yobject;
-    friend class yvalue;
     static ymetatype metatype;
     
     ystring( ymetatype* metatype, size_t size );

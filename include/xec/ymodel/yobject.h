@@ -30,8 +30,10 @@ class yobject
 {
 public:
 
+    template < typename object_t > static const char* nameof();
     template < typename object_t > bool is();
     template < typename object_t > object_t* as();
+    
     
 protected:
 
@@ -154,6 +156,11 @@ struct ymarktraits< ywb< object_t* > >
     yobject
 */
 
+template < typename object_t >
+inline const char* yobject::nameof()
+{
+    return object_t::metatype.name;
+}
 
 template < typename object_t >
 inline bool yobject::is()

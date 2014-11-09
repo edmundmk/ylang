@@ -61,6 +61,7 @@ public:
     yvalue( std::nullptr_t );
     yvalue( bool value );
     yvalue( double value );
+    yvalue( uint32_t value );
     yvalue( const char* string );
     yvalue( yobject* object );
     yvalue( ystring* string );
@@ -86,6 +87,7 @@ public:
     
     template < typename object_t > bool is() const;
     template < typename object_t > object_t* as() const;
+    template < typename object_t > object_t* cast() const;
     
     yobject*    get() const;
     
@@ -339,7 +341,13 @@ inline yvalue::yvalue( bool value )
 }
 
 inline yvalue::yvalue( double value )
-    :   n( ! isnan( value ) ? value : signbit( value ) ? NEGATIVE_NAN : POSITIVE_NAN  )
+//  :   n( ! isnan( value ) ? value : signbit( value ) ? NEGATIVE_NAN : POSITIVE_NAN  )
+    :   n( value )
+{
+}
+
+inline yvalue::yvalue( uint32_t value )
+    :   n( value )
 {
 }
 
@@ -533,7 +541,17 @@ inline object_t* yvalue::as() const
             return o;
         }
     }
-    throw yerror( "expected %s", object_t::metatype.name );
+    throw yerror( "expected %s", yobject::nameof< object_t >() );
+}
+
+template < typename object_t >
+inline object_t* yvalue::cast() const
+{
+#if Y64BIT
+    return (object_t*)( x & POINTER_MASK );
+#else
+    return (object_t*)lo;
+#endif
 }
 
 

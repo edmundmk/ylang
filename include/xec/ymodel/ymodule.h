@@ -46,7 +46,6 @@ public:
 protected:
 
     friend class yobject;
-    friend class yvalue;
     static ymetatype metatype;
     static void mark_module( yobject* object, yworklist* work, ycolour colour );
     
@@ -98,7 +97,6 @@ public:
 protected:
 
     friend class yobject;
-    friend class yvalue;
     static ymetatype metatype;
     static void mark_block( yobject* object, yworklist* work, ycolour colour );
 
