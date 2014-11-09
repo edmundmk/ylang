@@ -384,7 +384,7 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
     case Y_OBJECT:
     {
         // TODO: If the prototype is a table/an array (or the prototypes of
-        // same), so should this class be.
+        // same), so should this object be.
         if ( i.a() == Y_NOVAL )
             s[ i.r() ] = yexpand::alloc();
         else
@@ -403,6 +403,7 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
         size_t count = a->length() - i.b();
         stack->mark = fp + i.r() + count;
         stack->ensure_stack( stack->mark );
+        s = stack->stack.data() + fp;
         for ( size_t index = 0; index < count; ++index )
         {
             s[ i.r() + index ] = a->getindex( i.b() + index );
@@ -458,6 +459,7 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
     {
         stack->mark = fp + i.r() + incount - 1;
         stack->ensure_stack( stack->mark );
+        s = stack->stack.data() + fp;
         for ( size_t index = 0; index < incount - 1; ++index )
         {
             s[ i.r() + index ] = stack->stack[ sp + 1 + index ];
