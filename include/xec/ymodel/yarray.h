@@ -26,6 +26,7 @@ public:
 
     static yarray* alloc();
     
+    size_t  length() const;
     yvalue  getindex( size_t i ) const;
     void    setindex( size_t i, yvalue value );
 
@@ -50,6 +51,11 @@ private:
 /*
 
 */
+
+inline size_t yarray::length() const
+{
+    return values->size();
+}
 
 inline yvalue yarray::getindex( size_t i ) const
 {

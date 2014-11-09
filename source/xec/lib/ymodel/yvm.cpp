@@ -48,12 +48,12 @@ void yexec( size_t sp, unsigned argcount, unsigned resultcount )
 
 
     /*
-        If argcount is Y_MARK, then the mark points to the top argument.
+        If argcount is Y_MARK, then the mark points after the top argument.
     */
     
     if ( argcount == Y_MARK )
     {
-        argcount = (unsigned)( stack->mark - sp );
+        argcount = (unsigned)( stack->mark - 1 - sp );
     }
 
 
@@ -369,18 +369,79 @@ void yexec( size_t sp, unsigned argcount, unsigned resultcount )
             s[ i.r() ] = yexpand::alloc( s[ i.a() ].as_expand() );
         break;
     }
-        
-    Y_ARRAY,        // r = new array (reserve c indexes)
-    Y_UNPACK,       // r .. set @mark = a[ (immediate)b .. end ]
-    Y_APPEND,       // append r to (array)a
-    Y_EXTEND,       // append r .. @mark to (array)a
-    
-    Y_CLOSURE,      // r = function closure of functions[ c ]
-    Y_ENVNU,        // add upvals[ c ] to previous function closure
-    Y_ENVUP,        // add closure upvals[ c ] to previous function closure
 
-    Y_VARARG,       // r = varargs[ c ]
-    Y_VARALL,       // r .. set @top = varargs
+    case Y_ARRAY:
+    {
+        s[ i.r() ] = yarray::alloc();
+        break;
+    }
+    case Y_UNPACK:
+    {
+        yarray* a = s[ i.a() ].as< yarray >();
+        size_t count = a->length() - i.b();
+        stack->mark = fp + i.r() + count;
+        stack->ensure_stack( stack->mark );
+        for ( size_t index = 0; index < count; ++index )
+        {
+            s[ i.r() + index ] = a->getindex( i.b() + index );
+        }
+        break;
+    }
+    case Y_APPEND:
+    {
+        assert( ! "not implemented" );
+        break;
+    }
+    case Y_EXTEND:
+    {
+        assert( ! "not implemented" );
+        break;
+    }
+    
+    case Y_CLOSURE:
+    {
+        yrecipe* recipe = module->recipe( i.c() );
+        yfunction* closure = yfunction::alloc( global, recipe );
+        for ( size_t index = 0; index < recipe->upval_count(); ++index )
+        {
+            yinstruction i = *ip++;
+            switch ( i.opcode() )
+            {
+            case Y_ENVNU:
+                closure->setupval( index, u[ i.c() ] );
+                break;
+            case Y_ENVUP:
+                closure->setupval( index, function->getupval( i.c() ) );
+                break;
+            default:
+                assert( !"expected upval" );
+                break;
+            }
+        }
+        break;
+    }
+    case Y_ENVNU:
+    case Y_ENVUP:
+    {
+        assert( !"unexpected upval" );
+        break;
+    }
+        
+    case Y_VARARG:
+    {
+        s[ i.r() ] = s[ sp + 1 + i.c() ];
+        break;
+    }
+    case Y_VARALL:
+    {
+        stack->mark = fp + i.r() + argcount;
+        stack->ensure_stack( stack->mark );
+        for ( size_t index = 0; index < argcount; ++index )
+        {
+            s[ i.r() + index ] = stack->stack[ sp + 1 + index ];
+        }
+        break;
+    }
     
     Y_CALL,         // r .. r + b = call r .. r + a (with @mark)
     Y_YCALL,        // r .. r + b = yield call r .. r + a (with @mark)

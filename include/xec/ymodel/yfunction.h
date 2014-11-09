@@ -78,8 +78,8 @@ public:
     
     yexpand*    global();
     yrecipe*    recipe();
-    yupval*     getupval( int u );
-    void        setupval( int u, yupval* upval );
+    yupval*     getupval( size_t u );
+    void        setupval( size_t u, yupval* upval );
 
 
 protected:
@@ -148,12 +148,12 @@ inline yrecipe* yfunction::recipe()
     return frecipe;
 }
 
-inline yupval* yfunction::getupval( int u )
+inline yupval* yfunction::getupval( size_t u )
 {
     return fupvals->get( u );
 }
 
-inline void yfunction::setupval( int u, yupval* upval )
+inline void yfunction::setupval( size_t u, yupval* upval )
 {
     fupvals->set( u, upval );
 }

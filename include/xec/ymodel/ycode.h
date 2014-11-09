@@ -101,7 +101,7 @@ enum ycode
     Y_ENVNU,        // add upvals[ c ] to previous function closure
     Y_ENVUP,        // add closure upvals[ c ] to previous function closure
 
-    Y_VARARG,       // r = varargs[ c ]
+    Y_VARARG,       // r = varargs[ c ] (numbered from one)
     Y_VARALL,       // r .. set @top = varargs
     
     Y_CALL,         // r .. r + b = call r .. r + a (with @mark)
