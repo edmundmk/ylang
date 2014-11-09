@@ -20,6 +20,26 @@ ystack::ystack()
 }
 
 
+void ystack::ensure_stack( size_t size )
+{
+    if ( stack.size() < size )
+    {
+        stack.insert( stack.end(), size - stack.size(), yvalue::undefined );
+    }
+}
+
+void ystack::ensure_upvals( size_t size )
+{
+    if ( upvals.size() < size )
+    {
+        upvals.insert( upvals.end(), size - upvals.size(), nullptr );
+    }
+}
+
+
+
+
+
 
 static inline double mod( double a, double b )
 {
