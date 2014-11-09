@@ -289,6 +289,7 @@ struct xec_keywords
         emplace( symkey( "case" ),      XEC_KEYWORD_CASE );
         emplace( symkey( "catch" ),     XEC_KEYWORD_CATCH );
         emplace( symkey( "continue" ),  XEC_KEYWORD_CONTINUE );
+        emplace( symkey( "def" ),       XEC_KEYWORD_DEF );
         emplace( symkey( "default" ),   XEC_KEYWORD_DEFAULT );
         emplace( symkey( "delete" ),    XEC_KEYWORD_DELETE );
         emplace( symkey( "do" ),        XEC_KEYWORD_DO );
@@ -296,11 +297,9 @@ struct xec_keywords
         emplace( symkey( "false" ),     XEC_KEYWORD_FALSE );
         emplace( symkey( "finally" ),   XEC_KEYWORD_FINALLY );
         emplace( symkey( "for" ),       XEC_KEYWORD_FOR );
-        emplace( symkey( "function" ),  XEC_KEYWORD_FUNCTION );
         emplace( symkey( "if" ),        XEC_KEYWORD_IF );
         emplace( symkey( "new" ),       XEC_KEYWORD_NEW );
         emplace( symkey( "null" ),      XEC_KEYWORD_NULL );
-        emplace( symkey( "object" ),    XEC_KEYWORD_OBJECT );
         emplace( symkey( "return" ),    XEC_KEYWORD_RETURN );
         emplace( symkey( "switch" ),    XEC_KEYWORD_SWITCH );
         emplace( symkey( "throw" ),     XEC_KEYWORD_THROW );

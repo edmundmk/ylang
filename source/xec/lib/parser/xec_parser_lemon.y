@@ -173,16 +173,6 @@ name(x)         ::= IDENTIFIER(token) .
                     x = p->alloc< xec_name_name >( token->sloc, token->text );
                     p->destroy( token );
                 }
-name(x)         ::= FUNCTION(token) .
-                {
-                    x = p->alloc< xec_name_name >( token->sloc, token->text );
-                    p->destroy( token );
-                }
-name(x)         ::= OBJECT(token) .
-                {
-                    x = p->alloc< xec_name_name >( token->sloc, token->text );
-                    p->destroy( token );
-                }
 
 
 name_list(x)    ::= name(name) .
@@ -244,11 +234,11 @@ decl_object     ::= object_scope(object) LBR object_decls RBR .
                     p->close_scope( object->scope );
                 }
 
-object_scope(x) ::= OBJECT qual_name(name) .
+object_scope(x) ::= DEF qual_name(name) .
                 {
                     x = p->object( name->sloc, name, nullptr );
                 }
-object_scope(x) ::= OBJECT qual_name(name) COLON expr_simple(proto) .
+object_scope(x) ::= DEF qual_name(name) COLON expr_simple(proto) .
                 {
                     x = p->object( name->sloc, name, proto );
                 }
@@ -278,13 +268,13 @@ object_decl     ::= decl_var .
                 }
 
 
-decl_proto      ::= FUNCTION(token) qual_name(name)
+decl_proto      ::= DEF(token) qual_name(name)
                                 LPN param_list(params) RPN SEMICOLON .
                 {
                     p->prototype( token->sloc, name, params, false );
                     p->destroy( token );
                 }
-decl_proto      ::= FUNCTION(token) qual_name(name)
+decl_proto      ::= DEF(token) qual_name(name)
                                 LPN param_list(params) RPN YIELD SEMICOLON .
                 {
                     p->prototype( token->sloc, name, params, true );
@@ -297,13 +287,13 @@ decl_func       ::= func_scope(function) LBR stmt_list RBR .
                     p->close_scope( function->scope );
                 }
 
-func_scope(x)   ::= FUNCTION(token) qual_name(name)
+func_scope(x)   ::= DEF(token) qual_name(name)
                                 LPN param_list(params) RPN .
                 {
                     x = p->function( token->sloc, name, params, false, false );
                     p->destroy( token );
                 }
-func_scope(x)   ::= FUNCTION(token) qual_name(name)
+func_scope(x)   ::= DEF(token) qual_name(name)
                                 LPN param_list(params) RPN YIELD .
                 {
                     x = p->function( token->sloc, name, params, true, false );
@@ -339,16 +329,6 @@ expr_index(x)   ::= LPN expr_assign(expr) RPN .
                     x = p->mono( expr );
                 }
 expr_index(x)   ::= IDENTIFIER(token) .
-                {
-                    x = p->lookup( token->sloc, token->text, true );
-                    p->destroy( token );
-                }
-expr_index(x)   ::= FUNCTION(token) .
-                {
-                    x = p->lookup( token->sloc, token->text, true );
-                    p->destroy( token );
-                }
-expr_index(x)   ::= OBJECT(token) .
                 {
                     x = p->lookup( token->sloc, token->text, true );
                     p->destroy( token );
