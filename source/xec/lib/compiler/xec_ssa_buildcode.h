@@ -29,7 +29,7 @@
 class xec_ssa_dfo;
 struct xec_ssa_rtgraph;
 class ymodule;
-class yroutine;
+class yrecipe;
 
 
 class xec_ssa_buildcode
@@ -87,7 +87,7 @@ private:
 
     std::vector< yvalue >       values;
     std::vector< ysymbol >      keys;
-    std::vector< yroutine* >    routines;
+    std::vector< yrecipe* >     recipes;
     
     std::unordered_map< void*, jumplabel > labels;
     std::vector< yinstruction > code;

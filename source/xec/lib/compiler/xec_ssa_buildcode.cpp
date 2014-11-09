@@ -76,18 +76,18 @@ void xec_ssa_buildcode::build_func( xec_ssa_func* func, xec_ssa_dfo* dfo )
         Build module function.
     */
     
-    yroutine* routine = yroutine::alloc( code.size() );
+    yrecipe* recipe = yrecipe::alloc( code.size() );
     
-    routine->fname          = ystring::alloc( func->funcname );
-    routine->fparamcount    = func->paramcount;
-    routine->fupvalcount    = func->upvalcount;
-    routine->fnewupcount    = func->localupcount;
-    routine->fstackcount    = maxstack + 1;
-    routine->fvarargs       = func->varargs;
-    routine->fcoroutine     = func->coroutine;
-    memcpy( routine->fcode, code.data(), sizeof( yinstruction ) * code.size() );
+    recipe->fname          = ystring::alloc( func->funcname );
+    recipe->fparamcount    = func->paramcount;
+    recipe->fupvalcount    = func->upvalcount;
+    recipe->fnewupcount    = func->localupcount;
+    recipe->fstackcount    = maxstack + 1;
+    recipe->fvarargs       = func->varargs;
+    recipe->fcoroutine     = func->coroutine;
+    memcpy( recipe->fcode, code.data(), sizeof( yinstruction ) * code.size() );
     
-    routines.push_back( routine );
+    recipes.push_back( recipe );
     
         
     /*
@@ -125,16 +125,16 @@ ymodule* xec_ssa_buildcode::build_module()
 
 #endif
 
-    module->routines = ytuple< yroutine* >::alloc( routines.size() );
-    for ( size_t i = 0; i < routines.size(); ++i )
+    module->recipes = ytuple< yrecipe* >::alloc( recipes.size() );
+    for ( size_t i = 0; i < recipes.size(); ++i )
     {
-        module->routines->set( i, routines.at( i ) );
+        module->recipes->set( i, recipes.at( i ) );
     }
     
     
     keys.clear();
     values.clear();
-    routines.clear();
+    recipes.clear();
     
     return module;
 }
@@ -1177,6 +1177,79 @@ void xec_ssa_buildcode::branch(
     }
 }
 
+
+
+
+void xec_ssa_buildcode::build_value_slots( ymodule* module )
+{
+#if YSLOTS
+
+    // We must sort values into references and numbers, and provide a mapping
+    // from their existing indexes to their sorted indexes.  Indexes for
+    // numbers are negative, indexes for references are zero or positive.
+    std::vector< yvalue > references;
+    std::vector< yvalue > numbers;
+    std::vector< int > remap;
+    
+    for ( size_t i = 0; i < values.size(); ++i )
+    {
+        yvalue value = values.at( i );
+        if ( value.is_number() )
+        {
+            numbers.push_back( value );
+            remap.push_back( -(int)numbers.size() );
+        }
+        else
+        {
+            remap.push_back( (int)references.size() );
+            references.push_back( value );
+        }
+    }
+
+
+    // Construct a slots with the values in the appropriate positions.
+    yslots* slots = yslots::alloc( values.size() );
+
+    for ( size_t i = 0; i < references.size(); ++i )
+    {
+        slots->set( i, references.at( i ) );
+    }
+    
+    size_t watermark = references.size();
+    slots->set_watermark( watermark );
+
+    for ( size_t i = 0; i < numbers.size(); ++i )
+    {
+        slots->set( watermark + i, numbers.at( i ) );
+    }
+    
+    
+    // Remap every Y_VALUE instruction in every recipe.
+    for ( size_t i = 0; i < recipes.size(); ++i )
+    {
+        yrecipe* recipe = recipes.at( i );
+        for ( size_t i = 0; i < recipe->size(); ++i )
+        {
+            yinstruction* inst = recipe->fcode + i;
+            if ( inst->opcode() == Y_VALUE )
+            {
+                int newc = remap[ inst->c() ];
+                if ( newc < 0 )
+                {
+                    // The number at watermark has newc -1, the next -2, etc.
+                    newc = (int)watermark + -newc - 1;
+                }
+                *inst = yinstruction( Y_VALUE, inst->r(), newc );
+            }
+        }
+    }
+
+
+    // Assign slots into module.
+    module->values = slots;
+
+#endif
+}
 
 
 

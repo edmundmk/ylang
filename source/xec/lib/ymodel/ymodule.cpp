@@ -32,22 +32,22 @@ void ymodule::mark_module( yobject* object, yworklist* work, ycolour colour )
     ymark( module->mname, work, colour );
     ymark( module->symbols, work, colour );
     ymark( module->values, work, colour );
-    ymark( module->routines, work, colour );
+    ymark( module->recipes, work, colour );
 }
 
 
 
 
-ymetatype yroutine::metatype = { &mark_block, "routine" };
+ymetatype yrecipe::metatype = { &mark_block, "routine" };
 
-yroutine* yroutine::alloc( size_t size )
+yrecipe* yrecipe::alloc( size_t size )
 {
-    void* p = malloc( sizeof( yroutine ) + sizeof( yinstruction ) * size );
-    return new ( p ) yroutine( &metatype, size );
+    void* p = malloc( sizeof( yrecipe ) + sizeof( yinstruction ) * size );
+    return new ( p ) yrecipe( &metatype, size );
 }
 
 
-yroutine::yroutine( ymetatype* metatype, size_t size )
+yrecipe::yrecipe( ymetatype* metatype, size_t size )
     :   yobject( metatype )
     ,   fparamcount( 0 )
     ,   fupvalcount( 0 )
@@ -63,9 +63,9 @@ yroutine::yroutine( ymetatype* metatype, size_t size )
 }
 
 
-void yroutine::mark_block( yobject* object, yworklist* work, ycolour colour )
+void yrecipe::mark_block( yobject* object, yworklist* work, ycolour colour )
 {
-    yroutine* f = (yroutine*)object;
+    yrecipe* f = (yrecipe*)object;
     ymark( f->fmodule, work, colour );
     ymark( f->fname, work, colour );
 }
@@ -202,7 +202,7 @@ const odisasm disasm;
 
 
 
-void yroutine::print( yroutine* routine )
+void yrecipe::print( yrecipe* routine )
 {
     printf( "%s\n", routine->name()->c_str() );
     printf( "    param_count  : %u\n", routine->param_count() );
@@ -303,7 +303,7 @@ void yroutine::print( yroutine* routine )
                 
                 case 'f':
                 {
-                    yroutine* f = routine->module()->routine( i.c() );
+                    yrecipe* f = routine->module()->recipe( i.c() );
                     printf( "routine (%u) %s", i.c(), f->name()->c_str() );
                     break;
                 }
@@ -330,10 +330,10 @@ void ymodule::print( ymodule* module )
 {
     printf( "%s\n\n", module->name()->c_str() );
     
-    for ( size_t i = 0; i < module->routines->size(); ++i )
+    for ( size_t i = 0; i < module->recipes->size(); ++i )
     {
         printf( "(%u) ", (unsigned)i );
-        yroutine::print( module->routines->get( i ) );
+        yrecipe::print( module->recipes->get( i ) );
     }
 }
 

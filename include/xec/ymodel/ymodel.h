@@ -36,7 +36,7 @@ class yexpand;
     Whether to differentiate between references and numbers in yclasses.
 */
 
-#if ! Y64BIT
+#if 1//! Y64BIT
 #define YSLOTS 1
 #endif
 
@@ -73,7 +73,8 @@ typedef seglist< yobject* > yworklist;
     fast-hash and fast-compare ysymbols, and an implicit class tree for
     yexpands.  Multiple mutator threads can access the ymodel concurrently,
     but note that lookup and assignment on a yexpand (including on prototypes)
-    is _not_ thread-safe.
+    is _not_ thread-safe - when accessing the same object from multiple
+    threads you must lock yourself.
 */
 
 class ymodel

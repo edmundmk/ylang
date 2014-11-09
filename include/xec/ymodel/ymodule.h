@@ -19,7 +19,7 @@
 
 
 class ymodule;
-class yroutine;
+class yrecipe;
 
 
 
@@ -36,8 +36,8 @@ public:
 
     ystring*    name();
 
-    yroutine*   script();
-    yroutine*   routine( unsigned f );
+    yrecipe*    script();
+    yrecipe*    recipe( unsigned f );
 
     ysymbol     symbol( unsigned k );
     yvalue      value( unsigned v );
@@ -64,22 +64,22 @@ private:
 #else
     ywb< ytuple< yvalue >* >    values;
 #endif
-    ywb< ytuple< yroutine* >* > routines;
+    ywb< ytuple< yrecipe* >* >  recipes;
 
 };
 
 
 
 /*
-    An yroutine contains the code for a single function or coroutine.
+    An yrecipe contains the code for a single function or coroutine.
 */
 
-class yroutine : public yobject
+class yrecipe : public yobject
 {
 public:
 
-    static void print( yroutine* routine );
-    static yroutine* alloc( size_t size );
+    static void print( yrecipe* routine );
+    static yrecipe* alloc( size_t size );
     
     ymodule*        module();
     ystring*        name();
@@ -102,7 +102,7 @@ protected:
     static ymetatype metatype;
     static void mark_block( yobject* object, yworklist* work, ycolour colour );
 
-    yroutine( ymetatype* metatype, size_t size );
+    yrecipe( ymetatype* metatype, size_t size );
     
 
 private:
@@ -135,14 +135,14 @@ inline ystring* ymodule::name()
     return mname;
 }
 
-inline yroutine* ymodule::script()
+inline yrecipe* ymodule::script()
 {
-    return routines->get( 0 );
+    return recipes->get( 0 );
 }
 
-inline yroutine* ymodule::routine( unsigned f )
+inline yrecipe* ymodule::recipe( unsigned f )
 {
-    return routines->get( f );
+    return recipes->get( f );
 }
 
 inline ysymbol ymodule::symbol( unsigned k )
@@ -161,52 +161,52 @@ inline yvalue ymodule::value( unsigned v )
 
 
 
-inline ymodule* yroutine::module()
+inline ymodule* yrecipe::module()
 {
     return fmodule;
 }
 
-inline ystring* yroutine::name()
+inline ystring* yrecipe::name()
 {
     return fname;
 }
 
-inline unsigned yroutine::param_count()
+inline unsigned yrecipe::param_count()
 {
     return fparamcount;
 }
 
-inline unsigned yroutine::upval_count()
+inline unsigned yrecipe::upval_count()
 {
     return fupvalcount;
 }
 
-inline unsigned yroutine::newup_count()
+inline unsigned yrecipe::newup_count()
 {
     return fnewupcount;
 }
 
-inline unsigned yroutine::stack_count()
+inline unsigned yrecipe::stack_count()
 {
     return fstackcount;
 }
 
-inline bool yroutine::is_varargs()
+inline bool yrecipe::is_varargs()
 {
     return fvarargs;
 }
 
-inline bool yroutine::is_coroutine()
+inline bool yrecipe::is_coroutine()
 {
     return fcoroutine;
 }
 
-inline size_t yroutine::size()
+inline size_t yrecipe::size()
 {
     return fsize;
 }
 
-inline yinstruction* yroutine::code()
+inline yinstruction* yrecipe::code()
 {
     return fcode;
 }
