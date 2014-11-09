@@ -287,10 +287,10 @@ __thread yscope* yscope::scope = nullptr;
 
 
 yscope::yscope( ymodel* model )
-    :   model( model )
+    :   previous( scope )
+    ,   model( model )
     ,   mark_colour( Y_GREEN ) // TEMP - ask model for current colour
     ,   allocs( nullptr )
-    ,   previous( scope )
 {
     // TODO: register scope with model.
 

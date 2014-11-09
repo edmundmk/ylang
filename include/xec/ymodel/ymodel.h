@@ -10,6 +10,7 @@
 #define YMODEL_H
 
 
+#include <vector>
 #include <unordered_map>
 #include <thread>
 #include <symbol.h>
@@ -21,6 +22,9 @@ class yclass;
 class ystring;
 class ysymbol;
 class yexpand;
+class yvalue;
+class yiter;
+class yupval;
 
 
 /*
@@ -36,7 +40,7 @@ class yexpand;
     Whether to differentiate between references and numbers in yclasses.
 */
 
-#if 1//! Y64BIT
+#if ! Y64BIT
 #define YSLOTS 1
 #endif
 
@@ -146,11 +150,14 @@ private:
 
     static __thread yscope* scope;
     
-    ymodel*             model;
-    ycolour             mark_colour;
-    yobject*            allocs;
-    yscope*             previous;
-
+    yscope*                 previous;
+    ymodel*                 model;
+    ycolour                 mark_colour;
+    yobject*                allocs;
+    std::vector< yvalue >   ystack;
+    std::vector< yiter* >   yiters;
+    std::vector< yupval* >  yupvals;
+    
 };
 
 
