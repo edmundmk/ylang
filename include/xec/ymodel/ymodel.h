@@ -126,15 +126,15 @@ private:
 
 
 /*
-    All access to a ymodel must be done within the scope of a ycontext.
+    All access to a ymodel must be done within the scope of a yscope.
 */
 
-class ycontext
+class yscope
 {
 public:
 
-    ycontext();
-    ~ycontext();
+    explicit yscope( ymodel* model );
+    ~yscope();
 
 
 private:
@@ -144,11 +144,12 @@ private:
     friend class ysymbol;
     friend class yexpand;
 
-    static __thread ycontext* context;
+    static __thread yscope* scope;
     
     ymodel*             model;
     ycolour             mark_colour;
     yobject*            allocs;
+    yscope*             previous;
 
 };
 

@@ -11,10 +11,10 @@
 
 
 yobject::yobject( ymetatype* metatype )
-    :   word( (uintptr_t)metatype | ycontext::context->mark_colour )
-    ,   next( ycontext::context->allocs )
+    :   word( (uintptr_t)metatype | yscope::scope->mark_colour )
+    ,   next( yscope::scope->allocs )
 {
-    ycontext::context->allocs = this;
+    yscope::scope->allocs = this;
     
     // Ensure that the initialization of our word (with its colour) is
     // visible before any store of this new object into a slot visible

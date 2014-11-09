@@ -128,7 +128,9 @@ ymodule* xec_ssa_buildcode::build_module()
     module->recipes = ytuple< yrecipe* >::alloc( recipes.size() );
     for ( size_t i = 0; i < recipes.size(); ++i )
     {
-        module->recipes->set( i, recipes.at( i ) );
+        yrecipe* recipe = recipes.at( i );
+        recipe->fmodule = module;
+        module->recipes->set( i, recipe );
     }
     
     

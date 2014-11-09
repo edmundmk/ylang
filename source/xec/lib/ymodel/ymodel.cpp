@@ -17,6 +17,17 @@
     ymodel
 */
 
+ymodel::ymodel()
+    :   expand_empty( nullptr )
+{
+    yscope scope( this );
+    expand_empty = yclass::alloc();
+}
+
+ymodel::~ymodel()
+{
+}
+
 
 ystring* ymodel::make_symbol( const char* s )
 {
@@ -30,7 +41,7 @@ ystring* ymodel::make_symbol( const char* s )
     if ( symbol != symbols.end() )
     {
         // Mark symbol before returning, in case we are resurrecting it.
-        symbol->second->mark( nullptr, ycontext::context->mark_colour );
+        symbol->second->mark( nullptr, yscope::scope->mark_colour );
         return symbol->second.get();
     }
 
@@ -57,7 +68,7 @@ ystring* ymodel::make_symbol( ystring* s )
     if ( symbol != symbols.end() )
     {
         // Mark symbol mark returning, in case we are resurrecting it.
-        symbol->second->mark( nullptr, ycontext::context->mark_colour );
+        symbol->second->mark( nullptr, yscope::scope->mark_colour );
         return symbol->second.get();
     }
     
@@ -261,16 +272,39 @@ void ymodel::mark_grey( yobject* object )
     std::lock_guard< std::mutex > lock( greylist_mutex );
     
     // Pass in the actual mark colour in case somehow
-    object->mark( &greylist, ycontext::context->mark_colour );
+    object->mark( &greylist, yscope::scope->mark_colour );
 }
 
 
 
 /*
-    ycontext
+    yscope
 */
 
-__thread ycontext* ycontext::context = nullptr;
+
+__thread yscope* yscope::scope = nullptr;
+
+
+
+yscope::yscope( ymodel* model )
+    :   model( model )
+    ,   mark_colour( Y_GREEN ) // TEMP - ask model for current colour
+    ,   allocs( nullptr )
+    ,   previous( scope )
+{
+    // TODO: register scope with model.
+
+    scope = this;
+}
+
+yscope::~yscope()
+{
+    // TODO: dump pending allocs.
+    // TODO: deregister with model.
+    
+    assert( scope == this );
+    scope = previous;
+}
 
 
 

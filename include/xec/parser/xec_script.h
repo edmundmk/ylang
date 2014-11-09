@@ -19,8 +19,8 @@
 
 
 struct xec_ast;
-class xec_module;
 class xec_srcbuf;
+class ymodule;
 
 
 
@@ -82,18 +82,21 @@ xec_script* xec_parse( const char* path, size_t argc, const char* const* argv );
 
 
 /*
-    Compile an AST into a compiled xecode module.
-*/
-
-xec_module* xec_compile( xec_ast* ast );
-
-
-
-/*
     Compile an AST into luajit-compatiable lua.
 */
 
 xec_srcbuf* xec_compile_lj( xec_ast* ast );
+
+
+
+/*
+    Compile an AST into a ycode module.
+*/
+
+ymodule* xec_compile( xec_ast* ast );
+
+
+
 
 
 

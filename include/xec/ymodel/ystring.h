@@ -209,12 +209,12 @@ inline ysymbol::ysymbol()
 }
 
 inline ysymbol::ysymbol( const char* s )
-    :   string( ycontext::context->model->make_symbol( s ) )
+    :   string( yscope::scope->model->make_symbol( s ) )
 {
 }
 
 inline ysymbol::ysymbol( ystring* s )
-    :   string( s->ssymbol ? s : ycontext::context->model->make_symbol( s ) )
+    :   string( s->ssymbol ? s : yscope::scope->model->make_symbol( s ) )
 {
 }
 

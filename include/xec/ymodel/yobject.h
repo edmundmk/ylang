@@ -178,7 +178,7 @@ inline void yobject::mark()
     // Objects which contain no references are marked directly.  Other objects
     // are added to the grey list for the mark thread to pick up.
 
-    ycolour mark_colour = ycontext::context->mark_colour;
+    ycolour mark_colour = yscope::scope->mark_colour;
     uintptr_t word = this->word.load( std::memory_order_relaxed );
     ymetatype* metatype = (ymetatype*)( word & ~Y_COLOUR_MASK );
     ycolour colour = (ycolour)( word & Y_COLOUR_MASK );
@@ -188,7 +188,7 @@ inline void yobject::mark()
         if ( metatype->mark )
         {
             // Add to the mark list.
-            ycontext::context->model->mark_grey( this );
+            yscope::scope->model->mark_grey( this );
         }
         else
         {
@@ -247,7 +247,7 @@ inline yroot< object_t* >::yroot( object_t* q )
     :   p( q )
 {
     if ( q )
-        ycontext::context->model->add_root( q );
+        yscope::scope->model->add_root( q );
 }
 
 template < typename object_t >
@@ -262,9 +262,9 @@ yroot< object_t* >& yroot< object_t* >::operator = ( object_t* q )
     if ( p != q )
     {
         if ( q )
-            ycontext::context->model->add_root( q );
+            yscope::scope->model->add_root( q );
         if ( p )
-            ycontext::context->model->remove_root( p );
+            yscope::scope->model->remove_root( p );
     }
     p = q;
     return this;
@@ -274,7 +274,7 @@ template < typename object_t >
 inline yroot< object_t* >::~yroot()
 {
     if ( p )
-        ycontext::context->model->remove_root( p );
+        yscope::scope->model->remove_root( p );
 }
 
 template < typename object_t >

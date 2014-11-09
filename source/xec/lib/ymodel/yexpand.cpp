@@ -28,7 +28,7 @@ yexpand* yexpand::alloc( yexpand* prototype )
 
 yexpand::yexpand( ymetatype* metatype, yclass* klass )
     :   yobject( metatype )
-    ,   klass( klass ? klass : ycontext::context->model->empty_class() )
+    ,   klass( klass ? klass : yscope::scope->model->empty_class() )
 {
 }
 
@@ -120,7 +120,7 @@ void yexpand::dualkey( ysymbol key, yslotindex index, yvalue value )
 
 void yexpand::expanddual( ysymbol key, yslotindex index, yvalue value )
 {
-    ymodel* model = ycontext::context->model;
+    ymodel* model = yscope::scope->model;
     yclass* klass = this->klass;
     yslots* slots = this->slots;
     
@@ -244,7 +244,7 @@ void yexpand::storedual( yslotindex index, size_t newslot, yvalue value )
 
 void yexpand::expandkey( ysymbol key, yvalue value )
 {
-    ymodel* model = ycontext::context->model;
+    ymodel* model = yscope::scope->model;
     yclass* klass = this->klass;
     ytuple< yvalue >* slots = this->slots;
 
