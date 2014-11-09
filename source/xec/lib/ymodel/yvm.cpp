@@ -42,7 +42,7 @@ static inline size_t check_integer( yvalue v )
 }
 
 
-void yexec( size_t sp, unsigned argcount, unsigned resultcount )
+void yexec( size_t sp, unsigned incount, unsigned outcount )
 {
     ystack* stack = yscope::scope->stack;
 
@@ -51,19 +51,19 @@ void yexec( size_t sp, unsigned argcount, unsigned resultcount )
         If argcount is Y_MARK, then the mark points after the top argument.
     */
     
-    if ( argcount == Y_MARK )
+    if ( incount == Y_MARK )
     {
-        argcount = (unsigned)( stack->mark - 1 - sp );
+        incount = (unsigned)( stack->mark - sp );
     }
 
 
     /*
         Stack frames on entry look like:
         
-            sp  ->  function
-                    argument
-                    argument
-                    ...
+                      sp -> function
+                            argument
+                            argument
+            sp + incount ->
     */
     
     yfunction* function = stack->stack[ sp ].as< yfunction >();
@@ -72,19 +72,19 @@ void yexec( size_t sp, unsigned argcount, unsigned resultcount )
 
     size_t fp = sp;
 
-    if ( argcount < recipe->param_count() )
+    if ( incount <= recipe->param_count() )
     {
         // Set missing arguments to null.
-        for ( unsigned i = argcount; i < recipe->param_count(); ++i )
+        for ( unsigned i = incount; i <= recipe->param_count(); ++i )
         {
             stack->stack[ sp + i ] = nullptr;
         }
     }
-    else if ( argcount > recipe->param_count() && recipe->is_varargs() )
+    else if ( recipe->is_varargs() )
     {
         // Preserve existing stack frame so that varargs are accessible.
         // Reconstruct a stack frame with the correct arguments above it..
-        fp = sp + 1 + argcount;
+        fp = sp + incount;
         stack->ensure_stack( fp + 1 + recipe->param_count() );
         stack->stack[ fp ] = stack->stack[ sp ];
         for ( int i = 0; i < recipe->param_count(); ++i )
@@ -363,6 +363,8 @@ void yexec( size_t sp, unsigned argcount, unsigned resultcount )
     }
     case Y_OBJECT:
     {
+        // TODO: If the prototype is a table/an array (or the prototypes of
+        // same), so should this class be.
         if ( i.a() == Y_NOVAL )
             s[ i.r() ] = yexpand::alloc();
         else
@@ -434,26 +436,61 @@ void yexec( size_t sp, unsigned argcount, unsigned resultcount )
     }
     case Y_VARALL:
     {
-        stack->mark = fp + i.r() + argcount;
+        stack->mark = fp + i.r() + incount - 1;
         stack->ensure_stack( stack->mark );
-        for ( size_t index = 0; index < argcount; ++index )
+        for ( size_t index = 0; index < incount - 1; ++index )
         {
             s[ i.r() + index ] = stack->stack[ sp + 1 + index ];
         }
         break;
     }
     
-    Y_CALL,         // r .. r + b = call r .. r + a (with @mark)
-    Y_YCALL,        // r .. r + b = yield call r .. r + a (with @mark)
-    Y_YIELD,        // r .. r + b = yield r .. r + a (with @mark)
-    Y_NEW,          // r = new a .. a + b (with @mark)
+    case Y_CALL:
+    {
+        yexec( fp + i.r(), i.a(), i.b() );
+        break;
+    }
+    case Y_YCALL:
+    case Y_YIELD:
+    {
+        assert( !"not implemented!" );
+        break;
+    }
     
-    Y_RETURN,       // return r .. r + a (with @mark)
-    
-    
-    
-    
-    
+    case Y_RETURN:
+    {
+        // How many values do we actually have?
+        size_t valcount = i.a() != Y_MARK ? i.a() : stack->mark - i.r();
+
+        // We might have to move them to the right place.
+        if ( fp + i.r() != sp )
+        {
+            size_t movecount = valcount;
+            if ( outcount != Y_MARK )
+            {
+                movecount = std::min( movecount, (size_t)outcount );
+            }
+            
+            for ( size_t index = 0; index < movecount; ++index )
+            {
+                stack->stack[ sp + index ] = s[ i.r() + index ];
+            }
+        }
+        
+        // How many values is the caller expecting?
+        if ( outcount != Y_MARK )
+        {
+            for ( size_t index = valcount; index < outcount; ++index )
+            {
+                stack->stack[ sp + index ] = nullptr;
+            }
+        }
+        else
+        {
+            stack->mark = sp + valcount;
+        }
+        break;
+    }
     
     
     }

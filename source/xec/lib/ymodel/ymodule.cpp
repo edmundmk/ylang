@@ -167,12 +167,11 @@ public:
         add( Y_ENVUP,     "envup     ^%c" );
 
         add( Y_VARARG,    "vararg    $%c" );
-        add( Y_VARALL,    "varall    [%r .. ]" );
+        add( Y_VARALL,    "varall    [%r .. @]" );
     
         add( Y_CALL,      "call      [%r .. %b] [%r .. %a]" );
         add( Y_YCALL,     "ycall     [%r .. %b] [%r .. %a]" );
         add( Y_YIELD,     "yield     [%r .. %b] [%r .. %a]" );
-        add( Y_NEW,       "new       %r [%a .. %b]" );
     
         add( Y_RETURN,    "return    [%r .. %a]" );
 

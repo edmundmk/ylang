@@ -67,7 +67,7 @@ struct ystack
     Evaulation loop.
 */
 
-void yexec( size_t sp, unsigned argcount, unsigned resultcount );
+void yexec( size_t sp, unsigned incount, unsigned outcount );
 
 
 

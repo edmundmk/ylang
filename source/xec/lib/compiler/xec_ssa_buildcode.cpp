@@ -454,18 +454,7 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
         call( Y_YIELD, block->ops, (int)i );
         break;
     }
-        
-    case XEC_SSA_NEW:
-    {
-        // Build register transfer to get arguments in correct positions.
-        arguments( op );
-        
-        // Instruction places new object in the correct place.
-        int b = op->args->unpacked ? Y_MARK : (int)op->args->args.size();
-        inst( Y_NEW, o( op->r ), op->args->stacktop, b );
-        break;
-    }
-    
+            
     case XEC_SSA_EXTEND:
     {
         // Extend should have only the array and unpacked args.

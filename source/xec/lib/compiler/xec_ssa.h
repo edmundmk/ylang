@@ -240,7 +240,6 @@ enum xec_ssa_opcode
     XEC_SSA_CALL,       // function call
     XEC_SSA_YCALL,      // yieldable function call
     XEC_SSA_YIELD,      // yield
-    XEC_SSA_NEW,        // new object by calling constructor
     XEC_SSA_EXTEND,     // extend an array with unpacked
     XEC_SSA_NEXT,       // produce values from an iterator
     XEC_SSA_RETURN,     // return    

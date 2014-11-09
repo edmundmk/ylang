@@ -107,7 +107,6 @@ enum ycode
     Y_CALL,         // r .. r + b = call r .. r + a (with @mark)
     Y_YCALL,        // r .. r + b = yield call r .. r + a (with @mark)
     Y_YIELD,        // r .. r + b = yield r .. r + a (with @mark)
-    Y_NEW,          // r = new a .. a + b (with @mark)
     
     Y_RETURN,       // return r .. r + a (with @mark)
 

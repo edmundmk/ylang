@@ -162,7 +162,6 @@ public:
         add( XEC_SSA_CALL,      "call"      );
         add( XEC_SSA_YCALL,     "ycall"     );
         add( XEC_SSA_YIELD,     "yield"     );
-        add( XEC_SSA_NEW,       "new"       );
         add( XEC_SSA_RETURN,    "return"    );
 
         add( XEC_SSA_CLOSURE,   "closure"   );

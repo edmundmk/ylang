@@ -381,17 +381,27 @@ xec_ssa_opref xec_ssa_build_expr::visit( xec_new_new* node )
     // Get prototype.
     xec_ssa_opref proto = visit( node->proto );
 
+    // Create object inheriting from prototype.
+    xec_ssa_opref object = b->op( node->sloc, XEC_SSA_OBJECT, proto );
+    
+    // Lookup 'this' method.
+    xec_ssa_opref constructor =
+            b->op( node->sloc, XEC_SSA_KEY, object, b->key( "this" ) );
+
     // Get arguments (unpacked).
     xec_ssa_valist arguments;
     b->unpack( &arguments, node->arguments, -1 );
 
-    // SSA instruction has both prototype and arguments as operands.
-    xec_ssa_args* args = b->args( 1 );
-    args->args.reserve( 1 + arguments.values.size() );
-    args->args.push_back( proto );
+    // Call constructor.
+    xec_ssa_args* args = b->args( 0 );
+    args->args.push_back( constructor );
+    args->args.push_back( object );
     extend( &args->args, arguments.values );
     args->unpacked = arguments.unpacked;
-    return b->op( node->sloc, XEC_SSA_NEW, args );
+    b->op( node->sloc, XEC_SSA_CALL, args );
+    
+    // The result is the object.
+    return object;
 }
 
 xec_ssa_opref xec_ssa_build_expr::visit( xec_new_object* node )
