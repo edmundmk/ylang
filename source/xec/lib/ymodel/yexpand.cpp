@@ -279,7 +279,7 @@ void yexpand::expandkey( ysymbol key, yvalue value )
         else
             newslots->at( 0 ) = value;
         
-        this->slots = slots;
+        this->slots = newslots;
     }
     else if ( key )
     {

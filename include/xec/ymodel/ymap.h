@@ -360,7 +360,7 @@ template < typename key_t, typename value_t >
 inline typename ymap< key_t, value_t >::keyval_type*
         ymap< key_t, value_t >::main_position( const key_t& key ) const
 {
-    return &keyvals->at( std::hash< key_t >()( key ) % count );
+    return &keyvals->at( std::hash< key_t >()( key ) % keyvals->size() );
 }
 
 template < typename key_t, typename value_t >

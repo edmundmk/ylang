@@ -11,6 +11,7 @@
 #include "ystring.h"
 #include "yarray.h"
 #include "ytable.h"
+#include "ythunk.h"
 
 
 ystack::ystack()
@@ -91,7 +92,7 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
     ymodule* module = recipe->module();
 
     size_t fp = sp;
-
+    
     if ( incount <= recipe->param_count() )
     {
         // Set missing arguments to null.
@@ -412,7 +413,7 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
     }
     case Y_APPEND:
     {
-        assert( ! "not implemented" );
+        s[ i.a() ].as< yarray >()->append( s[ i.r() ] );
         break;
     }
     case Y_EXTEND:
@@ -441,6 +442,7 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
                 break;
             }
         }
+        s[ i.r() ] = closure;
         break;
     }
     case Y_ENVNU:
@@ -460,16 +462,26 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
         stack->mark = fp + i.r() + incount - 1;
         stack->ensure_stack( stack->mark );
         s = stack->stack.data() + fp;
-        for ( size_t index = 0; index < incount - 1; ++index )
+        for ( size_t index = 1; index < incount; ++index )
         {
-            s[ i.r() + index ] = stack->stack[ sp + 1 + index ];
+            s[ i.r() + index - 1 ] = stack->stack[ sp + index ];
         }
         break;
     }
     
     case Y_CALL:
     {
-        yexec( fp + i.r(), i.a(), i.b() );
+        yvalue f = s[ i.r() ];
+        if ( ! f.is_thunk() )
+        {
+            yexec( fp + i.r(), i.a(), i.b() );
+        }
+        else
+        {
+            yvalue* limit = stack->stack.data() + stack->stack.size();
+            yframe frame( s + i.r(), limit, i.a() - 1 );
+            f.as_thunk()( frame );
+        }
         break;
     }
     case Y_YCALL:
@@ -511,7 +523,7 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
         {
             stack->mark = sp + valcount;
         }
-        break;
+        return;
     }
     
     

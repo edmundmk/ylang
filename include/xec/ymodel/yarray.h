@@ -30,6 +30,8 @@ public:
     yvalue  getindex( size_t i ) const;
     void    setindex( size_t i, yvalue value );
 
+    void    append( yvalue value );
+
 
 protected:
 
@@ -42,6 +44,7 @@ protected:
 
 private:
 
+    size_t  count;
     ywb< ytuple< yvalue >* > values;
 
 };
@@ -54,12 +57,12 @@ private:
 
 inline size_t yarray::length() const
 {
-    return values->size();
+    return count;
 }
 
 inline yvalue yarray::getindex( size_t i ) const
 {
-    if ( values && i < values->size() )
+    if ( values && i < count )
         return values->get( i );
     else
         return yvalue::undefined;
@@ -67,7 +70,7 @@ inline yvalue yarray::getindex( size_t i ) const
 
 inline void yarray::setindex( size_t i, yvalue value )
 {
-    if ( values && i < values->size() )
+    if ( values && i < count )
         values->set( i, value );
     else
         throw yerror( "index out of range" );

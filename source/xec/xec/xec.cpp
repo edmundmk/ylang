@@ -13,7 +13,22 @@
 #include <xec/parser/xec_srcbuf.h>
 #include <xec/ymodel/ymodel.h>
 #include <xec/ymodel/ymodule.h>
+#include <xec/ymodel/ythunk.h>
+#include <xec/ymodel/yfunction.h>
 
+
+
+void y_atoi( yframe frame )
+{
+    frame.result( 1000.0 );
+}
+
+void y_printf( yframe frame )
+{
+    const char* format = frame.argument( 0 ).c_str();
+    double n = frame.argument( 1 ).as_number();
+    printf( format, n );
+}
 
 
 
@@ -41,8 +56,17 @@ int main( int argc, char* argv[] )
 
     ymodel model;
     yscope scope( &model );
+    
     ymodule* module = xec_compile( script->get_ast() );
     ymodule::print( module );
+
+
+    yexpand* global = yexpand::alloc();
+    global->setkey( "atoi", y_atoi );
+    global->setkey( "printf", y_printf );
+    yfunction* f = yfunction::alloc( global, module->script() );
+    yinvoke( f );
+    
 
 
     return EXIT_SUCCESS;

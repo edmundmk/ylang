@@ -23,6 +23,8 @@ class ystring;
 class ysymbol;
 class yexpand;
 class ystack;
+class yframe;
+class yfunction;
 
 
 /*
@@ -145,6 +147,8 @@ private:
     friend class yobject;
     friend class ysymbol;
     friend class yexpand;
+    friend class yframe;
+    friend void yinvoke( yfunction* );
     friend void yexec( size_t, unsigned, unsigned );
 
     static __thread yscope* scope;

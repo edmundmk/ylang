@@ -241,7 +241,7 @@ inline bool operator == ( ysymbol a, ysymbol b )
 
 inline size_t std::hash< ysymbol >::operator () ( const ysymbol& a ) const
 {
-    return a->hash();
+    return a.get() ? a->hash() : 0;
 }
 
 

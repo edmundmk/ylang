@@ -8,6 +8,7 @@
 
 #include "yfunction.h"
 #include "ymodule.h"
+#include "yvm.h"
 
 
 
@@ -69,6 +70,16 @@ void yfunction::mark_function( yobject* object, yworklist* work, ycolour colour 
 
 
 
+
+
+
+void yinvoke( yfunction* function )
+{
+    ystack* stack = yscope::scope->stack;
+    stack->ensure_stack( 16 );
+    stack->stack[ 0 ] = function;
+    yexec( 0, 0, 0 );
+}
 
 
 

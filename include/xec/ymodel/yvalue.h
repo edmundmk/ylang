@@ -22,7 +22,7 @@
 class ystring;
 class yexpand;
 class yslots;
-
+class yframe;
 
 
 /*
@@ -46,7 +46,8 @@ class yslots;
     string    1111111111111110pppppppppppppppp pppppppppppppppppppppppppppppppp
     object    1111111111111101pppppppppppppppp pppppppppppppppppppppppppppppppp
     expand    1111111111111100pppppppppppppppp pppppppppppppppppppppppppppppppp
-
+    thunk     1111111111111011pppppppppppppppp pppppppppppppppppppppppppppppppp
+    native    1111111111111010pppppppppppppppp pppppppppppppppppppppppppppppppp
     
 */
 
@@ -66,10 +67,13 @@ public:
     yvalue( yobject* object );
     yvalue( ystring* string );
     yvalue( yexpand* expand );
+    yvalue( void (*thunk)( yframe ) );
+    static yvalue native( void* native );
 
     explicit operator bool() const;
     const char* c_str() const;
 
+    
     bool        is_null() const;
     bool        is_undefined() const;
     bool        is_bool() const;
@@ -79,11 +83,19 @@ public:
     bool        is_string() const;
     bool        is_expand() const;
 
+    bool        is_thunk() const;
+    bool        is_native() const;
+
+    
     bool        as_bool() const;
     double      as_number() const;
+
     yobject*    as_object() const;
     ystring*    as_string() const;
     yexpand*    as_expand() const;
+    
+    void     (* as_thunk() const )( yframe );
+    void*       as_native() const;
     
     template < typename object_t > bool is() const;
     template < typename object_t > object_t* as() const;
@@ -115,6 +127,9 @@ private:
     static const uint64_t TAG_STRING        = UINT64_C( 0xFFFE000000000000 );
     static const uint64_t TAG_OBJECT        = UINT64_C( 0xFFFD000000000000 );
     static const uint64_t TAG_EXPAND        = UINT64_C( 0xFFFC000000000000 );
+
+    static const uint64_t TAG_THUNK         = UINT64_C( 0xFFF3000000000000 );
+    static const uint64_t TAG_NATIVE        = UINT64_C( 0xFFF2000000000000 );
 
     static const uint64_t MAX_REFERENCE     = UINT64_C( 0xFFFEFFFFFFFFFFFF );
     static const uint64_t MIN_REFERENCE     = UINT64_C( 0xFFFC000000000000 );
@@ -326,7 +341,7 @@ inline yvalue::yvalue( uint32_t lo, uint32_t hi )
 #endif
 
 inline yvalue::yvalue()
-    :   x( VALUE_NULL )
+    :   x( VALUE_UNDEFINED )
 {
 }
 
@@ -371,6 +386,17 @@ inline yvalue::yvalue( yexpand* expand )
     :   x( expand ? TAG_EXPAND | (uintptr_t)expand : VALUE_NULL )
 {
 }
+
+inline yvalue::yvalue( void (*ythunk)( yframe ) )
+    :   x( TAG_THUNK | (uintptr_t)ythunk )
+{
+}
+
+inline yvalue yvalue::native( void* native )
+{
+    return yvalue( TAG_NATIVE | (uintptr_t)native );
+}
+
 
 
 inline yvalue::operator bool() const
@@ -451,6 +477,25 @@ inline bool yvalue::is_expand() const
 #endif
 }
 
+inline bool yvalue::is_thunk() const
+{
+#if Y64BIT
+    return ( x & TAG_MASK ) == TAG_THUNK;
+#else
+    return hi == HI( TAG_THUNK );
+#endif
+}
+
+inline bool yvalue::is_native() const
+{
+#if Y64BIT
+    return ( x & TAG_MASK ) == TAG_NATIVE;
+#else
+    return hi == HI( TAG_NATIVE );
+#endif
+}
+
+
 inline bool yvalue::as_bool() const
 {
 #if Y64BIT
@@ -520,6 +565,36 @@ inline yexpand* yvalue::as_expand() const
         return (yexpand*)lo;
     else
         throw yerror( "expected object" );
+#endif
+}
+
+inline void (* yvalue::as_thunk() const )( yframe )
+{
+#if Y64BIT
+    if ( is_thunk() )
+        return (void (*)( yframe ))( x & POINTER_MASK );
+    else
+        throw yerror( "expected thunk" );
+#else
+    if ( is_thunk() )
+        return (void (*)( yframe ))lo;
+    else
+        throw yerror( "expected object" );
+#endif
+}
+
+inline void* yvalue::as_native() const
+{
+#if Y64BIT
+    if ( is_native() )
+        return (void*)( x & POINTER_MASK );
+    else
+        throw yerror( "expected native pointer" );
+#else
+    if ( is_native() )
+        return (void*)lo;
+    else
+        throw yerror( "expected native pointer" );
 #endif
 }
 

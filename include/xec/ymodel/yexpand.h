@@ -146,7 +146,7 @@ inline yexpand* yexpand::prototype() const
 inline yvalue yexpand::getkey( ysymbol key ) const
 {
     yclass* klass = this->klass;
-    yvalue v;
+    yvalue v = yvalue::undefined;
 
     auto lookup = klass->lookup.lookup( key );
     if ( lookup )

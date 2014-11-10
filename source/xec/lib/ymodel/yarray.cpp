@@ -23,9 +23,30 @@ yarray* yarray::alloc()
 
 yarray::yarray( ymetatype* metatype )
     :   yexpand( metatype, nullptr )
+    ,   count( 0 )
 {
     // TODO: Use a class that inherits from the actual array prototype.
 }
+
+
+
+void yarray::append( yvalue value )
+{
+    if ( ! values || count >= values->size() )
+    {
+        size_t newsize = values ? values->size() * 2 : 8;
+        ytuple< yvalue >* newvalues = ytuple< yvalue >::alloc( newsize );
+        for ( size_t i = 0; i < count; ++i )
+        {
+            newvalues->set( i, values->get( i ) );
+        }
+        values = newvalues;
+    }
+    values->set( count, value );
+    count += 1;
+}
+
+
 
 
 void yarray::mark_array( yobject* object, yworklist* work, ycolour colour )
