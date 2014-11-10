@@ -11,6 +11,8 @@
 #include "ystring.h"
 #include "yexpand.h"
 #include "yvm.h"
+#include "yarray.h"
+#include "ytable.h"
 
 
 
@@ -23,6 +25,8 @@ ymodel::ymodel()
 {
     yscope scope( this );
     expand_empty = yclass::alloc();
+    array_proto = yarray::make_proto();
+    table_proto = ytable::make_proto();
 }
 
 ymodel::~ymodel()
@@ -86,6 +90,16 @@ ystring* ymodel::make_symbol( ystring* s )
 yclass* ymodel::empty_class()
 {
     return expand_empty;
+}
+
+yclass* ymodel::array_class()
+{
+    return array_proto->empty_class();
+}
+
+yclass* ymodel::table_class()
+{
+    return table_proto->empty_class();
 }
 
 

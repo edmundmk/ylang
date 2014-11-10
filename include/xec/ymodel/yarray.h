@@ -42,6 +42,10 @@ protected:
     explicit yarray( ymetatype* metatype );
 
 
+    friend class ymodel;
+    static yexpand* make_proto();
+
+
 private:
 
     size_t  count;

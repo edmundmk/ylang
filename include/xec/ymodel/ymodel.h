@@ -93,6 +93,8 @@ private:
     friend class yobject;
     friend class ysymbol;
     friend class yexpand;
+    friend class yarray;
+    friend class ytable;
     template < typename object_t > friend class yroot;
 
     void add_root( yobject* object );
@@ -107,6 +109,9 @@ private:
 #else
     yclass* expand_class( yclass* klass, ysymbol key );
 #endif
+
+    yclass* array_class();
+    yclass* table_class();
     
     void mark_grey( yobject* object );
 
@@ -121,6 +126,8 @@ private:
     
     std::mutex expand_mutex;
     yclass* expand_empty;
+    yexpand* array_proto;
+    yexpand* table_proto;
     
     std::mutex greylist_mutex;
     yworklist greylist;
@@ -147,6 +154,8 @@ private:
     friend class yobject;
     friend class ysymbol;
     friend class yexpand;
+    friend class yarray;
+    friend class ytable;
     friend class yframe;
     friend void yinvoke( yfunction* );
     friend void yexec( size_t, unsigned, unsigned );

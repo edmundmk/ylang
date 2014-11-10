@@ -21,9 +21,15 @@ ytable* ytable::alloc()
 
 
 ytable::ytable( ymetatype* metatype )
-    :   yexpand( metatype, nullptr )
+    :   yexpand( metatype, yscope::scope->model->table_class() )
 {
-    // TODO: Use a table class inheriting from the table prototype.
+}
+
+
+
+yexpand* ytable::make_proto()
+{
+    return yexpand::alloc();
 }
 
 

@@ -38,6 +38,10 @@ protected:
     explicit ytable( ymetatype* metatype );
 
 
+    friend class ymodel;
+    static yexpand* make_proto();
+
+
 private:
 
     ymap< yvalue, yvalue > table;

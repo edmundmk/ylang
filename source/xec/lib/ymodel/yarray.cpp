@@ -7,6 +7,7 @@
 
 
 #include "yarray.h"
+#include "ythunk.h"
 
 
 
@@ -22,10 +23,24 @@ yarray* yarray::alloc()
 
 
 yarray::yarray( ymetatype* metatype )
-    :   yexpand( metatype, nullptr )
+    :   yexpand( metatype, yscope::scope->model->array_class() )
     ,   count( 0 )
 {
-    // TODO: Use a class that inherits from the actual array prototype.
+}
+
+
+static void yarray_length( yframe frame )
+{
+    yarray* array = frame.argument( 0 ).as< yarray >();
+    frame.result( (uint32_t)array->length() );
+}
+
+
+yexpand* yarray::make_proto()
+{
+    yexpand* proto = yexpand::alloc();
+    proto->setkey( "length", yarray_length );
+    return proto;
 }
 
 
