@@ -65,7 +65,7 @@ xssaop* xssa_build_expr::visit( xec_ast_func* node )
     
     // Retrieve upvals.
     xssaop* l = xssaop::op( node->sloc, XSSA_CLOSURE, node->upvals.size() );
-    l->function = func;
+    l->func = func;
     for ( size_t i = 0; i < node->upvals.size(); ++i )
     {
         const xec_ast_upval& upval = node->upvals.at( i );
@@ -86,7 +86,7 @@ xssaop* xssa_build_expr::visit( xec_ast_func* node )
         case XEC_UPVAL_UPVAL:
         {
             l->operands[ i ] = b->op( node->sloc, XSSA_REFUP );
-            l->operands[ i ]->immediate = upval.upval;
+            l->operands[ i ]->index = upval.upval;
             break;
         }
         }
@@ -137,7 +137,7 @@ xssaop* xssa_build_expr::visit( xec_expr_global* node )
 xssaop* xssa_build_expr::visit( xec_expr_upref* node )
 {
     xssaop* refup = b->op( node->sloc, XSSA_REFUP );
-    refup->immediate = node->index;
+    refup->index = node->index;
     return refup;
 }
 
@@ -438,7 +438,7 @@ xssaop* xssa_build_expr::visit( xec_new_array* node )
 {
     // Construct array.
     xssaop* array = b->op( node->sloc, XSSA_ARRAY );
-    array->immediate = (int)node->values.size();
+    array->index = (int)node->values.size();
     
     // Append all values.
     for ( size_t i = 0; i < node->values.size(); ++i )
@@ -474,7 +474,7 @@ xssaop* xssa_build_expr::visit( xec_new_table* node )
 {
     // Construct table.
     xssaop* table = b->op( node->sloc, XSSA_TABLE );
-    table->immediate = (int)node->elements.size();
+    table->index = (int)node->elements.size();
     
     // Add elements.
     for ( size_t i = 0; i < node->elements.size(); ++i )
@@ -511,7 +511,7 @@ xssaop* xssa_build_expr::visit( xec_expr_vararg* node )
 {
     // Fetch the first variable argument.
     xssaop* vararg = b->op( node->sloc, XSSA_VARARG );
-    vararg->immediate = 0;
+    vararg->index = 0;
     return vararg;
 }
 
@@ -668,7 +668,7 @@ void xssa_build_unpack::visit(
         for ( int i = 0; i < valcount; ++i )
         {
             xssaop* sel = b->op( node->sloc, XSSA_SELECT, call );
-            sel->immediate = i;
+            sel->index = i;
             values->values.push_back( sel );
         }
     }
@@ -714,7 +714,7 @@ void xssa_build_unpack::visit(
         for ( int i = 0; i < valcount; ++i )
         {
             xssaop* sel = b->op( node->sloc, XSSA_SELECT, yield );
-            sel->immediate = i;
+            sel->index = i;
             values->values.push_back( sel );
         }
     }
@@ -733,7 +733,7 @@ void xssa_build_unpack::visit(
         for ( int i = 0; i < valcount; ++i )
         {
             xssaop* vararg = b->op( node->sloc, XSSA_VARARG );
-            vararg->immediate = i;
+            vararg->index = i;
             values->values.push_back( vararg );
         }
     }
@@ -754,7 +754,7 @@ void xssa_build_unpack::visit(
         for ( int i = 0; i < valcount; ++i )
         {
             xssaop* elem = b->op( node->sloc, XSSA_ELEM, array );
-            elem->immediate = i;
+            elem->index = i;
             values->values.push_back( elem );
         }
     }
@@ -960,7 +960,7 @@ void xssa_build_stmt::visit( xec_stmt_foreach* node )
         xssa_lvalue lvalue;
         b->lvalue( &lvalue, node->lvalues.at( i ) );
         xssaop* rvalue = b->op( node->sloc, XSSA_SELECT, next );
-        rvalue->immediate = i;
+        rvalue->index = i;
         b->lvalue_assign( &lvalue, rvalue );
     }
     

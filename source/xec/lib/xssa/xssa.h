@@ -213,8 +213,8 @@ struct xssaop
     xssa_string*    string;
     xssaop*         multival;
     const char*     key;
-    int             immediate;
-    xssa_func*      function;
+    int             index;
+    xssa_func*      func;
     };
 
     xssaop*         operands[];
