@@ -648,7 +648,6 @@ void xssa_build_unpack::visit(
     size_t operand_count = 1 + ( thisval ? 1 : 0 ) + arguments.values.size();
     xssaop* call = b->op( node->sloc, opcode, operand_count );
     call->result_count = valcount;
-    
     size_t arg = 0;
     call->operands[ arg++ ] = function;
     if ( thisval )

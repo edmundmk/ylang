@@ -220,9 +220,6 @@ struct xssaop
     xssaop*         operands[];
 
 
-private:
-    static xssaop* op( int sloc, xssa_opcode opcode, int immediate );
-
 };
 
 
@@ -294,6 +291,80 @@ struct xssa_block
 
 
 
+/*
+
+*/
+
+
+inline bool xssaop::has_multival( xssa_opcode opcode )
+{
+    return opcode == XSSA_EXTEND
+        || opcode == XSSA_CALL
+        || opcode == XSSA_YCALL
+        || opcode == XSSA_YIELD
+        || opcode == XSSA_RETURN;
+}
+
+
+inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, size_t operand_count )
+{
+    size_t size = sizeof( xssaop ) + sizeof( xssaop* ) * operand_count;
+    xssaop* o = (xssaop*)region_current->malloc( size );
+    o->sloc             = sloc;
+    o->opcode           = opcode;
+    o->operand_count    = operand_count;
+    o->result_count     = 1;
+    o->r                = (uint8_t)-1;
+    o->number           = 0.0;
+    return o;
+}
+
+inline xssaop* xssaop::op( int sloc, xssa_opcode opcode )
+{
+    return op( sloc, opcode, (size_t)0 );
+}
+
+inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, xssaop* operand )
+{
+    xssaop* o = op( sloc, opcode, 1 );
+    o->operands[ 0 ] = operand;
+    return 0;
+}
+
+inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, xssaop* operanda, xssaop* operandb )
+{
+    xssaop* o = op( sloc, opcode, 1 );
+    o->operands[ 0 ] = operanda;
+    o->operands[ 1 ] = operandb;
+    return 0;
+}
+
+inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, xssaop* operanda, xssaop* operandb, xssaop* operandv )
+{
+    xssaop* o = op( sloc, opcode, 1 );
+    o->operands[ 0 ] = operanda;
+    o->operands[ 1 ] = operandb;
+    o->operands[ 2 ] = operandv;
+    return 0;
+}
+
+
+
+inline xssa_string* xssa_string::s( int sloc, const char* string )
+{
+    return s( sloc, strlen( string ), string );
+}
+
+inline xssa_string* xssa_string::s( int sloc, size_t length, const char* string )
+{
+    size_t size = sizeof( xssa_string ) + length + 1;
+    xssa_string* s = (xssa_string*)region_current->malloc( size );
+    s->sloc = sloc;
+    s->length = length;
+    memcpy( (char*)s->string, string, length );
+    ( (char*)s->string )[ length ] = '\0';
+    return s;
+}
 
 
 

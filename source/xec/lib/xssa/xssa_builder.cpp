@@ -889,7 +889,8 @@ void xssa_builder::build_function( xec_ast_func* astf, xssa_func* ssaf )
     
     // Close scope and return nothing.
     close_scope( astf->scope );
-    op( astf->sloc, XSSA_RETURN );
+    xssaop* r = op( astf->sloc, XSSA_RETURN );
+    r->multival = nullptr;
     funcreturn();
     
     

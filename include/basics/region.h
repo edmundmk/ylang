@@ -50,11 +50,11 @@ public:
     region();
     ~region();
 
-    size_t  maxalloc();
-    void*   malloc( size_t new_size );
-    void*   realloc( void* p, size_t old_size, size_t new_size );
-    void    free( void* p, size_t old_size );
+    size_t      maxalloc();
+    void*       malloc( size_t new_size );
+    void*       realloc( void* p, size_t old_size, size_t new_size );
     const char* strdup( const char* string );
+    void        free( void* p, size_t old_size );
 
 
 private:
@@ -190,6 +190,15 @@ inline void* region::realloc( void* p, size_t old_size, size_t new_size )
     {
         return _realloc( p, old_size, new_size );
     }
+}
+
+inline const char* region::strdup( const char* string )
+{
+    size_t length = strlen( string );
+    char* s = (char*)malloc( length + 1 );
+    memcpy( s, string, length );
+    s[ length ] = '\0';
+    return s;
 }
 
 inline void region::free( void* p, size_t old_size )
