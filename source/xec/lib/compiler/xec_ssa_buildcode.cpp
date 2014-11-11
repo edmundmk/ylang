@@ -327,7 +327,7 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
     {
         assert( op->immkey >= func->upvalcount );
         int nuindex = op->immkey - func->upvalcount;
-        inst( Y_NEWUP, o( op->operanda ), nuindex );
+        inst( Y_NEWNU, o( op->operanda ), nuindex );
         break;
     }
     
@@ -395,7 +395,7 @@ void xec_ssa_buildcode::build_ops( xec_ssa_block* block )
                 ++c;
             }
             
-            inst( Y_CLOSE, ( c - 1 ) - start, start );
+            inst( Y_CLONU, ( c - 1 ) - start, start );
         }
         
         break;

@@ -37,7 +37,7 @@ void xec_ssa_regalloc::allocate( xec_ssa_func* func, xec_ssa_dfo* dfo )
     
     
     // Print event list for debugging.
-//    print_events();
+    print_events();
     
     
     // Actually perform register allocation by scanning the event list
@@ -327,9 +327,9 @@ int xec_ssa_regalloc::spancmp( xec_ssa_opref a, xec_ssa_opref b )
 
 struct xec_ssa_fvalue
 {
-    uint64_t        index;
-    xec_ssa_opref   value;
-    xec_ssa_opref   span;
+    uint64_t        index;  // point at which value becomes live or dead.
+    xec_ssa_opref   value;  // op that is live
+    xec_ssa_opref   span;   // op that holds current live span.
 };
 
 

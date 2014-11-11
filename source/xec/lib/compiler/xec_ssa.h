@@ -119,6 +119,20 @@ struct xec_ssa_slice;
     the purpose of SSA.  If we do alias/escape analysis then some of the loads
     or stores may be proved redundant.
 
+
+
+
+    TODO: NOT SURE THAT lnext IS EVER USEFUL.  EASIER JUST TO RECONSTRUCT
+    LIVENESS RANGES DURING REGISTER ALLOCATION RATHER THAN TRYING TO MAINTIAN
+    THE LINKED LIST.
+    
+    
+    
+    CFG FORM (BUILDING, OPTIMIZATIONS)
+    
+    LINEAR FORM (LIVENESS, REGISTER ALLOCATION)
+    
+ 
 */
 
 

@@ -44,6 +44,12 @@ enum ycode
     Y_OR,           // r = (uint32)a | (uint32)b
     Y_CONCAT,       // r = (string) a + b
 
+    Y_EQ,           // r = a == b
+    Y_LT,           // r = a < b
+    Y_LE,           // r = a <= b
+    Y_IN,           // r = a in b
+    Y_IS,           // r = a is b
+
     Y_TEST,         // r = (bool)a
     Y_LNOT,         // r = not (bool)a
     Y_LXOR,         // r = (bool)a xor (bool)b
@@ -62,20 +68,14 @@ enum ycode
     Y_DELKEY,       // a delete keys[ b ]
     Y_DELINKEY,     // a delete (string)b
     
-    Y_NEWUP,        // upvals[ c ] = new upval, upvals[ c ] = r
+    Y_NEWNU,        // upvals[ c ] = new upval, upvals[ c ] = r
     Y_SETNU,        // upvals[ c ] = r
     Y_REFNU,        // r = upvals[ c ]
-    Y_CLOSE,        // close upvals[ c .. c + r ]
+    Y_CLONU,        // close upvals[ c .. c + r ]
 
     Y_SETUP,        // closure upvals[ c ] = r
     Y_REFUP,        // r = closure upvals[ c ]
     
-    Y_EQ,           // r = a == b
-    Y_LT,           // r = a < b
-    Y_LE,           // r = a <= b
-    Y_IN,           // r = a in b
-    Y_IS,           // r = a is b
-
     Y_JMP,          // pc = address of next instruction + j
     Y_IFTRUE,       // if (bool)r pc = address of next instruction + j
     Y_IFFALSE,      // if not (bool)r pc = address of next instruction + j

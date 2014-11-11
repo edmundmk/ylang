@@ -54,6 +54,7 @@ public:
     void*   malloc( size_t new_size );
     void*   realloc( void* p, size_t old_size, size_t new_size );
     void    free( void* p, size_t old_size );
+    const char* strdup( const char* string );
 
 
 private:

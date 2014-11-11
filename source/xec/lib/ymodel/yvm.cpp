@@ -209,6 +209,22 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
         s[ i.r() ] = ystring::strcat( s[ i.a() ].as_string(), s[ i.b() ].as_string() );
         break;
     
+    case Y_EQ:
+        s[ i.r() ] = ( s[ i.a() ] == s[ i.b() ] );
+        break;
+    case Y_LT:
+        s[ i.r() ] = ( s[ i.a() ] < s[ i.b() ] );
+        break;
+    case Y_LE:
+        s[ i.r() ] = ( s[ i.a() ] <= s[ i.b() ] );
+        break;
+    case Y_IN:
+        assert( ! "not implemented!" );
+        break;
+    case Y_IS:
+        assert( ! "not implemented!" );
+        break;
+ 
     case Y_TEST:
         s[ i.r() ] = (bool)s[ i.a() ];
         break;
@@ -311,7 +327,7 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
         s[ i.b() ].as_expand()->delkey( s[ i.b() ].as_string() );
         break;
 
-    case Y_NEWUP:
+    case Y_NEWNU:
         assert( u[ i.c() ] == nullptr );
         u[ i.c() ] = yupval::alloc( s[ i.r() ] );
         break;
@@ -321,7 +337,7 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
     case Y_REFNU:
         s[ i.r() ] = u[ i.c() ]->get();
         break;
-    case Y_CLOSE:
+    case Y_CLONU:
         u[ i.c() ] = nullptr;
         break;
     
@@ -332,22 +348,6 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
         s[ i.r() ] = function->getupval( i.c() )->get();
         break;
     
-    case Y_EQ:
-        s[ i.r() ] = ( s[ i.a() ] == s[ i.b() ] );
-        break;
-    case Y_LT:
-        s[ i.r() ] = ( s[ i.a() ] < s[ i.b() ] );
-        break;
-    case Y_LE:
-        s[ i.r() ] = ( s[ i.a() ] <= s[ i.b() ] );
-        break;
-    case Y_IN:
-        assert( ! "not implemented!" );
-        break;
-    case Y_IS:
-        assert( ! "not implemented!" );
-        break;
- 
     case Y_JMP:
     {
         ip += i.j();

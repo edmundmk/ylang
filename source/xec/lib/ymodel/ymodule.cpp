@@ -109,6 +109,12 @@ public:
         add( Y_OR,        "or        %r %a %b" );
         add( Y_CONCAT,    "concat    %r %a %b" );
 
+        add( Y_EQ,        "eq        %r %a %b" );
+        add( Y_LT,        "lt        %r %a %b" );
+        add( Y_LE,        "le        %r %a %b" );
+        add( Y_IN,        "in        %r %a %b" );
+        add( Y_IS,        "is        %r %a %b" );
+
         add( Y_TEST,      "test      %r %a" );
         add( Y_LNOT,      "lnot      %r %a" );
         add( Y_LXOR,      "lxor      %r %a %b" );
@@ -127,20 +133,14 @@ public:
         add( Y_DELKEY,    "delkey    %a %k" );
         add( Y_DELINKEY,  "delinkey  %a %b" );
     
-        add( Y_NEWUP,     "newup     !%c %r" );
+        add( Y_NEWNU,     "newnu     !%c %r" );
         add( Y_SETNU,     "setnu     !%c %r" );
         add( Y_REFNU,     "refnu     %r !%c" );
-        add( Y_CLOSE,     "close     ![%c .. %r]" );
+        add( Y_CLONU,     "clonu     ![%c .. %r]" );
 
         add( Y_SETUP,     "setup     ^%c %r" );
         add( Y_REFUP,     "refup     %r ^%c" );
     
-        add( Y_EQ,        "eq        %r %a %b" );
-        add( Y_LT,        "lt        %r %a %b" );
-        add( Y_LE,        "le        %r %a %b" );
-        add( Y_IN,        "in        %r %a %b" );
-        add( Y_IS,        "is        %r %a %b" );
-
         add( Y_JMP,       "jmp       %j" );
         add( Y_IFTRUE,    "iftrue    %r %j" );
         add( Y_IFFALSE,   "iffalse   %r %j" );

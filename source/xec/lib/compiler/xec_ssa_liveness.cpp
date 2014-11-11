@@ -117,6 +117,12 @@ void xec_ssa_liveness::analyze_block( xec_ssa_block* block )
     }
 
 
+    printf( "LIVE: %d\n", block->index );
+    for ( auto i = live.begin(); i != live.end(); ++i )
+    {
+        printf( "    %04X:%02X\n", i->first.slice, i->first.index );
+    }
+
     // Add all values used in the block.  Don't include phi functions as those
     // will be dealt with by the calculation for predecessor blocks.
     std::vector< xec_ssa_opref > oprefs;
@@ -175,6 +181,11 @@ void xec_ssa_liveness::analyze_block( xec_ssa_block* block )
         // Live until lowest point of use.
         def->until = span.until;
         def->lnext = span.lnext;
+        
+        printf( "    >> DEF %04X:%02X [%04X:%02X|%04X:%02X]\n",
+            i->first.slice, i->first.index,
+            span.until.slice, span.until.index,
+            span.lnext.slice, span.lnext.index );
         
         // Not live at start of block.
         auto erase = i;
