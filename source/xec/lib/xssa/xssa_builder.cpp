@@ -28,6 +28,7 @@
 
 
 
+
 /*
     Loop and undefined markers used when looking up definitions of variables.
 */
@@ -160,9 +161,9 @@ struct xssa_build_func
     xssa_follow                      follow;
     std::deque< xssa_build_if >      ifstack;
     std::deque< xssa_build_loop >    loopstack;
-    std::deque< std::unique_ptr< xssa_build_block > > blocks;
+    std::deque< xssa_build_block_p > blocks;
     std::unordered_map< xssa_block*, xssa_build_block* > blockmap;
-    std::unordered_map< void*, int >    upvals;
+    std::unordered_map< void*, int > upvals;
 };
 
 
@@ -281,7 +282,8 @@ bool xssa_builder::build( xec_ast* ast )
     {
         xec_ast_func* func = ast->functions.at( i );
 
-        xssa_func_p ssaf( new ( module->alloc ) xssa_func() );
+        xssa_func_p ssaf = std::make_unique< xssa_func >();
+        ssaf->module        = module;
         ssaf->sloc          = func->sloc;
         ssaf->funcname      = module->alloc.strdup( func->funcname );
         ssaf->upvalcount    = (int)func->upvals.size();
@@ -863,7 +865,7 @@ void xssa_builder::lvalue_assign(
 void xssa_builder::build_function( xec_ast_func* astf, xssa_func* ssaf )
 {
     // Set up function building.
-    auto c = std::make_unique< xssa_build_func >( ssaf );
+    xssa_build_func_p c = std::make_unique< xssa_build_func >( ssaf );
     std::swap( b, c );
     
     
@@ -912,8 +914,8 @@ void xssa_builder::build_function( xec_ast_func* astf, xssa_func* ssaf )
 
 xssa_build_block* xssa_builder::make_block()
 {
-    auto build = std::make_unique< xssa_build_block >();
-    auto block = std::make_unique< xssa_block >();
+    xssa_build_block_p build = std::make_unique< xssa_build_block >();
+    xssa_block_p block = std::make_unique< xssa_block >();
     
     block->index        = (int)b->func->blocks.size();
     block->condition    = nullptr;
@@ -1305,8 +1307,8 @@ xssaop* xssa_builder::ensure_phi( xssa_build_block* block )
     if ( ! block->phi )
     {
         // Create phi (without payload).
-        xssaop* phi = xssaop::op( -1, XSSA_PSI, nullptr );
-        block->block->phi.push_back( phi );
+        block->phi = xssaop::op( -1, XSSA_PSI, nullptr );
+        block->block->phi.push_back( block->phi );
     }
     
     return block->phi;
@@ -1325,7 +1327,16 @@ void xssa_builder::remove_ref( xssa_block* block )
 
         if ( op->opcode == XSSA_PSI )
         {
-            block->phi[ i ] = op->operands[ 0 ];
+            op = op->operands[ 0 ];
+            block->phi[ i ] = op;
+            
+            for ( size_t i = 0; i < op->operand_count; ++i )
+            {
+                if ( op->operands[ i ] )
+                {
+                    op->operands[ i ] = remove_ref( op->operands[ i ] );
+                }
+            }
         }
         else if ( op->opcode == XSSA_REF )
         {
@@ -1337,18 +1348,24 @@ void xssa_builder::remove_ref( xssa_block* block )
     {
         xssaop* op = block->ops.at( i );
         
-        if ( xssaop::has_multival( op->opcode ) )
+        if ( xssaop::has_multival( op->opcode ) && op->multival )
         {
             op->multival = remove_ref( op->multival );
         }
         
         for ( size_t i = 0; i < op->operand_count; ++i )
         {
-            op->operands[ i ] = remove_ref( op->operands[ i ] );
+            if ( op->operands[ i ] )
+            {
+                op->operands[ i ] = remove_ref( op->operands[ i ] );
+            }
         }
     }
     
-    block->condition = remove_ref( block->condition );
+    if ( block->condition )
+    {
+        block->condition = remove_ref( block->condition );
+    }
 }
 
 

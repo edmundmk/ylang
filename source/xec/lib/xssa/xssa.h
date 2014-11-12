@@ -69,11 +69,12 @@ struct xssa_string;
 struct xssa_module;
 struct xssa_func;
 struct xssa_block;
+struct xssa_loop;
 
 
 typedef std::unique_ptr< xssa_func >    xssa_func_p;
 typedef std::unique_ptr< xssa_block >   xssa_block_p;
-
+typedef std::unique_ptr< xssa_loop >    xssa_loop_p;
 
 
 enum xssa_opcode : uint8_t
@@ -191,6 +192,8 @@ enum xssa_opcode : uint8_t
 struct xssaop
 {
     static bool has_multival( xssa_opcode opcode );
+    static bool has_key( xssa_opcode opcode );
+    static bool has_index( xssa_opcode opcode );
 
 
     static xssaop* op( int sloc, xssa_opcode opcode, size_t operand_count );
@@ -257,10 +260,12 @@ struct xssa_module
 
 struct xssa_func
 {
+    xssa_module*                module;
     int                         sloc;
     const char*                 funcname;
     std::unordered_multimap< xssaop*, xssa_string* > names;
     std::vector< xssa_block_p > blocks;
+    std::vector< xssa_loop_p >  loops;
     int                         upvalcount;
     int                         newupcount;
     int                         paramcount;
@@ -272,6 +277,7 @@ struct xssa_func
 struct xssa_block
 {
     int                         index;
+    xssa_loop*                  loop;
     std::vector< xssa_block* >  previous;
     std::vector< xssaop* >      phi;
     std::vector< xssaop* >      ops;
@@ -286,6 +292,25 @@ struct xssa_block
         };
     };
 };
+
+
+struct xssa_loop
+{
+    xssa_loop*                  parent;
+    std::vector< xssa_loop* >   children;
+    xssa_block*                 header;
+    std::vector< xssa_block* >  blocks;
+};
+
+
+
+
+/*
+    Print SSA form for debugging.
+*/
+
+void xssa_print( xssa_module* module );
+void xssa_print( xssa_func* func );
 
 
 
@@ -303,6 +328,30 @@ inline bool xssaop::has_multival( xssa_opcode opcode )
         || opcode == XSSA_YCALL
         || opcode == XSSA_YIELD
         || opcode == XSSA_RETURN;
+}
+
+inline bool xssaop::has_key( xssa_opcode opcode )
+{
+    return opcode == XSSA_KEY
+        || opcode == XSSA_GLOBAL
+        || opcode == XSSA_GLOBAL
+        || opcode == XSSA_SETKEY
+        || opcode == XSSA_SETGLOBAL
+        || opcode == XSSA_DELKEY;
+}
+
+inline bool xssaop::has_index( xssa_opcode opcode )
+{
+    return opcode == XSSA_NEWUP
+        || opcode == XSSA_SETUP
+        || opcode == XSSA_REFUP
+        || opcode == XSSA_CLOUP
+        || opcode == XSSA_TABLE
+        || opcode == XSSA_ARRAY
+        || opcode == XSSA_PARAM
+        || opcode == XSSA_VARARG
+        || opcode == XSSA_SELECT
+        || opcode == XSSA_ELEM;
 }
 
 
@@ -328,24 +377,24 @@ inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, xssaop* operand )
 {
     xssaop* o = op( sloc, opcode, 1 );
     o->operands[ 0 ] = operand;
-    return 0;
+    return o;
 }
 
 inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, xssaop* operanda, xssaop* operandb )
 {
-    xssaop* o = op( sloc, opcode, 1 );
+    xssaop* o = op( sloc, opcode, 2 );
     o->operands[ 0 ] = operanda;
     o->operands[ 1 ] = operandb;
-    return 0;
+    return o;
 }
 
 inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, xssaop* operanda, xssaop* operandb, xssaop* operandv )
 {
-    xssaop* o = op( sloc, opcode, 1 );
+    xssaop* o = op( sloc, opcode, 3 );
     o->operands[ 0 ] = operanda;
     o->operands[ 1 ] = operandb;
     o->operands[ 2 ] = operandv;
-    return 0;
+    return o;
 }
 
 

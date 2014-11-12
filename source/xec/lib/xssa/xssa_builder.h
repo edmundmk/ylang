@@ -28,6 +28,9 @@ struct xssa_build_func;
 struct xssa_build_block;
 
 
+typedef std::unique_ptr< xssa_build_func > xssa_build_func_p;
+typedef std::unique_ptr< xssa_build_block > xssa_build_block_p;
+
 
 
 /*
@@ -153,7 +156,7 @@ private:
     std::unordered_map< symkey, const char* > keymap;
     std::unordered_map< xec_ast_func*, xssa_func* > funcmap;
     std::unordered_map< xec_ast_name*, xssa_string* > namemap;
-    std::unique_ptr< xssa_build_func > b;
+    xssa_build_func_p   b;
 
 };
 

@@ -16,9 +16,14 @@
 #include "xec_ssa_buildcode.h"
 
 
+#include "xssa_builder.h"
+
+
 
 ymodule* xec_compile( xec_ast* ast )
 {
+/*
+
     // Build SSA form.
 
     xec_ssa ssa;
@@ -61,6 +66,15 @@ ymodule* xec_compile( xec_ast* ast )
 
     
     return buildcode.build_module();
+*/
+
+    xssa_module ssam;
+    xssa_builder ssab( &ssam );
+    ssab.build( ast );
+    
+    xssa_print( &ssam );
+
+    return nullptr;
 }
 
 

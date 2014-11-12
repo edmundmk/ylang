@@ -58,6 +58,11 @@ int main( int argc, char* argv[] )
     yscope scope( &model );
     
     ymodule* module = xec_compile( script->get_ast() );
+    if ( ! module )
+    {
+        return EXIT_FAILURE;
+    }
+    
     ymodule::print( module );
 
 

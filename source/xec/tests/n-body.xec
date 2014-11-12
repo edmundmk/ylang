@@ -5,7 +5,7 @@
 //  http://benchmarksgame.alioth.debian.org/u32/benchmark.php?test=nbody&lang=lua&id=1&data=u32
 //
 
-/*
+
 var PI = 3.141592653589793;
 var SOLAR_MASS = 4 * PI * PI;
 var DAYS_PER_YEAR = 365.24;
@@ -132,7 +132,7 @@ def energy( bodies )
     }
     return e;
 }
-*/
+
 
 def offset_momentum( bodies )
 {
@@ -151,7 +151,7 @@ def offset_momentum( bodies )
 }
 
 
-/*
+
 def main( n )
 {
     n = atoi( n, 1000 );
@@ -167,7 +167,7 @@ def main( n )
 return main( ... );
 
 
-*/
+
 
 
 
