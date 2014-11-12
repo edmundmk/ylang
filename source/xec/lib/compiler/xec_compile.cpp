@@ -17,6 +17,9 @@
 
 
 #include "xssa_builder.h"
+#include "xssa_cfganalysis.h"
+#include "xssa_linear.h"
+#include "xssa_liveness.h"
 
 
 
@@ -72,7 +75,33 @@ ymodule* xec_compile( xec_ast* ast )
     xssa_builder ssab( &ssam );
     ssab.build( ast );
     
-    xssa_print( &ssam );
+    for ( size_t i = 0; i < ssam.funcs.size(); ++i )
+    {
+        xssa_func* func = ssam.funcs.at( i ).get();
+        
+        
+        printf( "---- BUILT\n" );
+//        xssa_print( func );
+        
+        printf( "---- DFO\n" );
+        xssa_order_depth_first( func );
+//        xssa_print( func );
+        
+        printf( "---- LOOP\n" );
+        xssa_compute_loop_forest( func );
+//        xssa_print( func );
+        
+        printf( "---- LIVENESS\n" );
+        xssa_liveness( func );
+        xssa_print( func );
+
+        printf( "---- LINEAR\n" );
+        xssa_linear linear;
+        xssa_build_linear( &linear, func );
+        xssa_print( &linear );
+        
+        
+    }
 
     return nullptr;
 }

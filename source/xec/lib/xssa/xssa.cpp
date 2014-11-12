@@ -11,7 +11,7 @@
 
 
 
-static const char* opname( xssa_opcode opcode )
+const char* xssa_opname( xssa_opcode opcode )
 {
     switch ( opcode )
     {
@@ -104,25 +104,16 @@ static const char* opname( xssa_opcode opcode )
 
 
 
-static void print_ops
+void xssa_print
     (
         const std::unordered_map< xssaop*, int >& opindex,
         xssa_func* func,
-        const std::vector< xssaop* >& ops
+        xssaop* op
     )
 {
-    for ( size_t i = 0; i < ops.size(); ++i )
-    {
-    
-    xssaop* op = ops.at( i );
-    if ( ! op )
-    {
-        continue;
-    }
-    
     
     // Opcode
-    printf( "%04X %-9s", opindex.at( op ), opname( op->opcode ) );
+    printf( "%-9s", xssa_opname( op->opcode ) );
 
     if ( op->result_count == -1 )
     {
@@ -222,9 +213,8 @@ static void print_ops
     
     printf( "\n" );
     
-    
-    }
 }
+
 
 
 
@@ -235,6 +225,29 @@ void xssa_print( xssa_module* module )
     {
         xssa_func* func = module->funcs.at( i ).get();
         xssa_print( func );
+    }
+}
+
+
+static void print_ops
+    (
+        const std::unordered_map< xssaop*, int >& opindex,
+        xssa_func* func,
+        const std::vector< xssaop* > ops
+    )
+{
+    for ( size_t i = 0; i < ops.size(); ++i )
+    {
+    
+        xssaop* op = ops.at( i );
+        if ( ! op )
+        {
+            continue;
+        }
+        
+        printf( "%04X ", opindex.at( op ) );
+        xssa_print( opindex, func, op );
+
     }
 }
 
@@ -274,17 +287,68 @@ void xssa_print( xssa_func* func )
     printf( "    varargs    : %s\n", func->varargs ? "true" : "false" );
     printf( "    coroutine  : %s\n", func->coroutine ? "true" : "false" );
     
-    
     // Write each block.
     for ( size_t i = 0; i < func->blocks.size(); ++i )
     {
     
         xssa_block* block = func->blocks.at( i ).get();
         
-        printf( "\n[%04X]\n", block->index );
+        printf( "\n" );
+        printf( "[%04X]\n", block->index );
+        
+        if ( block->previous.size() )
+        {
+            printf( "  <" );
+            for ( size_t i = 0; i < block->previous.size(); ++i )
+            {
+                printf( " [%04X]", block->previous.at( i )->index );
+            }
+            printf( "\n" );
+        }
+        
+        if ( block->loop )
+        {
+            printf( "    loop : %p\n", block->loop );
+            if ( block->loop->header == block )
+            {
+                printf( "        children :" );
+                for ( auto i = block->loop->children.begin(); i != block->loop->children.end(); ++i )
+                {
+                    printf( " %p", *i );
+                }
+                printf( "\n" );
+                printf( "        blocks :" );
+                for ( auto i = block->loop->blocks.begin(); i != block->loop->blocks.end(); ++i )
+                {
+                    printf( " [%04X]", (*i)->index );
+                }
+                printf( "\n" );
+            }
+        }
+        
+        if ( block->live_in.size() )
+        {
+            printf( "  !" );
+            for ( auto i = block->live_in.begin(); i != block->live_in.end(); ++i )
+            {
+                printf( " :%04X", opindex.at( *i ) );
+            }
+            printf( "\n" );
+        }
+        
         print_ops( opindex, func, block->phi );
         print_ops( opindex, func, block->ops );
         
+        if ( block->live_out.size() )
+        {
+            printf( "  !" );
+            for ( auto i = block->live_out.begin(); i != block->live_out.end(); ++i )
+            {
+                printf( " :%04X", opindex.at( *i ) );
+            }
+            printf( "\n" );
+        }
+
         if ( block->condition )
         {
             printf

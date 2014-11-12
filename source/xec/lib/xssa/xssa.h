@@ -72,9 +72,12 @@ struct xssa_block;
 struct xssa_loop;
 
 
-typedef std::unique_ptr< xssa_func >    xssa_func_p;
-typedef std::unique_ptr< xssa_block >   xssa_block_p;
-typedef std::unique_ptr< xssa_loop >    xssa_loop_p;
+typedef std::unique_ptr< xssa_func >        xssa_func_p;
+typedef std::unique_ptr< xssa_block >       xssa_block_p;
+typedef std::unique_ptr< xssa_loop >        xssa_loop_p;
+typedef std::unordered_set< xssaop* >       xssa_opset;
+typedef std::unordered_set< xssa_loop* >    xssa_loopset;
+typedef std::unordered_set< xssa_block* >   xssa_blockset;
 
 
 enum xssa_opcode : uint8_t
@@ -278,6 +281,8 @@ struct xssa_block
 {
     int                         index;
     xssa_loop*                  loop;
+    xssa_opset                  live_in;
+    xssa_opset                  live_out;
     std::vector< xssa_block* >  previous;
     std::vector< xssaop* >      phi;
     std::vector< xssaop* >      ops;
@@ -297,9 +302,9 @@ struct xssa_block
 struct xssa_loop
 {
     xssa_loop*                  parent;
-    std::vector< xssa_loop* >   children;
+    xssa_loopset                children;
     xssa_block*                 header;
-    std::vector< xssa_block* >  blocks;
+    xssa_blockset               blocks;
 };
 
 
@@ -309,9 +314,15 @@ struct xssa_loop
     Print SSA form for debugging.
 */
 
+const char* xssa_opname( xssa_opcode opcode );
 void xssa_print( xssa_module* module );
 void xssa_print( xssa_func* func );
-
+void xssa_print
+    (
+        const std::unordered_map< xssaop*, int >& opindex,
+        xssa_func* func,
+        xssaop* op
+    );
 
 
 
