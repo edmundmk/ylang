@@ -108,7 +108,6 @@ static void phi_equivalence( xssa_linear* l, xssaop* a, xssaop* b )
     // Can't merge ops if they interfere.
     if ( interfere( l, a, b ) )
     {
-        printf( "PHI INTERFERE: :%04X :%04X\n", a->index, b->index );
         return;
     }
     
@@ -137,9 +136,6 @@ static void phi_equivalence( xssa_linear* l, xssaop* a, xssaop* b )
     }
     
     
-    printf( "PHI EQUIV: :%04X :%04X\n", aindex, bindex );
-
-
     alop = &l->lops[ aindex ];
     blop = &l->lops[ bindex ];
     
@@ -266,29 +262,41 @@ enum xssa_revkind
 
 struct xssa_revlist
 {
-    xssa_linear* linear;
+    xssa_linear* l;
     std::vector< xssarev > revs;
 };
 
 
 struct xssarev
 {
-    xssarev( xssa_revkind kind, int value, int at, int prev );
+    xssarev( xssa_revkind kind, int head, int value, int at );
 
     xssa_revkind    kind;       // event kind.
-    int             value;      // address of head of live chain in linear.
+    int             head;       // address of head of live span of value.
+    int             value;      // value that is live or dead.
     int             at;         // address of event in linear.
-    int             prev;       // previous event for this value in revs.
 };
 
 
 
-xssarev::xssarev( xssa_revkind kind, int value, int at, int prev )
+xssarev::xssarev( xssa_revkind kind, int head, int value, int at )
     :   kind( kind )
+    ,   head( head )
     ,   value( value )
     ,   at( at )
-    ,   prev( prev )
 {
+}
+
+
+
+
+static bool has_stack_args( xssa_opcode opcode )
+{
+    return opcode == XSSA_EXTEND
+        || opcode == XSSA_CALL
+        || opcode == XSSA_YCALL
+        || opcode == XSSA_YIELD
+        || opcode == XSSA_RETURN;
 }
 
 
@@ -298,11 +306,7 @@ static bool is_stack( xssaop* op )
 {
     return op->result_count == -1
         || op->result_count > ( op->opcode != XSSA_NEXT ? 1 : 2 )
-        || op->opcode == XSSA_EXTEND
-        || op->opcode == XSSA_CALL
-        || op->opcode == XSSA_YCALL
-        || op->opcode == XSSA_YIELD
-        || op->opcode == XSSA_RETURN;
+        || has_stack_args( op->opcode );
 }
 
 
@@ -310,10 +314,7 @@ static bool is_stack( xssaop* op )
 
 static void build_revlist( xssa_revlist* v, xssa_linear* l )
 {
-    v->linear = l;
-    
-    // Maps values to the index of their previous occurrence in revs.
-    std::unordered_map< int, int > prev;
+    v->l = l;
     
     // Maps linear indexes to the values which sleep or die at that index.
     std::unordered_multimap< int, int > sleepat;
@@ -331,23 +332,23 @@ static void build_revlist( xssa_revlist* v, xssa_linear* l )
     for ( auto i = ii.first; i != ii.second; ++i )
     {
         int value = i->second;
-        v->revs.emplace_back( XSSA_REV_SLEEP, value, index, prev.at( value ) );    // This is now the previous event for this value.
-        prev[ value ] = (int)v->revs.size() - 1;
+        int head = l->lops.at( value ).live_head;
+        v->revs.emplace_back( XSSA_REV_SLEEP, head, value, index );
     }
     
     ii = deadat.equal_range( index );
     for ( auto i = ii.first; i != ii.second; ++i )
     {
         int value = i->second;
-        v->revs.emplace_back( XSSA_REV_DEAD, value, index, prev.at( value ) );
-        prev.erase( value );
+        int head = l->lops.at( value ).live_head;
+        v->revs.emplace_back( XSSA_REV_DEAD, head, value, index );
     }
     
     
     // If this op requires command of the stack then emit a stack event.
     if ( lop->kind == XSSA_LOP_OP && is_stack( lop->op ) )
     {
-        v->revs.emplace_back( XSSA_REV_STACK, -1, index, -1 );
+        v->revs.emplace_back( XSSA_REV_STACK, -1, index, index );
     }
     
     
@@ -410,23 +411,23 @@ static void build_revlist( xssa_revlist* v, xssa_linear* l )
         }
     
     }
-
     
+
+    // Find index of value.  Note that due to phi-equivalence the value and
+    // the head of the live range are not necessarily the same.
+    int head = lop->live_head;
+    int value = lop->op->index;
+
+
     // Add live or wake event for this value.
-    int value = lop->live_head;
-    auto j = prev.find( value );
-    if ( j == prev.end() )
+    if ( head == index )
     {
-        v->revs.emplace_back( XSSA_REV_LIVE, value, index, -1 );
+        v->revs.emplace_back( XSSA_REV_LIVE, head, value, index );
     }
     else
     {
-        v->revs.emplace_back( XSSA_REV_WAKE, value, index, j->second );
+        v->revs.emplace_back( XSSA_REV_WAKE, head, value, index );
     }
-    
-    
-    // This is now the previous event for this value.
-    prev[ value ] = (int)v->revs.size() - 1;
     
     
     // Work out when the value dies/goes to sleep.
@@ -452,6 +453,353 @@ static void build_revlist( xssa_revlist* v, xssa_linear* l )
 
 
 
+/*
+    This is the part that actually does the register allocation.
+*/
+
+
+struct xssa_regasleep
+{
+    xssaop*         value;
+    xssa_regasleep* prev;
+};
+
+
+struct xssa_regstate
+{
+    xssa_revlist*                   v;
+    std::vector< xssaop* >          r;
+    std::vector< xssa_regasleep* >  asleep;
+};
+
+
+
+
+static void ensure_reg( xssa_regstate* reg, int r )
+{
+    if ( reg->r.size() <= r )
+    {
+        reg->r.insert( reg->r.end(), r + 1 - reg->r.size(), nullptr );
+    }
+    
+    if ( reg->asleep.size() <= r )
+    {
+        reg->asleep.insert( reg->asleep.end(), r + 1 - reg->asleep.size(), nullptr );
+    }
+}
+
+
+
+static bool check_reg( xssa_regstate* reg, int r, xssaop* op )
+{
+    ensure_reg( reg, r );
+    
+    
+    // Can't allocate into a register which is occupied.
+    if ( reg->r[ r ] )
+    {
+        return false;
+    }
+    
+    
+    // Can't allocate into a register where sleeping values interfere with
+    // the incoming value.
+    for ( xssa_regasleep* asleep = reg->asleep[ r ];
+                    asleep != nullptr; asleep = asleep->prev )
+    {
+        if ( interfere( reg->v->l, asleep->value, op ) )
+        {
+            return false;
+        }
+    }
+
+
+    return true;
+}
+
+
+
+static int check_stack_argument( xssaop* stack, xssaop* arg )
+{
+    // Check if the op is an argument to a stack instruction, and if so
+    // which register does it need to end up in.
+    
+    if ( ! has_stack_args( stack->opcode ) )
+    {
+        return -1;
+    }
+    
+    assert( stack->stacktop >= 0 );
+    
+    for ( size_t i = 0; i < stack->operand_count; ++i )
+    {
+        if ( stack->operands[ i ] == arg )
+        {
+            return stack->stacktop + (int)i;
+        }
+    }
+    
+    if ( xssaop::has_multival( stack->opcode ) && stack->multival == arg )
+    {
+        return stack->stacktop + stack->operand_count;
+    }
+    
+    return -1;
+}
+
+
+
+
+static void linear_scan( xssa_revlist* v )
+{
+    // Clear all register information.
+    for ( size_t i = 0; i < v->l->lops.size(); ++i )
+    {
+        xssalop* lop = &v->l->lops.at( i );
+        if ( lop->kind == XSSA_LOP_OP )
+        {
+            lop->op->r = -1;
+            lop->op->stacktop = -1;
+        }
+    }
+
+
+    // Each register can be free, or it can be allocated.  Values which are
+    // asleep are pushed into a per-register stack.
+
+    xssa_regstate reg;
+    reg.v = v;
+
+
+    // Go through the list of live events from the bottom up and actually
+    // finally perform register allocation.  Note that because we do
+    // allocation backwards DEAD <-> LIVE and SLEEP <-> WAKE.
+
+    for ( int i = (int)v->revs.size() - 1; i >= 0; --i )
+    {
+    
+    
+    xssarev* rev = &v->revs.at( i );
+    xssalop* value = &v->l->lops.at( rev->value );
+    assert( value->kind == XSSA_LOP_OP );
+
+
+
+    // If this is a stacklike instruction, then we must find the top
+    // of the stack at this point.
+    if ( rev->kind == XSSA_REV_STACK )
+    {
+        int r = (int)reg.r.size() - 1;
+        for ( ; r >= 0; --r )
+        {
+            if ( reg.r[ r ] != nullptr )
+            {
+                break;
+            }
+        }
+        
+        value->op->stacktop = r + 1;
+        continue;
+    }
+    
+    
+    
+    // Otherwise its a liveness event.
+    xssalop* head = &v->l->lops.at( rev->head );
+    xssalop* at = &v->l->lops.at( rev->at );
+
+    assert( head->kind == XSSA_LOP_OP );
+    assert( head->live_head == rev->head );
+    assert( value->live_head == rev->head );
+    
+    
+    switch ( rev->kind )
+    {
+    case XSSA_REV_DEAD: /* LIVE */
+    {
+        // Attempt to choose an ideal register.
+        int r = -1;
+        
+
+        // If it's dead _at_ a stacklike instruction that takes it as one
+        // of its stack arguments, attempt to allocate it to the register
+        // that it needs to be in to make the stacklike instruction work.
+        if ( r == -1 && at->kind == XSSA_LOP_OP )
+        {
+            r = check_stack_argument( at->op, value->op );
+        }
+    
+    
+        // If it's a parameter, then attempt to allocate it to the register
+        // the parameter would be in.  Note that register 0 will be the
+        // closure itself on entry to the function.
+        if ( r == -1 && value->op->opcode == XSSA_PARAM )
+        {
+            r = 1 + value->op->immed;
+        }
+        
+        
+        // If we picked an ideal register, ensure we can allocate it.
+        if ( r != -1 && ! check_reg( &reg, r, value->op ) )
+        {
+            r = -1;
+        }
+        
+        
+        // Otherwise, find lowest numbered free register.
+        if ( r == -1 )
+        {
+            for ( r = 0; ; r += 1 )
+            {
+                if ( check_reg( &reg, r, value->op ) )
+                {
+                    break;
+                }
+            }
+        }
+        
+    
+        // Allocate register.
+        ensure_reg( &reg, r );
+        assert( ! reg.r[ r ] );
+        reg.r[ r ] = value->op;
+
+
+        // And assign to op.
+        printf( "assign %d -> %d\n", rev->head, r );
+        for ( int index = rev->head; index != -1; )
+        {
+            xssalop* lop = &v->l->lops.at( index );
+            assert( lop->kind == XSSA_LOP_OP || lop->kind == XSSA_LOP_LIVE );
+            assert( lop->live_head == rev->head );
+            lop->op->r = r;
+            index = lop->live_next;
+        }
+
+
+        break;
+    }
+    
+    case XSSA_REV_WAKE: /* SLEEP */
+    {
+        int r = value->op->r;
+        assert( r != -1 );
+        assert( reg.r[ r ] == value->op );
+
+        // No longer live but sleeping.
+        xssa_regasleep* asleep = new xssa_regasleep();
+        asleep->value = value->op;
+        asleep->prev = reg.asleep[ r ];
+        reg.asleep[ r ] = asleep;
+        reg.r[ r ] = nullptr;
+
+        printf( "sleep  %d -> %d\n", rev->head, r );
+
+        break;
+    }
+    
+    case XSSA_REV_SLEEP: /* WAKE */
+    {
+        int r = value->op->r;
+        assert( r != -1 );
+        assert( reg.r[ r ] == nullptr );
+    
+        // No longer sleeping but live.
+        xssa_regasleep* asleep = reg.asleep[ r ];
+        xssalop* wake = &v->l->lops.at( asleep->value->index );
+        assert( wake->live_head == rev->head );
+        reg.r[ r ] = value->op;
+        reg.asleep[ r ] = asleep->prev;
+        delete asleep;
+
+        printf( "wake   %d -> %d\n", rev->head, r );
+
+        break;
+    }
+    
+    
+    case XSSA_REV_LIVE: /* DEAD */
+    {
+        int r = value->op->r;
+        assert( r != -1 );
+        assert( reg.r[ r ] == value->op );
+
+        // Dead.
+        reg.r[ r ] = nullptr;
+
+        printf( "dead   %d -> %d\n", rev->head, r );
+
+        break;
+    }
+    
+    
+    
+    case XSSA_REV_STACK:
+    {
+        assert( ! "unreachable" );
+        break;
+    }
+    
+    
+    }
+        
+    
+    }
+
+
+    for ( size_t i = 0; i < reg.asleep.size(); ++i )
+    {
+        assert( reg.asleep.at( i ) == nullptr );
+    }
+
+}
+
+
+
+
+
+
+
+
+void xssa_print( xssa_revlist* v )
+{
+    for ( size_t i = 0; i < v->revs.size(); ++i )
+    {
+    
+        xssarev* rev = &v->revs.at( i );
+        
+        printf( "%04X ", (int)i );
+        
+        switch ( rev->kind )
+        {
+        case XSSA_REV_LIVE:     printf( "live " );  break;
+        case XSSA_REV_DEAD:     printf( "dead " );  break;
+        case XSSA_REV_WAKE:     printf( "wake " );  break;
+        case XSSA_REV_SLEEP:    printf( "sleep" );  break;
+        case XSSA_REV_STACK:    printf( "stack" );  break;
+        }
+        
+        if ( rev->head != -1 )
+            printf( " :%04X", rev->head );
+        else
+            printf( " :----" );
+        
+    
+        if ( rev->value != -1 )
+            printf( " :%04X", rev->value );
+        else
+            printf( " :----" );
+        
+        if ( rev->at != -1 )
+            printf( " :%04X\n", rev->at );
+        else
+            printf( " :----\n" );
+        
+    }
+}
+
+
+
 
 
 
@@ -468,15 +816,17 @@ void xssa_regalloc( xssa_linear* l )
 
     // Attempt as much phi equivalence as possible.
     phi_equivalence( l );
+    xssa_print( l );
     
     
     // Perform forward scan and generate live/sleep/wake/dead events.
     xssa_revlist revlist;
     build_revlist( &revlist, l );
+    xssa_print( &revlist );
     
     
     // Perform actual register allocation by scanning event buffer in reverse.
-    
+    linear_scan( &revlist );
     
 }
 

@@ -578,9 +578,6 @@ void xec_ssa_regalloc::reverse_scan()
         {
             int r = -1;
         
-            // If it's dead _at_ a stacklike instruction that takes it as one
-            // of its stack arguments, attempt to allocate it to the register
-            // that it needs to be in to make the stacklike instruction work.
             if ( op && is_stack_args( op ) )
             {
                 assert( op->args->stacktop != -1 );

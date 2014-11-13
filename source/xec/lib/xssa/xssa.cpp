@@ -109,12 +109,12 @@ void xssa_print( xssa_func* func, xssaop* op )
     // Register.
     if ( op->r != (uint8_t)-1 || op->stacktop != (uint8_t)-1 )
     {
-        printf( "< " );
+        printf( "<" );
         if ( op->r != (uint8_t)-1 )
-            printf( "%2d", (int)op->r );
+            printf( "%d", (int)op->r );
         if ( op->stacktop != (uint8_t)-1 )
-            printf( "/%2d", (int)op->stacktop );
-        printf( " > " );
+            printf( "/%d", (int)op->stacktop );
+        printf( "> " );
     }
     
     
