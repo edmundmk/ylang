@@ -191,6 +191,7 @@ inline unsigned long long align( unsigned long long x, unsigned long long alignm
 }
 
 
+
 inline unsigned int popcount( unsigned int x )
 {
 #ifdef MSC_VER
