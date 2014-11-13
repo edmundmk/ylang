@@ -20,6 +20,7 @@
 #include "xssa_cfganalysis.h"
 #include "xssa_linear.h"
 #include "xssa_liveness.h"
+#include "xssa_regalloc.h"
 
 
 
@@ -93,11 +94,15 @@ ymodule* xec_compile( xec_ast* ast )
         
         printf( "---- LIVENESS\n" );
         xssa_liveness( func );
-        xssa_print( func );
+//        xssa_print( func );
 
         printf( "---- LINEAR\n" );
         xssa_linear linear;
         xssa_build_linear( &linear, func );
+//        xssa_print( &linear );
+        
+        printf( "---- REGALLOC\n" );
+        xssa_regalloc( &linear );
         xssa_print( &linear );
         
         

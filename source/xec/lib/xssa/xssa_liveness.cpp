@@ -56,13 +56,8 @@ void xssa_liveness( xssa_func* func )
         successor( &live, block, block->iftrue );
         successor( &live, block, block->iffalse );
     
-        // The condition is also live at the bottom of the block.  However
-        // next ops don't require live ranges as they return their continue
-        // result in special 'register' @done.
-        if ( block->condition->opcode != XSSA_NEXT )
-        {
-            live.insert( block->condition );
-        }
+        // The condition is also live at the bottom of the block.
+        live.insert( block->condition );
     }
     else
     {

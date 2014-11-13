@@ -34,31 +34,31 @@ struct xssa_linear
 };
 
 
-enum xssa_lkind : int
+enum xssa_lopkind : int
 {
-    XSSA_BEGIN,                 // start of block.
-    XSSA_END,                   // end of block.
-    XSSA_LIVE,                  // start of live range (without op).
-    XSSA_OP,                    // actual op.
+    XSSA_LOP_BEGIN,                 // start of block.
+    XSSA_LOP_END,                   // end of block.
+    XSSA_LOP_LIVE,                  // start of live range (without op).
+    XSSA_LOP_OP,                    // actual op.
 };
 
 
 struct xssalop
 {
-    xssalop( xssa_lkind kind, xssa_block* block );
-    xssalop( xssa_lkind kind, xssaop* op );
+    xssalop( xssa_lopkind kind, xssa_block* block );
+    xssalop( xssa_lopkind kind, xssaop* op );
 
 
-    int         live_head;      // index of op at the head of live chain.
-    int         live_next;      // next op in live chain.
-    int         live_until;     // op where this live span dies.
+    int             live_head;      // index of op at the head of live chain.
+    int             live_next;      // next op in live chain.
+    int             live_until;     // op where this span dies.
 
-    xssa_lkind  kind;
+    xssa_lopkind    kind;
     
     union
     {
-    xssa_block* block;
-    xssaop*     op;
+    xssa_block*     block;
+    xssaop*         op;
     };
 
 };

@@ -80,7 +80,7 @@ typedef std::unordered_set< xssa_loop* >    xssa_loopset;
 typedef std::unordered_set< xssa_block* >   xssa_blockset;
 
 
-enum xssa_opcode : uint8_t
+enum xssa_opcode : uint16_t
 {
     XSSA_NOP,       // no-op
     
@@ -196,7 +196,7 @@ struct xssaop
 {
     static bool has_multival( xssa_opcode opcode );
     static bool has_key( xssa_opcode opcode );
-    static bool has_index( xssa_opcode opcode );
+    static bool has_immed( xssa_opcode opcode );
 
 
     static xssaop* op( int sloc, xssa_opcode opcode, size_t operand_count );
@@ -206,11 +206,14 @@ struct xssaop
     static xssaop* op( int sloc, xssa_opcode opcode, xssaop* operanda, xssaop* operandb, xssaop* operandv );
     
 
+    int             index;
     int             sloc;
+    
     xssa_opcode     opcode;
-    int8_t          operand_count;
-    int8_t          result_count;
+    int16_t         operand_count;
+    int16_t         result_count;
     uint8_t         r;
+    uint8_t         stacktop;
     
     union
     {
@@ -219,7 +222,7 @@ struct xssaop
     xssa_string*    string;
     xssaop*         multival;
     const char*     key;
-    int             index;
+    int             immed;
     xssa_func*      func;
     };
 
@@ -317,12 +320,7 @@ struct xssa_loop
 const char* xssa_opname( xssa_opcode opcode );
 void xssa_print( xssa_module* module );
 void xssa_print( xssa_func* func );
-void xssa_print
-    (
-        const std::unordered_map< xssaop*, int >& opindex,
-        xssa_func* func,
-        xssaop* op
-    );
+void xssa_print( xssa_func* func, xssaop* op );
 
 
 
@@ -351,7 +349,7 @@ inline bool xssaop::has_key( xssa_opcode opcode )
         || opcode == XSSA_DELKEY;
 }
 
-inline bool xssaop::has_index( xssa_opcode opcode )
+inline bool xssaop::has_immed( xssa_opcode opcode )
 {
     return opcode == XSSA_NEWUP
         || opcode == XSSA_SETUP
@@ -370,11 +368,13 @@ inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, size_t operand_count )
 {
     size_t size = sizeof( xssaop ) + sizeof( xssaop* ) * operand_count;
     xssaop* o = (xssaop*)region_current->malloc( size );
+    o->index            = -1;
     o->sloc             = sloc;
     o->opcode           = opcode;
     o->operand_count    = operand_count;
     o->result_count     = 1;
-    o->r                = (uint8_t)-1;
+    o->r                = -1;
+    o->stacktop         = -1;
     o->number           = 0.0;
     return o;
 }

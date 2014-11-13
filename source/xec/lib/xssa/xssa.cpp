@@ -104,13 +104,19 @@ const char* xssa_opname( xssa_opcode opcode )
 
 
 
-void xssa_print
-    (
-        const std::unordered_map< xssaop*, int >& opindex,
-        xssa_func* func,
-        xssaop* op
-    )
+void xssa_print( xssa_func* func, xssaop* op )
 {
+    // Register.
+    if ( op->r != (uint8_t)-1 || op->stacktop != (uint8_t)-1 )
+    {
+        printf( "< " );
+        if ( op->r != (uint8_t)-1 )
+            printf( "%2d", (int)op->r );
+        if ( op->stacktop != (uint8_t)-1 )
+            printf( "/%2d", (int)op->stacktop );
+        printf( " > " );
+    }
+    
     
     // Opcode
     printf( "%-9s", xssa_opname( op->opcode ) );
@@ -135,7 +141,7 @@ void xssa_print
     {
         if ( op->operands[ i ] )
         {
-            printf( " :%04X", opindex.at( op->operands[ i ] ) );
+            printf( " :%04X", op->operands[ i ]->index );
         }
         else
         {
@@ -145,7 +151,7 @@ void xssa_print
     
     if ( xssaop::has_multival( op->opcode ) && op->multival )
     {
-        printf( " :%04X...", opindex.at( op->multival ) );
+        printf( " :%04X...", op->multival->index );
     }
     
     if ( xssaop::has_key( op->opcode ) )
@@ -153,9 +159,9 @@ void xssa_print
         printf( " '%s'", op->key );
     }
     
-    if ( xssaop::has_index( op->opcode ) )
+    if ( xssaop::has_immed( op->opcode ) )
     {
-        printf( " %d", op->index );
+        printf( " %d", op->immed );
     }
     
     if ( op->opcode == XSSA_NUMBER )
@@ -229,12 +235,7 @@ void xssa_print( xssa_module* module )
 }
 
 
-static void print_ops
-    (
-        const std::unordered_map< xssaop*, int >& opindex,
-        xssa_func* func,
-        const std::vector< xssaop* > ops
-    )
+static void print_ops( xssa_func* func, const std::vector< xssaop* > ops )
 {
     for ( size_t i = 0; i < ops.size(); ++i )
     {
@@ -245,8 +246,8 @@ static void print_ops
             continue;
         }
         
-        printf( "%04X ", opindex.at( op ) );
-        xssa_print( opindex, func, op );
+        printf( "%04X ", op->index );
+        xssa_print( func, op );
 
     }
 }
@@ -256,7 +257,7 @@ void xssa_print( xssa_func* func )
 {
         
     // First, give each op an index.
-    std::unordered_map< xssaop*, int > opindex;
+    int index = 0;
     for ( size_t i = 0; i < func->blocks.size(); ++i )
     {
         xssa_block* block = func->blocks.at( i ).get();
@@ -264,17 +265,13 @@ void xssa_print( xssa_func* func )
         {
             xssaop* op = block->phi.at( i );
             if ( op )
-            {
-                opindex.emplace( op, (int)opindex.size() );
-            }
+                op->index = index++;
         }
         for ( size_t i = 0; i < block->ops.size(); ++i )
         {
             xssaop* op = block->ops.at( i );
             if ( op )
-            {
-                opindex.emplace( op, (int)opindex.size() );
-            }
+                op->index = index++;
         }
     }
 
@@ -331,20 +328,22 @@ void xssa_print( xssa_func* func )
             printf( "  !" );
             for ( auto i = block->live_in.begin(); i != block->live_in.end(); ++i )
             {
-                printf( " :%04X", opindex.at( *i ) );
+                xssaop* op = *i;
+                printf( " :%04X", op->index );
             }
             printf( "\n" );
         }
         
-        print_ops( opindex, func, block->phi );
-        print_ops( opindex, func, block->ops );
+        print_ops( func, block->phi );
+        print_ops( func, block->ops );
         
         if ( block->live_out.size() )
         {
             printf( "  !" );
             for ( auto i = block->live_out.begin(); i != block->live_out.end(); ++i )
             {
-                printf( " :%04X", opindex.at( *i ) );
+                xssaop* op = *i;
+                printf( " :%04X", op->index );
             }
             printf( "\n" );
         }
@@ -354,7 +353,7 @@ void xssa_print( xssa_func* func )
             printf
             (
                 "  :%04X ? >[%04X] : >[%04X]\n",
-                opindex.at( block->condition ),
+                block->condition->index,
                 block->iftrue->index,
                 block->iffalse->index
             );

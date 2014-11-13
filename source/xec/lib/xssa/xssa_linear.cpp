@@ -12,7 +12,7 @@
 
 
 
-xssalop::xssalop( xssa_lkind kind, xssa_block* block )
+xssalop::xssalop( xssa_lopkind kind, xssa_block* block )
     :   live_head( -1 )
     ,   live_next( -1 )
     ,   live_until( -1 )
@@ -21,7 +21,7 @@ xssalop::xssalop( xssa_lkind kind, xssa_block* block )
 {
 }
 
-xssalop::xssalop( xssa_lkind kind, xssaop* op )
+xssalop::xssalop( xssa_lopkind kind, xssaop* op )
     :   live_head( -1 )
     ,   live_next( -1 )
     ,   live_until( -1 )
@@ -125,28 +125,9 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
     }
     
 
-    
-    // Close all open live spans which are not live at the head of this block.
-    for ( auto i = open.begin(); i != open.end(); )
-    {
-        xssaop* op = i->first;
-        xssalop& lop = linear->lops.at( i->second );
-        
-        if ( block->live_in.find( op ) == block->live_in.end() )
-        {
-            lop.live_until = (int)linear->lops.size();
-            i = open.erase( i );
-        }
-        else
-        {
-            ++i;
-        }
-    }
-    
-
 
     // Begin block.
-    linear->lops.emplace_back( XSSA_BEGIN, block );
+    linear->lops.emplace_back( XSSA_LOP_BEGIN, block );
         
     
     
@@ -162,7 +143,7 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
         
         // Add op.
         int index = (int)linear->lops.size();
-        linear->lops.emplace_back( XSSA_OP, op );
+        linear->lops.emplace_back( XSSA_LOP_OP, op );
         xssalop& lop = linear->lops.back();
     
     
@@ -187,7 +168,7 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
         {
             // Add new span.
             int index = (int)linear->lops.size();
-            linear->lops.emplace_back( XSSA_LIVE, op );
+            linear->lops.emplace_back( XSSA_LOP_LIVE, op );
             xssalop& lop = linear->lops.back();
 
 
@@ -235,29 +216,17 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
         {
             // Add op.
             int index = (int)linear->lops.size();
-            linear->lops.emplace_back( XSSA_OP, op );
+            linear->lops.emplace_back( XSSA_LOP_OP, op );
             xssalop& lop = linear->lops.back();
-        
-            if ( open.find( op ) == open.end() )
-            {
-                // If there was a previous span for this op, link to it.
-                auto i = prev.find( op );
-                if ( i != prev.end() )
-                {
-                    xssalop& prev_lop = linear->lops.at( i->second );
-                    lop.live_head = prev_lop.live_head;
-                    prev_lop.live_next = index;
-                }
-                else
-                {
-                    lop.live_head = index;
-                }
-                
-
-                // Op is now live, and we haven't reached the end of the span.
-                open.emplace( op, index );
-                prev[ op ] = index;
-            }
+            
+            // An op should come before all its references, since the CFG
+            // is reducible and there are no undefined variables.
+            assert( open.find( op ) == open.end() );
+            assert( prev.find( op ) == prev.end() );
+            lop.live_head = index;
+            open.emplace( op, index );
+            prev[ op ] = index;
+            
         }
         else
         {
@@ -265,7 +234,7 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
             // at all if it has side effects.
             if ( is_action( op->opcode ) )
             {
-                linear->lops.emplace_back( XSSA_OP, op );
+                linear->lops.emplace_back( XSSA_LOP_OP, op );
             }
         }
         
@@ -275,22 +244,38 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
     
     
     
-    // End of block.
-    linear->lops.emplace_back( XSSA_END, block );
-    
-    
-    
-    }
-    
-    
-       
-    // Close all open live spans.
-    for ( auto i = open.begin(); i != open.end(); i = open.erase( i ) )
+    // Close all open live spans which are not live at the head of next block.
+    xssa_block* next = nullptr;
+    if ( i + 1 < func->blocks.size() )
+        next = func->blocks.at( i + 1 ).get();
+        
+    for ( auto i = open.begin(); i != open.end(); )
     {
+        xssaop* op = i->first;
         xssalop& lop = linear->lops.at( i->second );
-        lop.live_until = (int)linear->lops.size();
+        
+        if ( ! next || next->live_in.find( op ) == next->live_in.end() )
+        {
+            lop.live_until = (int)linear->lops.size();
+            i = open.erase( i );
+        }
+        else
+        {
+            ++i;
+        }
     }
+    
 
+    // End of block.
+    linear->lops.emplace_back( XSSA_LOP_END, block );
+    
+
+    
+    
+    }
+    
+ 
+    assert( open.empty() );
 
 }
 
@@ -317,12 +302,11 @@ static void print_liveness( xssalop* lop )
 void xssa_print( xssa_linear* linear )
 {
     // Number all ops.
-    std::unordered_map< xssaop*, int > opindex;
     for ( size_t i = 0; i < linear->lops.size(); ++i )
     {
         xssalop& lop = linear->lops.at( i );
-        if ( lop.kind == XSSA_OP )
-            opindex.emplace( lop.op, (int)i );
+        if ( lop.kind == XSSA_LOP_OP )
+            lop.op->index = (int)i;
     }
     
     
@@ -344,20 +328,20 @@ void xssa_print( xssa_linear* linear )
 
         switch ( lop.kind )
         {
-        case XSSA_BEGIN:
+        case XSSA_LOP_BEGIN:
         {
             printf( "  [%04X]\n", lop.block->index );
             break;
         }
         
-        case XSSA_END:
+        case XSSA_LOP_END:
         {
             if ( lop.block->condition )
             {
                 printf
                 (
                     "  :%04X ? >[%04X] : >[%04X]\n",
-                    opindex.at( lop.block->condition ),
+                    lop.block->condition->index,
                     lop.block->iftrue->index,
                     lop.block->iffalse->index
                 );
@@ -369,19 +353,19 @@ void xssa_print( xssa_linear* linear )
             break;
         }
         
-        case XSSA_LIVE:
+        case XSSA_LOP_LIVE:
         {
             print_liveness( &lop );
-            printf( " live\n" );
+            printf( " (live)\n" );
             break;
         }
         
         
-        case XSSA_OP:
+        case XSSA_LOP_OP:
         {
             print_liveness( &lop );
             printf( " " );
-            xssa_print( opindex, linear->func, lop.op );
+            xssa_print( linear->func, lop.op );
             break;
         }
         }

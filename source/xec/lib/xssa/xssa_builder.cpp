@@ -349,7 +349,7 @@ void xssa_builder::define( xec_ast_name* name, xssaop* value )
         {
             // Existing upval.
             xssaop* setup = op( name->sloc, XSSA_SETUP, value );
-            setup->index = i->second;
+            setup->immed = i->second;
         }
         else
         {
@@ -358,7 +358,7 @@ void xssa_builder::define( xec_ast_name* name, xssaop* value )
             b->upvals.emplace( name, index );
             b->func->newupcount += 1;
             xssaop* newup = op( name->sloc, XSSA_NEWUP, value );
-            newup->index = index;
+            newup->immed = index;
         }
     }
     else
@@ -398,7 +398,7 @@ void xssa_builder::define( xec_new_object* object, xssaop* value )
         b->upvals.emplace( object, index );
         b->func->newupcount += 1;
         xssaop* newup = op( object->sloc, XSSA_NEWUP, value );
-        newup->index = index;
+        newup->immed = index;
     }
 
     define_name( object, value );
@@ -416,7 +416,7 @@ xssaop* xssa_builder::lookup( int sloc, xec_ast_name* name )
     {
         // If this is an upval then construct code to get its value.
         xssaop* refup = op( sloc, XSSA_REFUP );
-        refup->index = b->upvals.at( name );
+        refup->immed = b->upvals.at( name );
         return refup;
     }
     else
@@ -448,7 +448,7 @@ void xssa_builder::close_scope( xec_ast_scope* scope )
         if ( decl->upval )
         {
             xssaop* cloup = op( decl->sloc, XSSA_CLOUP );
-            cloup->index = b->upvals.at( decl );
+            cloup->immed = b->upvals.at( decl );
         }
     }
     
@@ -459,7 +459,7 @@ void xssa_builder::close_scope( xec_ast_scope* scope )
         if ( object->upval )
         {
             xssaop* cloup = op( object->sloc, XSSA_CLOUP );
-            cloup->index = b->upvals.at( object );
+            cloup->immed = b->upvals.at( object );
         }
     }
 }
@@ -788,7 +788,7 @@ xssaop* xssa_builder::lvalue_value( xssa_lvalue* lvalue )
     case XSSA_SETUP:
     {
         xssaop* refup = op( lvalue->sloc, XSSA_REFUP );
-        refup->index = lvalue->upval;
+        refup->immed = lvalue->upval;
         return refup;
     }
     
@@ -834,7 +834,7 @@ void xssa_builder::lvalue_assign(
     case XSSA_SETUP:
     {
         xssaop* setup = op( lvalue->sloc, XSSA_SETUP, val );
-        setup->index = lvalue->upval;
+        setup->immed = lvalue->upval;
         break;
     }
 
@@ -880,7 +880,7 @@ void xssa_builder::build_function( xec_ast_func* astf, xssa_func* ssaf )
     {
         xec_ast_name* param = astf->parameters.at( i );
         xssaop* n = op( param->sloc, XSSA_PARAM );
-        n->index = (int)i;
+        n->immed = (int)i;
         define( param, n );
     }
 

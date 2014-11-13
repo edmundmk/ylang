@@ -2,47 +2,21 @@
 
 
 
-var x = 4;
-var y = x++ + ++x;
-
-
-
-/*
-do
+def energy( bodies )
 {
-    var x = 4;
-    var y = 4;
-    continue;
-}
-while ( x == y );
-*/
-
-
-/*
-var a;
-var b;
-for (;;)
-{
-    var t = a;
-    a = b;
-    b = t;
-
+    var e = 0;
+    for ( var bi : bodies )
+    {
+        e += 0.5 * bi.mass * ( bi.vx * bi.vx + bi.vy * bi.vy + bi.vz * bi.vz );
+        for ( var bj : bodies )
+        {
+            var dx, dy, dz = bi.x - bj.x, bi.y - bj.y, bi.z - bj.z;
+            var distance = sqrt( dx * dx + dy * dy + dz * dz );
+            e -= ( bi.mass * bj.mass ) / distance;
+        }
+    }
+    return e;
 }
 
-*/
 
 
-
-
-object hello : goodbye
-{
-}
-
-end
-
-
-
-object hello : goodbye is
-    var x = blah
-
-end
