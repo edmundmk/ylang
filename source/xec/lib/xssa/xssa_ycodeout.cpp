@@ -257,16 +257,16 @@ void xssa_ycodeout::build_func( xssa_linear* l )
 
     // assignment
     case XSSA_SETKEY:
-        inst( Y_KEY, o( op->r ), o( op->operand[ 0 ] ), k( op->key ) );
+        inst( Y_SETKEY, o( op->operand[ 1 ] ), o( op->operand[ 0 ] ), k( op->key ) );
         break;
     case XSSA_SETINKEY:
-        inst( Y_INKEY, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
+        inst( Y_SETINKEY, o( op->operand[ 2 ] ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
     case XSSA_SETINDEX:
-        inst( Y_INKEY, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
+        inst( Y_SETINDEX, o( op->operand[ 2 ] ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
     case XSSA_SETGLOBAL:
-        inst( Y_INKEY, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
+        inst( Y_SETGLOBAL, o( op->operand[ 0 ] ), 0, k( op->key ) );
         break;
     
     // key deletion
@@ -861,13 +861,11 @@ int xssa_ycodeout::o( int r )
 
 void xssa_ycodeout::inst( ycode opcode, int r, int a, int b )
 {
-    assert( r != -1 );
     code.emplace_back( opcode, (unsigned)r, (unsigned)a, (unsigned)b );
 }
 
 void xssa_ycodeout::inst( ycode opcode, int r, int c )
 {
-    assert( r != -1 );
     code.emplace_back( opcode, (unsigned)r, (unsigned)c );
 }
 

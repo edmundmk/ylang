@@ -20,7 +20,7 @@
 
 void y_atoi( yframe frame )
 {
-    frame.result( 1000.0 );
+    frame.result( 50000.0 );
 }
 
 void y_printf( yframe frame )
@@ -30,6 +30,11 @@ void y_printf( yframe frame )
     printf( format, n );
 }
 
+void y_sqrt( yframe frame )
+{
+    double n = frame.argument( 0 ).as_number();
+    frame.result( sqrt( n ) );
+}
 
 
 int main( int argc, char* argv[] )
@@ -63,12 +68,13 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
     
-    ymodule::print( module );
+//    ymodule::print( module );
 
 
     yexpand* global = yexpand::alloc();
     global->setkey( "atoi", y_atoi );
     global->setkey( "printf", y_printf );
+    global->setkey( "sqrt", y_sqrt );
     yfunction* f = yfunction::alloc( global, module->script() );
     yinvoke( f );
     

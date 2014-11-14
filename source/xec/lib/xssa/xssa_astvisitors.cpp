@@ -86,7 +86,7 @@ xssaop* xssa_build_expr::visit( xec_ast_func* node )
         case XEC_UPVAL_UPVAL:
         {
             l->operand[ i ] = b->op( node->sloc, XSSA_REFUP );
-            l->operand[ i ]->index = upval.upval;
+            l->operand[ i ]->immed = upval.upval;
             break;
         }
         }
@@ -137,7 +137,7 @@ xssaop* xssa_build_expr::visit( xec_expr_global* node )
 xssaop* xssa_build_expr::visit( xec_expr_upref* node )
 {
     xssaop* refup = b->op( node->sloc, XSSA_REFUP );
-    refup->index = node->index;
+    refup->immed = node->index;
     return refup;
 }
 
@@ -438,7 +438,7 @@ xssaop* xssa_build_expr::visit( xec_new_array* node )
 {
     // Construct array.
     xssaop* array = b->op( node->sloc, XSSA_ARRAY );
-    array->index = (int)node->values.size();
+    array->immed = (int)node->values.size();
     
     // Append all values.
     for ( size_t i = 0; i < node->values.size(); ++i )
@@ -474,7 +474,7 @@ xssaop* xssa_build_expr::visit( xec_new_table* node )
 {
     // Construct table.
     xssaop* table = b->op( node->sloc, XSSA_TABLE );
-    table->index = (int)node->elements.size();
+    table->immed = (int)node->elements.size();
     
     // Add elements.
     for ( size_t i = 0; i < node->elements.size(); ++i )
@@ -511,7 +511,7 @@ xssaop* xssa_build_expr::visit( xec_expr_vararg* node )
 {
     // Fetch the first variable argument.
     xssaop* vararg = b->op( node->sloc, XSSA_VARARG );
-    vararg->index = 0;
+    vararg->immed = 0;
     return vararg;
 }
 
@@ -732,7 +732,7 @@ void xssa_build_unpack::visit(
         for ( int i = 0; i < valcount; ++i )
         {
             xssaop* vararg = b->op( node->sloc, XSSA_VARARG );
-            vararg->index = i;
+            vararg->immed = i;
             values->values.push_back( vararg );
         }
     }
@@ -753,7 +753,7 @@ void xssa_build_unpack::visit(
         for ( int i = 0; i < valcount; ++i )
         {
             xssaop* elem = b->op( node->sloc, XSSA_ELEM, array );
-            elem->index = i;
+            elem->immed = i;
             values->values.push_back( elem );
         }
     }
