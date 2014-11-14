@@ -226,7 +226,7 @@ struct xssaop
     xssa_func*      func;
     };
 
-    xssaop*         operands[];
+    xssaop*         operand[];
 
 
 };
@@ -387,24 +387,24 @@ inline xssaop* xssaop::op( int sloc, xssa_opcode opcode )
 inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, xssaop* operand )
 {
     xssaop* o = op( sloc, opcode, 1 );
-    o->operands[ 0 ] = operand;
+    o->operand[ 0 ] = operand;
     return o;
 }
 
 inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, xssaop* operanda, xssaop* operandb )
 {
     xssaop* o = op( sloc, opcode, 2 );
-    o->operands[ 0 ] = operanda;
-    o->operands[ 1 ] = operandb;
+    o->operand[ 0 ] = operanda;
+    o->operand[ 1 ] = operandb;
     return o;
 }
 
 inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, xssaop* operanda, xssaop* operandb, xssaop* operandv )
 {
     xssaop* o = op( sloc, opcode, 3 );
-    o->operands[ 0 ] = operanda;
-    o->operands[ 1 ] = operandb;
-    o->operands[ 2 ] = operandv;
+    o->operand[ 0 ] = operanda;
+    o->operand[ 1 ] = operandb;
+    o->operand[ 2 ] = operandv;
     return o;
 }
 

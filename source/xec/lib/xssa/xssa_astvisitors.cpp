@@ -73,20 +73,20 @@ xssaop* xssa_build_expr::visit( xec_ast_func* node )
         {
         case XEC_UPVAL_LOCAL:
         {
-            l->operands[ i ] = b->lookup( node->sloc, upval.local );
+            l->operand[ i ] = b->lookup( node->sloc, upval.local );
             break;
         }
         
         case XEC_UPVAL_OBJECT:
         {
-            l->operands[ i ] = b->lookup( upval.object );
+            l->operand[ i ] = b->lookup( upval.object );
             break;
         }
         
         case XEC_UPVAL_UPVAL:
         {
-            l->operands[ i ] = b->op( node->sloc, XSSA_REFUP );
-            l->operands[ i ]->index = upval.upval;
+            l->operand[ i ] = b->op( node->sloc, XSSA_REFUP );
+            l->operand[ i ]->index = upval.upval;
             break;
         }
         }
@@ -405,10 +405,10 @@ xssaop* xssa_build_expr::visit( xec_new_new* node )
     // Call constructor.
     xssaop* call = b->op( node->sloc, XSSA_CALL, 2 + arguments.values.size() );
     call->result_count = 0;
-    call->operands[ 0 ] = constructor;
-    call->operands[ 1 ] = object;
+    call->operand[ 0 ] = constructor;
+    call->operand[ 1 ] = object;
     for ( size_t i = 0; i < arguments.values.size(); ++i )
-        call->operands[ 2 + i ] = arguments.values.at( i );
+        call->operand[ 2 + i ] = arguments.values.at( i );
     call->multival = arguments.multival;
     
     // The result is the object.
@@ -649,11 +649,11 @@ void xssa_build_unpack::visit(
     xssaop* call = b->op( node->sloc, opcode, operand_count );
     call->result_count = valcount;
     size_t arg = 0;
-    call->operands[ arg++ ] = function;
+    call->operand[ arg++ ] = function;
     if ( thisval )
-        call->operands[ arg++ ] = thisval;
+        call->operand[ arg++ ] = thisval;
     for ( size_t i = 0; i < arguments.values.size(); ++i )
-        call->operands[ arg++ ] = arguments.values.at( i );
+        call->operand[ arg++ ] = arguments.values.at( i );
     call->multival = arguments.multival;
     
     if ( valcount == 0 || valcount == 1 )
@@ -667,7 +667,7 @@ void xssa_build_unpack::visit(
         for ( int i = 0; i < valcount; ++i )
         {
             xssaop* sel = b->op( node->sloc, XSSA_SELECT, call );
-            sel->index = i;
+            sel->immed = i;
             values->values.push_back( sel );
         }
     }
@@ -699,7 +699,7 @@ void xssa_build_unpack::visit(
     xssaop* yield = b->op( node->sloc, XSSA_YIELD, arguments.values.size() );
     yield->result_count = valcount;
     for ( size_t i = 0; i < arguments.values.size(); ++i )
-        yield->operands[ i ] = arguments.values.at( i );
+        yield->operand[ i ] = arguments.values.at( i );
     yield->multival = arguments.multival;
 
     if ( valcount == 0 || valcount == 1 )
@@ -713,7 +713,7 @@ void xssa_build_unpack::visit(
         for ( int i = 0; i < valcount; ++i )
         {
             xssaop* sel = b->op( node->sloc, XSSA_SELECT, yield );
-            sel->index = i;
+            sel->immed = i;
             values->values.push_back( sel );
         }
     }
@@ -959,7 +959,7 @@ void xssa_build_stmt::visit( xec_stmt_foreach* node )
         xssa_lvalue lvalue;
         b->lvalue( &lvalue, node->lvalues.at( i ) );
         xssaop* rvalue = b->op( node->sloc, XSSA_SELECT, next );
-        rvalue->index = i;
+        rvalue->immed = i;
         b->lvalue_assign( &lvalue, rvalue );
     }
     
@@ -1124,7 +1124,7 @@ void xssa_build_stmt::visit( xec_stmt_return* node )
     // Emit return operation.
     xssaop* r = b->op( node->sloc, XSSA_RETURN, values.values.size() );
     for ( size_t i = 0; i < values.values.size(); ++i )
-        r->operands[ i ] = values.values.at( i );
+        r->operand[ i ] = values.values.at( i );
     r->multival = values.multival;
     b->funcreturn();
 }

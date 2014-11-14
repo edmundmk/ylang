@@ -1136,9 +1136,9 @@ xssaop* xssa_builder::lookup_block(
     xssaop* phi = xssaop::op( -1, XSSA_PHI, lookups.size() );
     for ( size_t i = 0; i < lookups.size(); ++i )
     {
-        phi->operands[ i ] = lookups[ i ];
+        phi->operand[ i ] = lookups[ i ];
     }
-    block->phi->operands[ 0 ] = phi;
+    block->phi->operand[ 0 ] = phi;
     
     // The phi is the definition.
     block->defined[ name ] = block->phi;
@@ -1172,7 +1172,7 @@ void xssa_builder::seal_block( xssa_build_block* block )
             
             // Change the phi to a ref.
             block->phi->opcode          = XSSA_REF;
-            block->phi->operands[ 0 ]   = def;
+            block->phi->operand[ 0 ]   = def;
             
             // Update definition.
             if ( def != XSSA_UNDEF && block->defined.at( name ) == block->phi )
@@ -1190,9 +1190,9 @@ void xssa_builder::seal_block( xssa_build_block* block )
         xssaop* phi = xssaop::op( -1, XSSA_PHI, lookups.size() );
         for ( size_t i = 0; i < lookups.size(); ++i )
         {
-            phi->operands[ i ] = lookups[ i ];
+            phi->operand[ i ] = lookups[ i ];
         }
-        block->phi->operands[ 0 ] = phi;
+        block->phi->operand[ 0 ] = phi;
         
     }
 
@@ -1327,14 +1327,14 @@ void xssa_builder::remove_ref( xssa_block* block )
 
         if ( op->opcode == XSSA_PSI )
         {
-            op = op->operands[ 0 ];
+            op = op->operand[ 0 ];
             block->phi[ i ] = op;
             
             for ( size_t i = 0; i < op->operand_count; ++i )
             {
-                if ( op->operands[ i ] )
+                if ( op->operand[ i ] )
                 {
-                    op->operands[ i ] = remove_ref( op->operands[ i ] );
+                    op->operand[ i ] = remove_ref( op->operand[ i ] );
                 }
             }
         }
@@ -1355,9 +1355,9 @@ void xssa_builder::remove_ref( xssa_block* block )
         
         for ( size_t i = 0; i < op->operand_count; ++i )
         {
-            if ( op->operands[ i ] )
+            if ( op->operand[ i ] )
             {
-                op->operands[ i ] = remove_ref( op->operands[ i ] );
+                op->operand[ i ] = remove_ref( op->operand[ i ] );
             }
         }
     }
@@ -1373,7 +1373,7 @@ xssaop* xssa_builder::remove_ref( xssaop* op )
 {
     while ( op->opcode == XSSA_REF || op->opcode == XSSA_PSI )
     {
-        op = op->operands[ 0 ];
+        op = op->operand[ 0 ];
     }
     return op;
 }

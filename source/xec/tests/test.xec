@@ -20,3 +20,7 @@ def energy( bodies )
 
 
 
+
+
+var a, b = hello() ...;
+print( a, b );

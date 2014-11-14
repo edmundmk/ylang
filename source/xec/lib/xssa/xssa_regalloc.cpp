@@ -215,9 +215,9 @@ static void phi_equivalence( xssa_linear* l )
             
             for ( int i = phi->operand_count - 1; i >= 0; --i )
             {
-                if ( phi->operands[ i ] )
+                if ( phi->operand[ i ] )
                 {
-                    phi_equivalence( l, phi, phi->operands[ i ] );
+                    phi_equivalence( l, phi, phi->operand[ i ] );
                 }
             }
             
@@ -387,7 +387,7 @@ static void build_revlist( xssa_revlist* v, xssa_linear* l )
             if ( close->kind == XSSA_LOP_OP
                     && close->op->opcode == XSSA_CLOSURE
                     && close->op->operand_count
-                    && close->op->operands[ 0 ] != lop->op )
+                    && close->op->operand[ 0 ] != lop->op )
             {
                 continue;
             }
@@ -533,7 +533,7 @@ static int check_stack_argument( xssaop* stack, xssaop* arg )
     
     for ( size_t i = 0; i < stack->operand_count; ++i )
     {
-        if ( stack->operands[ i ] == arg )
+        if ( stack->operand[ i ] == arg )
         {
             return stack->stacktop + (int)i;
         }
@@ -666,7 +666,6 @@ static void linear_scan( xssa_revlist* v )
 
 
         // And assign to op.
-        printf( "assign %d -> %d\n", rev->head, r );
         for ( int index = rev->head; index != -1; )
         {
             xssalop* lop = &v->l->lops.at( index );
@@ -676,6 +675,7 @@ static void linear_scan( xssa_revlist* v )
             index = lop->live_next;
         }
 
+//        printf( "assign %d -> %d\n", rev->head, r );
 
         break;
     }
@@ -693,7 +693,7 @@ static void linear_scan( xssa_revlist* v )
         reg.asleep[ r ] = asleep;
         reg.r[ r ] = nullptr;
 
-        printf( "sleep  %d -> %d\n", rev->head, r );
+//        printf( "sleep  %d -> %d\n", rev->head, r );
 
         break;
     }
@@ -712,7 +712,7 @@ static void linear_scan( xssa_revlist* v )
         reg.asleep[ r ] = asleep->prev;
         delete asleep;
 
-        printf( "wake   %d -> %d\n", rev->head, r );
+//        printf( "wake   %d -> %d\n", rev->head, r );
 
         break;
     }
@@ -727,7 +727,7 @@ static void linear_scan( xssa_revlist* v )
         // Dead.
         reg.r[ r ] = nullptr;
 
-        printf( "dead   %d -> %d\n", rev->head, r );
+//        printf( "dead   %d -> %d\n", rev->head, r );
 
         break;
     }
@@ -816,13 +816,13 @@ void xssa_regalloc( xssa_linear* l )
 
     // Attempt as much phi equivalence as possible.
     phi_equivalence( l );
-    xssa_print( l );
+//    xssa_print( l );
     
     
     // Perform forward scan and generate live/sleep/wake/dead events.
     xssa_revlist revlist;
     build_revlist( &revlist, l );
-    xssa_print( &revlist );
+//    xssa_print( &revlist );
     
     
     // Perform actual register allocation by scanning event buffer in reverse.

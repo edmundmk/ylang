@@ -80,28 +80,21 @@ ymodule* xec_compile( xec_ast* ast )
     {
         xssa_func* func = ssam.funcs.at( i ).get();
         
-        
-        printf( "---- BUILT\n" );
 //        xssa_print( func );
         
-        printf( "---- DFO\n" );
         xssa_order_depth_first( func );
 //        xssa_print( func );
         
-        printf( "---- LOOP\n" );
         xssa_compute_loop_forest( func );
 //        xssa_print( func );
         
-        printf( "---- LIVENESS\n" );
         xssa_liveness( func );
 //        xssa_print( func );
 
-        printf( "---- LINEAR\n" );
         xssa_linear linear;
         xssa_build_linear( &linear, func );
 //        xssa_print( &linear );
         
-        printf( "---- REGALLOC\n" );
         xssa_regalloc( &linear );
         xssa_print( &linear );
         

@@ -796,12 +796,14 @@ xec_ast_node* xec_parser::unpack( xec_ast_node* expr )
     {
         xec_expr_call* call = (xec_expr_call*)expr;
         call->unpack = true;
+        break;
     }
     
     case XEC_EXPR_YIELD:
     {
         xec_expr_yield* yield = (xec_expr_yield*)expr;
         yield->unpack = true;
+        break;
     }
     
     default:

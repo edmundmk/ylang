@@ -139,9 +139,9 @@ void xssa_print( xssa_func* func, xssaop* op )
     
     for ( size_t i = 0; i < op->operand_count; ++i )
     {
-        if ( op->operands[ i ] )
+        if ( op->operand[ i ] )
         {
-            printf( " :%04X", op->operands[ i ]->index );
+            printf( " :%04X", op->operand[ i ]->index );
         }
         else
         {

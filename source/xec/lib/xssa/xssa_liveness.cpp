@@ -79,8 +79,8 @@ void xssa_liveness( xssa_func* func )
 
         for ( size_t i = 0; i < op->operand_count; ++i )
         {
-            if ( op->operands[ i ] )
-                live.insert( op->operands[ i ] );
+            if ( op->operand[ i ] )
+                live.insert( op->operand[ i ] );
         }
         
         if ( xssaop::has_multival( op->opcode ) && op->multival )
@@ -160,7 +160,7 @@ static void successor( xssa_opset* live, xssa_block* prev, xssa_block* block )
         xssaop* op = block->phi.at( i );
         if ( op && op->opcode == XSSA_PHI )
         {
-            live->insert( op->operands[ index ] );
+            live->insert( op->operand[ index ] );
         }
     }
 

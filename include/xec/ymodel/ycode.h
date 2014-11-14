@@ -10,6 +10,9 @@
 #define YCODE_H
 
 
+#include <stdint.h>
+
+
 /*
     A simple instruction set designed to implement the xec language.  Owes
     a debt to the design of the Lua virtual machine (as does the language).

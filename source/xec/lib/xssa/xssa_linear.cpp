@@ -102,9 +102,9 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
         
         for ( size_t i = 0; i < op->operand_count; ++i )
         {
-            if ( op->operands[ i ] )
+            if ( op->operand[ i ] )
             {
-                last.emplace( op->operands[ i ], op );
+                last.emplace( op->operand[ i ], op );
             }
         }
         

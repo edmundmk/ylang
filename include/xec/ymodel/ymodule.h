@@ -55,6 +55,7 @@ protected:
 private:
 
     friend class xec_ssa_buildcode;
+    friend class xssa_ycodeout;
     
     ywb< ystring* >             mname;
     ywb< ytuple< ysymbol >* >   symbols;
@@ -106,6 +107,7 @@ protected:
 private:
 
     friend class xec_ssa_buildcode;
+    friend class xssa_ycodeout;
 
     ywb< ymodule* > fmodule;
     ywb< ystring* > fname;
