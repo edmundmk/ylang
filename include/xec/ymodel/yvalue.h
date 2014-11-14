@@ -612,7 +612,7 @@ inline object_t* yvalue::as() const
 {
     if ( is< object_t >() )
     {
-        object_t* o = as_object()->as< object_t >();
+        object_t* o = (object_t*)as_object();
         if ( o )
         {
             return o;
