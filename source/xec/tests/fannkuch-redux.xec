@@ -55,7 +55,7 @@ def fannkuch( n )
         {
             if ( r == n )
             {
-                printf( "%d\n", checksum );
+                printf( "%g\n", checksum );
                 return max_flips_count;
             }
             
@@ -78,13 +78,13 @@ def fannkuch( n )
 def main( n )
 {
     n = atoi( n, 7 );
-    printf( "Pfannkuchen(%d) = %d\n", n, fannkuch( n ) );
+    printf( "Pfannkuchen(%g) = %g\n", n, fannkuch( n ) );
     return 0;
 }
 
 
 
-main( ... );
+main( args[]... );
 
 
 

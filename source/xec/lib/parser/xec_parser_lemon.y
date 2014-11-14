@@ -819,6 +819,14 @@ expr_final(x)   ::= ELLIPSIS(token) .
                     x = p->alloc< xec_expr_vararg >( token->sloc );
                     p->destroy( token );
                 }
+expr_final(x)   ::= expr_index(expr) ELLIPSIS .
+                {
+                    x = p->unpack( expr );
+                }
+expr_final(x)   ::= expr_index(expr) LSQ RSQ ELLIPSIS .
+                {
+                    x = p->alloc< xec_expr_unpack >( expr->sloc, expr );
+                }
 expr_final(x)   ::= expr_postfix(expr) ELLIPSIS .
                 {
                     x = p->unpack( expr );

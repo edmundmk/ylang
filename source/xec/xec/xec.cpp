@@ -12,6 +12,7 @@
 #include <xec/parser/xec_ast.h>
 #include <xec/parser/xec_srcbuf.h>
 #include <xec/ymodel/ymodel.h>
+#include <xec/ymodel/yarray.h>
 #include <xec/ymodel/ymodule.h>
 #include <xec/ymodel/ythunk.h>
 #include <xec/ymodel/yfunction.h>
@@ -20,7 +21,18 @@
 
 void y_atoi( yframe frame )
 {
-    frame.result( 10.0 );
+    double n = 0;
+    if ( frame.argcount() >= 2 )
+        n = frame.argument( 1 ).as_number();
+    if ( ! frame.argument( 0 ).is_null() )
+    {
+        const char* a = frame.argument( 0 ).c_str();
+        char* endp = nullptr;
+        long i = strtol( a, &endp, 10 );
+        if ( endp[ 0 ] == '\0' )
+            n = i;
+    }
+    frame.result( n );
 }
 
 void y_printf( yframe frame )
@@ -29,13 +41,13 @@ void y_printf( yframe frame )
     if ( frame.argcount() == 2 )
     {
         double n = frame.argument( 1 ).as_number();
-        printf( format, (int)n );
+        printf( format, n );
     }
     else if ( frame.argcount() == 3 )
     {
         double n = frame.argument( 1 ).as_number();
         double m = frame.argument( 2 ).as_number();
-        printf( format, (int)n, (int)m );
+        printf( format, n, m );
     }
 }
 
@@ -84,14 +96,22 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
     
-//    ymodule::print( module );
-
 
     yexpand* global = yexpand::alloc();
     global->setkey( "atoi", y_atoi );
     global->setkey( "printf", y_printf );
     global->setkey( "sqrt", y_sqrt );
     global->setkey( "max", y_max );
+
+
+    yarray* args = yarray::alloc();
+    for ( int argi = 2; argi < argc; ++argi )
+    {
+        args->append( ystring::alloc( argv[ argi ] ) );
+    }
+    global->setkey( "args", args );
+
+
     yfunction* f = yfunction::alloc( global, module->script() );
     yinvoke( f );
     

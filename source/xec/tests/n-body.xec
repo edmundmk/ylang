@@ -167,7 +167,7 @@ def main( n )
 }
 
 
-return main( ... );
+return main( args[] ... );
 
 
 
