@@ -31,6 +31,7 @@ public:
     void    setindex( size_t i, yvalue value );
 
     void    append( yvalue value );
+    void    resize( size_t newlength );
 
 
 protected:
@@ -47,6 +48,8 @@ protected:
 
 
 private:
+
+    void ensure( size_t capacity );
 
     size_t  count;
     ywb< ytuple< yvalue >* > values;

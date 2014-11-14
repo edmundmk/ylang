@@ -35,11 +35,18 @@ static void yarray_length( yframe frame )
     frame.result( (uint32_t)array->length() );
 }
 
+static void yarray_resize( yframe frame )
+{
+    yarray* array = frame.argument( 0 ).as< yarray >();
+    array->resize( (size_t)frame.argument( 1 ).as_number() );
+}
+
 
 yexpand* yarray::make_proto()
 {
     yexpand* proto = yexpand::alloc();
     proto->setkey( "length", yarray_length );
+    proto->setkey( "resize", yarray_resize );
     return proto;
 }
 
@@ -47,9 +54,32 @@ yexpand* yarray::make_proto()
 
 void yarray::append( yvalue value )
 {
-    if ( ! values || count >= values->size() )
+    ensure( count + 1 );
+    values->set( count, value );
+    count += 1;
+}
+
+
+void yarray::resize( size_t newlength )
+{
+    ensure( newlength );
+    for ( size_t i = newlength; i < count; ++i )
     {
-        size_t newsize = values ? values->size() * 2 : 8;
+        values->set( i, yvalue::undefined );
+    }
+    for ( size_t i = count; i < newlength; ++i )
+    {
+        values->set( i, yvalue::null );
+    }
+    count = newlength;
+}
+
+
+void yarray::ensure( size_t capacity )
+{
+    if ( ! values || capacity > values->size() )
+    {
+        size_t newsize = std::max( values ? values->size() * 2 : 8, capacity );
         ytuple< yvalue >* newvalues = ytuple< yvalue >::alloc( newsize );
         for ( size_t i = 0; i < count; ++i )
         {
@@ -57,10 +87,7 @@ void yarray::append( yvalue value )
         }
         values = newvalues;
     }
-    values->set( count, value );
-    count += 1;
 }
-
 
 
 

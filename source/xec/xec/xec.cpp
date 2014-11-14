@@ -20,20 +20,36 @@
 
 void y_atoi( yframe frame )
 {
-    frame.result( 50000.0 );
+    frame.result( 10.0 );
 }
 
 void y_printf( yframe frame )
 {
     const char* format = frame.argument( 0 ).c_str();
-    double n = frame.argument( 1 ).as_number();
-    printf( format, n );
+    if ( frame.argcount() == 2 )
+    {
+        double n = frame.argument( 1 ).as_number();
+        printf( format, (int)n );
+    }
+    else if ( frame.argcount() == 3 )
+    {
+        double n = frame.argument( 1 ).as_number();
+        double m = frame.argument( 2 ).as_number();
+        printf( format, (int)n, (int)m );
+    }
 }
 
 void y_sqrt( yframe frame )
 {
     double n = frame.argument( 0 ).as_number();
     frame.result( sqrt( n ) );
+}
+
+void y_max( yframe frame )
+{
+    double a = frame.argument( 0 ).as_number();
+    double b = frame.argument( 1 ).as_number();
+    frame.result( std::max( a, b ) );
 }
 
 
@@ -75,6 +91,7 @@ int main( int argc, char* argv[] )
     global->setkey( "atoi", y_atoi );
     global->setkey( "printf", y_printf );
     global->setkey( "sqrt", y_sqrt );
+    global->setkey( "max", y_max );
     yfunction* f = yfunction::alloc( global, module->script() );
     yinvoke( f );
     

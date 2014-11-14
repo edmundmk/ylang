@@ -9,8 +9,9 @@
 #include "yvalue.h"
 
 
-
+yvalue yvalue::null( VALUE_NULL );
 yvalue yvalue::undefined( VALUE_UNDEFINED );
+
 
 yobject* yvalue::get() const
 {

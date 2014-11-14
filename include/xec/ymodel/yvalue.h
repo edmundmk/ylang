@@ -56,6 +56,7 @@ class yvalue
 {
 public:
 
+    static yvalue null;
     static yvalue undefined;
     
     yvalue();
@@ -67,7 +68,8 @@ public:
     yvalue( yobject* object );
     yvalue( ystring* string );
     yvalue( yexpand* expand );
-    yvalue( void (*thunk)( yframe ) );
+    
+    yvalue( void (*thunk)( yframe ) );  // TODO THINK ABOUT THIS.
     static yvalue native( void* native );
 
     explicit operator bool() const;

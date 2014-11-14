@@ -87,10 +87,11 @@ var bodies =
 
 def advance( bodies, dt )
 {
-    for ( var i = 0; i < bodies.length(); ++i )
+    var length = bodies.length();
+    for ( var i = 0; i < length; ++i )
     {
         var bi = bodies[ i ];
-        for ( var j = i + 1; j < bodies.length(); ++j )
+        for ( var j = i + 1; j < length; ++j )
         {
             var bj = bodies[ j ];
             var dx, dy, dz = bi.x - bj.x, bi.y - bj.y, bi.z - bj.z;
@@ -105,7 +106,7 @@ def advance( bodies, dt )
             bj.vz += dz * bim;
         }
     }
-    for ( var i = 0; i < bodies.length(); ++i )
+    for ( var i = 0; i < length; ++i )
     {
         var bi = bodies[ i ];
         bi.x += dt * bi.vx;
@@ -117,12 +118,13 @@ def advance( bodies, dt )
 
 def energy( bodies )
 {
+    var length = bodies.length();
     var e = 0;
-    for ( var i = 0; i < bodies.length(); ++i )
+    for ( var i = 0; i < length; ++i )
     {
         var bi = bodies[ i ];
         e += 0.5 * bi.mass * ( bi.vx * bi.vx + bi.vy * bi.vy + bi.vz * bi.vz );
-        for ( var j = i + 1; j < bodies.length(); ++j )
+        for ( var j = i + 1; j < length; ++j )
         {
             var bj = bodies[ j ];
             var dx, dy, dz = bi.x - bj.x, bi.y - bj.y, bi.z - bj.z;
@@ -136,8 +138,9 @@ def energy( bodies )
 
 def offset_momentum( bodies )
 {
+    var length = bodies.length();
     var px, py, pz = 0, 0, 0;
-    for ( var i = 0; i < bodies.length(); ++i )
+    for ( var i = 0; i < length; ++i )
     {
         var bi = bodies[ i ];
         px += bi.vx * bi.mass;

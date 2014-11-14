@@ -309,7 +309,7 @@ xssaop* xssa_build_expr::visit( xec_expr_compare* node )
         else
             result = b->op( node->sloc, opcode, rhs, lhs );
         if ( neg )
-            result = b->op( node->sloc, XSSA_NOT, result );
+            result = b->op( node->sloc, XSSA_LNOT, result );
         
         // Keep the result in a temporary, as if it is false we shortcut
         // evaluation of later terms.
@@ -357,7 +357,7 @@ xssaop* xssa_build_expr::visit( xec_expr_logical* node )
         // Only evaluate rhs if the lhs is false.
         xssaop* lhs = visit( node->lhs );
         b->define( node, lhs );
-        xssaop* invlhs = b->op( node->sloc, XSSA_NOT, lhs );
+        xssaop* invlhs = b->op( node->sloc, XSSA_LNOT, lhs );
         b->ifthen( invlhs );
         xssaop* rhs = visit( node->rhs );
         b->define( node, rhs );
