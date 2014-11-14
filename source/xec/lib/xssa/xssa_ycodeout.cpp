@@ -406,12 +406,16 @@ void xssa_ycodeout::build_func( xssa_linear* l )
         // Find index of recipe.  Assume that recipes will end up in the module
         // in the same order as in the SSA form.
         int recipe = -1;
-        for ( ; recipe < func->module->funcs.size(); ++recipe )
+        for ( size_t i = 0; i < func->module->funcs.size(); ++i )
         {
-            if ( op->func == func->module->funcs.at( recipe ).get() )
+            xssa_func* f = func->module->funcs.at( i ).get();
+            if ( op->func == f )
+            {
+                recipe = (int)i;
                 break;
+            }
         }
-        assert( recipe >= 0 && recipe < func->module->funcs.size() );
+        assert( recipe != -1 );
         
         // Output instruction.
         inst( Y_CLOSURE, o( op->r ), recipe );
