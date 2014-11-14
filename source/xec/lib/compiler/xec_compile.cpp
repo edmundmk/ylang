@@ -21,7 +21,7 @@
 #include "xssa_linear.h"
 #include "xssa_liveness.h"
 #include "xssa_regalloc.h"
-
+#include "xssa_ycodeout.h"
 
 
 ymodule* xec_compile( xec_ast* ast )
@@ -76,6 +76,8 @@ ymodule* xec_compile( xec_ast* ast )
     xssa_builder ssab( &ssam );
     ssab.build( ast );
     
+    xssa_ycodeout ycodeout;
+    
     for ( size_t i = 0; i < ssam.funcs.size(); ++i )
     {
         xssa_func* func = ssam.funcs.at( i ).get();
@@ -96,12 +98,13 @@ ymodule* xec_compile( xec_ast* ast )
 //        xssa_print( &linear );
         
         xssa_regalloc( &linear );
-        xssa_print( &linear );
-        
+//        xssa_print( &linear );
+  
+        ycodeout.build_func( &linear );
         
     }
-
-    return nullptr;
+    
+    return ycodeout.build_module( ast->script );
 }
 
 
