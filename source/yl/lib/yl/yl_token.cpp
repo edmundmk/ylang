@@ -1,12 +1,12 @@
 //
-//  xec_token.cpp
+//  yl_token.cpp
 //
 //  Created by Edmund Kapusniak on 15/03/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "xec_token.h"
+#include "yl_token.h"
 #include <assert.h>
 #include <unordered_map>
 #include <unordered_set>
@@ -19,7 +19,7 @@
 
 
 
-std::string xec_token::get_spelling()
+std::string yl_token::get_spelling()
 {
     switch ( kind )
     {
@@ -37,7 +37,7 @@ std::string xec_token::get_spelling()
     }
 }
 
-void xec_token::debug_print()
+void yl_token::debug_print()
 {
     const char* kind_name = NULL;
     switch ( kind )

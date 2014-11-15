@@ -1,42 +1,42 @@
 //
-//  xec_srcbuf.cpp
+//  yl_srcbuf.cpp
 //
 //  Created by Edmund Kapusniak on 11/09/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "xec_srcbuf.h"
+#include "yl_srcbuf.h"
 #include <stdlib.h>
 #include <stdio.h>
 
 
 
-xec_srcbuf::xec_srcbuf()
+yl_srcbuf::yl_srcbuf()
     :   bcapacity( 0 )
     ,   bsize( 0 )
     ,   btext( NULL )
 {
 }
 
-xec_srcbuf::~xec_srcbuf()
+yl_srcbuf::~yl_srcbuf()
 {
     free( btext );
 }
 
 
 
-size_t xec_srcbuf::size() const
+size_t yl_srcbuf::size() const
 {
     return bsize;
 }
 
-const char* xec_srcbuf::c_str() const
+const char* yl_srcbuf::c_str() const
 {
     return btext ? btext : "";
 }
 
-void xec_srcbuf::printf( const char* format, ... )
+void yl_srcbuf::printf( const char* format, ... )
 {
     va_list arguments;
     va_start( arguments, format );
@@ -44,7 +44,7 @@ void xec_srcbuf::printf( const char* format, ... )
     va_end( arguments );
 }
 
-void xec_srcbuf::vprintf( const char* format, va_list arguments )
+void yl_srcbuf::vprintf( const char* format, va_list arguments )
 {
     // Find length of string to append.
     va_list a;

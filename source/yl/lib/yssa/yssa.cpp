@@ -1,17 +1,17 @@
 //
-//  xssa.cpp
+//  yssa.cpp
 //
 //  Created by Edmund Kapusniak on 11/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "xssa.h"
+#include "yssa.h"
 #include <unordered_map>
 
 
 
-const char* xssa_opname( xssa_opcode opcode )
+const char* yssa_opname( yssa_opcode opcode )
 {
     switch ( opcode )
     {
@@ -104,7 +104,7 @@ const char* xssa_opname( xssa_opcode opcode )
 
 
 
-void xssa_print( xssa_func* func, xssaop* op )
+void yssa_print( yssa_func* func, yssaop* op )
 {
     // Register.
     if ( op->r != (uint8_t)-1 || op->stacktop != (uint8_t)-1 )
@@ -119,7 +119,7 @@ void xssa_print( xssa_func* func, xssaop* op )
     
     
     // Opcode
-    printf( "%-9s", xssa_opname( op->opcode ) );
+    printf( "%-9s", yssa_opname( op->opcode ) );
 
     if ( op->result_count == -1 )
     {
@@ -149,17 +149,17 @@ void xssa_print( xssa_func* func, xssaop* op )
         }
     }
     
-    if ( xssaop::has_multival( op->opcode ) && op->multival )
+    if ( yssaop::has_multival( op->opcode ) && op->multival )
     {
         printf( " :%04X...", op->multival->index );
     }
     
-    if ( xssaop::has_key( op->opcode ) )
+    if ( yssaop::has_key( op->opcode ) )
     {
         printf( " '%s'", op->key );
     }
     
-    if ( xssaop::has_immed( op->opcode ) )
+    if ( yssaop::has_immed( op->opcode ) )
     {
         printf( " %d", op->immed );
     }
@@ -225,51 +225,51 @@ void xssa_print( xssa_func* func, xssaop* op )
 
 
 
-void xssa_print( xssa_module* module )
+void yssa_print( yssa_module* module )
 {
     for ( size_t i = 0; i < module->funcs.size(); ++i )
     {
-        xssa_func* func = module->funcs.at( i ).get();
-        xssa_print( func );
+        yssa_func* func = module->funcs.at( i ).get();
+        yssa_print( func );
     }
 }
 
 
-static void print_ops( xssa_func* func, const std::vector< xssaop* > ops )
+static void print_ops( yssa_func* func, const std::vector< yssaop* > ops )
 {
     for ( size_t i = 0; i < ops.size(); ++i )
     {
     
-        xssaop* op = ops.at( i );
+        yssaop* op = ops.at( i );
         if ( ! op )
         {
             continue;
         }
         
         printf( "%04X ", op->index );
-        xssa_print( func, op );
+        yssa_print( func, op );
 
     }
 }
 
 
-void xssa_print( xssa_func* func )
+void yssa_print( yssa_func* func )
 {
         
     // First, give each op an index.
     int index = 0;
     for ( size_t i = 0; i < func->blocks.size(); ++i )
     {
-        xssa_block* block = func->blocks.at( i ).get();
+        yssa_block* block = func->blocks.at( i ).get();
         for ( size_t i = 0; i < block->phi.size(); ++i )
         {
-            xssaop* op = block->phi.at( i );
+            yssaop* op = block->phi.at( i );
             if ( op )
                 op->index = index++;
         }
         for ( size_t i = 0; i < block->ops.size(); ++i )
         {
-            xssaop* op = block->ops.at( i );
+            yssaop* op = block->ops.at( i );
             if ( op )
                 op->index = index++;
         }
@@ -288,7 +288,7 @@ void xssa_print( xssa_func* func )
     for ( size_t i = 0; i < func->blocks.size(); ++i )
     {
     
-        xssa_block* block = func->blocks.at( i ).get();
+        yssa_block* block = func->blocks.at( i ).get();
         
         printf( "\n" );
         printf( "[%04X]\n", block->index );
@@ -328,7 +328,7 @@ void xssa_print( xssa_func* func )
             printf( "  !" );
             for ( auto i = block->live_in.begin(); i != block->live_in.end(); ++i )
             {
-                xssaop* op = *i;
+                yssaop* op = *i;
                 printf( " :%04X", op->index );
             }
             printf( "\n" );
@@ -342,7 +342,7 @@ void xssa_print( xssa_func* func )
             printf( "  !" );
             for ( auto i = block->live_out.begin(); i != block->live_out.end(); ++i )
             {
-                xssaop* op = *i;
+                yssaop* op = *i;
                 printf( " :%04X", op->index );
             }
             printf( "\n" );

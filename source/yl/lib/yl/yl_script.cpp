@@ -1,36 +1,36 @@
 //
-//  xec_script.cpp
+//  yl_script.cpp
 //
 //  Created by Edmund Kapusniak on 16/03/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "xec_script.h"
+#include "yl_script.h"
 #include <stringf.h>
-#include "xec_parser.h"
+#include "yl_parser.h"
 
 
 
 
-xec_script::xec_script()
+yl_script::yl_script()
 {
 }
 
 
 
-const char* xec_script::get_filename()
+const char* yl_script::get_filename()
 {
     return filename.c_str();
 }
 
-int xec_script::get_line( int sloc )
+int yl_script::get_line( int sloc )
 {
     auto i = std::lower_bound( newlines.begin(), newlines.end(), sloc );
     return (int)( i - newlines.begin() ) + 1;
 }
 
-int xec_script::get_column( int sloc )
+int yl_script::get_column( int sloc )
 {
     int line_start = 0;
     auto i = std::upper_bound( newlines.begin(), newlines.end(), sloc );
@@ -41,7 +41,7 @@ int xec_script::get_column( int sloc )
 
 
 
-void xec_script::error( int sloc, const char* format, ... )
+void yl_script::error( int sloc, const char* format, ... )
 {
     va_list arguments;
     va_list vlist;
@@ -56,19 +56,19 @@ void xec_script::error( int sloc, const char* format, ... )
     va_end( vlist );
 }
 
-size_t xec_script::error_count()
+size_t yl_script::error_count()
 {
     return errors.size();
 }
 
-const char* xec_script::error( size_t index )
+const char* yl_script::error( size_t index )
 {
     return errors.at( index ).c_str();
 }
 
 
 
-xec_ast* xec_script::get_ast()
+yl_ast* yl_script::get_ast()
 {
     return ast.get();
 }

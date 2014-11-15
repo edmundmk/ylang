@@ -1,5 +1,5 @@
 //
-//  xec_script.h
+//  yl_script.h
 //
 //  Created by Edmund Kapusniak on 16/03/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
@@ -18,8 +18,8 @@
 #include <symkey.h>
 
 
-struct xec_ast;
-class xec_srcbuf;
+struct yl_ast;
+class yl_srcbuf;
 class ymodule;
 
 
@@ -37,7 +37,7 @@ class ymodule;
 
 
 
-class xec_script
+class yl_script
 {
 public:
 
@@ -49,15 +49,15 @@ public:
     size_t              error_count();
     const char*         error( size_t index );
 
-    xec_ast*            get_ast();
+    yl_ast*            get_ast();
 
 
 private:
 
-    friend class xec_parser;
-    friend xec_script* xec_parse( const char*, size_t, const char* const* );
+    friend class yl_parser;
+    friend yl_script* yl_parse( const char*, size_t, const char* const* );
 
-    xec_script();
+    yl_script();
     
 
     region                          alloc;
@@ -65,7 +65,7 @@ private:
     std::deque< int >               newlines;
     std::unordered_set< symkey >    identifiers;
     std::deque< std::string >       errors;
-    std::unique_ptr< xec_ast >      ast;
+    std::unique_ptr< yl_ast >      ast;
 
 };
 
@@ -77,7 +77,7 @@ private:
     Parse a script file and generate an AST.
 */
 
-xec_script* xec_parse( const char* path, size_t argc, const char* const* argv );
+yl_script* yl_parse( const char* path, size_t argc, const char* const* argv );
 
 
 
@@ -85,7 +85,7 @@ xec_script* xec_parse( const char* path, size_t argc, const char* const* argv );
     Compile an AST into luajit-compatiable lua.
 */
 
-xec_srcbuf* xec_compile_lj( xec_ast* ast );
+yl_srcbuf* yl_compile_lj( yl_ast* ast );
 
 
 
@@ -93,7 +93,7 @@ xec_srcbuf* xec_compile_lj( xec_ast* ast );
     Compile an AST into a ycode module.
 */
 
-ymodule* xec_compile( xec_ast* ast );
+ymodule* yl_compile( yl_ast* ast );
 
 
 

@@ -1,14 +1,14 @@
 //
-//  xssa_regalloc.cpp
+//  yssa_regalloc.cpp
 //
 //  Created by Edmund Kapusniak on 12/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "xssa_regalloc.h"
-#include "xssa_linear.h"
-#include "xssa.h"
+#include "yssa_regalloc.h"
+#include "yssa_linear.h"
+#include "yssa.h"
 
 
 
@@ -16,13 +16,13 @@
     Check if the live ranges of two ops overlap.
 */
 
-static bool interfere( xssa_linear* l, xssaop* a, xssaop* b )
+static bool interfere( yssa_linear* l, yssaop* a, yssaop* b )
 {
     // Find linear ops for a and b.
     int aindex = a->index;
     int bindex = b->index;
-    xssalop* alop = &l->lops[ aindex ];
-    xssalop* blop = &l->lops[ bindex ];
+    yssalop* alop = &l->lops[ aindex ];
+    yssalop* blop = &l->lops[ bindex ];
     assert( alop->kind == XSSA_LOP_OP && alop->op == a );
     assert( blop->kind == XSSA_LOP_OP && blop->op == b );
 
@@ -103,7 +103,7 @@ static bool interfere( xssa_linear* l, xssaop* a, xssaop* b )
 */
 
 
-static void phi_equivalence( xssa_linear* l, xssaop* a, xssaop* b )
+static void phi_equivalence( yssa_linear* l, yssaop* a, yssaop* b )
 {
     // Can't merge ops if they interfere.
     if ( interfere( l, a, b ) )
@@ -115,8 +115,8 @@ static void phi_equivalence( xssa_linear* l, xssaop* a, xssaop* b )
     // Find linear ops for a and b.
     int aindex = a->index;
     int bindex = b->index;
-    xssalop* alop = &l->lops[ aindex ];
-    xssalop* blop = &l->lops[ bindex ];
+    yssalop* alop = &l->lops[ aindex ];
+    yssalop* blop = &l->lops[ bindex ];
     assert( alop->kind == XSSA_LOP_OP && alop->op == a );
     assert( blop->kind == XSSA_LOP_OP && blop->op == b );
 
@@ -198,15 +198,15 @@ static void phi_equivalence( xssa_linear* l, xssaop* a, xssaop* b )
 
 
 
-static void phi_equivalence( xssa_linear* l )
+static void phi_equivalence( yssa_linear* l )
 {
 
     for ( size_t i = 0; i < l->lops.size(); ++i )
     {
-        xssalop& lop = l->lops.at( i );
+        yssalop& lop = l->lops.at( i );
         if ( lop.kind == XSSA_LOP_OP && lop.op->opcode == XSSA_PHI )
         {
-            xssaop* phi = lop.op;
+            yssaop* phi = lop.op;
         
             // Attempt to merge the live ranges of this phi operation and
             // each of its operands.  Start with the last operand, as this
@@ -246,11 +246,11 @@ static void phi_equivalence( xssa_linear* l )
 */
 
 
-struct xssa_revlist;
-struct xssarev;
+struct yssa_revlist;
+struct yssarev;
 
 
-enum xssa_revkind
+enum yssa_revkind
 {
     XSSA_REV_LIVE,
     XSSA_REV_DEAD,
@@ -260,18 +260,18 @@ enum xssa_revkind
 };
 
 
-struct xssa_revlist
+struct yssa_revlist
 {
-    xssa_linear* l;
-    std::vector< xssarev > revs;
+    yssa_linear* l;
+    std::vector< yssarev > revs;
 };
 
 
-struct xssarev
+struct yssarev
 {
-    xssarev( xssa_revkind kind, int head, int value, int at );
+    yssarev( yssa_revkind kind, int head, int value, int at );
 
-    xssa_revkind    kind;       // event kind.
+    yssa_revkind    kind;       // event kind.
     int             head;       // address of head of live span of value.
     int             value;      // value that is live or dead.
     int             at;         // address of event in linear.
@@ -279,7 +279,7 @@ struct xssarev
 
 
 
-xssarev::xssarev( xssa_revkind kind, int head, int value, int at )
+yssarev::yssarev( yssa_revkind kind, int head, int value, int at )
     :   kind( kind )
     ,   head( head )
     ,   value( value )
@@ -290,7 +290,7 @@ xssarev::xssarev( xssa_revkind kind, int head, int value, int at )
 
 
 
-static bool has_stack_args( xssa_opcode opcode )
+static bool has_stack_args( yssa_opcode opcode )
 {
     return opcode == XSSA_EXTEND
         || opcode == XSSA_CALL
@@ -302,7 +302,7 @@ static bool has_stack_args( xssa_opcode opcode )
 
 
 
-static bool is_stack( xssaop* op )
+static bool is_stack( yssaop* op )
 {
     return op->result_count == -1
         || op->result_count > ( op->opcode != XSSA_NEXT ? 1 : 2 )
@@ -312,7 +312,7 @@ static bool is_stack( xssaop* op )
 
 
 
-static void build_revlist( xssa_revlist* v, xssa_linear* l )
+static void build_revlist( yssa_revlist* v, yssa_linear* l )
 {
     v->l = l;
     
@@ -323,7 +323,7 @@ static void build_revlist( xssa_revlist* v, xssa_linear* l )
     for ( size_t i = 0; i < l->lops.size(); ++i )
     {
     
-    xssalop* lop = &l->lops.at( i );
+    yssalop* lop = &l->lops.at( i );
     int index = (int)i;
     
     
@@ -383,7 +383,7 @@ static void build_revlist( xssa_revlist* v, xssa_linear* l )
         // REFUPs are inline.
         if ( lop->op->opcode == XSSA_REFUP )
         {
-            xssalop* close = &l->lops.at( lop->live_until );
+            yssalop* close = &l->lops.at( lop->live_until );
             if ( close->kind == XSSA_LOP_OP
                     && close->op->opcode == XSSA_CLOSURE
                     && close->op->operand_count
@@ -397,7 +397,7 @@ static void build_revlist( xssa_revlist* v, xssa_linear* l )
         bool selected = true;
         for ( size_t i = index; i < l->lops.size(); ++i )
         {
-            xssalop* sel = &l->lops.at( i );
+            yssalop* sel = &l->lops.at( i );
             if ( sel->kind != XSSA_LOP_OP || sel->op->opcode != XSSA_SELECT )
             {
                 selected = false;
@@ -458,24 +458,24 @@ static void build_revlist( xssa_revlist* v, xssa_linear* l )
 */
 
 
-struct xssa_regasleep
+struct yssa_regasleep
 {
-    xssaop*         value;
-    xssa_regasleep* prev;
+    yssaop*         value;
+    yssa_regasleep* prev;
 };
 
 
-struct xssa_regstate
+struct yssa_regstate
 {
-    xssa_revlist*                   v;
-    std::vector< xssaop* >          r;
-    std::vector< xssa_regasleep* >  asleep;
+    yssa_revlist*                   v;
+    std::vector< yssaop* >          r;
+    std::vector< yssa_regasleep* >  asleep;
 };
 
 
 
 
-static void ensure_reg( xssa_regstate* reg, int r )
+static void ensure_reg( yssa_regstate* reg, int r )
 {
     if ( reg->r.size() <= r )
     {
@@ -490,7 +490,7 @@ static void ensure_reg( xssa_regstate* reg, int r )
 
 
 
-static bool check_reg( xssa_regstate* reg, int r, xssaop* op )
+static bool check_reg( yssa_regstate* reg, int r, yssaop* op )
 {
     ensure_reg( reg, r );
     
@@ -504,7 +504,7 @@ static bool check_reg( xssa_regstate* reg, int r, xssaop* op )
     
     // Can't allocate into a register where sleeping values interfere with
     // the incoming value.
-    for ( xssa_regasleep* asleep = reg->asleep[ r ];
+    for ( yssa_regasleep* asleep = reg->asleep[ r ];
                     asleep != nullptr; asleep = asleep->prev )
     {
         if ( interfere( reg->v->l, asleep->value, op ) )
@@ -519,7 +519,7 @@ static bool check_reg( xssa_regstate* reg, int r, xssaop* op )
 
 
 
-static int check_stack_argument( xssaop* stack, xssaop* arg )
+static int check_stack_argument( yssaop* stack, yssaop* arg )
 {
     // Check if the op is an argument to a stack instruction, and if so
     // which register does it need to end up in.
@@ -539,7 +539,7 @@ static int check_stack_argument( xssaop* stack, xssaop* arg )
         }
     }
     
-    if ( xssaop::has_multival( stack->opcode ) && stack->multival == arg )
+    if ( yssaop::has_multival( stack->opcode ) && stack->multival == arg )
     {
         return stack->stacktop + stack->operand_count;
     }
@@ -550,12 +550,12 @@ static int check_stack_argument( xssaop* stack, xssaop* arg )
 
 
 
-static void linear_scan( xssa_revlist* v )
+static void linear_scan( yssa_revlist* v )
 {
     // Clear all register information.
     for ( size_t i = 0; i < v->l->lops.size(); ++i )
     {
-        xssalop* lop = &v->l->lops.at( i );
+        yssalop* lop = &v->l->lops.at( i );
         if ( lop->kind == XSSA_LOP_OP )
         {
             lop->op->r = -1;
@@ -567,7 +567,7 @@ static void linear_scan( xssa_revlist* v )
     // Each register can be free, or it can be allocated.  Values which are
     // asleep are pushed into a per-register stack.
 
-    xssa_regstate reg;
+    yssa_regstate reg;
     reg.v = v;
 
 
@@ -579,8 +579,8 @@ static void linear_scan( xssa_revlist* v )
     {
     
     
-    xssarev* rev = &v->revs.at( i );
-    xssalop* value = &v->l->lops.at( rev->value );
+    yssarev* rev = &v->revs.at( i );
+    yssalop* value = &v->l->lops.at( rev->value );
     assert( value->kind == XSSA_LOP_OP );
 
 
@@ -605,8 +605,8 @@ static void linear_scan( xssa_revlist* v )
     
     
     // Otherwise its a liveness event.
-    xssalop* head = &v->l->lops.at( rev->head );
-    xssalop* at = &v->l->lops.at( rev->at );
+    yssalop* head = &v->l->lops.at( rev->head );
+    yssalop* at = &v->l->lops.at( rev->at );
 
     assert( head->kind == XSSA_LOP_OP );
     assert( head->live_head == rev->head );
@@ -668,7 +668,7 @@ static void linear_scan( xssa_revlist* v )
         // And assign to op.
         for ( int index = rev->head; index != -1; )
         {
-            xssalop* lop = &v->l->lops.at( index );
+            yssalop* lop = &v->l->lops.at( index );
             assert( lop->kind == XSSA_LOP_OP || lop->kind == XSSA_LOP_LIVE );
             assert( lop->live_head == rev->head );
             lop->op->r = r;
@@ -687,7 +687,7 @@ static void linear_scan( xssa_revlist* v )
         assert( reg.r[ r ] == value->op );
 
         // No longer live but sleeping.
-        xssa_regasleep* asleep = new xssa_regasleep();
+        yssa_regasleep* asleep = new yssa_regasleep();
         asleep->value = value->op;
         asleep->prev = reg.asleep[ r ];
         reg.asleep[ r ] = asleep;
@@ -705,8 +705,8 @@ static void linear_scan( xssa_revlist* v )
         assert( reg.r[ r ] == nullptr );
     
         // No longer sleeping but live.
-        xssa_regasleep* asleep = reg.asleep[ r ];
-        xssalop* wake = &v->l->lops.at( asleep->value->index );
+        yssa_regasleep* asleep = reg.asleep[ r ];
+        yssalop* wake = &v->l->lops.at( asleep->value->index );
         assert( wake->live_head == rev->head );
         reg.r[ r ] = value->op;
         reg.asleep[ r ] = asleep->prev;
@@ -761,12 +761,12 @@ static void linear_scan( xssa_revlist* v )
 
 
 
-void xssa_print( xssa_revlist* v )
+void yssa_print( yssa_revlist* v )
 {
     for ( size_t i = 0; i < v->revs.size(); ++i )
     {
     
-        xssarev* rev = &v->revs.at( i );
+        yssarev* rev = &v->revs.at( i );
         
         printf( "%04X ", (int)i );
         
@@ -803,12 +803,12 @@ void xssa_print( xssa_revlist* v )
 
 
 
-void xssa_regalloc( xssa_linear* l )
+void yssa_regalloc( yssa_linear* l )
 {
     // Number all ops.
     for ( size_t i = 0; i < l->lops.size(); ++i )
     {
-        xssalop& lop = l->lops.at( i );
+        yssalop& lop = l->lops.at( i );
         if ( lop.kind == XSSA_LOP_OP )
             lop.op->index = (int)i;
     }
@@ -816,13 +816,13 @@ void xssa_regalloc( xssa_linear* l )
 
     // Attempt as much phi equivalence as possible.
     phi_equivalence( l );
-//    xssa_print( l );
+//    yssa_print( l );
     
     
     // Perform forward scan and generate live/sleep/wake/dead events.
-    xssa_revlist revlist;
+    yssa_revlist revlist;
     build_revlist( &revlist, l );
-//    xssa_print( &revlist );
+//    yssa_print( &revlist );
     
     
     // Perform actual register allocation by scanning event buffer in reverse.

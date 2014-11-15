@@ -1,5 +1,5 @@
 //
-//  xec_token.h
+//  yl_token.h
 //
 //  Created by Edmund Kapusniak on 14/03/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
@@ -16,11 +16,11 @@
 #include <assert.h>
 
 
-enum xec_token_kind
+enum yl_token_kind
 {
     XEC_TOKEN_EOF           = 0,
     
-#include "xec_parser_lemon.h"
+#include "yl_parser_lemon.h"
 
     XEC_KEYWORD_BREAK       = LEMON_BREAK,
     XEC_KEYWORD_CASE        = LEMON_CASE,
@@ -209,14 +209,14 @@ enum xec_token_kind
 
 
 
-struct xec_token
+struct yl_token
 {
-    xec_token( xec_token_kind kind, int sloc, const char* text, size_t size );
+    yl_token( yl_token_kind kind, int sloc, const char* text, size_t size );
 
     std::string     get_spelling();
     void            debug_print();
 
-    xec_token_kind  kind;
+    yl_token_kind  kind;
     int             sloc;
     const char*     text;
     size_t          size;
@@ -224,8 +224,8 @@ struct xec_token
 
 
 
-inline xec_token::xec_token(
-            xec_token_kind kind, int sloc, const char* text, size_t size )
+inline yl_token::yl_token(
+            yl_token_kind kind, int sloc, const char* text, size_t size )
     :   kind( kind )
     ,   sloc( sloc )
     ,   text( text )

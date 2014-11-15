@@ -8,14 +8,14 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <xec/parser/xec_script.h>
-#include <xec/parser/xec_ast.h>
-#include <xec/parser/xec_srcbuf.h>
-#include <xec/ymodel/ymodel.h>
-#include <xec/ymodel/yarray.h>
-#include <xec/ymodel/ymodule.h>
-#include <xec/ymodel/ythunk.h>
-#include <xec/ymodel/yfunction.h>
+#include <yl/yl_script.h>
+#include <yl/yl_ast.h>
+#include <yl/yl_srcbuf.h>
+#include <ymodel/ymodel.h>
+#include <ymodel/yarray.h>
+#include <ymodel/ymodule.h>
+#include <ymodel/ythunk.h>
+#include <ymodel/yfunction.h>
 
 
 
@@ -68,7 +68,7 @@ void y_max( yframe& frame )
 int main( int argc, char* argv[] )
 {
     const char* sargv[] = { "argv0", "..." };
-    std::unique_ptr< xec_script > script( xec_parse( argv[ 1 ], 2, sargv ) );
+    std::unique_ptr< yl_script > script( yl_parse( argv[ 1 ], 2, sargv ) );
     if ( script->error_count() )
     {
         for ( size_t i = 0; i < script->error_count(); ++i )
@@ -79,12 +79,8 @@ int main( int argc, char* argv[] )
     }
 
 
-    yvalue y( 1 );
-    yvalue m( nullptr );
-
-
 /*
-    std::unique_ptr< xec_srcbuf > srcbuf( xec_compile_lj( script->get_ast() ) );
+    std::unique_ptr< yl_srcbuf > srcbuf( yl_compile_lj( script->get_ast() ) );
     if ( srcbuf )
     {
         printf( "%s", srcbuf->c_str() );
@@ -94,7 +90,7 @@ int main( int argc, char* argv[] )
     ymodel model;
     yscope scope( &model );
     
-    ymodule* module = xec_compile( script->get_ast() );
+    ymodule* module = yl_compile( script->get_ast() );
     if ( ! module )
     {
         return EXIT_FAILURE;

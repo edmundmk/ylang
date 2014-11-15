@@ -1,18 +1,18 @@
 //
-//  xssa_linear.cpp
+//  yssa_linear.cpp
 //
 //  Created by Edmund Kapusniak on 12/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "xssa_linear.h"
-#include "xssa.h"
+#include "yssa_linear.h"
+#include "yssa.h"
 
 
 
 
-xssalop::xssalop( xssa_lopkind kind, xssa_block* block )
+yssalop::yssalop( yssa_lopkind kind, yssa_block* block )
     :   live_head( -1 )
     ,   live_next( -1 )
     ,   live_until( -1 )
@@ -21,7 +21,7 @@ xssalop::xssalop( xssa_lopkind kind, xssa_block* block )
 {
 }
 
-xssalop::xssalop( xssa_lopkind kind, xssaop* op )
+yssalop::yssalop( yssa_lopkind kind, yssaop* op )
     :   live_head( -1 )
     ,   live_next( -1 )
     ,   live_until( -1 )
@@ -36,7 +36,7 @@ xssalop::xssalop( xssa_lopkind kind, xssaop* op )
     Ops that have side effects.
 */
 
-static bool is_action( xssa_opcode opcode )
+static bool is_action( yssa_opcode opcode )
 {
     return opcode == XSSA_SETKEY
         || opcode == XSSA_SETINKEY
@@ -66,28 +66,28 @@ static bool is_action( xssa_opcode opcode )
     Build linear liveness spans.
 */
 
-void xssa_build_linear( xssa_linear* linear, xssa_func* func )
+void yssa_build_linear( yssa_linear* linear, yssa_func* func )
 {
     linear->func = func;
     
     
     // Track liveness.
-    std::unordered_map< xssaop*, int > prev;
-    std::unordered_map< xssaop*, int > open;
+    std::unordered_map< yssaop*, int > prev;
+    std::unordered_map< yssaop*, int > open;
     
     
     // Assume that func is in depth-first order and has liveness information.
     for ( size_t i = 0; i < func->blocks.size(); ++i )
     {
     
-    xssa_block* block = func->blocks.at( i ).get();
+    yssa_block* block = func->blocks.at( i ).get();
     
 
     
     
     // Find last occurrence of each operand in the block.  Remember that
     // emplace will not overwrite an existing entry in the map.
-    std::unordered_map< xssaop*, xssaop* > last;
+    std::unordered_map< yssaop*, yssaop* > last;
     
     for ( auto i = block->live_out.begin(); i != block->live_out.end(); ++i )
     {
@@ -96,7 +96,7 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
 
     for ( int i = (int)block->ops.size() - 1; i >= 0; --i )
     {
-        xssaop* op = block->ops.at( i );
+        yssaop* op = block->ops.at( i );
         if ( ! op )
             continue;
         
@@ -108,7 +108,7 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
             }
         }
         
-        if ( xssaop::has_multival( op->opcode ) && op->multival )
+        if ( yssaop::has_multival( op->opcode ) && op->multival )
         {
             last.emplace( op->multival, op );
         }
@@ -117,7 +117,7 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
     
     
     // Invert map.
-    std::unordered_multimap< xssaop*, xssaop* > diesat;
+    std::unordered_multimap< yssaop*, yssaop* > diesat;
     for ( auto i = last.begin(); i != last.end(); ++i )
     {
         if ( i->second )
@@ -134,7 +134,7 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
     // Add phi ops.
     for ( size_t i = 0; i < block->phi.size(); ++i )
     {
-        xssaop* op = block->phi.at( i );
+        yssaop* op = block->phi.at( i );
         if ( ! op )
             continue;
     
@@ -144,7 +144,7 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
         // Add op.
         int index = (int)linear->lops.size();
         linear->lops.emplace_back( XSSA_LOP_OP, op );
-        xssalop& lop = linear->lops.back();
+        yssalop& lop = linear->lops.back();
     
     
         // A phi op should come before all of its references, even with loops.
@@ -160,7 +160,7 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
     // Add live spans for each op which is now live due to the block opening.
     for ( auto i = block->live_in.begin(); i != block->live_in.end(); ++i )
     {
-        xssaop* op = *i;
+        yssaop* op = *i;
         if ( ! op )
             continue;
         
@@ -169,14 +169,14 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
             // Add new span.
             int index = (int)linear->lops.size();
             linear->lops.emplace_back( XSSA_LOP_LIVE, op );
-            xssalop& lop = linear->lops.back();
+            yssalop& lop = linear->lops.back();
 
 
             // If there was a previous span for this op, link to it.
             auto i = prev.find( op );
             if ( i != prev.end() )
             {
-                xssalop& prev_lop = linear->lops.at( i->second );
+                yssalop& prev_lop = linear->lops.at( i->second );
                 lop.live_head = prev_lop.live_head;
                 prev_lop.live_next = index;
             }
@@ -196,7 +196,7 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
     // Go through each op.
     for ( size_t i = 0; i < block->ops.size(); ++i )
     {
-        xssaop* op = block->ops.at( i );
+        yssaop* op = block->ops.at( i );
         if ( ! op )
             continue;
         
@@ -206,7 +206,7 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
         for ( auto i = ii.first; i != ii.second; ++i )
         {
             int open_index = open.at( i->second );
-            xssalop& open_lop = linear->lops.at( open_index );
+            yssalop& open_lop = linear->lops.at( open_index );
             open_lop.live_until = (int)linear->lops.size();
             open.erase( i->second );
         }
@@ -217,7 +217,7 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
             // Add op.
             int index = (int)linear->lops.size();
             linear->lops.emplace_back( XSSA_LOP_OP, op );
-            xssalop& lop = linear->lops.back();
+            yssalop& lop = linear->lops.back();
             
             // An op should come before all its references, since the CFG
             // is reducible and there are no undefined variables.
@@ -245,14 +245,14 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
     
     
     // Close all open live spans which are not live at the head of next block.
-    xssa_block* next = nullptr;
+    yssa_block* next = nullptr;
     if ( i + 1 < func->blocks.size() )
         next = func->blocks.at( i + 1 ).get();
         
     for ( auto i = open.begin(); i != open.end(); )
     {
-        xssaop* op = i->first;
-        xssalop& lop = linear->lops.at( i->second );
+        yssaop* op = i->first;
+        yssalop& lop = linear->lops.at( i->second );
         
         if ( ! next || next->live_in.find( op ) == next->live_in.end() )
         {
@@ -280,7 +280,7 @@ void xssa_build_linear( xssa_linear* linear, xssa_func* func )
 }
 
 
-static void print_liveness( xssalop* lop )
+static void print_liveness( yssalop* lop )
 {
     if ( lop->live_head >= 0 )
         printf( "|%04X", lop->live_head );
@@ -299,19 +299,19 @@ static void print_liveness( xssalop* lop )
 }
 
 
-void xssa_print( xssa_linear* linear )
+void yssa_print( yssa_linear* linear )
 {
     // Number all ops.
     for ( size_t i = 0; i < linear->lops.size(); ++i )
     {
-        xssalop& lop = linear->lops.at( i );
+        yssalop& lop = linear->lops.at( i );
         if ( lop.kind == XSSA_LOP_OP )
             lop.op->index = (int)i;
     }
     
     
     // Write out.
-    xssa_func* func = linear->func;
+    yssa_func* func = linear->func;
     printf( "function %p %s\n", func, func->funcname );
     printf( "    upvalcount : %d\n", func->upvalcount );
     printf( "    newupcount : %d\n", func->newupcount );
@@ -322,7 +322,7 @@ void xssa_print( xssa_linear* linear )
     
     for ( size_t i = 0; i < linear->lops.size(); ++i )
     {
-        xssalop& lop = linear->lops.at( i );
+        yssalop& lop = linear->lops.at( i );
         
         printf( "%04X ", (int)i );
 
@@ -365,7 +365,7 @@ void xssa_print( xssa_linear* linear )
         {
             print_liveness( &lop );
             printf( " " );
-            xssa_print( linear->func, lop.op );
+            yssa_print( linear->func, lop.op );
             break;
         }
         }

@@ -1,5 +1,5 @@
 //
-//  xssa_builder.h
+//  yssa_builder.h
 //
 //  Created by Edmund Kapusniak on 08/07/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
@@ -10,26 +10,26 @@
 #define XSSA_BUILDER_H
 
 
-#include "xssa_astvisitors.h"
-#include "xssa.h"
+#include "yssa_astvisitors.h"
+#include "yssa.h"
 #include <vector>
 #include <utility>
 #include <symkey.h>
 
 
-struct xec_ast;
-struct xec_ast_name;
-struct xec_ast_scope;
-struct xec_ast_node;
-struct xec_ast_func;
-struct xec_new_object;
-struct xssa_follow;
-struct xssa_build_func;
-struct xssa_build_block;
+struct yl_ast;
+struct yl_ast_name;
+struct yl_ast_scope;
+struct yl_ast_node;
+struct yl_ast_func;
+struct yl_new_object;
+struct yssa_follow;
+struct yssa_build_func;
+struct yssa_build_block;
 
 
-typedef std::unique_ptr< xssa_build_func > xssa_build_func_p;
-typedef std::unique_ptr< xssa_build_block > xssa_build_block_p;
+typedef std::unique_ptr< yssa_build_func > yssa_build_func_p;
+typedef std::unique_ptr< yssa_build_block > yssa_build_block_p;
 
 
 
@@ -37,17 +37,17 @@ typedef std::unique_ptr< xssa_build_block > xssa_build_block_p;
     An lvalue is not completely evaluated as it must be assigned to.
 */
 
-struct xssa_lvalue
+struct yssa_lvalue
 {
-    xssa_lvalue();
+    yssa_lvalue();
 
     int             sloc;
-    xssa_opcode     opcode;
-    xssaop*         object;
+    yssa_opcode     opcode;
+    yssaop*         object;
     union
     {
-    xssaop*         index;
-    xec_ast_name*   local;
+    yssaop*         index;
+    yl_ast_name*   local;
     const char*     key;
     int             upval;
     };
@@ -59,12 +59,12 @@ struct xssa_lvalue
     A list of unpacked values.
 */
 
-struct xssa_valist
+struct yssa_valist
 {
-    xssa_valist();
+    yssa_valist();
 
-    std::vector< xssaop* > values;
-    xssaop*         multival;
+    std::vector< yssaop* > values;
+    yssaop*         multival;
 };
 
 
@@ -75,37 +75,37 @@ struct xssa_valist
     Traverse an AST and build SSA form IR from it.
 */
 
-class xssa_builder
+class yssa_builder
 {
 public:
 
-    explicit xssa_builder( xssa_module* module );
-    ~xssa_builder();
+    explicit yssa_builder( yssa_module* module );
+    ~yssa_builder();
     
-    bool            build( xec_ast* ast );
+    bool            build( yl_ast* ast );
 
-    template < typename ... arguments_t > xssaop* op( arguments_t&& ... arguments );
-    xssaop*         op( xssaop* op );
+    template < typename ... arguments_t > yssaop* op( arguments_t&& ... arguments );
+    yssaop*         op( yssaop* op );
 
     const char*     key( const char* key );
 
-    void            define( xec_ast_name* name, xssaop* value );
-    void            define( xec_new_object* object, xssaop* value );
-    void            define( xec_ast_node* temporary, xssaop* value );
+    void            define( yl_ast_name* name, yssaop* value );
+    void            define( yl_new_object* object, yssaop* value );
+    void            define( yl_ast_node* temporary, yssaop* value );
     
-    xssaop*         lookup( int sloc, xec_ast_name* name );
-    xssaop*         lookup( xec_new_object* object );
-    xssaop*         lookup( xec_ast_node* temporary );
+    yssaop*         lookup( int sloc, yl_ast_name* name );
+    yssaop*         lookup( yl_new_object* object );
+    yssaop*         lookup( yl_ast_node* temporary );
     
-    void            close_scope( xec_ast_scope* scope );
+    void            close_scope( yl_ast_scope* scope );
     
-    void            ifthen( xssaop* condition );
+    void            ifthen( yssaop* condition );
     void            ifelse();
     void            ifend();
     
-    void            switchopen( xssaop* value );
+    void            switchopen( yssaop* value );
     void            switchcase();
-    void            switchcase( xssaop* value );
+    void            switchcase( yssaop* value );
     void            switchbreak();
     void            switchend();
     
@@ -117,54 +117,54 @@ public:
     
     void            funcreturn();
 
-    xssa_func*      func( xec_ast_func* func );
-    xssaop*         expr( xec_ast_node* node );
-    void            unpack( xssa_valist* l, xec_ast_node* node, int count );
+    yssa_func*      func( yl_ast_func* func );
+    yssaop*         expr( yl_ast_node* node );
+    void            unpack( yssa_valist* l, yl_ast_node* node, int count );
     
-    void            lvalue( xssa_lvalue* lvalue, xec_ast_node* node );
-    xssaop*         lvalue_value( xssa_lvalue* lvalue );
-    void            lvalue_assign( xssa_lvalue* lvalue, xssaop* val );
+    void            lvalue( yssa_lvalue* lvalue, yl_ast_node* node );
+    yssaop*         lvalue_value( yssa_lvalue* lvalue );
+    void            lvalue_assign( yssa_lvalue* lvalue, yssaop* val );
     
     
 private:
 
-    void            build_function( xec_ast_func* astf, xssa_func* ssaf );
+    void            build_function( yl_ast_func* astf, yssa_func* ssaf );
 
-    xssa_build_block* make_block();
-    void            link( xssa_follow* follow, xssa_build_block* block );
+    yssa_build_block* make_block();
+    void            link( yssa_follow* follow, yssa_build_block* block );
     bool            follow_block();
 
-    void            define_name( void* name, xssaop* value );
-    xssaop*         lookup_name( void* name, int sloc, const char* text );
+    void            define_name( void* name, yssaop* value );
+    yssaop*         lookup_name( void* name, int sloc, const char* text );
 
-    xssaop*         lookup_block( xssa_build_block* loop,
-                            xssa_build_block* block, void* name );
-    void            seal_block( xssa_build_block* block );
-    xssaop*         lookup_join( xssa_build_block* loop,
-                            xssa_build_block* block, void* name,
-                                    std::vector< xssaop* >* lookups );
-    xssaop*         ensure_phi( xssa_build_block* block );
+    yssaop*         lookup_block( yssa_build_block* loop,
+                            yssa_build_block* block, void* name );
+    void            seal_block( yssa_build_block* block );
+    yssaop*         lookup_join( yssa_build_block* loop,
+                            yssa_build_block* block, void* name,
+                                    std::vector< yssaop* >* lookups );
+    yssaop*         ensure_phi( yssa_build_block* block );
     
-    void            remove_ref( xssa_block* block );
-    xssaop*         remove_ref( xssaop* op );
+    void            remove_ref( yssa_block* block );
+    yssaop*         remove_ref( yssaop* op );
     
 
-    xssa_module*        module;
-    xssa_build_expr     build_expr;
-    xssa_build_unpack   build_unpack;
-    xssa_build_stmt     build_stmt;
+    yssa_module*        module;
+    yssa_build_expr     build_expr;
+    yssa_build_unpack   build_unpack;
+    yssa_build_stmt     build_stmt;
     std::unordered_map< symkey, const char* > keymap;
-    std::unordered_map< xec_ast_func*, xssa_func* > funcmap;
-    std::unordered_map< xec_ast_name*, xssa_string* > namemap;
-    xssa_build_func_p   b;
+    std::unordered_map< yl_ast_func*, yssa_func* > funcmap;
+    std::unordered_map< yl_ast_name*, yssa_string* > namemap;
+    yssa_build_func_p   b;
 
 };
 
 
 template < typename ... arguments_t >
-xssaop* xssa_builder::op( arguments_t&& ... arguments )
+yssaop* yssa_builder::op( arguments_t&& ... arguments )
 {
-    return op( xssaop::op( std::forward< arguments_t >( arguments ) ... ) );
+    return op( yssaop::op( std::forward< arguments_t >( arguments ) ... ) );
 }
 
 

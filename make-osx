@@ -13,15 +13,15 @@ sed -i '' 's|xob_parser_lemon\.c|../../toolbox/source/xob/lib/xob_parser_lemon.c
 
 cd ../../..
 
-cd source/xec/lib/parser
+cd source/yl/lib/yl
 
-ragel -o xec_parser_ragel.cpp xec_parser_ragel.rl
-sed -i '' 's|xec_parser_ragel\.rl|../../toolbox/source/xec/lib/parser/xec_parser_ragel.rl|g' xec_parser_ragel.cpp
+ragel -o yl_parser_ragel.cpp yl_parser_ragel.rl
+sed -i '' 's|yl_parser_ragel\.rl|../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl|g' yl_parser_ragel.cpp
 
-lemon xec_parser_lemon.y
-mv xec_parser_lemon.c xec_parser_lemon.cpp
-sed -i '' 's|xec_parser_lemon\.y|../../toolbox/source/xec/lib/parser/xec_parser_lemon.y|g' xec_parser_lemon.cpp
-sed -i '' 's|xec_parser_lemon\.c|../../toolbox/source/xec/lib/parser/xec_parser_lemon.cpp|g' xec_parser_lemon.cpp
+lemon yl_parser_lemon.y
+mv yl_parser_lemon.c yl_parser_lemon.cpp
+sed -i '' 's|yl_parser_lemon\.y|../../toolbox/source/yl/lib/parser/yl_parser_lemon.y|g' yl_parser_lemon.cpp
+sed -i '' 's|yl_parser_lemon\.c|../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp|g' yl_parser_lemon.cpp
 
 cd ../../../..
 

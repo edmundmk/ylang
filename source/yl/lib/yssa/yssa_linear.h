@@ -1,5 +1,5 @@
 //
-//  xssa_linear.h
+//  yssa_linear.h
 //
 //  Created by Edmund Kapusniak on 12/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
@@ -14,10 +14,10 @@
 #include <memory>
 
 
-struct xssaop;
-struct xssa_func;
-struct xssa_block;
-struct xssalop;
+struct yssaop;
+struct yssa_func;
+struct yssa_block;
+struct yssalop;
 
 
 
@@ -27,14 +27,14 @@ struct xssalop;
 */
 
 
-struct xssa_linear
+struct yssa_linear
 {
-    xssa_func*              func;
-    std::vector< xssalop >  lops;
+    yssa_func*              func;
+    std::vector< yssalop >  lops;
 };
 
 
-enum xssa_lopkind : int
+enum yssa_lopkind : int
 {
     XSSA_LOP_BEGIN,                 // start of block.
     XSSA_LOP_END,                   // end of block.
@@ -43,22 +43,22 @@ enum xssa_lopkind : int
 };
 
 
-struct xssalop
+struct yssalop
 {
-    xssalop( xssa_lopkind kind, xssa_block* block );
-    xssalop( xssa_lopkind kind, xssaop* op );
+    yssalop( yssa_lopkind kind, yssa_block* block );
+    yssalop( yssa_lopkind kind, yssaop* op );
 
 
     int             live_head;      // index of op at the head of live chain.
     int             live_next;      // next op in live chain.
     int             live_until;     // op where this span dies.
 
-    xssa_lopkind    kind;
+    yssa_lopkind    kind;
     
     union
     {
-    xssa_block*     block;
-    xssaop*         op;
+    yssa_block*     block;
+    yssaop*         op;
     };
 
 };
@@ -66,8 +66,8 @@ struct xssalop
 
 
 
-void xssa_build_linear( xssa_linear* linear, xssa_func* func );
-void xssa_print( xssa_linear* linear );
+void yssa_build_linear( yssa_linear* linear, yssa_func* func );
+void yssa_print( yssa_linear* linear );
 
 
 

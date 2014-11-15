@@ -1,5 +1,5 @@
 //
-//  xssa_astvisitors.h
+//  yssa_astvisitors.h
 //
 //  Created by Edmund Kapusniak on 10/08/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
@@ -10,12 +10,12 @@
 #define XSSA_ASTVISITORS_H
 
 
-#include "xec_ast_visitor.h"
-#include "xssa.h"
+#include "yl_ast_visitor.h"
+#include "yssa.h"
 
 
-class xssa_builder;
-struct xssa_valist;
+class yssa_builder;
+struct yssa_valist;
 
 
 
@@ -23,53 +23,53 @@ struct xssa_valist;
     Visit AST expression nodes and generate a single value from them.
 */
 
-class xssa_build_expr
-    :   public xec_ast_visitor< xssa_build_expr, xssaop* >
+class yssa_build_expr
+    :   public yl_ast_visitor< yssa_build_expr, yssaop* >
 {
 public:
 
-    explicit xssa_build_expr( xssa_builder* b );
+    explicit yssa_build_expr( yssa_builder* b );
 
-    using xec_ast_visitor< xssa_build_expr, xssaop* >::visit;
+    using yl_ast_visitor< yssa_build_expr, yssaop* >::visit;
 
-    xssaop* fallback( xec_ast_node* node );
+    yssaop* fallback( yl_ast_node* node );
     
-    xssaop* visit( xec_ast_func* node );
-    xssaop* visit( xec_expr_null* node );
-    xssaop* visit( xec_expr_bool* node );
-    xssaop* visit( xec_expr_number* node );
-    xssaop* visit( xec_expr_string* node );
-    xssaop* visit( xec_expr_local* node );
-    xssaop* visit( xec_expr_global* node );
-    xssaop* visit( xec_expr_upref* node );
-    xssaop* visit( xec_expr_objref* node );
-    xssaop* visit( xec_expr_key* node );
-    xssaop* visit( xec_expr_inkey* node );
-    xssaop* visit( xec_expr_index* node );
-    xssaop* visit( xec_expr_preop* node );
-    xssaop* visit( xec_expr_postop* node );
-    xssaop* visit( xec_expr_unary* node );
-    xssaop* visit( xec_expr_binary* node );
-    xssaop* visit( xec_expr_compare* node );
-    xssaop* visit( xec_expr_logical* node );
-    xssaop* visit( xec_expr_qmark* node );
-    xssaop* visit( xec_new_new* node );
-    xssaop* visit( xec_new_object* node );
-    xssaop* visit( xec_new_array* node );
-    xssaop* visit( xec_new_table* node );
-    xssaop* visit( xec_expr_mono* node );
-    xssaop* visit( xec_expr_call* node );
-    xssaop* visit( xec_expr_yield* node );
-    xssaop* visit( xec_expr_vararg* node );
-    xssaop* visit( xec_expr_unpack* node );
-    xssaop* visit( xec_expr_list* node );
-    xssaop* visit( xec_expr_assign* node );
-    xssaop* visit( xec_expr_assign_list* node );
+    yssaop* visit( yl_ast_func* node );
+    yssaop* visit( yl_expr_null* node );
+    yssaop* visit( yl_expr_bool* node );
+    yssaop* visit( yl_expr_number* node );
+    yssaop* visit( yl_expr_string* node );
+    yssaop* visit( yl_expr_local* node );
+    yssaop* visit( yl_expr_global* node );
+    yssaop* visit( yl_expr_upref* node );
+    yssaop* visit( yl_expr_objref* node );
+    yssaop* visit( yl_expr_key* node );
+    yssaop* visit( yl_expr_inkey* node );
+    yssaop* visit( yl_expr_index* node );
+    yssaop* visit( yl_expr_preop* node );
+    yssaop* visit( yl_expr_postop* node );
+    yssaop* visit( yl_expr_unary* node );
+    yssaop* visit( yl_expr_binary* node );
+    yssaop* visit( yl_expr_compare* node );
+    yssaop* visit( yl_expr_logical* node );
+    yssaop* visit( yl_expr_qmark* node );
+    yssaop* visit( yl_new_new* node );
+    yssaop* visit( yl_new_object* node );
+    yssaop* visit( yl_new_array* node );
+    yssaop* visit( yl_new_table* node );
+    yssaop* visit( yl_expr_mono* node );
+    yssaop* visit( yl_expr_call* node );
+    yssaop* visit( yl_expr_yield* node );
+    yssaop* visit( yl_expr_vararg* node );
+    yssaop* visit( yl_expr_unpack* node );
+    yssaop* visit( yl_expr_list* node );
+    yssaop* visit( yl_expr_assign* node );
+    yssaop* visit( yl_expr_assign_list* node );
 
 
 private:
 
-    xssa_builder* b;
+    yssa_builder* b;
 
 };
 
@@ -79,29 +79,29 @@ private:
     Visit AST expression nodes that unpack to multiple values.
 */
 
-class xssa_build_unpack
-    :   public xec_ast_visitor< xssa_build_unpack, void, xssa_valist*, int >
+class yssa_build_unpack
+    :   public yl_ast_visitor< yssa_build_unpack, void, yssa_valist*, int >
 {
 public:
 
-    explicit xssa_build_unpack( xssa_builder* b );
+    explicit yssa_build_unpack( yssa_builder* b );
 
-    using xec_ast_visitor< xssa_build_unpack, void, xssa_valist*, int >::visit;
+    using yl_ast_visitor< yssa_build_unpack, void, yssa_valist*, int >::visit;
 
-    void fallback( xec_ast_node* node, xssa_valist* values, int valcount );
+    void fallback( yl_ast_node* node, yssa_valist* values, int valcount );
 
-    void visit( xec_expr_null* node, xssa_valist* values, int valcount );
-    void visit( xec_expr_call* node, xssa_valist* values, int valcount );
-    void visit( xec_expr_yield* node, xssa_valist* values, int valcount );
-    void visit( xec_expr_vararg* node, xssa_valist* values, int valcount );
-    void visit( xec_expr_unpack* node, xssa_valist* values, int valcount );
-    void visit( xec_expr_list* node, xssa_valist* values, int valcount );
-    void visit( xec_expr_assign_list* node, xssa_valist* values, int valcount );
+    void visit( yl_expr_null* node, yssa_valist* values, int valcount );
+    void visit( yl_expr_call* node, yssa_valist* values, int valcount );
+    void visit( yl_expr_yield* node, yssa_valist* values, int valcount );
+    void visit( yl_expr_vararg* node, yssa_valist* values, int valcount );
+    void visit( yl_expr_unpack* node, yssa_valist* values, int valcount );
+    void visit( yl_expr_list* node, yssa_valist* values, int valcount );
+    void visit( yl_expr_assign_list* node, yssa_valist* values, int valcount );
 
 
 private:
 
-    xssa_builder* b;
+    yssa_builder* b;
 
 };
 
@@ -110,38 +110,38 @@ private:
     Visit AST statements and generate SSA form.
 */
 
-class xssa_build_stmt
-    :   public xec_ast_visitor< xssa_build_stmt, void >
+class yssa_build_stmt
+    :   public yl_ast_visitor< yssa_build_stmt, void >
 {
 public:
 
-    xssa_build_stmt( xssa_builder* b );
+    yssa_build_stmt( yssa_builder* b );
 
-    using xec_ast_visitor< xssa_build_stmt, void >::visit;
+    using yl_ast_visitor< yssa_build_stmt, void >::visit;
 
-    void fallback( xec_ast_node* node );
+    void fallback( yl_ast_node* node );
     
-    void visit( xec_stmt_block* node );
-    void visit( xec_stmt_if* node );
-    void visit( xec_stmt_switch* node );
-    void visit( xec_stmt_while* node );
-    void visit( xec_stmt_do* node );
-    void visit( xec_stmt_foreach* node );
-    void visit( xec_stmt_for* node );
-    void visit( xec_stmt_using* node );
-    void visit( xec_stmt_try* node );
-    void visit( xec_stmt_catch* node );
-    void visit( xec_stmt_delete* node );
-    void visit( xec_stmt_case* node );
-    void visit( xec_stmt_continue* node );
-    void visit( xec_stmt_break* node );
-    void visit( xec_stmt_return* node );
-    void visit( xec_stmt_throw* node );
+    void visit( yl_stmt_block* node );
+    void visit( yl_stmt_if* node );
+    void visit( yl_stmt_switch* node );
+    void visit( yl_stmt_while* node );
+    void visit( yl_stmt_do* node );
+    void visit( yl_stmt_foreach* node );
+    void visit( yl_stmt_for* node );
+    void visit( yl_stmt_using* node );
+    void visit( yl_stmt_try* node );
+    void visit( yl_stmt_catch* node );
+    void visit( yl_stmt_delete* node );
+    void visit( yl_stmt_case* node );
+    void visit( yl_stmt_continue* node );
+    void visit( yl_stmt_break* node );
+    void visit( yl_stmt_return* node );
+    void visit( yl_stmt_throw* node );
 
 
 private:
 
-    xssa_builder* b;
+    yssa_builder* b;
     
 };
 

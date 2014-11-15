@@ -1,15 +1,15 @@
 //
-//  xssa_ycodeout.cpp
+//  yssa_ycodeout.cpp
 //
 //  Created by Edmund Kapusniak on 13/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "xssa_ycodeout.h"
-#include "xssa_linear.h"
-#include "xssa.h"
-#include "xec_script.h"
+#include "yssa_ycodeout.h"
+#include "yssa_linear.h"
+#include "yssa.h"
+#include "yl_script.h"
 
 
 
@@ -20,7 +20,7 @@
 */
 
 
-struct xssa_rtgraph
+struct yssa_rtgraph
 {
     explicit operator bool ();
     void move( int target, int source );
@@ -29,12 +29,12 @@ struct xssa_rtgraph
 };
 
 
-xssa_rtgraph::operator bool()
+yssa_rtgraph::operator bool()
 {
     return ! moves.empty();
 }
 
-void xssa_rtgraph::move( int target, int source )
+void yssa_rtgraph::move( int target, int source )
 {
     if ( target != source )
     {
@@ -50,13 +50,13 @@ void xssa_rtgraph::move( int target, int source )
 */
 
 
-static size_t collect_ops( std::vector< xssaop* >* ops,
-                xssa_linear* l, size_t index, xssa_opcode opcode )
+static size_t collect_ops( std::vector< yssaop* >* ops,
+                yssa_linear* l, size_t index, yssa_opcode opcode )
 {
     // Gather list of ops with the required opcode.
     while ( index < l->lops.size() )
     {
-        xssalop* lop = &l->lops.at( index );
+        yssalop* lop = &l->lops.at( index );
         if ( lop->kind == XSSA_LOP_OP && lop->op->opcode == opcode )
         {
             ops->push_back( lop->op );
@@ -73,9 +73,9 @@ static size_t collect_ops( std::vector< xssaop* >* ops,
 }
 
 
-static bool compare_immed( xssaop* a, xssaop* b )
+static bool compare_immed( yssaop* a, yssaop* b )
 {
-    assert( xssaop::has_immed( a->opcode ) );
+    assert( yssaop::has_immed( a->opcode ) );
     assert( a->opcode == b->opcode );
     return a->immed < b->immed;
 }
@@ -91,16 +91,16 @@ static bool compare_immed( xssaop* a, xssaop* b )
 */
 
 
-xssa_ycodeout::xssa_ycodeout()
+yssa_ycodeout::yssa_ycodeout()
     :   maxstack( -1 )
 {
 }
 
 
 
-void xssa_ycodeout::build_func( xssa_linear* l )
+void yssa_ycodeout::build_func( yssa_linear* l )
 {
-    xssa_func* func = l->func;
+    yssa_func* func = l->func;
 
 
 
@@ -112,7 +112,7 @@ void xssa_ycodeout::build_func( xssa_linear* l )
     {
     
     
-    xssalop* lop = &l->lops.at( index );
+    yssalop* lop = &l->lops.at( index );
     
     
     
@@ -143,7 +143,7 @@ void xssa_ycodeout::build_func( xssa_linear* l )
     
     // Assemble code for normal ops.
     assert( lop->kind == XSSA_LOP_OP );
-    xssaop* op = lop->op;
+    yssaop* op = lop->op;
     
     switch ( op->opcode )
     {
@@ -325,7 +325,7 @@ void xssa_ycodeout::build_func( xssa_linear* l )
     case XSSA_CLOUP:
     {
         // Collect a run of closes and sort them.
-        std::vector< xssaop* > close_ops;
+        std::vector< yssaop* > close_ops;
         index = collect_ops( &close_ops, l, index, XSSA_CLOUP );
         std::sort( close_ops.begin(), close_ops.end(), compare_immed );
 
@@ -335,7 +335,7 @@ void xssa_ycodeout::build_func( xssa_linear* l )
         
         for ( size_t i = 0; i < close_ops.size(); ++i )
         {
-            xssaop* op = close_ops.at( i );
+            yssaop* op = close_ops.at( i );
             if ( close_first == -1 )
             {
                 close_first = op->immed;
@@ -408,7 +408,7 @@ void xssa_ycodeout::build_func( xssa_linear* l )
         int recipe = -1;
         for ( size_t i = 0; i < func->module->funcs.size(); ++i )
         {
-            xssa_func* f = func->module->funcs.at( i ).get();
+            yssa_func* f = func->module->funcs.at( i ).get();
             if ( op->func == f )
             {
                 recipe = (int)i;
@@ -423,7 +423,7 @@ void xssa_ycodeout::build_func( xssa_linear* l )
         // Output upval references.
         for ( size_t i = 0; i < op->operand_count; ++i )
         {
-            xssaop* refup = op->operand[ i ];
+            yssaop* refup = op->operand[ i ];
             assert( refup->opcode == XSSA_REFUP );
             if ( refup->immed < func->upvalcount )
             {
@@ -492,7 +492,7 @@ void xssa_ycodeout::build_func( xssa_linear* l )
     
     case XSSA_POPITER:
     {
-        std::vector< xssaop* > popiter_ops;
+        std::vector< yssaop* > popiter_ops;
         index = collect_ops( &popiter_ops, l, index, XSSA_POPITER );
         inst( Y_POPITER, 0, (int)popiter_ops.size() );
         break;
@@ -500,18 +500,18 @@ void xssa_ycodeout::build_func( xssa_linear* l )
     
     case XSSA_NEXT:
     {
-        std::vector< xssaop* > select_ops;
+        std::vector< yssaop* > select_ops;
         size_t last = collect_ops( &select_ops, l, index + 1, XSSA_SELECT );
     
         if ( op->result_count == 1 && select_ops.size() == 1 )
         {
-            xssaop* sel1 = select_ops[ 0 ];
+            yssaop* sel1 = select_ops[ 0 ];
             inst( Y_NEXT1, o( sel1->r ), 0, 0 );
         }
         else if ( op->result_count == 2 && select_ops.size() == 2 )
         {
-            xssaop* sel1 = select_ops[ 0 ];
-            xssaop* sel2 = select_ops[ 1 ];
+            yssaop* sel1 = select_ops[ 0 ];
+            yssaop* sel2 = select_ops[ 1 ];
             inst( Y_NEXT2, o( sel1->r ), o( sel2->r ), 0 );
         }
         else
@@ -538,14 +538,14 @@ void xssa_ycodeout::build_func( xssa_linear* l )
     case XSSA_PARAM:
     {
         // Collect parameters.
-        std::vector< xssaop* > param_ops;
+        std::vector< yssaop* > param_ops;
         index = collect_ops( &param_ops, l, index, XSSA_PARAM );
         
         // Construct register transfer graph.
-        xssa_rtgraph rtg;
+        yssa_rtgraph rtg;
         for ( size_t i = 0; i < param_ops.size(); ++i )
         {
-            xssaop* param = param_ops.at( i );
+            yssaop* param = param_ops.at( i );
             rtg.move( param->r, param->immed + 1 );
         }
         
@@ -624,7 +624,7 @@ void xssa_ycodeout::build_func( xssa_linear* l )
 }
 
 
-ymodule* xssa_ycodeout::build_module( xec_script* script )
+ymodule* yssa_ycodeout::build_module( yl_script* script )
 {
     ymodule* module = ymodule::alloc();
     module->mname = ystring::alloc( script->get_filename() );
@@ -667,7 +667,7 @@ ymodule* xssa_ycodeout::build_module( xec_script* script )
 
 
 
-void xssa_ycodeout::control_flow( xssa_block* block )
+void yssa_ycodeout::control_flow( yssa_block* block )
 {
     /*
         Note that blocks with only one predecessor never have phi rtgs.
@@ -681,8 +681,8 @@ void xssa_ycodeout::control_flow( xssa_block* block )
 
     if ( block->condition )
     {
-        xssa_rtgraph phitrue;
-        xssa_rtgraph phifalse;
+        yssa_rtgraph phitrue;
+        yssa_rtgraph phifalse;
         
         phi( &phitrue, block, block->iftrue );
         phi( &phifalse, block, block->iffalse );
@@ -814,7 +814,7 @@ void xssa_ycodeout::control_flow( xssa_block* block )
     else if ( block->next )
     {
         // Perform phi on entry to next block.
-        xssa_rtgraph phinext;
+        yssa_rtgraph phinext;
         phi( &phinext, block, block->next );
         if ( phinext )
         {
@@ -832,7 +832,7 @@ void xssa_ycodeout::control_flow( xssa_block* block )
 
 
 
-int xssa_ycodeout::k( const char* key )
+int yssa_ycodeout::k( const char* key )
 {
     ysymbol k = key;
     for ( size_t i = 0; i < keys.size(); ++i )
@@ -847,30 +847,30 @@ int xssa_ycodeout::k( const char* key )
 }
 
 
-int xssa_ycodeout::o( xssaop* operand )
+int yssa_ycodeout::o( yssaop* operand )
 {
     return o( operand->r );
 }
 
-int xssa_ycodeout::o( int r )
+int yssa_ycodeout::o( int r )
 {
     maxstack = std::max( maxstack, r );
     return r;
 }
 
 
-void xssa_ycodeout::inst( ycode opcode, int r, int a, int b )
+void yssa_ycodeout::inst( ycode opcode, int r, int a, int b )
 {
     code.emplace_back( opcode, (unsigned)r, (unsigned)a, (unsigned)b );
 }
 
-void xssa_ycodeout::inst( ycode opcode, int r, int c )
+void yssa_ycodeout::inst( ycode opcode, int r, int c )
 {
     code.emplace_back( opcode, (unsigned)r, (unsigned)c );
 }
 
 
-void xssa_ycodeout::value( int r, yvalue value )
+void yssa_ycodeout::value( int r, yvalue value )
 {
     if ( r == -1 )
     {
@@ -898,10 +898,10 @@ void xssa_ycodeout::value( int r, yvalue value )
 
 
 
-void xssa_ycodeout::arguments( xssaop* op )
+void yssa_ycodeout::arguments( yssaop* op )
 {
     // Build rtg from arguments.
-    xssa_rtgraph rtg;
+    yssa_rtgraph rtg;
     for ( size_t i = 0; i < op->operand_count; ++i )
     {
         int operand = o( op->operand[ i ] );
@@ -909,7 +909,7 @@ void xssa_ycodeout::arguments( xssaop* op )
     }
 
     // Rely on register allocator to place unpacked ops correctly.
-    assert( xssaop::has_multival( op->opcode ) );
+    assert( yssaop::has_multival( op->opcode ) );
     if ( op->multival )
     {
         assert( op->multival->stacktop == op->stacktop + op->operand_count );
@@ -920,17 +920,17 @@ void xssa_ycodeout::arguments( xssaop* op )
 }
 
 
-size_t xssa_ycodeout::call( ycode opcode, xssa_linear* l, size_t index )
+size_t yssa_ycodeout::call( ycode opcode, yssa_linear* l, size_t index )
 {
-    xssalop* lop = &l->lops.at( index );
+    yssalop* lop = &l->lops.at( index );
     assert( lop->kind == XSSA_LOP_OP );
-    xssaop* op = lop->op;
+    yssaop* op = lop->op;
 
     // Build register transfer to get arguments in correct positions.
     arguments( op );
     
     // Call.
-    assert( xssaop::has_multival( op->opcode ) );
+    assert( yssaop::has_multival( op->opcode ) );
     int a = op->multival ? Y_MARK : op->operand_count;
     int b = op->result_count == -1 ? Y_MARK : op->result_count;
     inst( opcode, op->stacktop, a, b );
@@ -941,15 +941,15 @@ size_t xssa_ycodeout::call( ycode opcode, xssa_linear* l, size_t index )
 }
 
 
-size_t xssa_ycodeout::select( xssa_linear* l, size_t index )
+size_t yssa_ycodeout::select( yssa_linear* l, size_t index )
 {
     // The op that we're at is the one that generates the values to select.
-    xssalop* lop = &l->lops.at( index );
+    yssalop* lop = &l->lops.at( index );
     assert( lop->kind == XSSA_LOP_OP );
-    xssaop* op = lop->op;
+    yssaop* op = lop->op;
 
     // Build register transfer graph.
-    xssa_rtgraph rtg;
+    yssa_rtgraph rtg;
 
     // Might not have any selects, in which case it might have a single
     // value we want to place in the allocated register.
@@ -959,11 +959,11 @@ size_t xssa_ycodeout::select( xssa_linear* l, size_t index )
     }
 
     // Or there might be selects after all.
-    std::vector< xssaop* > select_ops;
+    std::vector< yssaop* > select_ops;
     index = collect_ops( &select_ops, l, index + 1, XSSA_SELECT );
     for ( size_t i = 0; i < select_ops.size(); ++i )
     {
-        xssaop* select = select_ops.at( i );
+        yssaop* select = select_ops.at( i );
         assert( select->immed < op->result_count );
         rtg.move( select->r, op->stacktop + select->immed );
     }
@@ -976,7 +976,7 @@ size_t xssa_ycodeout::select( xssa_linear* l, size_t index )
 
 
 
-void xssa_ycodeout::move( xssa_rtgraph* rtg )
+void yssa_ycodeout::move( yssa_rtgraph* rtg )
 {
     // The register transfer graph has nodes representing registers and edges
     // representing moves.  Each node has at most a single incoming edge, but
@@ -1089,8 +1089,8 @@ void xssa_ycodeout::move( xssa_rtgraph* rtg )
 
 
 
-void xssa_ycodeout::phi(
-                xssa_rtgraph* rtg, xssa_block* from, xssa_block* to )
+void yssa_ycodeout::phi(
+                yssa_rtgraph* rtg, yssa_block* from, yssa_block* to )
 {
     // Find index of incoming edge.
     size_t edgeindex = -1;
@@ -1107,7 +1107,7 @@ void xssa_ycodeout::phi(
     // Build rtg based on phi ops.
     for ( size_t i = 0; i < to->phi.size(); ++i )
     {
-        xssaop* phiop = to->phi.at( i );
+        yssaop* phiop = to->phi.at( i );
         if ( ! phiop || phiop->opcode != XSSA_PHI )
         {
             continue;
@@ -1115,13 +1115,13 @@ void xssa_ycodeout::phi(
         
         assert( phiop->r != (uint8_t)-1 );
         assert( phiop->operand_count == to->previous.size() );
-        xssaop* source = phiop->operand[ edgeindex ];
+        yssaop* source = phiop->operand[ edgeindex ];
         rtg->move( o( phiop->r ), o( source ) );
     }
 }
 
     
-void xssa_ycodeout::label( void* label )
+void yssa_ycodeout::label( void* label )
 {
     auto i = labels.find( label );
     if ( i != labels.end() )
@@ -1146,7 +1146,7 @@ void xssa_ycodeout::label( void* label )
 }
 
 
-void xssa_ycodeout::jump( ycode opcode, int r, void* label )
+void yssa_ycodeout::jump( ycode opcode, int r, void* label )
 {
     
     // Check for label.
@@ -1178,7 +1178,7 @@ void xssa_ycodeout::jump( ycode opcode, int r, void* label )
 }
 
 
-void xssa_ycodeout::branch( xssaop* condition, bool iftrue, void* label )
+void yssa_ycodeout::branch( yssaop* condition, bool iftrue, void* label )
 {
     if ( condition->opcode == XSSA_NEXT )
     {
@@ -1196,7 +1196,7 @@ void xssa_ycodeout::branch( xssaop* condition, bool iftrue, void* label )
 
 
 
-void xssa_ycodeout::build_value_slots( ymodule* module )
+void yssa_ycodeout::build_value_slots( ymodule* module )
 {
 #if YSLOTS
 

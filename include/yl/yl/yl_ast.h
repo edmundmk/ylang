@@ -1,5 +1,5 @@
 //
-//  xec_ast.h
+//  yl_ast.h
 //
 //  Created by Edmund Kapusniak on 07/07/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
@@ -16,24 +16,24 @@
 #include <symkey.h>
 
 
-class xec_script;
+class yl_script;
 
-struct xec_ast_scope;
-struct xec_ast_name;
-struct xec_ast_prototype;
-struct xec_ast_upval;
-struct xec_ast_node;
-struct xec_ast_func;
-struct xec_new_object;
-struct xec_expr_list;
-struct xec_stmt_block;
-struct xec_name_name;
-struct xec_name_list;
-struct xec_key_value;
+struct yl_ast_scope;
+struct yl_ast_name;
+struct yl_ast_prototype;
+struct yl_ast_upval;
+struct yl_ast_node;
+struct yl_ast_func;
+struct yl_new_object;
+struct yl_expr_list;
+struct yl_stmt_block;
+struct yl_name_name;
+struct yl_name_list;
+struct yl_key_value;
 
 
 
-enum xec_ast_scope_kind
+enum yl_ast_scope_kind
 {
     XEC_SCOPE_SCRIPT,
     XEC_SCOPE_BLOCK,
@@ -44,7 +44,7 @@ enum xec_ast_scope_kind
 };
 
 
-enum xec_ast_node_kind
+enum yl_ast_node_kind
 {
     // Functions.
     XEC_AST_FUNC,
@@ -121,7 +121,7 @@ enum xec_ast_node_kind
 };
 
 
-enum xec_ast_opkind
+enum yl_ast_opkind
 {
     XEC_ASTOP_DECLARE,
 
@@ -181,7 +181,7 @@ enum xec_ast_opkind
 };
 
 
-enum xec_ast_upval_kind
+enum yl_ast_upval_kind
 {
     XEC_UPVAL_LOCAL,
     XEC_UPVAL_OBJECT,
@@ -192,36 +192,36 @@ enum xec_ast_upval_kind
 
 // TODO: replace std::deque with a container with a smaller chunk size
 
-typedef std::deque< xec_ast_node*,
-    region_allocator< xec_ast_node* > > xec_ast_node_list;
-typedef std::deque< xec_ast_name*,
-    region_allocator< xec_ast_name* > > xec_ast_name_list;
-typedef std::deque< xec_name_name*,
-    region_allocator< xec_name_name* > > xec_name_name_list;
-typedef std::deque< xec_ast_opkind,
-    region_allocator< xec_ast_opkind > > xec_opkind_list;
-typedef std::deque< xec_key_value,
-    region_allocator< xec_key_value > > xec_key_value_list;
+typedef std::deque< yl_ast_node*,
+    region_allocator< yl_ast_node* > > yl_ast_node_list;
+typedef std::deque< yl_ast_name*,
+    region_allocator< yl_ast_name* > > yl_ast_name_list;
+typedef std::deque< yl_name_name*,
+    region_allocator< yl_name_name* > > yl_name_name_list;
+typedef std::deque< yl_ast_opkind,
+    region_allocator< yl_ast_opkind > > yl_opkind_list;
+typedef std::deque< yl_key_value,
+    region_allocator< yl_key_value > > yl_key_value_list;
 typedef std::unordered_map
         <
             symkey,
-            xec_ast_name*,
+            yl_ast_name*,
             std::hash< symkey >,
             std::equal_to< symkey >,
-            region_allocator< std::pair< const symkey, xec_ast_name* > >
+            region_allocator< std::pair< const symkey, yl_ast_name* > >
         >
-        xec_ast_name_map;
+        yl_ast_name_map;
 typedef std::unordered_map
         <
             symkey,
-            xec_ast_scope*,
+            yl_ast_scope*,
             std::hash< symkey >,
             std::equal_to< symkey >,
-            region_allocator< std::pair< const symkey, xec_ast_scope* > >
+            region_allocator< std::pair< const symkey, yl_ast_scope* > >
         >
-        xec_ast_imply_map;
-typedef std::deque< xec_ast_upval,
-    region_allocator< xec_ast_upval > > xec_ast_upval_list;
+        yl_ast_imply_map;
+typedef std::deque< yl_ast_upval,
+    region_allocator< yl_ast_upval > > yl_ast_upval_list;
 
 
 
@@ -230,15 +230,15 @@ typedef std::deque< xec_ast_upval,
 */
 
 
-struct xec_ast
+struct yl_ast
 {
-    xec_ast();
-    ~xec_ast();
+    yl_ast();
+    ~yl_ast();
 
     region              alloc;
-    xec_script*         script;
-    xec_ast_func*       function;
-    std::deque< xec_ast_func* > functions;
+    yl_script*         script;
+    yl_ast_func*       function;
+    std::deque< yl_ast_func* > functions;
 
 };
 
@@ -250,44 +250,44 @@ struct xec_ast
 */
 
 
-struct xec_ast_scope
+struct yl_ast_scope
 {
-    xec_ast_scope( xec_ast_scope_kind kind,
-            xec_ast_scope* outer, xec_ast_node* node, xec_ast_func* func );
+    yl_ast_scope( yl_ast_scope_kind kind,
+            yl_ast_scope* outer, yl_ast_node* node, yl_ast_func* func );
 
-    xec_ast_scope_kind  kind;
-    xec_ast_scope*      outer;
-    xec_ast_node*       node;
-    xec_ast_func*       func;
-    xec_stmt_block*     block;
-    xec_ast_imply_map   implied;
-    xec_ast_name_map    names;
-    xec_ast_name_list   decls;
+    yl_ast_scope_kind  kind;
+    yl_ast_scope*      outer;
+    yl_ast_node*       node;
+    yl_ast_func*       func;
+    yl_stmt_block*     block;
+    yl_ast_imply_map   implied;
+    yl_ast_name_map    names;
+    yl_ast_name_list   decls;
     bool                continued;
     bool                dowhile;
 };
 
 
-struct xec_ast_name
+struct yl_ast_name
 {
-    xec_ast_name( int sloc, xec_ast_scope* scope, const char* name );
+    yl_ast_name( int sloc, yl_ast_scope* scope, const char* name );
 
     int                 sloc;
-    xec_ast_scope*      scope;
+    yl_ast_scope*      scope;
     const char*         name;
-    xec_ast_name*       superthis;
-    xec_ast_prototype*  prototype;
+    yl_ast_name*       superthis;
+    yl_ast_prototype*  prototype;
     bool                upval;
     bool                continued;
 };
 
 
-struct xec_ast_prototype
+struct yl_ast_prototype
 {
-    xec_ast_prototype( int sloc );
+    yl_ast_prototype( int sloc );
 
     int                 sloc;
-    xec_name_list*      parameters;
+    yl_name_list*      parameters;
     bool                coroutine;
 };
 
@@ -297,20 +297,20 @@ struct xec_ast_prototype
     Upvals are used when accessing variables in outer scopes.
 */
 
-struct xec_ast_upval
+struct yl_ast_upval
 {
-    xec_ast_upval( xec_ast_name* name );
-    xec_ast_upval( xec_new_object* object );
-    xec_ast_upval( int upval );
+    yl_ast_upval( yl_ast_name* name );
+    yl_ast_upval( yl_new_object* object );
+    yl_ast_upval( int upval );
 
-    bool operator == ( const xec_ast_upval& b ) const;
-    bool operator != ( const xec_ast_upval& b ) const;
+    bool operator == ( const yl_ast_upval& b ) const;
+    bool operator != ( const yl_ast_upval& b ) const;
 
-    xec_ast_upval_kind  kind;
+    yl_ast_upval_kind  kind;
     union
     {
-        xec_ast_name*   local;
-        xec_new_object* object;
+        yl_ast_name*   local;
+        yl_new_object* object;
         int             upval;
     };
 };
@@ -322,11 +322,11 @@ struct xec_ast_upval
 */
 
 
-struct xec_ast_node
+struct yl_ast_node
 {
-    xec_ast_node( xec_ast_node_kind kind, int sloc );
+    yl_ast_node( yl_ast_node_kind kind, int sloc );
 
-    xec_ast_node_kind   kind;
+    yl_ast_node_kind   kind;
     int                 sloc;
 };
 
@@ -336,17 +336,17 @@ struct xec_ast_node
     Functions.
 */
 
-struct xec_ast_func : public xec_ast_node
+struct yl_ast_func : public yl_ast_node
 {
-    xec_ast_func( int sloc );
+    yl_ast_func( int sloc );
 
     const char*         funcname;
-    xec_ast_scope*      scope;
-    xec_ast_upval_list  upvals;
-    xec_new_object*     memberof;
-    xec_ast_name*       thisname;
-    xec_ast_name_list   parameters;
-    xec_stmt_block*     block;
+    yl_ast_scope*      scope;
+    yl_ast_upval_list  upvals;
+    yl_new_object*     memberof;
+    yl_ast_name*       thisname;
+    yl_ast_name_list   parameters;
+    yl_stmt_block*     block;
     bool                varargs;
     bool                coroutine;
 };
@@ -356,31 +356,31 @@ struct xec_ast_func : public xec_ast_node
     Literals.
 */
 
-struct xec_expr_null : public xec_ast_node
+struct yl_expr_null : public yl_ast_node
 {
-    explicit xec_expr_null( int sloc );
+    explicit yl_expr_null( int sloc );
 };
 
 
-struct xec_expr_bool : public xec_ast_node
+struct yl_expr_bool : public yl_ast_node
 {
-    xec_expr_bool( int sloc, bool value );
+    yl_expr_bool( int sloc, bool value );
 
     bool                value;
 };
 
 
-struct xec_expr_number : public xec_ast_node
+struct yl_expr_number : public yl_ast_node
 {
-    xec_expr_number( int sloc, double value );
+    yl_expr_number( int sloc, double value );
 
     double              value;
 };
 
 
-struct xec_expr_string : public xec_ast_node
+struct yl_expr_string : public yl_ast_node
 {
-    xec_expr_string( int sloc, const char* string, size_t length );
+    yl_expr_string( int sloc, const char* string, size_t length );
 
     const char*         string;
     size_t              length;
@@ -391,37 +391,37 @@ struct xec_expr_string : public xec_ast_node
     Names.
 */
 
-struct xec_expr_local : public xec_ast_node
+struct yl_expr_local : public yl_ast_node
 {
-    xec_expr_local( int sloc, xec_ast_name* name );
+    yl_expr_local( int sloc, yl_ast_name* name );
 
-    xec_ast_name*       name;
+    yl_ast_name*       name;
 };
 
 
-struct xec_expr_global : public xec_ast_node
+struct yl_expr_global : public yl_ast_node
 {
-    xec_expr_global( int sloc, const char* name, bool gexplicit );
+    yl_expr_global( int sloc, const char* name, bool gexplicit );
 
     const char*         name;
     bool                gexplicit;
 };
 
 
-struct xec_expr_upref : public xec_ast_node
+struct yl_expr_upref : public yl_ast_node
 {
-    xec_expr_upref( int sloc, xec_ast_func* func, int index );
+    yl_expr_upref( int sloc, yl_ast_func* func, int index );
 
-    xec_ast_func*       func;
+    yl_ast_func*       func;
     int                 index;
 };
 
 
-struct xec_expr_objref : public xec_ast_node
+struct yl_expr_objref : public yl_ast_node
 {
-    xec_expr_objref( int sloc, xec_new_object* object );
+    yl_expr_objref( int sloc, yl_new_object* object );
     
-    xec_new_object*     object;
+    yl_new_object*     object;
 };
 
 
@@ -429,30 +429,30 @@ struct xec_expr_objref : public xec_ast_node
     Lookup.
 */
 
-struct xec_expr_key : public xec_ast_node
+struct yl_expr_key : public yl_ast_node
 {
-    xec_expr_key( int sloc, xec_ast_node* object, const char* key );
+    yl_expr_key( int sloc, yl_ast_node* object, const char* key );
 
-    xec_ast_node*       object;
+    yl_ast_node*       object;
     const char*         key;
 };
 
 
-struct xec_expr_inkey : public xec_ast_node
+struct yl_expr_inkey : public yl_ast_node
 {
-    xec_expr_inkey( int sloc, xec_ast_node* object, xec_ast_node* key );
+    yl_expr_inkey( int sloc, yl_ast_node* object, yl_ast_node* key );
 
-    xec_ast_node*       object;
-    xec_ast_node*       key;
+    yl_ast_node*       object;
+    yl_ast_node*       key;
 };
 
 
-struct xec_expr_index : public xec_ast_node
+struct yl_expr_index : public yl_ast_node
 {
-    xec_expr_index( int sloc, xec_ast_node* object, xec_ast_node* index );
+    yl_expr_index( int sloc, yl_ast_node* object, yl_ast_node* index );
 
-    xec_ast_node*       object;
-    xec_ast_node*       index;
+    yl_ast_node*       object;
+    yl_ast_node*       index;
 };
 
 
@@ -460,73 +460,73 @@ struct xec_expr_index : public xec_ast_node
     Operators.
 */
 
-struct xec_expr_preop : public xec_ast_node
+struct yl_expr_preop : public yl_ast_node
 {
-    xec_expr_preop( int sloc, xec_ast_opkind opkind, xec_ast_node* lvalue );
+    yl_expr_preop( int sloc, yl_ast_opkind opkind, yl_ast_node* lvalue );
 
-    xec_ast_opkind      opkind;
-    xec_ast_node*       lvalue;
+    yl_ast_opkind      opkind;
+    yl_ast_node*       lvalue;
 };
 
 
-struct xec_expr_postop : public xec_ast_node
+struct yl_expr_postop : public yl_ast_node
 {
-    xec_expr_postop( int sloc, xec_ast_opkind opkind, xec_ast_node* lvalue );
+    yl_expr_postop( int sloc, yl_ast_opkind opkind, yl_ast_node* lvalue );
 
-    xec_ast_opkind      opkind;
-    xec_ast_node*       lvalue;
+    yl_ast_opkind      opkind;
+    yl_ast_node*       lvalue;
 };
 
 
-struct xec_expr_unary : public xec_ast_node
+struct yl_expr_unary : public yl_ast_node
 {
-    xec_expr_unary( int sloc, xec_ast_opkind opkind, xec_ast_node* operand );
+    yl_expr_unary( int sloc, yl_ast_opkind opkind, yl_ast_node* operand );
 
-    xec_ast_opkind      opkind;
-    xec_ast_node*       operand;
+    yl_ast_opkind      opkind;
+    yl_ast_node*       operand;
 };
 
 
-struct xec_expr_binary : public xec_ast_node
+struct yl_expr_binary : public yl_ast_node
 {
-    xec_expr_binary( int sloc,
-            xec_ast_opkind opkind, xec_ast_node* lhs, xec_ast_node* rhs );
+    yl_expr_binary( int sloc,
+            yl_ast_opkind opkind, yl_ast_node* lhs, yl_ast_node* rhs );
 
-    xec_ast_opkind      opkind;
-    xec_ast_node*       lhs;
-    xec_ast_node*       rhs;
+    yl_ast_opkind      opkind;
+    yl_ast_node*       lhs;
+    yl_ast_node*       rhs;
 };
 
 
-struct xec_expr_compare : public xec_ast_node
+struct yl_expr_compare : public yl_ast_node
 {
-    xec_expr_compare( int sloc, xec_ast_node* first );
+    yl_expr_compare( int sloc, yl_ast_node* first );
     
-    xec_ast_node*       first;
-    xec_opkind_list     opkinds;
-    xec_ast_node_list   terms;
+    yl_ast_node*       first;
+    yl_opkind_list     opkinds;
+    yl_ast_node_list   terms;
 };
 
 
-struct xec_expr_logical : public xec_ast_node
+struct yl_expr_logical : public yl_ast_node
 {
-    xec_expr_logical( int sloc,
-            xec_ast_opkind opkind, xec_ast_node* lhs, xec_ast_node* rhs );
+    yl_expr_logical( int sloc,
+            yl_ast_opkind opkind, yl_ast_node* lhs, yl_ast_node* rhs );
 
-    xec_ast_opkind      opkind;
-    xec_ast_node*       lhs;
-    xec_ast_node*       rhs;
+    yl_ast_opkind      opkind;
+    yl_ast_node*       lhs;
+    yl_ast_node*       rhs;
 };
 
 
-struct xec_expr_qmark : public xec_ast_node
+struct yl_expr_qmark : public yl_ast_node
 {
-    xec_expr_qmark( int sloc, xec_ast_node* condition,
-            xec_ast_node* iftrue, xec_ast_node* iffalse );
+    yl_expr_qmark( int sloc, yl_ast_node* condition,
+            yl_ast_node* iftrue, yl_ast_node* iffalse );
 
-    xec_ast_node*       condition;
-    xec_ast_node*       iftrue;
-    xec_ast_node*       iffalse;
+    yl_ast_node*       condition;
+    yl_ast_node*       iftrue;
+    yl_ast_node*       iffalse;
 };
 
 
@@ -535,49 +535,49 @@ struct xec_expr_qmark : public xec_ast_node
     New.
 */
 
-struct xec_new_new : public xec_ast_node
+struct yl_new_new : public yl_ast_node
 {
-    xec_new_new( int sloc, xec_ast_node* proto, xec_expr_list* args );
+    yl_new_new( int sloc, yl_ast_node* proto, yl_expr_list* args );
 
-    xec_ast_node*       proto;
-    xec_expr_list*      arguments;
+    yl_ast_node*       proto;
+    yl_expr_list*      arguments;
 };
 
 
-struct xec_new_object : public xec_ast_node
+struct yl_new_object : public yl_ast_node
 {
-    xec_new_object( int sloc, xec_ast_node* proto );
+    yl_new_object( int sloc, yl_ast_node* proto );
 
-    xec_ast_scope*      scope;
-    xec_ast_node*       proto;
-    xec_ast_node_list   members;
+    yl_ast_scope*      scope;
+    yl_ast_node*       proto;
+    yl_ast_node_list   members;
     bool                upval;
 };
 
 
-struct xec_new_array : public xec_ast_node
+struct yl_new_array : public yl_ast_node
 {
-    xec_new_array( int sloc );
+    yl_new_array( int sloc );
 
-    xec_ast_node_list   values;
-    xec_ast_node*       final;
+    yl_ast_node_list   values;
+    yl_ast_node*       final;
 };
 
 
-struct xec_key_value
+struct yl_key_value
 {
-    xec_key_value( xec_ast_node* key, xec_ast_node* value );
+    yl_key_value( yl_ast_node* key, yl_ast_node* value );
 
-    xec_ast_node*       key;
-    xec_ast_node*       value;
+    yl_ast_node*       key;
+    yl_ast_node*       value;
 };
 
 
-struct xec_new_table : public xec_ast_node
+struct yl_new_table : public yl_ast_node
 {
-    xec_new_table( int sloc );
+    yl_new_table( int sloc );
 
-    xec_key_value_list   elements;
+    yl_key_value_list   elements;
 };
 
 
@@ -586,55 +586,55 @@ struct xec_new_table : public xec_ast_node
     Unpack.
 */
 
-struct xec_expr_mono : public xec_ast_node
+struct yl_expr_mono : public yl_ast_node
 {
-    xec_expr_mono( int sloc, xec_ast_node* expr );
+    yl_expr_mono( int sloc, yl_ast_node* expr );
 
-    xec_ast_node*       expr;
+    yl_ast_node*       expr;
 };
 
 
-struct xec_expr_call : public xec_ast_node
+struct yl_expr_call : public yl_ast_node
 {
-    xec_expr_call( int sloc, xec_ast_node* function,
-                    xec_expr_list* args, bool yieldcall );
+    yl_expr_call( int sloc, yl_ast_node* function,
+                    yl_expr_list* args, bool yieldcall );
 
-    xec_ast_node*       function;
-    xec_expr_list*      arguments;
+    yl_ast_node*       function;
+    yl_expr_list*      arguments;
     bool                yieldcall;
     bool                unpack;
 };
 
 
-struct xec_expr_yield : public xec_ast_node
+struct yl_expr_yield : public yl_ast_node
 {
-    xec_expr_yield( int sloc, xec_ast_node* args );
+    yl_expr_yield( int sloc, yl_ast_node* args );
 
-    xec_ast_node*       arguments;
+    yl_ast_node*       arguments;
     bool                unpack;
 };
 
 
-struct xec_expr_vararg : public xec_ast_node
+struct yl_expr_vararg : public yl_ast_node
 {
-    xec_expr_vararg( int sloc );
+    yl_expr_vararg( int sloc );
 };
 
 
-struct xec_expr_unpack : public xec_ast_node
+struct yl_expr_unpack : public yl_ast_node
 {
-    xec_expr_unpack( int sloc, xec_ast_node* list );
+    yl_expr_unpack( int sloc, yl_ast_node* list );
 
-    xec_ast_node*       array;
+    yl_ast_node*       array;
 };
 
 
-struct xec_expr_list : public xec_ast_node
+struct yl_expr_list : public yl_ast_node
 {
-    explicit xec_expr_list( int sloc );
+    explicit yl_expr_list( int sloc );
 
-    xec_ast_node_list   values;
-    xec_ast_node*       final;
+    yl_ast_node_list   values;
+    yl_ast_node*       final;
 };
 
 
@@ -643,23 +643,23 @@ struct xec_expr_list : public xec_ast_node
     Assignment.
 */
 
-struct xec_expr_assign : public xec_ast_node
+struct yl_expr_assign : public yl_ast_node
 {
-    xec_expr_assign( int sloc, xec_ast_opkind assignop );
+    yl_expr_assign( int sloc, yl_ast_opkind assignop );
 
-    xec_ast_opkind      assignop;
-    xec_ast_node*       lvalue;
-    xec_ast_node*       rvalue;
+    yl_ast_opkind      assignop;
+    yl_ast_node*       lvalue;
+    yl_ast_node*       rvalue;
 };
 
 
-struct xec_expr_assign_list : public xec_ast_node
+struct yl_expr_assign_list : public yl_ast_node
 {
-    xec_expr_assign_list( int sloc, xec_ast_opkind assignop );
+    yl_expr_assign_list( int sloc, yl_ast_opkind assignop );
 
-    xec_ast_opkind      assignop;
-    xec_ast_node_list   lvalues;
-    xec_ast_node*       rvalues;
+    yl_ast_opkind      assignop;
+    yl_ast_node_list   lvalues;
+    yl_ast_node*       rvalues;
 };
 
 
@@ -667,108 +667,108 @@ struct xec_expr_assign_list : public xec_ast_node
     Statements w/ scopes.
 */
 
-struct xec_stmt_block : public xec_ast_node
+struct yl_stmt_block : public yl_ast_node
 {
-    xec_stmt_block( int sloc );
+    yl_stmt_block( int sloc );
 
-    xec_ast_scope*      scope;
-    xec_ast_node_list   stmts;
+    yl_ast_scope*      scope;
+    yl_ast_node_list   stmts;
 };
 
 
-struct xec_stmt_if : public xec_ast_node
+struct yl_stmt_if : public yl_ast_node
 {
-    xec_stmt_if( int sloc );
+    yl_stmt_if( int sloc );
 
-    xec_ast_scope*      scope;
-    xec_ast_node*       condition;
-    xec_ast_node*       iftrue;
-    xec_ast_node*       iffalse;
+    yl_ast_scope*      scope;
+    yl_ast_node*       condition;
+    yl_ast_node*       iftrue;
+    yl_ast_node*       iffalse;
 };
 
 
-struct xec_stmt_switch : public xec_ast_node
+struct yl_stmt_switch : public yl_ast_node
 {
-    xec_stmt_switch( int sloc );
+    yl_stmt_switch( int sloc );
     
-    xec_ast_scope*      scope;
-    xec_ast_node*       value;
-    xec_stmt_block*     body;
+    yl_ast_scope*      scope;
+    yl_ast_node*       value;
+    yl_stmt_block*     body;
 };
 
 
-struct xec_stmt_while : public xec_ast_node
+struct yl_stmt_while : public yl_ast_node
 {
-    xec_stmt_while( int sloc );
+    yl_stmt_while( int sloc );
 
-    xec_ast_scope*      scope;
-    xec_ast_node*       condition;
-    xec_ast_node*       body;
+    yl_ast_scope*      scope;
+    yl_ast_node*       condition;
+    yl_ast_node*       body;
 };
 
 
-struct xec_stmt_do : public xec_ast_node
+struct yl_stmt_do : public yl_ast_node
 {
-    xec_stmt_do( int sloc );
+    yl_stmt_do( int sloc );
 
-    xec_ast_scope*      scope;
-    xec_ast_node*       body;
-    xec_ast_node*       condition;
+    yl_ast_scope*      scope;
+    yl_ast_node*       body;
+    yl_ast_node*       condition;
 };
 
 
-struct xec_stmt_foreach : public xec_ast_node
+struct yl_stmt_foreach : public yl_ast_node
 {
-    xec_stmt_foreach( int sloc );
+    yl_stmt_foreach( int sloc );
 
-    xec_ast_scope*      scope;
-    xec_ast_node_list   lvalues;
-    xec_ast_node*       list;
-    xec_ast_node*       body;
+    yl_ast_scope*      scope;
+    yl_ast_node_list   lvalues;
+    yl_ast_node*       list;
+    yl_ast_node*       body;
     bool                eachkey;
     bool                declare;
 };
 
 
-struct xec_stmt_for : public xec_ast_node
+struct yl_stmt_for : public yl_ast_node
 {
-    xec_stmt_for( int sloc );
+    yl_stmt_for( int sloc );
 
-    xec_ast_scope*      scope;
-    xec_ast_node*       init;
-    xec_ast_node*       condition;
-    xec_ast_node*       update;
-    xec_ast_node*       body;
+    yl_ast_scope*      scope;
+    yl_ast_node*       init;
+    yl_ast_node*       condition;
+    yl_ast_node*       update;
+    yl_ast_node*       body;
 };
 
 
-struct xec_stmt_using : public xec_ast_node
+struct yl_stmt_using : public yl_ast_node
 {
-    xec_stmt_using( int sloc );
+    yl_stmt_using( int sloc );
     
-    xec_ast_scope*      scope;
-    xec_ast_node*       uvalue;
-    xec_ast_node*       body;
+    yl_ast_scope*      scope;
+    yl_ast_node*       uvalue;
+    yl_ast_node*       body;
 };
 
-struct xec_stmt_try : public xec_ast_node
+struct yl_stmt_try : public yl_ast_node
 {
-    xec_stmt_try( int sloc, xec_ast_node* tstmt );
+    yl_stmt_try( int sloc, yl_ast_node* tstmt );
 
-    xec_ast_node*       tstmt;
-    xec_ast_node_list   clist;
-    xec_ast_node*       fstmt;
+    yl_ast_node*       tstmt;
+    yl_ast_node_list   clist;
+    yl_ast_node*       fstmt;
 };
 
 
-struct xec_stmt_catch : public xec_ast_node
+struct yl_stmt_catch : public yl_ast_node
 {
-    xec_stmt_catch( int sloc );
+    yl_stmt_catch( int sloc );
 
-    xec_ast_scope*      scope;
-    xec_ast_node*       lvalue;
-    xec_ast_node*       proto;
-    xec_ast_node*       body;
+    yl_ast_scope*      scope;
+    yl_ast_node*       lvalue;
+    yl_ast_node*       proto;
+    yl_ast_node*       body;
     bool                declare;
 };
 
@@ -777,54 +777,54 @@ struct xec_stmt_catch : public xec_ast_node
     Statements.
 */
 
-struct xec_stmt_delete : public xec_ast_node
+struct yl_stmt_delete : public yl_ast_node
 {
-    xec_stmt_delete( int sloc );
+    yl_stmt_delete( int sloc );
 
-    xec_ast_node_list   delvals;
+    yl_ast_node_list   delvals;
 };
 
 
-struct xec_stmt_case : public xec_ast_node
+struct yl_stmt_case : public yl_ast_node
 {
-    xec_stmt_case( int sloc, xec_ast_node* value );
+    yl_stmt_case( int sloc, yl_ast_node* value );
 
-    xec_ast_node*       value;
+    yl_ast_node*       value;
 };
 
 
-struct xec_stmt_continue : public xec_ast_node
+struct yl_stmt_continue : public yl_ast_node
 {
-    xec_stmt_continue( int sloc, xec_ast_scope* scope,  xec_ast_scope* target );
+    yl_stmt_continue( int sloc, yl_ast_scope* scope,  yl_ast_scope* target );
 
-    xec_ast_scope*      scope;
-    xec_ast_scope*      target;
+    yl_ast_scope*      scope;
+    yl_ast_scope*      target;
 };
 
 
-struct xec_stmt_break : public xec_ast_node
+struct yl_stmt_break : public yl_ast_node
 {
-    xec_stmt_break( int sloc, xec_ast_scope* scope, xec_ast_scope* target );
+    yl_stmt_break( int sloc, yl_ast_scope* scope, yl_ast_scope* target );
 
-    xec_ast_scope*      scope;
-    xec_ast_scope*      target;
+    yl_ast_scope*      scope;
+    yl_ast_scope*      target;
 };
 
 
-struct xec_stmt_return : public xec_ast_node
+struct yl_stmt_return : public yl_ast_node
 {
-    xec_stmt_return( int sloc, xec_ast_scope* scope, xec_ast_node* values );
+    yl_stmt_return( int sloc, yl_ast_scope* scope, yl_ast_node* values );
 
-    xec_ast_scope*      scope;
-    xec_ast_node*       values;
+    yl_ast_scope*      scope;
+    yl_ast_node*       values;
 };
 
 
-struct xec_stmt_throw : public xec_ast_node
+struct yl_stmt_throw : public yl_ast_node
 {
-    xec_stmt_throw( int sloc, xec_ast_node* value );
+    yl_stmt_throw( int sloc, yl_ast_node* value );
 
-    xec_ast_node*       value;
+    yl_ast_node*       value;
 };
 
 
@@ -833,28 +833,28 @@ struct xec_stmt_throw : public xec_ast_node
     Unresolved and unqualified.
 */
 
-struct xec_name_name : public xec_ast_node
+struct yl_name_name : public yl_ast_node
 {
-    xec_name_name( int sloc, const char* name );
+    yl_name_name( int sloc, const char* name );
     
     const char*         name;
 };
 
 
-struct xec_name_qual : public xec_ast_node
+struct yl_name_qual : public yl_ast_node
 {
-    xec_name_qual( int sloc, xec_ast_node* scope, const char* name );
+    yl_name_qual( int sloc, yl_ast_node* scope, const char* name );
     
-    xec_ast_node*       scope;
+    yl_ast_node*       scope;
     const char*         name;
 };
 
 
-struct xec_name_list : public xec_ast_node
+struct yl_name_list : public yl_ast_node
 {
-    xec_name_list( int sloc );
+    yl_name_list( int sloc );
     
-    xec_name_name_list  names;
+    yl_name_name_list  names;
     bool                varargs;
 };
 
@@ -865,8 +865,8 @@ struct xec_name_list : public xec_ast_node
     AST printing.
 */
 
-const char* xec_operator_name( xec_ast_opkind op );
-void xec_ast_print( xec_ast* root );
+const char* yl_operator_name( yl_ast_opkind op );
+void yl_ast_print( yl_ast* root );
 
 
 

@@ -1,5 +1,5 @@
 //
-//  xssa_liveness.h
+//  yssa_liveness.h
 //
 //  Created by Edmund Kapusniak on 12/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
@@ -10,7 +10,7 @@
 #define XSSA_LIVENESS_H
 
 
-struct xssa_func;
+struct yssa_func;
 
 
 /*
@@ -19,7 +19,7 @@ struct xssa_func;
 */
 
 
-void xssa_liveness( xssa_func* func );
+void yssa_liveness( yssa_func* func );
 
 
 

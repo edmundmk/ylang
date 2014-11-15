@@ -1,5 +1,5 @@
 //
-//  xec_parser_ragel.rl
+//  yl_parser_ragel.rl
 //
 //  Created by Edmund Kapusniak on 14/03/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
@@ -7,20 +7,20 @@
 
 
 /*
-    ragel xec_parser_ragel.rl -o xec_parser_ragel.cpp -G2
+    ragel yl_parser_ragel.rl -o yl_parser_ragel.cpp -G2
 */
 
 
-#include "xec_parser.h"
+#include "yl_parser.h"
 #include <stdint.h>
 #include <intformat.h>
 #include <unordered_map>
 #include <region.h>
-#include "xec_token.h"
+#include "yl_token.h"
 
 
 void* XecParseAlloc( void* (*malloc)( size_t ) );
-void  XecParse( void* yyp, int yymajor, xec_token* yyminor, xec_parser* p );
+void  XecParse( void* yyp, int yymajor, yl_token* yyminor, yl_parser* p );
 void  XecParseFree( void* p, void (*free)( void* ) );
 
 
@@ -158,7 +158,7 @@ void  XecParseFree( void* p, void (*free)( void* ) );
         |   identifier >ts
                 %
                 {
-                    xec_token* token = make_identifier( sloc, &data );
+                    yl_token* token = make_identifier( sloc, &data );
                     TOKEN( token );
                 }
 
@@ -254,7 +254,7 @@ void  XecParseFree( void* p, void (*free)( void* ) );
 
 
 
-void xec_parser::newline( int sloc )
+void yl_parser::newline( int sloc )
 {
     root->script->newlines.push_back( sloc );
 }
@@ -262,7 +262,7 @@ void xec_parser::newline( int sloc )
 
 
 template < typename ... arguments_t >
-xec_token* xec_parser::make_token( arguments_t ... arguments )
+yl_token* yl_parser::make_token( arguments_t ... arguments )
 {
     void* p = NULL;
     if ( recycle_tokens.size() )
@@ -272,18 +272,18 @@ xec_token* xec_parser::make_token( arguments_t ... arguments )
     }
     else
     {
-        p = malloc( sizeof( xec_token ) );
+        p = malloc( sizeof( yl_token ) );
     }
-    return new ( p ) xec_token( arguments ... );
+    return new ( p ) yl_token( arguments ... );
 }
 
 
 
-struct xec_keywords
-    :   public std::unordered_map< symkey, xec_token_kind >
+struct yl_keywords
+    :   public std::unordered_map< symkey, yl_token_kind >
 {
     
-    xec_keywords()
+    yl_keywords()
     {
         emplace( symkey( "break" ),     XEC_KEYWORD_BREAK );
         emplace( symkey( "case" ),      XEC_KEYWORD_CASE );
@@ -317,9 +317,9 @@ struct xec_keywords
 
 
 
-xec_token* xec_parser::make_identifier( int sloc, region_buffer* data )
+yl_token* yl_parser::make_identifier( int sloc, region_buffer* data )
 {
-    static xec_keywords keywords;
+    static yl_keywords keywords;
 
     size_t length = data->size();
     const char* identifier = (const char*)data->get();
@@ -385,7 +385,7 @@ static bool encode_utf8( region_buffer* data, uint32_t cp )
 
 
 
-bool xec_parser::parse( const char* path )
+bool yl_parser::parse( const char* path )
 {
     // Implicit allocations (for std::deque) from AST region.
     region_scope rscope( root->alloc );
@@ -416,7 +416,7 @@ bool xec_parser::parse( const char* path )
     
     // Token state.
     int sloc = -1;
-    uint32_t temp;
+    uint32_t temp = 0;
 
 
     // Parser state.
@@ -438,7 +438,7 @@ bool xec_parser::parse( const char* path )
     }
 #define MTOKEN( ... ) \
     { \
-        xec_token* token = make_token( __VA_ARGS__ ); \
+        yl_token* token = make_token( __VA_ARGS__ ); \
         XecParse( parser, token->kind, token, this ); \
         if ( root->script->error_count() >= ERROR_LIMIT ) \
             goto error; \

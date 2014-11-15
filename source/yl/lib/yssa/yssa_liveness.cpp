@@ -1,13 +1,13 @@
 //
-//  xssa_liveness.cpp
+//  yssa_liveness.cpp
 //
 //  Created by Edmund Kapusniak on 12/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "xssa_liveness.h"
-#include "xssa.h"
+#include "yssa_liveness.h"
+#include "yssa.h"
 
 
 
@@ -32,11 +32,11 @@
 
 
 
-static void successor( xssa_opset* live, xssa_block* prev, xssa_block* block );
-static void loop( xssa_loop* l, const xssa_opset& live );
+static void successor( yssa_opset* live, yssa_block* prev, yssa_block* block );
+static void loop( yssa_loop* l, const yssa_opset& live );
 
 
-void xssa_liveness( xssa_func* func )
+void yssa_liveness( yssa_func* func )
 {
 
     // Assume blocks are in depth-first order and go in reverse.
@@ -44,8 +44,8 @@ void xssa_liveness( xssa_func* func )
     {
     
 
-    xssa_block* block = func->blocks.at( i ).get();
-    xssa_opset live;
+    yssa_block* block = func->blocks.at( i ).get();
+    yssa_opset live;
     
     
     // At the bottom of the block, all variables that are live on entry to
@@ -73,7 +73,7 @@ void xssa_liveness( xssa_func* func )
     // which are defined.
     for ( int i = (int)block->ops.size() - 1; i >= 0; --i )
     {
-        xssaop* op = block->ops.at( i );
+        yssaop* op = block->ops.at( i );
         if ( ! op )
             continue;
 
@@ -83,7 +83,7 @@ void xssa_liveness( xssa_func* func )
                 live.insert( op->operand[ i ] );
         }
         
-        if ( xssaop::has_multival( op->opcode ) && op->multival )
+        if ( yssaop::has_multival( op->opcode ) && op->multival )
         {
             live.insert( op->multival );
         }
@@ -96,7 +96,7 @@ void xssa_liveness( xssa_func* func )
     // liveness here but rather at the _end_ of predecessor blocks.
     for ( int i = (int)block->phi.size() - 1; i >= 0; --i )
     {
-        xssaop* op = block->phi.at( i );
+        yssaop* op = block->phi.at( i );
         if ( ! op )
             continue;
         
@@ -123,7 +123,7 @@ void xssa_liveness( xssa_func* func )
 }
 
 
-static void successor( xssa_opset* live, xssa_block* prev, xssa_block* block )
+static void successor( yssa_opset* live, yssa_block* prev, yssa_block* block )
 {
     // Successor might not exist.
     if ( ! block )
@@ -157,7 +157,7 @@ static void successor( xssa_opset* live, xssa_block* prev, xssa_block* block )
     // variables referenced by ɸ-functions coming from this code path.
     for ( size_t i = 0; i < block->phi.size(); ++i )
     {
-        xssaop* op = block->phi.at( i );
+        yssaop* op = block->phi.at( i );
         if ( op && op->opcode == XSSA_PHI )
         {
             live->insert( op->operand[ index ] );
@@ -167,11 +167,11 @@ static void successor( xssa_opset* live, xssa_block* prev, xssa_block* block )
 }
 
 
-static void loop( xssa_loop* l, const xssa_opset& live )
+static void loop( yssa_loop* l, const yssa_opset& live )
 {
     for ( auto i = l->blocks.begin(); i != l->blocks.end(); ++i )
     {
-        xssa_block* block = *i;
+        yssa_block* block = *i;
         block->live_in.insert( live.begin(), live.end() );
         block->live_out.insert( live.begin(), live.end() );
     }

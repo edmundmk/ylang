@@ -1,16 +1,16 @@
 //
-//  xssa_builder.cpp
+//  yssa_builder.cpp
 //
 //  Created by Edmund Kapusniak on 08/07/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "xssa_builder.h"
+#include "yssa_builder.h"
 #include <make_unique>
-#include "xec_script.h"
-#include "xssa.h"
-#include "xec_ast_visitor.h"
+#include "yl_script.h"
+#include "yssa.h"
+#include "yl_ast_visitor.h"
 
 
 
@@ -33,9 +33,9 @@
     Loop and undefined markers used when looking up definitions of variables.
 */
 
-static xssaop* const XSSA_UNDEF = (xssaop*)-1;
-static xssaop* const XSSA_LOOP  = (xssaop*)-2;
-static xssaop* const XSSA_SELF  = (xssaop*)-3;
+static yssaop* const XSSA_UNDEF = (yssaop*)-1;
+static yssaop* const XSSA_LOOP  = (yssaop*)-2;
+static yssaop* const XSSA_SELF  = (yssaop*)-3;
 
 
 
@@ -44,7 +44,7 @@ static xssaop* const XSSA_SELF  = (xssaop*)-3;
     Lvalues and valists.
 */
 
-xssa_lvalue::xssa_lvalue()
+yssa_lvalue::yssa_lvalue()
     :   opcode( XSSA_NOP )
     ,   object( nullptr )
     ,   index( nullptr )
@@ -52,7 +52,7 @@ xssa_lvalue::xssa_lvalue()
 }
 
 
-xssa_valist::xssa_valist()
+yssa_valist::yssa_valist()
     :   multival( nullptr )
 {
 }
@@ -64,7 +64,7 @@ xssa_valist::xssa_valist()
     Where to place nodes or where to link from.
 */
 
-enum xssa_follow_kind
+enum yssa_follow_kind
 {
     XSSA_FOLLOW_NONE,    // Nowhere, or code is unreachable.
     XSSA_FOLLOW_BLOCK,   // Place nodes in the active block.
@@ -72,37 +72,37 @@ enum xssa_follow_kind
     XSSA_FOLLOW_IFFALSE, // Link as iffalse block.
 };
 
-struct xssa_follow
+struct yssa_follow
 {
-    xssa_follow();
-    xssa_follow( xssa_follow_kind kind, xssa_build_block* block );
-    void reset( xssa_follow_kind kind, xssa_build_block* block );
+    yssa_follow();
+    yssa_follow( yssa_follow_kind kind, yssa_build_block* block );
+    void reset( yssa_follow_kind kind, yssa_build_block* block );
     explicit operator bool() const;
 
-    xssa_follow_kind     kind;
-    xssa_build_block*    block;
+    yssa_follow_kind     kind;
+    yssa_build_block*    block;
 };
 
 
-xssa_follow::xssa_follow()
+yssa_follow::yssa_follow()
     :   kind( XSSA_FOLLOW_NONE )
     ,   block( NULL )
 {
 }
 
-xssa_follow::xssa_follow( xssa_follow_kind kind, xssa_build_block* block )
+yssa_follow::yssa_follow( yssa_follow_kind kind, yssa_build_block* block )
     :   kind( kind )
     ,   block( block )
 {
 }
 
-void xssa_follow::reset( xssa_follow_kind kind, xssa_build_block* block )
+void yssa_follow::reset( yssa_follow_kind kind, yssa_build_block* block )
 {
     this->kind = kind;
     this->block = block;
 }
 
-xssa_follow::operator bool() const
+yssa_follow::operator bool() const
 {
     return kind != XSSA_FOLLOW_NONE;
 }
@@ -117,10 +117,10 @@ xssa_follow::operator bool() const
     Information about in-progress if.
 */
 
-struct xssa_build_if
+struct yssa_build_if
 {
-    xssa_follow          iffalse;
-    xssa_follow          aftertrue;
+    yssa_follow          iffalse;
+    yssa_follow          aftertrue;
 };
 
 
@@ -129,18 +129,18 @@ struct xssa_build_if
     And loop.
 */
 
-struct xssa_build_loop
+struct yssa_build_loop
 {
-    xssa_build_loop();
+    yssa_build_loop();
     
-    xssa_build_block*       loop;
-    std::deque< xssa_follow > breaks;
-    std::deque< xssa_follow > continues;
+    yssa_build_block*       loop;
+    std::deque< yssa_follow > breaks;
+    std::deque< yssa_follow > continues;
     bool                    dowhile;
 };
 
 
-xssa_build_loop::xssa_build_loop()
+yssa_build_loop::yssa_build_loop()
     :   loop( NULL )
     ,   dowhile( false )
 {
@@ -153,21 +153,21 @@ xssa_build_loop::xssa_build_loop()
     And information about the entire function.
 */
 
-struct xssa_build_func
+struct yssa_build_func
 {
-    explicit xssa_build_func( xssa_func* func );
+    explicit yssa_build_func( yssa_func* func );
 
-    xssa_func*                       func;
-    xssa_follow                      follow;
-    std::deque< xssa_build_if >      ifstack;
-    std::deque< xssa_build_loop >    loopstack;
-    std::deque< xssa_build_block_p > blocks;
-    std::unordered_map< xssa_block*, xssa_build_block* > blockmap;
+    yssa_func*                       func;
+    yssa_follow                      follow;
+    std::deque< yssa_build_if >      ifstack;
+    std::deque< yssa_build_loop >    loopstack;
+    std::deque< yssa_build_block_p > blocks;
+    std::unordered_map< yssa_block*, yssa_build_block* > blockmap;
     std::unordered_map< void*, int > upvals;
 };
 
 
-xssa_build_func::xssa_build_func( xssa_func* func )
+yssa_build_func::yssa_build_func( yssa_func* func )
     :   func( func )
 {
 }
@@ -179,19 +179,19 @@ xssa_build_func::xssa_build_func( xssa_func* func )
     A block which is being built.
 */
 
-struct xssa_build_block
+struct yssa_build_block
 {
-    xssa_build_block();
+    yssa_build_block();
 
-    xssa_block*                             block;
-    std::unordered_map< void*, xssaop* >    defined;
-    std::unordered_map< xssaop*, void* >    incomplete;
-    xssaop*                                 phi;
+    yssa_block*                             block;
+    std::unordered_map< void*, yssaop* >    defined;
+    std::unordered_map< yssaop*, void* >    incomplete;
+    yssaop*                                 phi;
     bool                                    sealed;
 };
 
 
-xssa_build_block::xssa_build_block()
+yssa_build_block::yssa_build_block()
     :   block( nullptr )
     ,   phi( nullptr )
     ,   sealed( false )
@@ -206,42 +206,42 @@ xssa_build_block::xssa_build_block()
     phi instruction at a join node.
 */
 
-struct xssa_build_lookup
+struct yssa_build_lookup
 {
-    xssa_build_lookup( xssa_build_block* join );
-    xssa_build_lookup( xssaop* def );
+    yssa_build_lookup( yssa_build_block* join );
+    yssa_build_lookup( yssaop* def );
 
     explicit operator bool () const;
 
-    xssa_build_block*   join;
-    xssaop*             def;
+    yssa_build_block*   join;
+    yssaop*             def;
 };
 
 
-bool operator == ( const xssa_build_lookup& a, const xssa_build_lookup& b )
+bool operator == ( const yssa_build_lookup& a, const yssa_build_lookup& b )
 {
     return a.join == b.join && a.def == b.def;
 }
 
-bool operator != ( const xssa_build_lookup& a, const xssa_build_lookup& b )
+bool operator != ( const yssa_build_lookup& a, const yssa_build_lookup& b )
 {
     return !( a == b );
 }
 
 
-xssa_build_lookup::xssa_build_lookup( xssa_build_block* join )
+yssa_build_lookup::yssa_build_lookup( yssa_build_block* join )
     :   join( join )
     ,   def( nullptr )
 {
 }
 
-xssa_build_lookup::xssa_build_lookup( xssaop* def )
+yssa_build_lookup::yssa_build_lookup( yssaop* def )
     :   join( nullptr )
     ,   def( def )
 {
 }
 
-xssa_build_lookup::operator bool() const
+yssa_build_lookup::operator bool() const
 {
     return join != nullptr || def != nullptr;
 }
@@ -257,7 +257,7 @@ xssa_build_lookup::operator bool() const
 */
 
 
-xssa_builder::xssa_builder( xssa_module* module )
+yssa_builder::yssa_builder( yssa_module* module )
     :   module( module )
     ,   build_expr( this )
     ,   build_unpack( this )
@@ -265,12 +265,12 @@ xssa_builder::xssa_builder( xssa_module* module )
 {
 }
 
-xssa_builder::~xssa_builder()
+yssa_builder::~yssa_builder()
 {
 }
 
 
-bool xssa_builder::build( xec_ast* ast )
+bool yssa_builder::build( yl_ast* ast )
 {
     region_scope rscope( module->alloc );
 
@@ -280,9 +280,9 @@ bool xssa_builder::build( xec_ast* ast )
     // Construct function objects.
     for ( size_t i = 0; i < ast->functions.size(); ++i )
     {
-        xec_ast_func* func = ast->functions.at( i );
+        yl_ast_func* func = ast->functions.at( i );
 
-        xssa_func_p ssaf = std::make_unique< xssa_func >();
+        yssa_func_p ssaf = std::make_unique< yssa_func >();
         ssaf->module        = module;
         ssaf->sloc          = func->sloc;
         ssaf->funcname      = module->alloc.strdup( func->funcname );
@@ -299,8 +299,8 @@ bool xssa_builder::build( xec_ast* ast )
     // Perform AST -> SSA conversion, one function at a time.
     for ( size_t i = 0; i < ast->functions.size(); ++i )
     {
-        xec_ast_func* func = ast->functions.at( i );
-        xssa_func* ssaf = funcmap.at( func );
+        yl_ast_func* func = ast->functions.at( i );
+        yssa_func* ssaf = funcmap.at( func );
         build_function( func, ssaf );
     }
     
@@ -314,7 +314,7 @@ bool xssa_builder::build( xec_ast* ast )
 
 
 
-xssaop* xssa_builder::op( xssaop* op )
+yssaop* yssa_builder::op( yssaop* op )
 {
     // If we're in a reachable block, add op to block.
     if ( follow_block() )
@@ -325,7 +325,7 @@ xssaop* xssa_builder::op( xssaop* op )
     return op;
 }
 
-const char* xssa_builder::key( const char* key )
+const char* yssa_builder::key( const char* key )
 {
     auto i = keymap.find( key );
     if ( i != keymap.end() )
@@ -339,7 +339,7 @@ const char* xssa_builder::key( const char* key )
 }
 
 
-void xssa_builder::define( xec_ast_name* name, xssaop* value )
+void yssa_builder::define( yl_ast_name* name, yssaop* value )
 {
     if ( name->upval )
     {
@@ -348,7 +348,7 @@ void xssa_builder::define( xec_ast_name* name, xssaop* value )
         if ( i != b->upvals.end() )
         {
             // Existing upval.
-            xssaop* setup = op( name->sloc, XSSA_SETUP, value );
+            yssaop* setup = op( name->sloc, XSSA_SETUP, value );
             setup->immed = i->second;
         }
         else
@@ -357,7 +357,7 @@ void xssa_builder::define( xec_ast_name* name, xssaop* value )
             int index = b->func->upvalcount + b->func->newupcount;
             b->upvals.emplace( name, index );
             b->func->newupcount += 1;
-            xssaop* newup = op( name->sloc, XSSA_NEWUP, value );
+            yssaop* newup = op( name->sloc, XSSA_NEWUP, value );
             newup->immed = index;
         }
     }
@@ -372,14 +372,14 @@ void xssa_builder::define( xec_ast_name* name, xssaop* value )
     if ( b->follow.block )
     {
         auto i = namemap.find( name );
-        xssa_string* ssan;
+        yssa_string* ssan;
         if ( i != namemap.end() )
         {
             ssan = i->second;
         }
         else
         {
-            ssan = xssa_string::s( name->sloc, name->name );
+            ssan = yssa_string::s( name->sloc, name->name );
             namemap.emplace( name, ssan );
         }
 
@@ -388,7 +388,7 @@ void xssa_builder::define( xec_ast_name* name, xssaop* value )
 }
     
 
-void xssa_builder::define( xec_new_object* object, xssaop* value )
+void yssa_builder::define( yl_new_object* object, yssaop* value )
 {
     if ( object->upval )
     {
@@ -397,25 +397,25 @@ void xssa_builder::define( xec_new_object* object, xssaop* value )
         int index = b->func->upvalcount + b->func->newupcount;
         b->upvals.emplace( object, index );
         b->func->newupcount += 1;
-        xssaop* newup = op( object->sloc, XSSA_NEWUP, value );
+        yssaop* newup = op( object->sloc, XSSA_NEWUP, value );
         newup->immed = index;
     }
 
     define_name( object, value );
 }
 
-void xssa_builder::define( xec_ast_node* temporary, xssaop* value )
+void yssa_builder::define( yl_ast_node* temporary, yssaop* value )
 {
     define_name( temporary, value );
 }
 
 
-xssaop* xssa_builder::lookup( int sloc, xec_ast_name* name )
+yssaop* yssa_builder::lookup( int sloc, yl_ast_name* name )
 {
     if ( name->upval )
     {
         // If this is an upval then construct code to get its value.
-        xssaop* refup = op( sloc, XSSA_REFUP );
+        yssaop* refup = op( sloc, XSSA_REFUP );
         refup->immed = b->upvals.at( name );
         return refup;
     }
@@ -426,28 +426,28 @@ xssaop* xssa_builder::lookup( int sloc, xec_ast_name* name )
     }
 }
 
-xssaop* xssa_builder::lookup( xec_new_object* object )
+yssaop* yssa_builder::lookup( yl_new_object* object )
 {
     // Object upvals are defined once and are read-only, so we can just use
     // the defined value when we want its value locally.
     return lookup_name( object, object->sloc, "object" );
 }
 
-xssaop* xssa_builder::lookup( xec_ast_node* temporary )
+yssaop* yssa_builder::lookup( yl_ast_node* temporary )
 {
     return lookup_name( temporary, temporary->sloc, "temporary" );
 }
 
 
-void xssa_builder::close_scope( xec_ast_scope* scope )
+void yssa_builder::close_scope( yl_ast_scope* scope )
 {
     // Close all upvals in scope.
     for ( auto i = scope->decls.rbegin(); i != scope->decls.rend(); ++i )
     {
-        xec_ast_name* decl = *i;
+        yl_ast_name* decl = *i;
         if ( decl->upval )
         {
-            xssaop* cloup = op( decl->sloc, XSSA_CLOUP );
+            yssaop* cloup = op( decl->sloc, XSSA_CLOUP );
             cloup->immed = b->upvals.at( decl );
         }
     }
@@ -455,20 +455,20 @@ void xssa_builder::close_scope( xec_ast_scope* scope )
     // Close object upval if there is one.
     if ( scope->node->kind == XEC_NEW_OBJECT )
     {
-        xec_new_object* object = (xec_new_object*)scope->node;
+        yl_new_object* object = (yl_new_object*)scope->node;
         if ( object->upval )
         {
-            xssaop* cloup = op( object->sloc, XSSA_CLOUP );
+            yssaop* cloup = op( object->sloc, XSSA_CLOUP );
             cloup->immed = b->upvals.at( object );
         }
     }
 }
 
 
-void xssa_builder::ifthen( xssaop* condition )
+void yssa_builder::ifthen( yssaop* condition )
 {
     b->ifstack.emplace_back();
-    xssa_build_if& buildif = b->ifstack.back();
+    yssa_build_if& buildif = b->ifstack.back();
     
     // We need a real block to use as the decision point.
     if ( follow_block() )
@@ -479,9 +479,9 @@ void xssa_builder::ifthen( xssaop* condition )
     }
 }
 
-void xssa_builder::ifelse()
+void yssa_builder::ifelse()
 {
-    xssa_build_if& buildif = b->ifstack.back();
+    yssa_build_if& buildif = b->ifstack.back();
     
     // Store current follow as it will be relinked to after the if.
     buildif.aftertrue = b->follow;
@@ -490,9 +490,9 @@ void xssa_builder::ifelse()
     b->follow = buildif.iffalse;
 }
 
-void xssa_builder::ifend()
+void yssa_builder::ifend()
 {
-    xssa_build_if& buildif = b->ifstack.back();
+    yssa_build_if& buildif = b->ifstack.back();
 
     if ( ! buildif.aftertrue )
     {
@@ -512,7 +512,7 @@ void xssa_builder::ifend()
     }
     
     // Otherwise we have a join point.
-    xssa_build_block* join = make_block();
+    yssa_build_block* join = make_block();
     link( &buildif.aftertrue, join );
     link( &b->follow, join );
     seal_block( join );
@@ -521,38 +521,38 @@ void xssa_builder::ifend()
 }
 
 
-void xssa_builder::switchopen( xssaop* value )
+void yssa_builder::switchopen( yssaop* value )
 {
     assert( ! "not implemented" );
 }
 
 
-void xssa_builder::switchcase()
+void yssa_builder::switchcase()
 {
     assert( ! "not implemented" );
 }
 
 
-void xssa_builder::switchcase( xssaop* value )
+void yssa_builder::switchcase( yssaop* value )
 {
     assert( ! "not implemented" );
 }
 
-void xssa_builder::switchbreak()
+void yssa_builder::switchbreak()
 {
     assert( ! "not implemented" );
 }
 
-void xssa_builder::switchend()
+void yssa_builder::switchend()
 {
     assert( ! "not implemented" );
 }
 
 
-void xssa_builder::loopopen( bool dowhile )
+void yssa_builder::loopopen( bool dowhile )
 {
     b->loopstack.emplace_back();
-    xssa_build_loop& buildloop = b->loopstack.back();
+    yssa_build_loop& buildloop = b->loopstack.back();
     buildloop.dowhile = dowhile;
     
     // The entry to the loop is the only kind of block that isn't
@@ -571,9 +571,9 @@ void xssa_builder::loopopen( bool dowhile )
     
 }
 
-void xssa_builder::loopcontinue()
+void yssa_builder::loopcontinue()
 {
-    xssa_build_loop& buildloop = b->loopstack.back();
+    yssa_build_loop& buildloop = b->loopstack.back();
 
     if ( buildloop.dowhile )
     {
@@ -590,9 +590,9 @@ void xssa_builder::loopcontinue()
     b->follow.reset( XSSA_FOLLOW_NONE, NULL );
 }
 
-void xssa_builder::loopbreak()
+void yssa_builder::loopbreak()
 {
-    xssa_build_loop& buildloop = b->loopstack.back();
+    yssa_build_loop& buildloop = b->loopstack.back();
     
     // Remember current follow point so we can break to after the loop.
     buildloop.breaks.push_back( b->follow );
@@ -601,9 +601,9 @@ void xssa_builder::loopbreak()
     b->follow.reset( XSSA_FOLLOW_NONE, NULL );
 }
 
-void xssa_builder::loopdowhile()
+void yssa_builder::loopdowhile()
 {
-    xssa_build_loop& buildloop = b->loopstack.back();
+    yssa_build_loop& buildloop = b->loopstack.back();
 
     // This loop has its condition at the end.  If there were any continues
     // they end up here.
@@ -615,7 +615,7 @@ void xssa_builder::loopdowhile()
 
 
     // Create block and link all continues.
-    xssa_build_block* dowhile = make_block();
+    yssa_build_block* dowhile = make_block();
     
     if ( b->follow )
     {
@@ -624,7 +624,7 @@ void xssa_builder::loopdowhile()
     
     for ( size_t i = 0; i < buildloop.continues.size(); ++i )
     {
-        xssa_follow& follow = buildloop.continues.at( i );
+        yssa_follow& follow = buildloop.continues.at( i );
         link( &follow, dowhile );
     }
     
@@ -640,9 +640,9 @@ void xssa_builder::loopdowhile()
     b->follow.reset( XSSA_FOLLOW_BLOCK, dowhile );
 }
 
-void xssa_builder::loopend()
+void yssa_builder::loopend()
 {
-    xssa_build_loop& buildloop = b->loopstack.back();
+    yssa_build_loop& buildloop = b->loopstack.back();
 
     // Should have either continued or broken.
     assert( ! b->follow );
@@ -662,11 +662,11 @@ void xssa_builder::loopend()
     else if ( buildloop.breaks.size() > 1 )
     {
         // New block joining all breaks.
-        xssa_build_block* after = make_block();
+        yssa_build_block* after = make_block();
         for ( size_t i = 0; i < buildloop.breaks.size(); ++i )
         {
             // Each break block jumps to after the switch.
-            xssa_follow& follow = buildloop.breaks.at( i );
+            yssa_follow& follow = buildloop.breaks.at( i );
             link( &follow, after );
         }
         seal_block( after );
@@ -677,24 +677,24 @@ void xssa_builder::loopend()
 }
 
 
-void xssa_builder::funcreturn()
+void yssa_builder::funcreturn()
 {
     // Further statements are unreachable.
     b->follow.reset( XSSA_FOLLOW_NONE, NULL );
 }
 
 
-xssa_func* xssa_builder::func( xec_ast_func* func )
+yssa_func* yssa_builder::func( yl_ast_func* func )
 {
     return funcmap.at( func );
 }
 
-xssaop* xssa_builder::expr( xec_ast_node* node )
+yssaop* yssa_builder::expr( yl_ast_node* node )
 {
     return build_expr.visit( node );
 }
 
-void xssa_builder::unpack( xssa_valist* l, xec_ast_node* node, int count )
+void yssa_builder::unpack( yssa_valist* l, yl_ast_node* node, int count )
 {
     build_unpack.visit( node, l, count );
     if ( count != -1 )
@@ -706,7 +706,7 @@ void xssa_builder::unpack( xssa_valist* l, xec_ast_node* node, int count )
 
 
 
-void xssa_builder::lvalue( xssa_lvalue* lvalue, xec_ast_node* node )
+void yssa_builder::lvalue( yssa_lvalue* lvalue, yl_ast_node* node )
 {
     lvalue->sloc = node->sloc;
 
@@ -714,7 +714,7 @@ void xssa_builder::lvalue( xssa_lvalue* lvalue, xec_ast_node* node )
     {
     case XEC_EXPR_LOCAL:
     {
-        xec_expr_local* local = (xec_expr_local*)node;
+        yl_expr_local* local = (yl_expr_local*)node;
         lvalue->opcode = XSSA_NOP;
         lvalue->local  = local->name;
         break;
@@ -722,7 +722,7 @@ void xssa_builder::lvalue( xssa_lvalue* lvalue, xec_ast_node* node )
     
     case XEC_EXPR_GLOBAL:
     {
-        xec_expr_global* global = (xec_expr_global*)node;
+        yl_expr_global* global = (yl_expr_global*)node;
         lvalue->opcode = XSSA_GLOBAL;
         lvalue->key = key( global->name );
         break;
@@ -730,7 +730,7 @@ void xssa_builder::lvalue( xssa_lvalue* lvalue, xec_ast_node* node )
     
     case XEC_EXPR_UPREF:
     {
-        xec_expr_upref* upref = (xec_expr_upref*)node;
+        yl_expr_upref* upref = (yl_expr_upref*)node;
         lvalue->opcode = XSSA_SETUP;
         lvalue->upval  = upref->index;
         break;
@@ -738,7 +738,7 @@ void xssa_builder::lvalue( xssa_lvalue* lvalue, xec_ast_node* node )
     
     case XEC_EXPR_KEY:
     {
-        xec_expr_key* keyexpr = (xec_expr_key*)node;
+        yl_expr_key* keyexpr = (yl_expr_key*)node;
         lvalue->opcode = XSSA_SETKEY;
         lvalue->object = expr( keyexpr->object );
         lvalue->key = key( keyexpr->key );
@@ -747,7 +747,7 @@ void xssa_builder::lvalue( xssa_lvalue* lvalue, xec_ast_node* node )
     
     case XEC_EXPR_INKEY:
     {
-        xec_expr_inkey* inkey = (xec_expr_inkey*)node;
+        yl_expr_inkey* inkey = (yl_expr_inkey*)node;
         lvalue->opcode = XSSA_SETINKEY;
         lvalue->object = expr( inkey->object );
         lvalue->index = expr( inkey->key );
@@ -756,7 +756,7 @@ void xssa_builder::lvalue( xssa_lvalue* lvalue, xec_ast_node* node )
     
     case XEC_EXPR_INDEX:
     {
-        xec_expr_index* index = (xec_expr_index*)node;
+        yl_expr_index* index = (yl_expr_index*)node;
         lvalue->opcode = XSSA_SETINDEX;
         lvalue->object = expr( index->object );
         lvalue->index = expr( index->index );
@@ -769,7 +769,7 @@ void xssa_builder::lvalue( xssa_lvalue* lvalue, xec_ast_node* node )
     }
 }
 
-xssaop* xssa_builder::lvalue_value( xssa_lvalue* lvalue )
+yssaop* yssa_builder::lvalue_value( yssa_lvalue* lvalue )
 {
     switch ( lvalue->opcode )
     {
@@ -780,21 +780,21 @@ xssaop* xssa_builder::lvalue_value( xssa_lvalue* lvalue )
     
     case XSSA_GLOBAL:
     {
-        xssaop* global = op( lvalue->sloc, XSSA_GLOBAL );
+        yssaop* global = op( lvalue->sloc, XSSA_GLOBAL );
         global->key = lvalue->key;
         return global;
     }
     
     case XSSA_SETUP:
     {
-        xssaop* refup = op( lvalue->sloc, XSSA_REFUP );
+        yssaop* refup = op( lvalue->sloc, XSSA_REFUP );
         refup->immed = lvalue->upval;
         return refup;
     }
     
     case XSSA_SETKEY:
     {
-        xssaop* key = op( lvalue->sloc, XSSA_KEY, lvalue->object );
+        yssaop* key = op( lvalue->sloc, XSSA_KEY, lvalue->object );
         key->key = lvalue->key;
         return key;
     }
@@ -815,8 +815,8 @@ xssaop* xssa_builder::lvalue_value( xssa_lvalue* lvalue )
     }
 }
 
-void xssa_builder::lvalue_assign(
-            xssa_lvalue* lvalue, xssaop* val )
+void yssa_builder::lvalue_assign(
+            yssa_lvalue* lvalue, yssaop* val )
 {
     switch ( lvalue->opcode )
     {
@@ -826,21 +826,21 @@ void xssa_builder::lvalue_assign(
         
     case XSSA_GLOBAL:
     {
-        xssaop* setglobal = op( lvalue->sloc, XSSA_SETGLOBAL, val );
+        yssaop* setglobal = op( lvalue->sloc, XSSA_SETGLOBAL, val );
         setglobal->key = lvalue->key;
         break;
     }
         
     case XSSA_SETUP:
     {
-        xssaop* setup = op( lvalue->sloc, XSSA_SETUP, val );
+        yssaop* setup = op( lvalue->sloc, XSSA_SETUP, val );
         setup->immed = lvalue->upval;
         break;
     }
 
     case XSSA_SETKEY:
     {
-        xssaop* setkey = op( lvalue->sloc, XSSA_SETKEY, lvalue->object, val );
+        yssaop* setkey = op( lvalue->sloc, XSSA_SETKEY, lvalue->object, val );
         setkey->key = lvalue->key;
         break;
     }
@@ -862,15 +862,15 @@ void xssa_builder::lvalue_assign(
 
 
 
-void xssa_builder::build_function( xec_ast_func* astf, xssa_func* ssaf )
+void yssa_builder::build_function( yl_ast_func* astf, yssa_func* ssaf )
 {
     // Set up function building.
-    xssa_build_func_p c = std::make_unique< xssa_build_func >( ssaf );
+    yssa_build_func_p c = std::make_unique< yssa_build_func >( ssaf );
     std::swap( b, c );
     
     
     // Open block.
-    xssa_build_block* block = make_block();
+    yssa_build_block* block = make_block();
     seal_block( block );
     b->follow.reset( XSSA_FOLLOW_BLOCK, block );
 
@@ -878,8 +878,8 @@ void xssa_builder::build_function( xec_ast_func* astf, xssa_func* ssaf )
     // Add parameters.
     for ( size_t i = 0; i < astf->parameters.size(); ++i )
     {
-        xec_ast_name* param = astf->parameters.at( i );
-        xssaop* n = op( param->sloc, XSSA_PARAM );
+        yl_ast_name* param = astf->parameters.at( i );
+        yssaop* n = op( param->sloc, XSSA_PARAM );
         n->immed = (int)i;
         define( param, n );
     }
@@ -891,7 +891,7 @@ void xssa_builder::build_function( xec_ast_func* astf, xssa_func* ssaf )
     
     // Close scope and return nothing.
     close_scope( astf->scope );
-    xssaop* r = op( astf->sloc, XSSA_RETURN );
+    yssaop* r = op( astf->sloc, XSSA_RETURN );
     r->multival = nullptr;
     funcreturn();
     
@@ -899,7 +899,7 @@ void xssa_builder::build_function( xec_ast_func* astf, xssa_func* ssaf )
     // Go through each block and remove reference ops.
     for ( size_t i = 0; i < b->blocks.size(); ++i )
     {
-        xssa_build_block* block = b->blocks.at( i ).get();
+        yssa_build_block* block = b->blocks.at( i ).get();
         remove_ref( block->block );
     }
     
@@ -912,10 +912,10 @@ void xssa_builder::build_function( xec_ast_func* astf, xssa_func* ssaf )
 
 
 
-xssa_build_block* xssa_builder::make_block()
+yssa_build_block* yssa_builder::make_block()
 {
-    xssa_build_block_p build = std::make_unique< xssa_build_block >();
-    xssa_block_p block = std::make_unique< xssa_block >();
+    yssa_build_block_p build = std::make_unique< yssa_build_block >();
+    yssa_block_p block = std::make_unique< yssa_block >();
     
     block->index        = (int)b->func->blocks.size();
     block->condition    = nullptr;
@@ -931,7 +931,7 @@ xssa_build_block* xssa_builder::make_block()
 
 
 
-void xssa_builder::link( xssa_follow* follow, xssa_build_block* block )
+void yssa_builder::link( yssa_follow* follow, yssa_build_block* block )
 {
     assert( ! block->sealed );
 
@@ -974,7 +974,7 @@ void xssa_builder::link( xssa_follow* follow, xssa_build_block* block )
 }
 
 
-bool xssa_builder::follow_block()
+bool yssa_builder::follow_block()
 {
     // Ensure we have a real block.
 
@@ -996,7 +996,7 @@ bool xssa_builder::follow_block()
     case XSSA_FOLLOW_IFFALSE:
     {
         // Make real block and link appropriately.
-        xssa_build_block* block = make_block();
+        yssa_build_block* block = make_block();
         link( &b->follow, block );
         seal_block( block );
         b->follow.reset( XSSA_FOLLOW_BLOCK, block );
@@ -1011,7 +1011,7 @@ bool xssa_builder::follow_block()
 
 
 
-void xssa_builder::define_name( void* name, xssaop* value )
+void yssa_builder::define_name( void* name, yssaop* value )
 {
     if ( b->follow.block )
     {
@@ -1021,13 +1021,13 @@ void xssa_builder::define_name( void* name, xssaop* value )
 
 
 
-xssaop* xssa_builder::lookup_name(
+yssaop* yssa_builder::lookup_name(
                     void* name, int sloc, const char* text )
 {
     if ( b->follow )
     {
         // Look it up.
-        xssa_build_lookup lookup =
+        yssa_build_lookup lookup =
                         lookup_block( nullptr, b->follow.block, name );
         
 
@@ -1054,8 +1054,8 @@ xssaop* xssa_builder::lookup_name(
 */
 
 
-xssaop* xssa_builder::lookup_block(
-        xssa_build_block* loop, xssa_build_block* block, void* name )
+yssaop* yssa_builder::lookup_block(
+        yssa_build_block* loop, yssa_build_block* block, void* name )
 {
     // If there is a local definition then use that.
     auto i = block->defined.find( name );
@@ -1075,7 +1075,7 @@ xssaop* xssa_builder::lookup_block(
     // If it's an unsealed block then we can't proceed - add an incomplete phi.
     if ( ! block->sealed )
     {
-        xssaop* phi = xssaop::op( -1, XSSA_PSI, nullptr );
+        yssaop* phi = yssaop::op( -1, XSSA_PSI, nullptr );
         block->block->phi.push_back( phi );
         block->incomplete.emplace( phi, name );
         block->defined[ name ] = phi;
@@ -1093,9 +1093,9 @@ xssaop* xssa_builder::lookup_block(
     // If there's only one predecessor then continue search.
     if ( block->block->previous.size() == 1 )
     {
-        xssa_block* prev = block->block->previous.at( 0 );
-        xssa_build_block* build = b->blockmap.at( prev );
-        xssaop* def = lookup_block( loop, build, name );
+        yssa_block* prev = block->block->previous.at( 0 );
+        yssa_build_block* build = b->blockmap.at( prev );
+        yssaop* def = lookup_block( loop, build, name );
         
         if ( def )
         {
@@ -1113,8 +1113,8 @@ xssaop* xssa_builder::lookup_block(
     
     
     // Look up the def reachable from each predecessor block, in order.
-    std::vector< xssaop* > lookups;
-    xssaop* def = lookup_join( loop, block, name, &lookups );
+    std::vector< yssaop* > lookups;
+    yssaop* def = lookup_join( loop, block, name, &lookups );
     if ( def )
     {
         // Join collapses away.
@@ -1133,7 +1133,7 @@ xssaop* xssa_builder::lookup_block(
     assert( block->phi );
     
     // Build phi list.
-    xssaop* phi = xssaop::op( -1, XSSA_PHI, lookups.size() );
+    yssaop* phi = yssaop::op( -1, XSSA_PHI, lookups.size() );
     for ( size_t i = 0; i < lookups.size(); ++i )
     {
         phi->operand[ i ] = lookups[ i ];
@@ -1147,7 +1147,7 @@ xssaop* xssa_builder::lookup_block(
 
 
 
-void xssa_builder::seal_block( xssa_build_block* block )
+void yssa_builder::seal_block( yssa_build_block* block )
 {
     // Seal block.
     assert( ! block->sealed );
@@ -1164,8 +1164,8 @@ void xssa_builder::seal_block( xssa_build_block* block )
         
         // Lookup name.
         void* name = block->incomplete.at( block->phi );
-        std::vector< xssaop* > lookups;
-        xssaop* def = lookup_join( NULL, block, name, &lookups );
+        std::vector< yssaop* > lookups;
+        yssaop* def = lookup_join( NULL, block, name, &lookups );
         if ( def )
         {
             // Join collapses away.
@@ -1187,7 +1187,7 @@ void xssa_builder::seal_block( xssa_build_block* block )
         
      
         // Fill in the incomplete ɸ-function.
-        xssaop* phi = xssaop::op( -1, XSSA_PHI, lookups.size() );
+        yssaop* phi = yssaop::op( -1, XSSA_PHI, lookups.size() );
         for ( size_t i = 0; i < lookups.size(); ++i )
         {
             phi->operand[ i ] = lookups[ i ];
@@ -1204,9 +1204,9 @@ void xssa_builder::seal_block( xssa_build_block* block )
 
 
 
-xssaop* xssa_builder::lookup_join(
-        xssa_build_block* loop, xssa_build_block* block,
-                void* name, std::vector< xssaop* >* lookups )
+yssaop* yssa_builder::lookup_join(
+        yssa_build_block* loop, yssa_build_block* block,
+                void* name, std::vector< yssaop* >* lookups )
 {
     assert( block->block->previous.size() > 1 );
     lookups->reserve( block->block->previous.size() );
@@ -1215,11 +1215,11 @@ xssaop* xssa_builder::lookup_join(
     // Check all previous references.
     for ( size_t i = 0; i < block->block->previous.size(); ++i )
     {
-        xssa_block* prev = block->block->previous.at( i );
-        xssa_build_block* build_prev = b->blockmap.at( prev );
+        yssa_block* prev = block->block->previous.at( i );
+        yssa_build_block* build_prev = b->blockmap.at( prev );
         
         // Perform lookup by following edge.
-        xssaop* def = nullptr;
+        yssaop* def = nullptr;
         if ( build_prev->block->index >= block->block->index )
         {
             // This is a back-edge.  Perform lookup restricted to the subtree
@@ -1249,11 +1249,11 @@ xssaop* xssa_builder::lookup_join(
     
     // Attempt to collapse to a single definition - we can do this if all
     // defs are either SELF (or block->phiref) or one other value.
-    xssaop* single = nullptr;
+    yssaop* single = nullptr;
     size_t i = 0;
     for ( ; i < lookups->size(); ++i )
     {
-        xssaop* def = lookups->at( i );
+        yssaop* def = lookups->at( i );
         if ( def != XSSA_SELF && def != block->phi )
         {
             single = def;
@@ -1263,7 +1263,7 @@ xssaop* xssa_builder::lookup_join(
     
     for ( ; i < lookups->size(); ++i )
     {
-        xssaop* def = lookups->at( i );
+        yssaop* def = lookups->at( i );
         if ( def != XSSA_SELF && def != block->phi && def != single )
         {
             single = nullptr;
@@ -1284,7 +1284,7 @@ xssaop* xssa_builder::lookup_join(
     // will be the join at the containing loop header.
     for ( size_t i = 0; i < lookups->size(); ++i )
     {
-        xssaop* def = lookups->at( i );
+        yssaop* def = lookups->at( i );
         
         if ( def == XSSA_LOOP )
         {
@@ -1302,12 +1302,12 @@ xssaop* xssa_builder::lookup_join(
 
 
 
-xssaop* xssa_builder::ensure_phi( xssa_build_block* block )
+yssaop* yssa_builder::ensure_phi( yssa_build_block* block )
 {
     if ( ! block->phi )
     {
         // Create phi (without payload).
-        block->phi = xssaop::op( -1, XSSA_PSI, nullptr );
+        block->phi = yssaop::op( -1, XSSA_PSI, nullptr );
         block->block->phi.push_back( block->phi );
     }
     
@@ -1319,11 +1319,11 @@ xssaop* xssa_builder::ensure_phi( xssa_build_block* block )
 
 
 
-void xssa_builder::remove_ref( xssa_block* block )
+void yssa_builder::remove_ref( yssa_block* block )
 {
     for ( size_t i = 0; i < block->phi.size(); ++i )
     {
-        xssaop* op = block->phi.at( i );
+        yssaop* op = block->phi.at( i );
 
         if ( op->opcode == XSSA_PSI )
         {
@@ -1346,9 +1346,9 @@ void xssa_builder::remove_ref( xssa_block* block )
     
     for ( size_t i = 0; i < block->ops.size(); ++i )
     {
-        xssaop* op = block->ops.at( i );
+        yssaop* op = block->ops.at( i );
         
-        if ( xssaop::has_multival( op->opcode ) && op->multival )
+        if ( yssaop::has_multival( op->opcode ) && op->multival )
         {
             op->multival = remove_ref( op->multival );
         }
@@ -1369,7 +1369,7 @@ void xssa_builder::remove_ref( xssa_block* block )
 }
 
 
-xssaop* xssa_builder::remove_ref( xssaop* op )
+yssaop* yssa_builder::remove_ref( yssaop* op )
 {
     while ( op->opcode == XSSA_REF || op->opcode == XSSA_PSI )
     {

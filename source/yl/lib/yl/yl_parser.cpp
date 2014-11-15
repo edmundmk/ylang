@@ -1,36 +1,36 @@
 //
-//  xec_parser.cpp
+//  yl_parser.cpp
 //
 //  Created by Edmund Kapusniak on 14/07/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "xec_parser.h"
+#include "yl_parser.h"
 #include <make_unique>
-#include "xec_token.h"
+#include "yl_token.h"
 
 
 
 
 
-xec_script* xec_parse( const char* path, size_t argc, const char* const* argv )
+yl_script* yl_parse( const char* path, size_t argc, const char* const* argv )
 {
-    xec_script* script = new xec_script();
-    script->ast = std::make_unique< xec_ast>();
+    yl_script* script = new yl_script();
+    script->ast = std::make_unique< yl_ast>();
 
     region_scope rscope( script->ast->alloc );
 
     // Associate AST with script.
     script->ast->script = script;
-    xec_ast* ast = script->ast.get();
+    yl_ast* ast = script->ast.get();
 
     // Set up root function and scope.
-    ast->function = new ( ast->alloc ) xec_ast_func( -1 );
+    ast->function = new ( ast->alloc ) yl_ast_func( -1 );
     ast->functions.push_back( ast->function );
-    ast->function->scope = new ( ast->alloc ) xec_ast_scope(
+    ast->function->scope = new ( ast->alloc ) yl_ast_scope(
                     XEC_SCOPE_SCRIPT, NULL, ast->function, ast->function );
-    ast->function->block = new ( ast->alloc ) xec_stmt_block( -1 );
+    ast->function->block = new ( ast->alloc ) yl_stmt_block( -1 );
     ast->function->scope->block = ast->function->block;
     
     
@@ -56,8 +56,8 @@ xec_script* xec_parse( const char* path, size_t argc, const char* const* argv )
             }
             
             // Add name.
-            xec_ast_name* name = new ( ast->alloc )
-                            xec_ast_name( -1, ast->function->scope, param );
+            yl_ast_name* name = new ( ast->alloc )
+                            yl_ast_name( -1, ast->function->scope, param );
             ast->function->scope->names.emplace( param, name );
             ast->function->parameters.push_back( name );
         }
@@ -72,7 +72,7 @@ xec_script* xec_parse( const char* path, size_t argc, const char* const* argv )
     
     
     // Parse.
-    xec_parser parser( ast );
+    yl_parser parser( ast );
     parser.parse( path );
 
 
@@ -87,13 +87,13 @@ xec_script* xec_parse( const char* path, size_t argc, const char* const* argv )
 
 
 
-xec_parser::xec_parser( xec_ast* root )
+yl_parser::yl_parser( yl_ast* root )
     :   root( root )
 {
 }
 
 
-xec_parser::~xec_parser()
+yl_parser::~yl_parser()
 {
     for ( auto i = recycle_tokens.begin(); i != recycle_tokens.end();
                     i = recycle_tokens.erase( i ) )
@@ -102,7 +102,7 @@ xec_parser::~xec_parser()
 
 
 
-xec_ast* xec_parser::get_root()
+yl_ast* yl_parser::get_root()
 {
     return root;
 }
@@ -110,7 +110,7 @@ xec_ast* xec_parser::get_root()
 
 
 
-double xec_parser::parse_number( xec_token* token )
+double yl_parser::parse_number( yl_token* token )
 {
     char* endp = NULL;
     double number = strtod( token->text, &endp );
@@ -130,29 +130,29 @@ double xec_parser::parse_number( xec_token* token )
 
 
 
-xec_ast_scope* xec_parser::get_scope()
+yl_ast_scope* yl_parser::get_scope()
 {
     return scopes.back();
 }
 
 
-xec_ast_scope* xec_parser::block_scope( xec_ast_node* node )
+yl_ast_scope* yl_parser::block_scope( yl_ast_node* node )
 {
-    xec_ast_scope* outer = get_scope();
-    xec_ast_scope* scope = alloc< xec_ast_scope >(
+    yl_ast_scope* outer = get_scope();
+    yl_ast_scope* scope = alloc< yl_ast_scope >(
                     XEC_SCOPE_BLOCK, outer, node, outer->func );
     scopes.push_back( scope );
     return scope;
 }
 
 
-void xec_parser::close_scope( xec_ast_scope* scope )
+void yl_parser::close_scope( yl_ast_scope* scope )
 {
     assert( scope == get_scope() );
     scopes.pop_back();
 }
 
-void xec_parser::close_switch( xec_ast_scope* scope )
+void yl_parser::close_switch( yl_ast_scope* scope )
 {
     if ( scope->kind == XEC_SCOPE_IMPLICIT )
     {
@@ -165,7 +165,7 @@ void xec_parser::close_switch( xec_ast_scope* scope )
     close_scope( scope );
 }
 
-void xec_parser::dowhile( xec_ast_scope* scope )
+void yl_parser::dowhile( yl_ast_scope* scope )
 {
     // This is the continue point of the dowhile loop.  It is no longer
     // valid to refer to variables that were declared after the first continue.
@@ -183,13 +183,13 @@ void xec_parser::dowhile( xec_ast_scope* scope )
 
 
 
-xec_new_object* xec_parser::object(
-                int sloc, xec_ast_node* name, xec_ast_node* proto )
+yl_new_object* yl_parser::object(
+                int sloc, yl_ast_node* name, yl_ast_node* proto )
 {
     // Create object.
-    xec_ast_scope* outer = get_scope();
-    xec_new_object* object = alloc< xec_new_object >( sloc, proto );
-    object->scope = alloc< xec_ast_scope >(
+    yl_ast_scope* outer = get_scope();
+    yl_new_object* object = alloc< yl_new_object >( sloc, proto );
+    object->scope = alloc< yl_ast_scope >(
                     XEC_SCOPE_OBJECT, outer, object, outer->func );
 
     // Declare or assign.
@@ -198,18 +198,18 @@ xec_new_object* xec_parser::object(
     // Imply scope.
     if ( name )
     {
-        xec_ast_scope* scope = NULL;
+        yl_ast_scope* scope = NULL;
         const char* s = NULL;
         
         if ( name->kind == XEC_NAME_NAME )
         {
-            xec_name_name* qual = (xec_name_name*)name;
+            yl_name_name* qual = (yl_name_name*)name;
             scope = outer;
             s = qual->name;
         }
         else if ( name->kind == XEC_NAME_QUAL )
         {
-            xec_name_qual* qual = (xec_name_qual*)name;
+            yl_name_qual* qual = (yl_name_qual*)name;
             scope = imply( outer, qual->scope, false );
             s = qual->name;
         }
@@ -229,8 +229,8 @@ xec_new_object* xec_parser::object(
 }
 
 
-void xec_parser::prototype( int sloc,
-                xec_ast_node* name, xec_name_list* params, bool yield )
+void yl_parser::prototype( int sloc,
+                yl_ast_node* name, yl_name_list* params, bool yield )
 {
     // Prototypes must sit directly in an object scope.
     if ( name->kind != XEC_NAME_NAME )
@@ -241,37 +241,37 @@ void xec_parser::prototype( int sloc,
     
     
     // Declare prototype.
-    xec_name_name* m = (xec_name_name*)name;
-    xec_ast_name* n = declare( m->sloc, m->name );
-    n->prototype = alloc< xec_ast_prototype >( sloc );
+    yl_name_name* m = (yl_name_name*)name;
+    yl_ast_name* n = declare( m->sloc, m->name );
+    n->prototype = alloc< yl_ast_prototype >( sloc );
     n->prototype->parameters    = params;
     n->prototype->coroutine     = yield;
 }
 
 
-xec_ast_func* xec_parser::function( int sloc, xec_ast_node* name,
-                xec_name_list* params, bool yield, bool dot )
+yl_ast_func* yl_parser::function( int sloc, yl_ast_node* name,
+                yl_name_list* params, bool yield, bool dot )
 {
     // Attempt to match with prototype.
-    xec_ast_scope* outer = get_scope();
+    yl_ast_scope* outer = get_scope();
     outer = lookup_prototype( sloc, outer, name, params, yield );
 
 
     // Create function.
-    xec_ast_func* func = alloc< xec_ast_func >( sloc );
+    yl_ast_func* func = alloc< yl_ast_func >( sloc );
     root->functions.push_back( func );
-    func->scope = alloc< xec_ast_scope >( XEC_SCOPE_BLOCK, outer, func, func );
+    func->scope = alloc< yl_ast_scope >( XEC_SCOPE_BLOCK, outer, func, func );
     
     if ( outer->kind == XEC_SCOPE_OBJECT )
     {
         // Function is a member of an object (so has implicit-this).
         assert( outer->node->kind == XEC_NEW_OBJECT );
-        func->memberof = (xec_new_object*)outer->node;
+        func->memberof = (yl_new_object*)outer->node;
     }
     
     
     // Create function block.
-    func->block = alloc< xec_stmt_block >( sloc );
+    func->block = alloc< yl_stmt_block >( sloc );
     func->scope->block = func->block;
     
     
@@ -284,7 +284,7 @@ xec_ast_func* xec_parser::function( int sloc, xec_ast_node* name,
         func->thisname = declare( sloc, "this" );
         func->parameters.push_back( func->thisname );
         
-        xec_ast_name* supername = declare( sloc, "super" );
+        yl_ast_name* supername = declare( sloc, "super" );
         supername->superthis = func->thisname;
     }
     
@@ -292,8 +292,8 @@ xec_ast_func* xec_parser::function( int sloc, xec_ast_node* name,
     {
         for ( size_t i = 0; i < params->names.size(); ++i )
         {
-            xec_name_name* m = params->names[ i ];
-            xec_ast_name* paramname = declare( m->sloc, m->name );
+            yl_name_name* m = params->names[ i ];
+            yl_ast_name* paramname = declare( m->sloc, m->name );
             func->parameters.push_back( paramname );
         }
         
@@ -313,7 +313,7 @@ xec_ast_func* xec_parser::function( int sloc, xec_ast_node* name,
     if ( name )
     {
         std::string funcname;
-        xec_ast_node* n = name;
+        yl_ast_node* n = name;
         while ( name )
         {
             if ( funcname.size() )
@@ -322,13 +322,13 @@ xec_ast_func* xec_parser::function( int sloc, xec_ast_node* name,
             }
             if ( n->kind == XEC_NAME_NAME )
             {
-                xec_name_name* nn = (xec_name_name*)n;
+                yl_name_name* nn = (yl_name_name*)n;
                 funcname = nn->name + funcname;
                 break;
             }
             else if ( n->kind == XEC_NAME_QUAL )
             {
-                xec_name_qual* qq = (xec_name_qual*)n;
+                yl_name_qual* qq = (yl_name_qual*)n;
                 funcname = qq->name + funcname;
                 n = qq->scope;
             }
@@ -361,51 +361,51 @@ xec_ast_func* xec_parser::function( int sloc, xec_ast_node* name,
 
 
 
-void xec_parser::var( int sloc, xec_ast_node* names, xec_ast_node* rvals )
+void yl_parser::var( int sloc, yl_ast_node* names, yl_ast_node* rvals )
 {
-    xec_ast_scope* scope = get_scope();
+    yl_ast_scope* scope = get_scope();
     
     if ( scope->kind == XEC_SCOPE_OBJECT )
     {
         // Declare object member.
         assert( scope->node->kind == XEC_NEW_OBJECT );
-        xec_new_object* object = (xec_new_object*)scope->node;
+        yl_new_object* object = (yl_new_object*)scope->node;
 
         // Declare.
         if ( names->kind == XEC_NAME_NAME )
         {
-            xec_name_name* n = (xec_name_name*)names;
+            yl_name_name* n = (yl_name_name*)names;
             declare( n->sloc, n->name );
 
             if ( ! rvals )
                 return;
             
-            xec_expr_assign* assign = alloc< xec_expr_assign >(
+            yl_expr_assign* assign = alloc< yl_expr_assign >(
                             sloc, XEC_ASTOP_DECLARE );
-            xec_expr_objref* objref = alloc< xec_expr_objref >( sloc, object );
-            assign->lvalue = alloc< xec_expr_key> ( sloc, objref, n->name );
+            yl_expr_objref* objref = alloc< yl_expr_objref >( sloc, object );
+            assign->lvalue = alloc< yl_expr_key> ( sloc, objref, n->name );
             assign->rvalue = rvals;
             object->members.push_back( assign );
         }
         else if ( names->kind == XEC_NAME_LIST )
         {
-            xec_name_list* l = (xec_name_list*)names;
+            yl_name_list* l = (yl_name_list*)names;
             for ( size_t i = 0; i < l->names.size(); ++i )
             {
-                xec_name_name* n = l->names[ i ];
+                yl_name_name* n = l->names[ i ];
                 declare( n->sloc, n->name );
             }
 
             if ( ! rvals )
                 return;
          
-            xec_expr_assign_list* assign = alloc< xec_expr_assign_list >(
+            yl_expr_assign_list* assign = alloc< yl_expr_assign_list >(
                             sloc, XEC_ASTOP_DECLARE );
             for ( size_t i = 0; i < l->names.size(); ++i )
             {
-                xec_name_name* n = l->names[ i ];
-                xec_expr_objref* of = alloc< xec_expr_objref >( sloc, object );
-                xec_expr_key* key = alloc< xec_expr_key >( sloc, of, n->name );
+                yl_name_name* n = l->names[ i ];
+                yl_expr_objref* of = alloc< yl_expr_objref >( sloc, object );
+                yl_expr_key* key = alloc< yl_expr_key >( sloc, of, n->name );
                 assign->lvalues.push_back( key );
             }
             assign->rvalues = rvals;
@@ -416,19 +416,19 @@ void xec_parser::var( int sloc, xec_ast_node* names, xec_ast_node* rvals )
     else
     {
         // Var in a block.
-        xec_ast_node* assign = varstmt( sloc, names, rvals );
+        yl_ast_node* assign = varstmt( sloc, names, rvals );
         scope->block->stmts.push_back( assign );
     }
 }
 
 
 
-void xec_parser::statement( xec_ast_node* stmt )
+void yl_parser::statement( yl_ast_node* stmt )
 {
     if ( ! stmt )
         return;
 
-    xec_ast_scope* scope = get_scope();
+    yl_ast_scope* scope = get_scope();
     assert( scope->kind != XEC_SCOPE_OBJECT );
     assert( scope->kind != XEC_SCOPE_IMPLIED );
 
@@ -466,15 +466,15 @@ void xec_parser::statement( xec_ast_node* stmt )
         {
             // It's not a case - make sure there's been at least one case.
             assert( scope->node->kind == XEC_STMT_SWITCH );
-            xec_stmt_switch* swstmt = (xec_stmt_switch*)scope->node;
+            yl_stmt_switch* swstmt = (yl_stmt_switch*)scope->node;
             if ( swstmt->body->stmts.empty() )
             {
                 root->script->error( stmt->sloc, "expected case" );
             }
 
             // Open implicit block.
-            xec_stmt_block* block = alloc< xec_stmt_block >( stmt->sloc );
-            block->scope = alloc< xec_ast_scope >(
+            yl_stmt_block* block = alloc< yl_stmt_block >( stmt->sloc );
+            block->scope = alloc< yl_ast_scope >(
                     XEC_SCOPE_IMPLICIT, scope, block, scope->func );
             scopes.push_back( block->scope );
             scope = block->scope;
@@ -502,7 +502,7 @@ void xec_parser::statement( xec_ast_node* stmt )
         else if ( stmt->kind == XEC_STMT_BREAK )
         {
             // Add the break to the implicit block.
-            assert( ( (xec_stmt_break*)stmt )->target == scope );
+            assert( ( (yl_stmt_break*)stmt )->target == scope );
             scope->block->stmts.push_back( stmt );
             
             // Close the block.
@@ -521,9 +521,9 @@ void xec_parser::statement( xec_ast_node* stmt )
 }
 
 
-xec_ast_scope* xec_parser::continue_target( int sloc )
+yl_ast_scope* yl_parser::continue_target( int sloc )
 {
-    for ( xec_ast_scope* scope = get_scope();
+    for ( yl_ast_scope* scope = get_scope();
                     scope != NULL; scope = scope->outer )
     {
         if ( scope->node->kind == XEC_STMT_WHILE
@@ -541,9 +541,9 @@ xec_ast_scope* xec_parser::continue_target( int sloc )
 }
 
 
-xec_ast_scope* xec_parser::break_target( int sloc )
+yl_ast_scope* yl_parser::break_target( int sloc )
 {
-    for ( xec_ast_scope* scope = get_scope();
+    for ( yl_ast_scope* scope = get_scope();
                     scope != NULL; scope = scope->outer )
     {
         if ( scope->node->kind == XEC_STMT_SWITCH
@@ -564,13 +564,13 @@ xec_ast_scope* xec_parser::break_target( int sloc )
 
 
 
-xec_ast_node* xec_parser::lookup( int sloc, const char* identifier, bool outer )
+yl_ast_node* yl_parser::lookup( int sloc, const char* identifier, bool outer )
 {
-    xec_ast_scope* local = get_scope();
+    yl_ast_scope* local = get_scope();
     
     // Perform lookup.
-    xec_ast_name* name = NULL;
-    for ( xec_ast_scope* scope = local; scope != NULL; scope = scope->outer )
+    yl_ast_name* name = NULL;
+    for ( yl_ast_scope* scope = local; scope != NULL; scope = scope->outer )
     {
         auto i = scope->names.find( identifier );
         if ( i != scope->names.end() )
@@ -583,13 +583,13 @@ xec_ast_node* xec_parser::lookup( int sloc, const char* identifier, bool outer )
     if ( ! name )
     {
         // Not found, it's a global.
-        return alloc< xec_expr_global >( sloc, identifier, false );
+        return alloc< yl_expr_global >( sloc, identifier, false );
     }
     
     if ( name->scope->kind != XEC_SCOPE_OBJECT )
     {
         // If the name is 'super' then we actually reference 'this'.
-        xec_ast_name* lookname = name->superthis ? name->superthis : name;
+        yl_ast_name* lookname = name->superthis ? name->superthis : name;
         
         // If it's a continued variable in a closed dowhile scope, it's not
         // valid.
@@ -597,27 +597,27 @@ xec_ast_node* xec_parser::lookup( int sloc, const char* identifier, bool outer )
         {
             root->script->error( sloc,
                     "declaration of '%s' is skipped by continue", name->name );
-            return alloc< xec_expr_global >( sloc, identifier, false );
+            return alloc< yl_expr_global >( sloc, identifier, false );
         }
         
         // It's a variable, either we're referencing an upval or a local.
-        xec_ast_node* nameref = NULL;
+        yl_ast_node* nameref = NULL;
         if ( name->scope->func == local->func )
         {
             // It's a local variable.
-            nameref = alloc< xec_expr_local >( sloc, lookname );
+            nameref = alloc< yl_expr_local >( sloc, lookname );
         }
         else
         {
             // It's an upval.
-            nameref = alloc< xec_expr_upref >(
+            nameref = alloc< yl_expr_upref >(
                         sloc, local->func, upval( local->func, lookname ) );
         }
         
         // If the name is 'super' then transform to 'this.super'.
         if ( name->superthis )
         {
-            nameref = alloc< xec_expr_key >(
+            nameref = alloc< yl_expr_key >(
                             sloc, nameref, name->name );
         }
         
@@ -627,28 +627,28 @@ xec_ast_node* xec_parser::lookup( int sloc, const char* identifier, bool outer )
     {
         // It's an object member.
         assert( name->scope->node->kind == XEC_NEW_OBJECT );
-        xec_new_object* object = (xec_new_object*)name->scope->node;
+        yl_new_object* object = (yl_new_object*)name->scope->node;
         
         if ( name->scope->func == local->func )
         {
             // In this function.
-            xec_expr_objref* objref = alloc< xec_expr_objref >( sloc, object );
-            return alloc< xec_expr_key >( sloc, objref, identifier );
+            yl_expr_objref* objref = alloc< yl_expr_objref >( sloc, object );
+            return alloc< yl_expr_key >( sloc, objref, identifier );
         }
         else if ( object == local->func->memberof )
         {
             // It's a member of the object we're declared in.
             assert( local->func->thisname );
-            xec_expr_local* thisref = alloc< xec_expr_local >(
+            yl_expr_local* thisref = alloc< yl_expr_local >(
                             sloc, local->func->thisname );
-            return alloc< xec_expr_key >( sloc, thisref, identifier );
+            return alloc< yl_expr_key >( sloc, thisref, identifier );
         }
         else
         {
             // Object is an upval.
-            xec_expr_upref* upref = alloc< xec_expr_upref >(
+            yl_expr_upref* upref = alloc< yl_expr_upref >(
                             sloc, local->func, upval( local->func, object ) );
-            return alloc< xec_expr_key >( sloc, upref, identifier );
+            return alloc< yl_expr_key >( sloc, upref, identifier );
         }
     
     }
@@ -656,11 +656,11 @@ xec_ast_node* xec_parser::lookup( int sloc, const char* identifier, bool outer )
 }
 
 
-xec_ast_node* xec_parser::key( int sloc, xec_ast_node* obj, const char* key )
+yl_ast_node* yl_parser::key( int sloc, yl_ast_node* obj, const char* key )
 {
     if ( obj->kind == XEC_EXPR_GLOBAL )
     {
-        xec_expr_global* global = (xec_expr_global*)obj;
+        yl_expr_global* global = (yl_expr_global*)obj;
         if ( ! global->gexplicit && strcmp( global->name, "global" ) == 0 )
         {
             // It's an explicit global.
@@ -670,12 +670,12 @@ xec_ast_node* xec_parser::key( int sloc, xec_ast_node* obj, const char* key )
         }
     }
 
-    return alloc< xec_expr_key >( sloc, obj, key );
+    return alloc< yl_expr_key >( sloc, obj, key );
 }
 
 
 
-xec_ast_node* xec_parser::lvalue( xec_ast_node* lvalue )
+yl_ast_node* yl_parser::lvalue( yl_ast_node* lvalue )
 {
     // The expression must be a single lvalue.  Only a restricted set of
     // expressions are lvalues, and global variables must be scoped using
@@ -694,7 +694,7 @@ xec_ast_node* xec_parser::lvalue( xec_ast_node* lvalue )
     
     case XEC_EXPR_GLOBAL:
     {
-        xec_expr_global* g = (xec_expr_global*)lvalue;
+        yl_expr_global* g = (yl_expr_global*)lvalue;
         if ( ! g->gexplicit )
         {
             root->script->error( g->sloc,
@@ -714,12 +714,12 @@ xec_ast_node* xec_parser::lvalue( xec_ast_node* lvalue )
 }
 
 
-void xec_parser::lvalue_list(
-        xec_ast_node* list, xec_ast_node_list* lvalues )
+void yl_parser::lvalue_list(
+        yl_ast_node* list, yl_ast_node_list* lvalues )
 {
     if ( list->kind == XEC_EXPR_LIST )
     {
-        xec_expr_list* l = (xec_expr_list*)list;
+        yl_expr_list* l = (yl_expr_list*)list;
         for ( size_t i = 0; i < l->values.size(); ++i )
             lvalues->push_back( lvalue( l->values[ i ] ) );
         if ( l->final )
@@ -733,39 +733,39 @@ void xec_parser::lvalue_list(
 
 
 
-xec_name_list* xec_parser::name_list( xec_ast_node* list )
+yl_name_list* yl_parser::name_list( yl_ast_node* list )
 {
     if ( list->kind == XEC_NAME_LIST )
     {
-        return (xec_name_list*)list;
+        return (yl_name_list*)list;
     }
     else
     {
         assert( list->kind == XEC_NAME_NAME );
-        xec_name_list* l = alloc< xec_name_list >( list->sloc );
-        l->names.push_back( (xec_name_name*)list );
+        yl_name_list* l = alloc< yl_name_list >( list->sloc );
+        l->names.push_back( (yl_name_name*)list );
         return l;
     }
 }
 
 
 
-xec_expr_list* xec_parser::expr_list( xec_ast_node* list )
+yl_expr_list* yl_parser::expr_list( yl_ast_node* list )
 {
     if ( list->kind == XEC_EXPR_LIST )
     {
-        return (xec_expr_list*)list;
+        return (yl_expr_list*)list;
     }
     else
     {
-        xec_expr_list* l = alloc< xec_expr_list >( list->sloc );
+        yl_expr_list* l = alloc< yl_expr_list >( list->sloc );
         l->values.push_back( list );
         return l;
     }
 }
 
 
-xec_ast_node* xec_parser::mono( xec_ast_node* expr )
+yl_ast_node* yl_parser::mono( yl_ast_node* expr )
 {
     // Suppress multiple values and method calls.
     switch ( expr->kind )
@@ -778,7 +778,7 @@ xec_ast_node* xec_parser::mono( xec_ast_node* expr )
     case XEC_EXPR_UNPACK:
     case XEC_EXPR_LIST:
     case XEC_EXPR_ASSIGN_LIST:
-        return alloc< xec_expr_mono >( expr->sloc, expr );
+        return alloc< yl_expr_mono >( expr->sloc, expr );
         
     default:
         return expr;
@@ -787,21 +787,21 @@ xec_ast_node* xec_parser::mono( xec_ast_node* expr )
 
 
 
-xec_ast_node* xec_parser::unpack( xec_ast_node* expr )
+yl_ast_node* yl_parser::unpack( yl_ast_node* expr )
 {
     // Assign unpack to call expressions.
     switch ( expr->kind )
     {
     case XEC_EXPR_CALL:
     {
-        xec_expr_call* call = (xec_expr_call*)expr;
+        yl_expr_call* call = (yl_expr_call*)expr;
         call->unpack = true;
         break;
     }
     
     case XEC_EXPR_YIELD:
     {
-        xec_expr_yield* yield = (xec_expr_yield*)expr;
+        yl_expr_yield* yield = (yl_expr_yield*)expr;
         yield->unpack = true;
         break;
     }
@@ -818,15 +818,15 @@ xec_ast_node* xec_parser::unpack( xec_ast_node* expr )
 
 
 
-xec_ast_node* xec_parser::compare( int sloc,
-                xec_ast_opkind op, xec_ast_node* lhs, xec_ast_node* rhs )
+yl_ast_node* yl_parser::compare( int sloc,
+                yl_ast_opkind op, yl_ast_node* lhs, yl_ast_node* rhs )
 {
     // Build a compare expression.
-    xec_expr_compare* c;
+    yl_expr_compare* c;
     if ( lhs->kind == XEC_EXPR_COMPARE )
-        c = (xec_expr_compare*)lhs;
+        c = (yl_expr_compare*)lhs;
     else
-        c = alloc< xec_expr_compare >( lhs->sloc, lhs );
+        c = alloc< yl_expr_compare >( lhs->sloc, lhs );
     
     c->opkinds.push_back( op );
     c->terms.push_back( rhs );
@@ -840,21 +840,21 @@ xec_ast_node* xec_parser::compare( int sloc,
 
 
 
-xec_ast_node* xec_parser::assign( int sloc,
-                xec_ast_opkind op, xec_ast_node* lv, xec_ast_node* rv )
+yl_ast_node* yl_parser::assign( int sloc,
+                yl_ast_opkind op, yl_ast_node* lv, yl_ast_node* rv )
 {
     if ( lv->kind == XEC_EXPR_LIST )
     {
-        xec_expr_assign_list* a;
-        a = alloc< xec_expr_assign_list >( lv->sloc, op );
-        lvalue_list( (xec_expr_list*)lv, &a->lvalues );
+        yl_expr_assign_list* a;
+        a = alloc< yl_expr_assign_list >( lv->sloc, op );
+        lvalue_list( (yl_expr_list*)lv, &a->lvalues );
         a->rvalues = rv;
         return a;
     }
     else
     {
-        xec_expr_assign* a;
-        a = alloc< xec_expr_assign >( lv->sloc, op );
+        yl_expr_assign* a;
+        a = alloc< yl_expr_assign >( lv->sloc, op );
         a->lvalue = lvalue( lv );
         a->rvalue = rv;
         return a;
@@ -864,25 +864,25 @@ xec_ast_node* xec_parser::assign( int sloc,
 
 
 
-xec_ast_node* xec_parser::varstmt(
-                int sloc, xec_ast_node* names, xec_ast_node* rvals )
+yl_ast_node* yl_parser::varstmt(
+                int sloc, yl_ast_node* names, yl_ast_node* rvals )
 {
     // If there's no value, then initialize with null.
     if ( ! rvals )
-        rvals = alloc< xec_expr_null >( sloc );
+        rvals = alloc< yl_expr_null >( sloc );
     
     // Declare.
     if ( names->kind == XEC_NAME_NAME )
     {
-        xec_expr_assign* assign =
-                alloc< xec_expr_assign >( sloc, XEC_ASTOP_DECLARE );
+        yl_expr_assign* assign =
+                alloc< yl_expr_assign >( sloc, XEC_ASTOP_DECLARE );
         assign->lvalue = declare( names );
         assign->rvalue = rvals;
         return assign;
     }
     else if ( names->kind == XEC_NAME_LIST )
     {
-        xec_expr_assign_list* assign = alloc< xec_expr_assign_list >(
+        yl_expr_assign_list* assign = alloc< yl_expr_assign_list >(
                         sloc, XEC_ASTOP_DECLARE );
         declare_list( names, &assign->lvalues );
         assign->rvalues = rvals;
@@ -893,12 +893,12 @@ xec_ast_node* xec_parser::varstmt(
 }
 
 
-xec_ast_node* xec_parser::delstmt( int sloc, xec_ast_node* expr )
+yl_ast_node* yl_parser::delstmt( int sloc, yl_ast_node* expr )
 {
-    xec_stmt_delete* del = alloc< xec_stmt_delete >( sloc );
+    yl_stmt_delete* del = alloc< yl_stmt_delete >( sloc );
     if ( expr->kind == XEC_EXPR_LIST )
     {
-        xec_expr_list* l = (xec_expr_list*)expr;
+        yl_expr_list* l = (yl_expr_list*)expr;
         for ( size_t i = 0; i < l->values.size(); ++l )
             del->delvals.push_back( delval( l->values[ i ] ) );
         if ( l->final )
@@ -912,11 +912,11 @@ xec_ast_node* xec_parser::delstmt( int sloc, xec_ast_node* expr )
 }
 
 
-xec_stmt_foreach* xec_parser::foreachstmt(
-            int sloc, xec_ast_scope* scope, xec_ast_node* lvals,
-                        xec_ast_node* expr, bool declare, bool eachkey )
+yl_stmt_foreach* yl_parser::foreachstmt(
+            int sloc, yl_ast_scope* scope, yl_ast_node* lvals,
+                        yl_ast_node* expr, bool declare, bool eachkey )
 {
-    xec_stmt_foreach* foreach = alloc< xec_stmt_foreach >( sloc );
+    yl_stmt_foreach* foreach = alloc< yl_stmt_foreach >( sloc );
     foreach->scope = scope;
     foreach->scope->node = foreach;
     foreach->eachkey = eachkey;
@@ -930,11 +930,11 @@ xec_stmt_foreach* xec_parser::foreachstmt(
 }
 
 
-xec_stmt_catch* xec_parser::catchstmt(
-            int sloc, xec_ast_scope* scope, xec_ast_node* lval,
-                        xec_ast_node* proto, bool cdeclare )
+yl_stmt_catch* yl_parser::catchstmt(
+            int sloc, yl_ast_scope* scope, yl_ast_node* lval,
+                        yl_ast_node* proto, bool cdeclare )
 {
-    xec_stmt_catch* cstmt = alloc< xec_stmt_catch >( sloc );
+    yl_stmt_catch* cstmt = alloc< yl_stmt_catch >( sloc );
     cstmt->scope = scope;
     cstmt->scope->node = cstmt;
     cstmt->declare = cdeclare;
@@ -948,18 +948,18 @@ xec_stmt_catch* xec_parser::catchstmt(
 
 
 
-void xec_parser::check_vararg( int sloc )
+void yl_parser::check_vararg( int sloc )
 {
-    xec_ast_scope* scope = get_scope();
+    yl_ast_scope* scope = get_scope();
     if ( ! scope->func->varargs )
     {
         root->script->error( sloc, "varargs used outside vararg function" );
     }
 }
 
-void xec_parser::check_yield( int sloc )
+void yl_parser::check_yield( int sloc )
 {
-    xec_ast_scope* scope = get_scope();
+    yl_ast_scope* scope = get_scope();
     if ( ! scope->func->coroutine )
     {
         root->script->error( sloc, "yield used outside coroutine" );
@@ -971,9 +971,9 @@ void xec_parser::check_yield( int sloc )
 
 
 
-xec_ast_name* xec_parser::declare( int sloc, const char* name )
+yl_ast_name* yl_parser::declare( int sloc, const char* name )
 {
-    xec_ast_scope* scope = get_scope();
+    yl_ast_scope* scope = get_scope();
     
     // Error when you declare the same variable again.
     auto i = scope->names.find( name );
@@ -983,7 +983,7 @@ xec_ast_name* xec_parser::declare( int sloc, const char* name )
     }
     
     // Declare in scope.
-    xec_ast_name* n = alloc< xec_ast_name >( sloc, scope, name );
+    yl_ast_name* n = alloc< yl_ast_name >( sloc, scope, name );
     n->continued = scope->continued;
     scope->names.emplace( name, n );
     scope->decls.push_back( n );
@@ -993,16 +993,16 @@ xec_ast_name* xec_parser::declare( int sloc, const char* name )
 }
 
 
-xec_ast_node* xec_parser::declare( xec_ast_node* name )
+yl_ast_node* yl_parser::declare( yl_ast_node* name )
 {
     assert( name->kind == XEC_NAME_NAME );
-    xec_name_name* n = (xec_name_name*)name;
-    xec_ast_name* m = declare( n->sloc, n->name );
-    return alloc< xec_expr_local >( m->sloc, m );
+    yl_name_name* n = (yl_name_name*)name;
+    yl_ast_name* m = declare( n->sloc, n->name );
+    return alloc< yl_expr_local >( m->sloc, m );
 }
 
 
-void xec_parser::declare_list( xec_ast_node* names, xec_ast_node_list* lv )
+void yl_parser::declare_list( yl_ast_node* names, yl_ast_node_list* lv )
 {
     if ( names->kind == XEC_NAME_NAME )
     {
@@ -1010,7 +1010,7 @@ void xec_parser::declare_list( xec_ast_node* names, xec_ast_node_list* lv )
     }
     else if ( names->kind == XEC_NAME_LIST )
     {
-        xec_name_list* l = (xec_name_list*)names;
+        yl_name_list* l = (yl_name_list*)names;
         for ( size_t i = 0; i < l->names.size(); ++i )
         {
             lv->push_back( declare( l->names[ i ] ) );
@@ -1028,7 +1028,7 @@ void xec_parser::declare_list( xec_ast_node* names, xec_ast_node_list* lv )
 
 
 
-void xec_parser::declname( int sloc, xec_ast_node* name, xec_ast_node* decl )
+void yl_parser::declname( int sloc, yl_ast_node* name, yl_ast_node* decl )
 {
     if ( ! name )
     {
@@ -1037,35 +1037,35 @@ void xec_parser::declname( int sloc, xec_ast_node* name, xec_ast_node* decl )
 
 
     // Find object.
-    xec_ast_scope* scope = get_scope();
-    xec_new_object* object = NULL;
+    yl_ast_scope* scope = get_scope();
+    yl_new_object* object = NULL;
     if ( scope->kind == XEC_SCOPE_OBJECT )
     {
         assert( scope->node->kind == XEC_NEW_OBJECT );
-        object = (xec_new_object*)scope->node;
+        object = (yl_new_object*)scope->node;
     }
 
 
     // Resolve and create lvalue to assign to.
-    xec_expr_assign* assign =
-                    alloc< xec_expr_assign >( sloc, XEC_ASTOP_ASSIGN );
+    yl_expr_assign* assign =
+                    alloc< yl_expr_assign >( sloc, XEC_ASTOP_ASSIGN );
     
     if ( name->kind == XEC_NAME_NAME )
     {
         // Single names declare things.
-        xec_name_name* n = (xec_name_name*)name;
-        xec_ast_name* declname = declare( n->sloc, n->name );
+        yl_name_name* n = (yl_name_name*)name;
+        yl_ast_name* declname = declare( n->sloc, n->name );
         assign->assignop = XEC_ASTOP_DECLARE;
         
         if ( object )
         {
             const char* s = declname->name;
-            xec_expr_objref* objref = alloc< xec_expr_objref >( sloc, object );
-            assign->lvalue = alloc< xec_expr_key >( sloc, objref, s );
+            yl_expr_objref* objref = alloc< yl_expr_objref >( sloc, object );
+            assign->lvalue = alloc< yl_expr_key >( sloc, objref, s );
         }
         else
         {
-            assign->lvalue = alloc< xec_expr_local >( sloc, declname );
+            assign->lvalue = alloc< yl_expr_local >( sloc, declname );
         }
     }
     else if ( name->kind == XEC_NAME_QUAL )
@@ -1084,17 +1084,17 @@ void xec_parser::declname( int sloc, xec_ast_node* name, xec_ast_node* decl )
 }
 
 
-xec_ast_node* xec_parser::declqual( int sloc, xec_ast_node* name, bool outer )
+yl_ast_node* yl_parser::declqual( int sloc, yl_ast_node* name, bool outer )
 {
     if ( name->kind == XEC_NAME_NAME )
     {
-        xec_name_name* n = (xec_name_name*)name;
+        yl_name_name* n = (yl_name_name*)name;
         return lookup( n->sloc, n->name, outer );
     }
     else if ( name->kind == XEC_NAME_QUAL )
     {
-        xec_name_qual* q = (xec_name_qual*)name;
-        xec_ast_node* scope = declqual( q->sloc, q->scope, outer );
+        yl_name_qual* q = (yl_name_qual*)name;
+        yl_ast_node* scope = declqual( q->sloc, q->scope, outer );
         return key( sloc, scope, q->name );
     }
     assert( ! "invalid declaration name" );
@@ -1102,8 +1102,8 @@ xec_ast_node* xec_parser::declqual( int sloc, xec_ast_node* name, bool outer )
 
 
 
-xec_ast_scope* xec_parser::imply(
-                xec_ast_scope* scope, xec_ast_node* name, bool lookup )
+yl_ast_scope* yl_parser::imply(
+                yl_ast_scope* scope, yl_ast_node* name, bool lookup )
 {
     // Each scope tracks object declarations in 'implied' scopes (even for
     // compound names).  Implied scopes are either truly implied or are
@@ -1114,13 +1114,13 @@ xec_ast_scope* xec_parser::imply(
     if ( name->kind == XEC_NAME_NAME )
     {
         // Declare/lookup using the name.
-        xec_name_name* n = (xec_name_name*)name;
+        yl_name_name* n = (yl_name_name*)name;
         s = n->name;
     }
     else if ( name->kind == XEC_NAME_QUAL )
     {
         // Recurse on scopes and get the rightmost name.
-        xec_name_qual* q = (xec_name_qual*)name;
+        yl_name_qual* q = (yl_name_qual*)name;
         scope = imply( scope, q->scope, lookup );
         if ( ! scope )
             return NULL;
@@ -1140,7 +1140,7 @@ xec_ast_scope* xec_parser::imply(
         return NULL;
     
     // Actually imply.
-    xec_ast_scope* implied = alloc< xec_ast_scope >(
+    yl_ast_scope* implied = alloc< yl_ast_scope >(
                 XEC_SCOPE_IMPLIED, scope, nullptr, scope->func );
     scope->implied.emplace( s, implied );
     return implied;
@@ -1148,9 +1148,9 @@ xec_ast_scope* xec_parser::imply(
 
 
 
-xec_ast_scope* xec_parser::lookup_prototype( int sloc,
-                xec_ast_scope* outer, xec_ast_node* name,
-                        xec_name_list* params, bool yield )
+yl_ast_scope* yl_parser::lookup_prototype( int sloc,
+                yl_ast_scope* outer, yl_ast_node* name,
+                        yl_name_list* params, bool yield )
 {
     // Return the object scope that contains a matching prototype declaration.
     // Looks up using implied scopes rather than declared names.
@@ -1158,20 +1158,20 @@ xec_ast_scope* xec_parser::lookup_prototype( int sloc,
     if ( ! name )
         return outer;
     
-    xec_ast_scope* scope = NULL;
+    yl_ast_scope* scope = NULL;
     const char* s = NULL;
     
     if ( name->kind == XEC_NAME_NAME )
     {
         // Use name.
-        xec_name_name* n = (xec_name_name*)name;
+        yl_name_name* n = (yl_name_name*)name;
         scope = outer;
         s = n->name;
     }
     else if ( name->kind == XEC_NAME_QUAL )
     {
         // Look up implied scopes and use rightmost name.
-        xec_name_qual* q = (xec_name_qual*)name;
+        yl_name_qual* q = (yl_name_qual*)name;
         scope = imply( outer, q->scope, true );
         s = q->name;
     }
@@ -1185,7 +1185,7 @@ xec_ast_scope* xec_parser::lookup_prototype( int sloc,
         return outer;
     
     // If we're replacing a non-prototype member that's an error.
-    xec_ast_prototype* proto = i->second->prototype;
+    yl_ast_prototype* proto = i->second->prototype;
     if ( ! proto )
     {
         root->script->error( sloc, "function overrides non-prototype" );
@@ -1215,8 +1215,8 @@ xec_ast_scope* xec_parser::lookup_prototype( int sloc,
     
     for ( size_t i = 0; i < proto->parameters->names.size(); ++i )
     {
-        xec_name_name* a = proto->parameters->names[ i ];
-        xec_name_name* b = params->names[ i ];
+        yl_name_name* a = proto->parameters->names[ i ];
+        yl_name_name* b = params->names[ i ];
         if ( strcmp( a->name, b->name ) != 0 )
         {
             root->script->error( sloc,
@@ -1230,11 +1230,11 @@ xec_ast_scope* xec_parser::lookup_prototype( int sloc,
 
 
 
-int xec_parser::upval( xec_ast_func* func, xec_ast_upval uv )
+int yl_parser::upval( yl_ast_func* func, yl_ast_upval uv )
 {
     // Find the upval in the outer function.
     assert( func->scope->outer );
-    xec_ast_func* outer = func->scope->outer->func;
+    yl_ast_func* outer = func->scope->outer->func;
     switch ( uv.kind )
     {
     case XEC_UPVAL_LOCAL:
@@ -1288,7 +1288,7 @@ int xec_parser::upval( xec_ast_func* func, xec_ast_upval uv )
 
 
 
-xec_ast_node* xec_parser::delval( xec_ast_node* delval )
+yl_ast_node* yl_parser::delval( yl_ast_node* delval )
 {
     // Expression must be a single deletable lvalue.
     switch ( delval->kind )

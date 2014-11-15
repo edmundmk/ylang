@@ -1,5 +1,5 @@
 //
-//  xssa_cfganalysis.h
+//  yssa_cfganalysis.h
 //
 //  Created by Edmund Kapusniak on 12/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
@@ -10,7 +10,7 @@
 #define XSSA_CFGANALYSIS_H
 
 
-struct xssa_func;
+struct yssa_func;
 
 
 
@@ -20,7 +20,7 @@ struct xssa_func;
     all of its dominators.
 */
 
-void xssa_order_depth_first( xssa_func* func );
+void yssa_order_depth_first( yssa_func* func );
 
 
 
@@ -30,7 +30,7 @@ void xssa_order_depth_first( xssa_func* func );
     a reducible CFG in depth-first order.
 */
 
-void xssa_compute_loop_forest( xssa_func* func );
+void yssa_compute_loop_forest( yssa_func* func );
 
 
 

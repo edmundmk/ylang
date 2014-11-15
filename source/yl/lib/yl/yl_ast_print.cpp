@@ -1,16 +1,16 @@
 //
-//  xec_ast_print.cpp
+//  yl_ast_print.cpp
 //
 //  Created by Edmund Kapusniak on 27/07/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "xec_ast_visitor.h"
+#include "yl_ast_visitor.h"
 
 
 
-const char* xec_operator_name( xec_ast_opkind op )
+const char* yl_operator_name( yl_ast_opkind op )
 {
     switch ( op )
     {
@@ -82,76 +82,76 @@ static const int INDENT = 4;
 
 
 
-class xec_ast_printer : public xec_ast_visitor< xec_ast_printer, void, int >
+class yl_ast_printer : public yl_ast_visitor< yl_ast_printer, void, int >
 {
 public:
 
 
-    using xec_ast_visitor< xec_ast_printer, void, int >::visit;
+    using yl_ast_visitor< yl_ast_printer, void, int >::visit;
     
-    void print_func( xec_ast_func* node );
+    void print_func( yl_ast_func* node );
 
-    void visit( xec_ast_func* node, int indent );
-    void visit( xec_expr_null* node, int indent );
-    void visit( xec_expr_bool* node, int indent );
-    void visit( xec_expr_number* node, int indent );
-    void visit( xec_expr_string* node, int indent );
-    void visit( xec_expr_local* node, int indent );
-    void visit( xec_expr_global* node, int indent );
-    void visit( xec_expr_upref* node, int indent );
-    void visit( xec_expr_objref* node, int indent );
-    void visit( xec_expr_key* node, int indent );
-    void visit( xec_expr_inkey* node, int indent );
-    void visit( xec_expr_index* node, int indent );
-    void visit( xec_expr_preop* node, int indent );
-    void visit( xec_expr_postop* node, int indent );
-    void visit( xec_expr_unary* node, int indent );
-    void visit( xec_expr_binary* node, int indent );
-    void visit( xec_expr_compare* node, int indent );
-    void visit( xec_expr_logical* node, int indent );
-    void visit( xec_expr_qmark* node, int indent );
-    void visit( xec_new_new* node, int indent );
-    void visit( xec_new_object* node, int indent );
-    void visit( xec_new_array* node, int indent );
-    void visit( xec_new_table* node, int indent );
-    void visit( xec_expr_mono* node, int indent );
-    void visit( xec_expr_call* node, int indent );
-    void visit( xec_expr_yield* node, int indent );
-    void visit( xec_expr_vararg* node, int indent );
-    void visit( xec_expr_unpack* node, int indent );
-    void visit( xec_expr_list* node, int indent );
-    void visit( xec_expr_assign* node, int indent );
-    void visit( xec_expr_assign_list* node, int indent );
-    void visit( xec_stmt_block* node, int indent );
-    void visit( xec_stmt_if* node, int indent );
-    void visit( xec_stmt_switch* node, int indent );
-    void visit( xec_stmt_while* node, int indent );
-    void visit( xec_stmt_do* node, int indent );
-    void visit( xec_stmt_foreach* node, int indent );
-    void visit( xec_stmt_for* node, int indent );
-    void visit( xec_stmt_using* node, int indent );
-    void visit( xec_stmt_try* node, int indent );
-    void visit( xec_stmt_catch* node, int indent );
-    void visit( xec_stmt_delete* node, int indent );
-    void visit( xec_stmt_case* node, int indent );
-    void visit( xec_stmt_continue* node, int indent );
-    void visit( xec_stmt_break* node, int indent );
-    void visit( xec_stmt_return* node, int indent );
-    void visit( xec_stmt_throw* node, int indent );
-    void visit( xec_name_name* node, int indent );
-    void visit( xec_name_qual* node, int indent );
-    void visit( xec_name_list* node, int indent );
+    void visit( yl_ast_func* node, int indent );
+    void visit( yl_expr_null* node, int indent );
+    void visit( yl_expr_bool* node, int indent );
+    void visit( yl_expr_number* node, int indent );
+    void visit( yl_expr_string* node, int indent );
+    void visit( yl_expr_local* node, int indent );
+    void visit( yl_expr_global* node, int indent );
+    void visit( yl_expr_upref* node, int indent );
+    void visit( yl_expr_objref* node, int indent );
+    void visit( yl_expr_key* node, int indent );
+    void visit( yl_expr_inkey* node, int indent );
+    void visit( yl_expr_index* node, int indent );
+    void visit( yl_expr_preop* node, int indent );
+    void visit( yl_expr_postop* node, int indent );
+    void visit( yl_expr_unary* node, int indent );
+    void visit( yl_expr_binary* node, int indent );
+    void visit( yl_expr_compare* node, int indent );
+    void visit( yl_expr_logical* node, int indent );
+    void visit( yl_expr_qmark* node, int indent );
+    void visit( yl_new_new* node, int indent );
+    void visit( yl_new_object* node, int indent );
+    void visit( yl_new_array* node, int indent );
+    void visit( yl_new_table* node, int indent );
+    void visit( yl_expr_mono* node, int indent );
+    void visit( yl_expr_call* node, int indent );
+    void visit( yl_expr_yield* node, int indent );
+    void visit( yl_expr_vararg* node, int indent );
+    void visit( yl_expr_unpack* node, int indent );
+    void visit( yl_expr_list* node, int indent );
+    void visit( yl_expr_assign* node, int indent );
+    void visit( yl_expr_assign_list* node, int indent );
+    void visit( yl_stmt_block* node, int indent );
+    void visit( yl_stmt_if* node, int indent );
+    void visit( yl_stmt_switch* node, int indent );
+    void visit( yl_stmt_while* node, int indent );
+    void visit( yl_stmt_do* node, int indent );
+    void visit( yl_stmt_foreach* node, int indent );
+    void visit( yl_stmt_for* node, int indent );
+    void visit( yl_stmt_using* node, int indent );
+    void visit( yl_stmt_try* node, int indent );
+    void visit( yl_stmt_catch* node, int indent );
+    void visit( yl_stmt_delete* node, int indent );
+    void visit( yl_stmt_case* node, int indent );
+    void visit( yl_stmt_continue* node, int indent );
+    void visit( yl_stmt_break* node, int indent );
+    void visit( yl_stmt_return* node, int indent );
+    void visit( yl_stmt_throw* node, int indent );
+    void visit( yl_name_name* node, int indent );
+    void visit( yl_name_qual* node, int indent );
+    void visit( yl_name_list* node, int indent );
 
-    void print_scope( xec_ast_scope* scope, int indent );
-    void print_name( xec_ast_name* name );
+    void print_scope( yl_ast_scope* scope, int indent );
+    void print_name( yl_ast_name* name );
     
 };
 
 
 
-void xec_ast_print( xec_ast* root )
+void yl_ast_print( yl_ast* root )
 {
-    xec_ast_printer printer;
+    yl_ast_printer printer;
     for ( size_t i = 0; i < root->functions.size(); ++i )
     {
         printer.print_func( root->functions.at( i ) );
@@ -160,7 +160,7 @@ void xec_ast_print( xec_ast* root )
 
 
 
-void xec_ast_printer::print_func( xec_ast_func* node )
+void yl_ast_printer::print_func( yl_ast_func* node )
 {
     int indent = 0;
     
@@ -175,7 +175,7 @@ void xec_ast_printer::print_func( xec_ast_func* node )
         indent += INDENT;
         for ( size_t i = 0; i < node->upvals.size(); ++i )
         {
-            xec_ast_upval* upval = &node->upvals[ i ];
+            yl_ast_upval* upval = &node->upvals[ i ];
             printf( "%*s[ %d ] ", indent, "", (int)i );
             switch ( upval->kind )
             {
@@ -210,7 +210,7 @@ void xec_ast_printer::print_func( xec_ast_func* node )
     indent += INDENT;
     for ( size_t i = 0; i < node->parameters.size(); ++i )
     {
-        xec_ast_name* name = node->parameters[ i ];
+        yl_ast_name* name = node->parameters[ i ];
         printf( "%*s%s %p\n", indent, "", name->name, name );
     }
     if ( node->varargs )
@@ -228,27 +228,27 @@ void xec_ast_printer::print_func( xec_ast_func* node )
 }
 
 
-void xec_ast_printer::visit( xec_ast_func* node, int indent )
+void yl_ast_printer::visit( yl_ast_func* node, int indent )
 {
     printf( "%*sfunction %s %p\n", indent, "", node->funcname, node );
 }
 
-void xec_ast_printer::visit( xec_expr_null* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_null* node, int indent ) 
 {
     printf( "%*snull\n", indent, "" );
 }
 
-void xec_ast_printer::visit( xec_expr_bool* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_bool* node, int indent ) 
 {
     printf( "%*s%s\n", indent, "", node->value ? "true" : "false" );
 }
 
-void xec_ast_printer::visit( xec_expr_number* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_number* node, int indent ) 
 {
     printf( "%*s%g\n", indent, "", node->value );
 }
 
-void xec_ast_printer::visit( xec_expr_string* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_string* node, int indent ) 
 {
     printf( "%*s\"", indent, "" );
     for ( size_t i = 0; i < node->length; ++i )
@@ -274,73 +274,73 @@ void xec_ast_printer::visit( xec_expr_string* node, int indent )
     printf( "\"\n" );
 }
 
-void xec_ast_printer::visit( xec_expr_local* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_local* node, int indent ) 
 {
     printf( "%*s%s %p\n", indent, "", node->name->name, node->name );
 }
 
-void xec_ast_printer::visit( xec_expr_global* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_global* node, int indent ) 
 {
     printf( "%*sglobal.%s\n", indent, "", node->name );
 }
 
-void xec_ast_printer::visit( xec_expr_upref* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_upref* node, int indent ) 
 {
     printf( "%*supval %d\n", indent, "", node->index );
 }
 
-void xec_ast_printer::visit( xec_expr_objref* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_objref* node, int indent ) 
 {
     printf( "%*sobject %p\n", indent, "", node->object );
 }
 
-void xec_ast_printer::visit( xec_expr_key* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_key* node, int indent ) 
 {
     printf( "%*skey:\n", indent, "" );
     visit( node->object, indent + INDENT );
     printf( "%*s'%s'\n", indent + INDENT, "", node->key );
 }
 
-void xec_ast_printer::visit( xec_expr_inkey* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_inkey* node, int indent ) 
 {
     printf( "%*sinkey:\n", indent, "" );
     visit( node->object, indent + INDENT );
     visit( node->key, indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_expr_index* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_index* node, int indent ) 
 {
     printf( "%*sindex:\n", indent, "" );
     visit( node->object, indent + INDENT );
     visit( node->index, indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_expr_preop* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_preop* node, int indent ) 
 {
-    printf( "%*s%s\n", indent, "", xec_operator_name( node->opkind ) );
+    printf( "%*s%s\n", indent, "", yl_operator_name( node->opkind ) );
     visit( node->lvalue, indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_expr_postop* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_postop* node, int indent ) 
 {
-    printf( "%*s%s\n", indent, "", xec_operator_name( node->opkind ) );
+    printf( "%*s%s\n", indent, "", yl_operator_name( node->opkind ) );
     visit( node->lvalue, indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_expr_unary* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_unary* node, int indent ) 
 {
-    printf( "%*s%s\n", indent, "", xec_operator_name( node->opkind ) );
+    printf( "%*s%s\n", indent, "", yl_operator_name( node->opkind ) );
     visit( node->operand, indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_expr_binary* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_binary* node, int indent ) 
 {
-    printf( "%*s%s\n", indent, "", xec_operator_name( node->opkind ) );
+    printf( "%*s%s\n", indent, "", yl_operator_name( node->opkind ) );
     visit( node->lhs, indent + INDENT );
     visit( node->rhs, indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_expr_compare* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_compare* node, int indent ) 
 {
     printf( "%*scompare:\n", indent, "" );
     indent += INDENT;
@@ -349,20 +349,20 @@ void xec_ast_printer::visit( xec_expr_compare* node, int indent )
     assert( node->opkinds.size() == node->terms.size() );
     for ( size_t i = 0; i < node->terms.size(); ++i )
     {
-        const char* opname = xec_operator_name( node->opkinds[ i ] );
+        const char* opname = yl_operator_name( node->opkinds[ i ] );
         printf( "%*s%s\n", indent, "", opname );
         visit( node->terms[ i ], indent );
     }
 }
 
-void xec_ast_printer::visit( xec_expr_logical* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_logical* node, int indent ) 
 {
-    printf( "%*s%s\n", indent, "", xec_operator_name( node->opkind ) );
+    printf( "%*s%s\n", indent, "", yl_operator_name( node->opkind ) );
     visit( node->lhs, indent + INDENT );
     visit( node->rhs, indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_expr_qmark* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_qmark* node, int indent ) 
 {
     printf( "%*s?:\n", indent, "" );
     visit( node->condition, indent + INDENT );
@@ -370,14 +370,14 @@ void xec_ast_printer::visit( xec_expr_qmark* node, int indent )
     visit( node->iffalse, indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_new_new* node, int indent ) 
+void yl_ast_printer::visit( yl_new_new* node, int indent ) 
 {
     printf( "%*snew:\n", indent, "" );
     visit( node->proto, indent + INDENT );
     visit( node->arguments, indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_new_object* node, int indent ) 
+void yl_ast_printer::visit( yl_new_object* node, int indent ) 
 {
     printf( "%*sobject %p:\n", indent, "", node );
     indent += INDENT;
@@ -393,7 +393,7 @@ void xec_ast_printer::visit( xec_new_object* node, int indent )
         visit( node->members[ i ], indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_new_array* node, int indent )
+void yl_ast_printer::visit( yl_new_array* node, int indent )
 {
     printf( "%*slist:\n", indent, "" );
     for ( size_t i = 0; i < node->values.size(); ++i )
@@ -402,7 +402,7 @@ void xec_ast_printer::visit( xec_new_array* node, int indent )
         visit( node->final, indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_new_table* node, int indent ) 
+void yl_ast_printer::visit( yl_new_table* node, int indent ) 
 {
     printf( "%*stable:\n", indent, "" );
     indent += INDENT;
@@ -414,13 +414,13 @@ void xec_ast_printer::visit( xec_new_table* node, int indent )
     }
 }
 
-void xec_ast_printer::visit( xec_expr_mono* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_mono* node, int indent ) 
 {
     printf( "%*smono:\n", indent, "" );
     visit( node->expr, indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_expr_call* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_call* node, int indent ) 
 {
     printf( "%*scall:\n", indent, "" );
     indent += INDENT;
@@ -433,7 +433,7 @@ void xec_ast_printer::visit( xec_expr_call* node, int indent )
         visit( node->arguments, indent );
 }
 
-void xec_ast_printer::visit( xec_expr_yield* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_yield* node, int indent ) 
 {
     printf( "%*syield:\n", indent, "" );
     indent += INDENT;
@@ -443,18 +443,18 @@ void xec_ast_printer::visit( xec_expr_yield* node, int indent )
         visit( node->arguments, indent );
 }
 
-void xec_ast_printer::visit( xec_expr_vararg* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_vararg* node, int indent ) 
 {
     printf( "%*s...\n", indent, "" );
 }
 
-void xec_ast_printer::visit( xec_expr_unpack* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_unpack* node, int indent ) 
 {
     printf( "%*sunpack:\n", indent, "" );
     visit( node->array, indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_expr_list* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_list* node, int indent ) 
 {
     printf( "%*svalues:\n", indent, "" );
     for ( size_t i = 0; i < node->values.size(); ++i )
@@ -466,16 +466,16 @@ void xec_ast_printer::visit( xec_expr_list* node, int indent )
     }
 }
 
-void xec_ast_printer::visit( xec_expr_assign* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_assign* node, int indent ) 
 {
-    printf( "%*s%s\n", indent, "", xec_operator_name( node->assignop ) );
+    printf( "%*s%s\n", indent, "", yl_operator_name( node->assignop ) );
     visit( node->lvalue, indent + INDENT );
     visit( node->rvalue, indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_expr_assign_list* node, int indent ) 
+void yl_ast_printer::visit( yl_expr_assign_list* node, int indent ) 
 {
-    printf( "%*s%s\n", indent, "", xec_operator_name( node->assignop ) );
+    printf( "%*s%s\n", indent, "", yl_operator_name( node->assignop ) );
     indent += INDENT;
     printf( "%*slvalues:\n", indent, "" );
     for ( size_t i = 0; i < node->lvalues.size(); ++i )
@@ -483,7 +483,7 @@ void xec_ast_printer::visit( xec_expr_assign_list* node, int indent )
     visit( node->rvalues, indent );
 }
 
-void xec_ast_printer::visit( xec_stmt_block* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_block* node, int indent ) 
 {
     printf( "%*sblock %p:\n", indent, "", node );
     indent += INDENT;
@@ -499,7 +499,7 @@ void xec_ast_printer::visit( xec_stmt_block* node, int indent )
     }
 }
 
-void xec_ast_printer::visit( xec_stmt_if* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_if* node, int indent ) 
 {
     printf( "%*sif %p:\n", indent, "", node );
     indent += INDENT;
@@ -510,7 +510,7 @@ void xec_ast_printer::visit( xec_stmt_if* node, int indent )
         visit( node->iffalse, indent );
 }
 
-void xec_ast_printer::visit( xec_stmt_switch* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_switch* node, int indent ) 
 {
     printf( "%*sswitch %p:", indent, "", node );
     indent += INDENT;
@@ -519,7 +519,7 @@ void xec_ast_printer::visit( xec_stmt_switch* node, int indent )
     visit( node->body, indent );
 }
 
-void xec_ast_printer::visit( xec_stmt_while* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_while* node, int indent ) 
 {
     printf( "%*swhile %p:\n", indent, "", node );
     indent += INDENT;
@@ -528,7 +528,7 @@ void xec_ast_printer::visit( xec_stmt_while* node, int indent )
     visit( node->body, indent );
 }
 
-void xec_ast_printer::visit( xec_stmt_do* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_do* node, int indent ) 
 {
     printf( "%*sdo %p:\n", indent, "", node );
     indent += INDENT;
@@ -537,7 +537,7 @@ void xec_ast_printer::visit( xec_stmt_do* node, int indent )
     visit( node->condition, indent );
 }
 
-void xec_ast_printer::visit( xec_stmt_foreach* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_foreach* node, int indent ) 
 {
     printf( "%*sforeach %p:\n", indent, "", node );
     indent += INDENT;
@@ -555,7 +555,7 @@ void xec_ast_printer::visit( xec_stmt_foreach* node, int indent )
     visit( node->body, indent );
 }
 
-void xec_ast_printer::visit( xec_stmt_for* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_for* node, int indent ) 
 {
     printf( "%*sfor %p:\n", indent, "", node );
     indent += INDENT;
@@ -575,7 +575,7 @@ void xec_ast_printer::visit( xec_stmt_for* node, int indent )
     visit( node->body, indent );
 }
 
-void xec_ast_printer::visit( xec_stmt_using* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_using* node, int indent ) 
 {
     printf( "%*susing %p:\n", indent, "", node );
     indent += INDENT;
@@ -584,7 +584,7 @@ void xec_ast_printer::visit( xec_stmt_using* node, int indent )
     visit( node->body, indent );
 }
 
-void xec_ast_printer::visit( xec_stmt_try* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_try* node, int indent ) 
 {
     printf( "%*stry %p:\n", indent, "", node );
     visit( node->tstmt, indent + INDENT );
@@ -599,7 +599,7 @@ void xec_ast_printer::visit( xec_stmt_try* node, int indent )
     }
 }
 
-void xec_ast_printer::visit( xec_stmt_catch* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_catch* node, int indent ) 
 {
     printf( "%*scatch %p:\n", indent, "", node );
     indent += INDENT;
@@ -616,14 +616,14 @@ void xec_ast_printer::visit( xec_stmt_catch* node, int indent )
     visit( node->body, indent );
 }
 
-void xec_ast_printer::visit( xec_stmt_delete* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_delete* node, int indent ) 
 {
     printf( "%*sdelete:\n", indent, "" );
     for ( size_t i = 0; i < node->delvals.size(); ++i )
         visit( node->delvals[ i ], indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_stmt_case* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_case* node, int indent ) 
 {
     printf( "%*scase:\n", indent, "" );
     if ( node->value )
@@ -632,17 +632,17 @@ void xec_ast_printer::visit( xec_stmt_case* node, int indent )
         printf( "%*s[default]\n", indent + INDENT, "" );
 }
 
-void xec_ast_printer::visit( xec_stmt_continue* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_continue* node, int indent ) 
 {
     printf( "%*scontinue %p %p\n", indent, "", node->scope, node->target );
 }
 
-void xec_ast_printer::visit( xec_stmt_break* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_break* node, int indent ) 
 {
     printf( "%*sbreak %p %p\n", indent, "", node->scope, node->target );
 }
 
-void xec_ast_printer::visit( xec_stmt_return* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_return* node, int indent ) 
 {
     printf( "%*sreturn %p:\n", indent, "", node->scope );
     if ( node->values )
@@ -651,25 +651,25 @@ void xec_ast_printer::visit( xec_stmt_return* node, int indent )
         printf( "%*s[null]\n", indent + INDENT, "" );
 }
 
-void xec_ast_printer::visit( xec_stmt_throw* node, int indent ) 
+void yl_ast_printer::visit( yl_stmt_throw* node, int indent ) 
 {
     printf( "%*sthrow:\n", indent, "" );
     visit( node->value, indent + INDENT );
 }
 
-void xec_ast_printer::visit( xec_name_name* node, int indent )
+void yl_ast_printer::visit( yl_name_name* node, int indent )
 {
     printf( "%*s[!!] '%s'\n", indent, "", node->name );
 }
 
-void xec_ast_printer::visit( xec_name_qual* node, int indent )
+void yl_ast_printer::visit( yl_name_qual* node, int indent )
 {
     printf( "%*s[!!] qual:\n", indent, "" );
     visit( node->scope, indent + INDENT );
     printf( "%*s'%s'\n", indent + INDENT, "", node->name );
 }
 
-void xec_ast_printer::visit( xec_name_list* node, int indent )
+void yl_ast_printer::visit( yl_name_list* node, int indent )
 {
     printf( "%*s[!!] list:\n", indent, "" );
     for ( size_t i = 0; i < node->names.size(); ++i )
@@ -680,7 +680,7 @@ void xec_ast_printer::visit( xec_name_list* node, int indent )
 
 
 
-void xec_ast_printer::print_scope( xec_ast_scope* scope, int indent )
+void yl_ast_printer::print_scope( yl_ast_scope* scope, int indent )
 {
     const char* kind_name = "??";
     switch ( scope->kind )
@@ -754,20 +754,20 @@ void xec_ast_printer::print_scope( xec_ast_scope* scope, int indent )
 }
 
 
-void xec_ast_printer::print_name( xec_ast_name* name )
+void yl_ast_printer::print_name( yl_ast_name* name )
 {
     printf( "%s %p", name->name, name );
 
     if ( name->prototype )
     {
-        xec_ast_prototype* proto = name->prototype;
-        xec_name_list* params = proto->parameters;
+        yl_ast_prototype* proto = name->prototype;
+        yl_name_list* params = proto->parameters;
         printf( "(" );
         if ( params )
         {
             for ( size_t i = 0; i < params->names.size(); ++i )
             {
-                xec_name_name* unqual = params->names[ i ];
+                yl_name_name* unqual = params->names[ i ];
                 if ( i > 0 )
                     printf( "," );
                 printf( " %s", unqual->name );

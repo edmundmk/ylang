@@ -1,5 +1,5 @@
 //
-//  xssa_cfganalysis.cpp
+//  yssa_cfganalysis.cpp
 //  xob
 //
 //  Created by Edmund Kapusniak on 12/11/2014.
@@ -7,8 +7,8 @@
 //
 
 
-#include "xssa_cfganalysis.h"
-#include "xssa.h"
+#include "yssa_cfganalysis.h"
+#include "yssa.h"
 #include <make_unique>
 
 
@@ -36,7 +36,7 @@
 
 
 
-static void visit_depth_first( xssa_block* block, int* index )
+static void visit_depth_first( yssa_block* block, int* index )
 {
     // Ensure this node exists and hasn't been visited.
     if ( ! block || block->index != -1 )
@@ -66,12 +66,12 @@ static void visit_depth_first( xssa_block* block, int* index )
 }
 
 
-void xssa_order_depth_first( xssa_func* func )
+void yssa_order_depth_first( yssa_func* func )
 {
     // Clear existing order.
     for ( size_t i = 0; i < func->blocks.size(); ++i )
     {
-        xssa_block* block = func->blocks.at( i ).get();
+        yssa_block* block = func->blocks.at( i ).get();
         block->index = -1;
     }
 
@@ -80,7 +80,7 @@ void xssa_order_depth_first( xssa_func* func )
     visit_depth_first( func->blocks[ 0 ].get(), &index );
     
     // Reorder blocks.
-    std::vector< xssa_block_p > blocks;
+    std::vector< yssa_block_p > blocks;
     blocks.resize( func->blocks.size() );
     for ( size_t i = 0; i < func->blocks.size(); ++i )
     {
@@ -97,32 +97,32 @@ void xssa_order_depth_first( xssa_func* func )
 
 
 
-void xssa_compute_loop_forest( xssa_func* func )
+void yssa_compute_loop_forest( yssa_func* func )
 {
     // Remove previous loop calculation.
     func->loops.clear();
     for ( size_t i = 0; i < func->blocks.size(); ++i )
     {
-        xssa_block* block = func->blocks.at( i ).get();
+        yssa_block* block = func->blocks.at( i ).get();
         block->loop = nullptr;
     }
     
     
     
     // Assume that blocks are in depth-first order, visit them in reverse.
-    std::vector< xssa_block* > work;
+    std::vector< yssa_block* > work;
     for ( int i = (int)func->blocks.size() - 1; i >= 0; --i )
     {
 
 
-    xssa_block* block = func->blocks.at( i ).get();
+    yssa_block* block = func->blocks.at( i ).get();
 
 
     // If this block has any incoming back-edges (including edges that
     // point to itself), then it is a loop header.
     for ( size_t i = 0; i < block->previous.size(); ++i )
     {
-        xssa_block* previous = block->previous.at( i );
+        yssa_block* previous = block->previous.at( i );
         if ( previous->index >= block->index )
         {
             work.push_back( previous );
@@ -137,7 +137,7 @@ void xssa_compute_loop_forest( xssa_func* func )
     
     
     // This is a loop header.
-    xssa_loop_p loop = std::make_unique< xssa_loop >();
+    yssa_loop_p loop = std::make_unique< yssa_loop >();
     loop->parent = nullptr;
     loop->header = block;
     
@@ -146,7 +146,7 @@ void xssa_compute_loop_forest( xssa_func* func )
     // loop.  They are the start of our search back up the graph.
     while ( work.size() )
     {
-        xssa_block* child = work.back();
+        yssa_block* child = work.back();
         work.pop_back();
         
         // If we've reached the loop header, stop.
@@ -161,7 +161,7 @@ void xssa_compute_loop_forest( xssa_func* func )
         // outer loops in the DFO).
         if ( child->loop )
         {
-            xssa_loop* nested = child->loop;
+            yssa_loop* nested = child->loop;
         
             // Yes it is.  Add the child loop.
             nested->parent = loop.get();
@@ -192,7 +192,7 @@ void xssa_compute_loop_forest( xssa_func* func )
         // Continue search up the graph.
         for ( size_t i = 0; i < child->previous.size(); ++i )
         {
-            xssa_block* previous = child->previous.at( i );
+            yssa_block* previous = child->previous.at( i );
             
             // Ignore back edges (should only happen if child is the loop
             // header of an already-identified nested loop).
@@ -211,7 +211,7 @@ void xssa_compute_loop_forest( xssa_func* func )
     loop->header->loop = loop.get();
     for ( auto i = loop->blocks.begin(); i != loop->blocks.end(); ++i )
     {
-        xssa_block* block = *i;
+        yssa_block* block = *i;
         assert( block->loop == nullptr );
         block->loop = loop.get();
     }

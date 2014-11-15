@@ -1,5 +1,5 @@
 //
-//  xssa.h
+//  yssa.h
 //
 //  Created by Edmund Kapusniak on 11/11/2014.
 //  Copyright (c) 2014 Edmund Kapusniak. All rights reserved.
@@ -16,7 +16,7 @@
 #include <region.h>
 
 
-class xec_script;
+class yl_script;
 
 
 
@@ -64,23 +64,23 @@ class xec_script;
 */
 
 
-struct xssaop;
-struct xssa_string;
-struct xssa_module;
-struct xssa_func;
-struct xssa_block;
-struct xssa_loop;
+struct yssaop;
+struct yssa_string;
+struct yssa_module;
+struct yssa_func;
+struct yssa_block;
+struct yssa_loop;
 
 
-typedef std::unique_ptr< xssa_func >        xssa_func_p;
-typedef std::unique_ptr< xssa_block >       xssa_block_p;
-typedef std::unique_ptr< xssa_loop >        xssa_loop_p;
-typedef std::unordered_set< xssaop* >       xssa_opset;
-typedef std::unordered_set< xssa_loop* >    xssa_loopset;
-typedef std::unordered_set< xssa_block* >   xssa_blockset;
+typedef std::unique_ptr< yssa_func >        yssa_func_p;
+typedef std::unique_ptr< yssa_block >       yssa_block_p;
+typedef std::unique_ptr< yssa_loop >        yssa_loop_p;
+typedef std::unordered_set< yssaop* >       yssa_opset;
+typedef std::unordered_set< yssa_loop* >    yssa_loopset;
+typedef std::unordered_set< yssa_block* >   yssa_blockset;
 
 
-enum xssa_opcode : uint16_t
+enum yssa_opcode : uint16_t
 {
     XSSA_NOP,       // no-op
     
@@ -192,24 +192,24 @@ enum xssa_opcode : uint16_t
 */
 
 
-struct xssaop
+struct yssaop
 {
-    static bool has_multival( xssa_opcode opcode );
-    static bool has_key( xssa_opcode opcode );
-    static bool has_immed( xssa_opcode opcode );
+    static bool has_multival( yssa_opcode opcode );
+    static bool has_key( yssa_opcode opcode );
+    static bool has_immed( yssa_opcode opcode );
 
 
-    static xssaop* op( int sloc, xssa_opcode opcode, size_t operand_count );
-    static xssaop* op( int sloc, xssa_opcode opcode );
-    static xssaop* op( int sloc, xssa_opcode opcode, xssaop* operand );
-    static xssaop* op( int sloc, xssa_opcode opcode, xssaop* operanda, xssaop* operandb );
-    static xssaop* op( int sloc, xssa_opcode opcode, xssaop* operanda, xssaop* operandb, xssaop* operandv );
+    static yssaop* op( int sloc, yssa_opcode opcode, size_t operand_count );
+    static yssaop* op( int sloc, yssa_opcode opcode );
+    static yssaop* op( int sloc, yssa_opcode opcode, yssaop* operand );
+    static yssaop* op( int sloc, yssa_opcode opcode, yssaop* operanda, yssaop* operandb );
+    static yssaop* op( int sloc, yssa_opcode opcode, yssaop* operanda, yssaop* operandb, yssaop* operandv );
     
 
     int             index;
     int             sloc;
     
-    xssa_opcode     opcode;
+    yssa_opcode     opcode;
     int16_t         operand_count;
     int16_t         result_count;
     uint8_t         r;
@@ -219,14 +219,14 @@ struct xssaop
     {
     double          number;
     bool            boolean;
-    xssa_string*    string;
-    xssaop*         multival;
+    yssa_string*    string;
+    yssaop*         multival;
     const char*     key;
     int             immed;
-    xssa_func*      func;
+    yssa_func*      func;
     };
 
-    xssaop*         operand[];
+    yssaop*         operand[];
 
 
 };
@@ -235,10 +235,10 @@ struct xssaop
 
 
 
-struct xssa_string
+struct yssa_string
 {
-    static xssa_string* s( int sloc, const char* string );
-    static xssa_string* s( int sloc, size_t length, const char* string );
+    static yssa_string* s( int sloc, const char* string );
+    static yssa_string* s( int sloc, size_t length, const char* string );
 
     int             sloc;
     size_t          length;
@@ -256,22 +256,22 @@ struct xssa_string
 */
 
 
-struct xssa_module
+struct yssa_module
 {
     region                      alloc;
-    xec_script*                 script;
-    std::vector< xssa_func_p >  funcs;
+    yl_script*                 script;
+    std::vector< yssa_func_p >  funcs;
 };
 
 
-struct xssa_func
+struct yssa_func
 {
-    xssa_module*                module;
+    yssa_module*                module;
     int                         sloc;
     const char*                 funcname;
-    std::unordered_multimap< xssaop*, xssa_string* > names;
-    std::vector< xssa_block_p > blocks;
-    std::vector< xssa_loop_p >  loops;
+    std::unordered_multimap< yssaop*, yssa_string* > names;
+    std::vector< yssa_block_p > blocks;
+    std::vector< yssa_loop_p >  loops;
     int                         upvalcount;
     int                         newupcount;
     int                         paramcount;
@@ -280,34 +280,34 @@ struct xssa_func
 };
 
 
-struct xssa_block
+struct yssa_block
 {
     int                         index;
-    xssa_loop*                  loop;
-    xssa_opset                  live_in;
-    xssa_opset                  live_out;
-    std::vector< xssa_block* >  previous;
-    std::vector< xssaop* >      phi;
-    std::vector< xssaop* >      ops;
-    xssaop*                     condition;
+    yssa_loop*                  loop;
+    yssa_opset                  live_in;
+    yssa_opset                  live_out;
+    std::vector< yssa_block* >  previous;
+    std::vector< yssaop* >      phi;
+    std::vector< yssaop* >      ops;
+    yssaop*                     condition;
     union
     {
-    xssa_block*                 next;
+    yssa_block*                 next;
         struct
         {
-    xssa_block*                 iftrue;
-    xssa_block*                 iffalse;
+    yssa_block*                 iftrue;
+    yssa_block*                 iffalse;
         };
     };
 };
 
 
-struct xssa_loop
+struct yssa_loop
 {
-    xssa_loop*                  parent;
-    xssa_loopset                children;
-    xssa_block*                 header;
-    xssa_blockset               blocks;
+    yssa_loop*                  parent;
+    yssa_loopset                children;
+    yssa_block*                 header;
+    yssa_blockset               blocks;
 };
 
 
@@ -317,10 +317,10 @@ struct xssa_loop
     Print SSA form for debugging.
 */
 
-const char* xssa_opname( xssa_opcode opcode );
-void xssa_print( xssa_module* module );
-void xssa_print( xssa_func* func );
-void xssa_print( xssa_func* func, xssaop* op );
+const char* yssa_opname( yssa_opcode opcode );
+void yssa_print( yssa_module* module );
+void yssa_print( yssa_func* func );
+void yssa_print( yssa_func* func, yssaop* op );
 
 
 
@@ -330,7 +330,7 @@ void xssa_print( xssa_func* func, xssaop* op );
 */
 
 
-inline bool xssaop::has_multival( xssa_opcode opcode )
+inline bool yssaop::has_multival( yssa_opcode opcode )
 {
     return opcode == XSSA_EXTEND
         || opcode == XSSA_CALL
@@ -339,7 +339,7 @@ inline bool xssaop::has_multival( xssa_opcode opcode )
         || opcode == XSSA_RETURN;
 }
 
-inline bool xssaop::has_key( xssa_opcode opcode )
+inline bool yssaop::has_key( yssa_opcode opcode )
 {
     return opcode == XSSA_KEY
         || opcode == XSSA_GLOBAL
@@ -349,7 +349,7 @@ inline bool xssaop::has_key( xssa_opcode opcode )
         || opcode == XSSA_DELKEY;
 }
 
-inline bool xssaop::has_immed( xssa_opcode opcode )
+inline bool yssaop::has_immed( yssa_opcode opcode )
 {
     return opcode == XSSA_NEWUP
         || opcode == XSSA_SETUP
@@ -364,10 +364,10 @@ inline bool xssaop::has_immed( xssa_opcode opcode )
 }
 
 
-inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, size_t operand_count )
+inline yssaop* yssaop::op( int sloc, yssa_opcode opcode, size_t operand_count )
 {
-    size_t size = sizeof( xssaop ) + sizeof( xssaop* ) * operand_count;
-    xssaop* o = (xssaop*)region_current->malloc( size );
+    size_t size = sizeof( yssaop ) + sizeof( yssaop* ) * operand_count;
+    yssaop* o = (yssaop*)region_current->malloc( size );
     o->index            = -1;
     o->sloc             = sloc;
     o->opcode           = opcode;
@@ -379,29 +379,29 @@ inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, size_t operand_count )
     return o;
 }
 
-inline xssaop* xssaop::op( int sloc, xssa_opcode opcode )
+inline yssaop* yssaop::op( int sloc, yssa_opcode opcode )
 {
     return op( sloc, opcode, (size_t)0 );
 }
 
-inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, xssaop* operand )
+inline yssaop* yssaop::op( int sloc, yssa_opcode opcode, yssaop* operand )
 {
-    xssaop* o = op( sloc, opcode, 1 );
+    yssaop* o = op( sloc, opcode, 1 );
     o->operand[ 0 ] = operand;
     return o;
 }
 
-inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, xssaop* operanda, xssaop* operandb )
+inline yssaop* yssaop::op( int sloc, yssa_opcode opcode, yssaop* operanda, yssaop* operandb )
 {
-    xssaop* o = op( sloc, opcode, 2 );
+    yssaop* o = op( sloc, opcode, 2 );
     o->operand[ 0 ] = operanda;
     o->operand[ 1 ] = operandb;
     return o;
 }
 
-inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, xssaop* operanda, xssaop* operandb, xssaop* operandv )
+inline yssaop* yssaop::op( int sloc, yssa_opcode opcode, yssaop* operanda, yssaop* operandb, yssaop* operandv )
 {
-    xssaop* o = op( sloc, opcode, 3 );
+    yssaop* o = op( sloc, opcode, 3 );
     o->operand[ 0 ] = operanda;
     o->operand[ 1 ] = operandb;
     o->operand[ 2 ] = operandv;
@@ -410,15 +410,15 @@ inline xssaop* xssaop::op( int sloc, xssa_opcode opcode, xssaop* operanda, xssao
 
 
 
-inline xssa_string* xssa_string::s( int sloc, const char* string )
+inline yssa_string* yssa_string::s( int sloc, const char* string )
 {
     return s( sloc, strlen( string ), string );
 }
 
-inline xssa_string* xssa_string::s( int sloc, size_t length, const char* string )
+inline yssa_string* yssa_string::s( int sloc, size_t length, const char* string )
 {
-    size_t size = sizeof( xssa_string ) + length + 1;
-    xssa_string* s = (xssa_string*)region_current->malloc( size );
+    size_t size = sizeof( yssa_string ) + length + 1;
+    yssa_string* s = (yssa_string*)region_current->malloc( size );
     s->sloc = sloc;
     s->length = length;
     memcpy( (char*)s->string, string, length );
