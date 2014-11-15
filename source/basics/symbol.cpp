@@ -8,7 +8,7 @@
 
 #include "symbol.h"
 #include <string.h>
-
+/*
 
 symbol::symbol()
     :   shash( 0 )
@@ -78,7 +78,7 @@ symbol::~symbol()
 {
     free( sname );
 }
-
+*/
 
 
 
