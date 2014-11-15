@@ -29,10 +29,13 @@ Features
 
 - Function closures.
 
-        var bindings = [];
-        for ( var element : list )
+        def bindall( list, token )
         {
-            bindings.append( ?() { return element.invoke(); } );
+            var bindings = [];
+            for ( var element : list )
+            {
+                bindings.append( ?() { return element.invoke( token ); } );
+            }
         }
 
 - Multiple return values.
