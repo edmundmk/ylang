@@ -418,7 +418,11 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
     }
     case Y_EXTEND:
     {
-        assert( ! "not implemented" );
+        yarray* array = s[ i.a() ].as< yarray >();
+        for ( size_t index = fp + i.r(); index < stack->mark; ++index )
+        {
+            array->append( stack->stack[ index ] );
+        }
         break;
     }
     
