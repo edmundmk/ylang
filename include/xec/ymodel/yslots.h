@@ -135,11 +135,11 @@ inline void yslots::set_watermark( size_t watermark )
 inline yvalue yslots::get( size_t i ) const
 {
 #if Y64BIT
-    return yvalue( slots[ i ].x.load( std::memory_order_relaxed ) );
+    return yvalue::value( slots[ i ].x.load( std::memory_order_relaxed ) );
 #else
     uint32_t lo = slots[ i ].lo.load( std::memory_order_relaxed );
     uint32_t hi = slots[ i ].hi;
-    return yvalue( lo, hi );
+    return yvalue::value( lo, hi );
 #endif
 }
 

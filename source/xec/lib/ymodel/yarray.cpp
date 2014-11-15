@@ -65,11 +65,11 @@ void yarray::resize( size_t newlength )
     ensure( newlength );
     for ( size_t i = newlength; i < count; ++i )
     {
-        values->set( i, yvalue::undefined );
+        values->set( i, yvalue::yundefined );
     }
     for ( size_t i = count; i < newlength; ++i )
     {
-        values->set( i, yvalue::null );
+        values->set( i, yvalue::ynull );
     }
     count = newlength;
 }

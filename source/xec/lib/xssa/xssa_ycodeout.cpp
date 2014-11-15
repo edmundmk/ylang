@@ -158,7 +158,7 @@ void xssa_ycodeout::build_func( xssa_linear* l )
         value( o( op->r ), op->number );
         break;
     case XSSA_BOOL:
-        value( o( op->r ), op->boolean );
+        value( o( op->r ), op->boolean ? yvalue::ytrue : yvalue::yfalse );
         break;
     case XSSA_STRING:
         value( o( op->r ), ystring::alloc( op->string->length, op->string->string ) );

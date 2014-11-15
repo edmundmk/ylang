@@ -9,8 +9,10 @@
 #include "yvalue.h"
 
 
-yvalue yvalue::null( VALUE_NULL );
-yvalue yvalue::undefined( VALUE_UNDEFINED );
+yvalue yvalue::yundefined   = yvalue::value( VALUE_UNDEFINED );
+yvalue yvalue::ynull        = yvalue::value( VALUE_NULL );
+yvalue yvalue::yfalse       = yvalue::value( VALUE_FALSE );
+yvalue yvalue::ytrue        = yvalue::value( VALUE_TRUE );
 
 
 yobject* yvalue::get() const

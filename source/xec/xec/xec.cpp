@@ -79,6 +79,10 @@ int main( int argc, char* argv[] )
     }
 
 
+    yvalue y( 1 );
+    yvalue m( nullptr );
+
+
 /*
     std::unique_ptr< xec_srcbuf > srcbuf( xec_compile_lj( script->get_ast() ) );
     if ( srcbuf )
@@ -96,6 +100,9 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
     
+
+    ymodule::print( module );
+
 
     yexpand* global = yexpand::alloc();
     global->setkey( "atoi", y_atoi );

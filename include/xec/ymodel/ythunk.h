@@ -64,7 +64,7 @@ inline yvalue yframe::argument( size_t index )
     if ( index < acount )
         return s[ 1 + index ];
     else
-        return yvalue( nullptr );
+        return nullptr;
 }
 
 inline void yframe::result( yvalue result )

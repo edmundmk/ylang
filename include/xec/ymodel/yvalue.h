@@ -56,20 +56,20 @@ class yvalue
 {
 public:
 
-    static yvalue null;
-    static yvalue undefined;
+    static yvalue yundefined;
+    static yvalue ynull;
+    static yvalue yfalse;
+    static yvalue ytrue;
     
     yvalue();
     yvalue( std::nullptr_t );
-    yvalue( bool value );
     yvalue( double value );
-    yvalue( uint32_t value );
     yvalue( const char* string );
     yvalue( yobject* object );
     yvalue( ystring* string );
     yvalue( yexpand* expand );
     
-    yvalue( void (*thunk)( yframe ) );  // TODO THINK ABOUT THIS.
+    yvalue( void (*thunk)( yframe ) );
     static yvalue native( void* native );
 
     explicit operator bool() const;
@@ -141,9 +141,9 @@ private:
     static const uint64_t TAG_MASK          = UINT64_C( 0xFFFF000000000000 );
     static const uint64_t POINTER_MASK      = UINT64_C( 0x0000FFFFFFFFFFFF );
 
-    explicit yvalue( uint64_t x );
+    static yvalue value( uint64_t x );
 #if ! Y64BIT
-    explicit yvalue( uint32_t lo, uint32_t hi );
+    static yvalue value( uint32_t lo, uint32_t hi );
 #endif
     
     union
@@ -327,17 +327,21 @@ struct ymarktraits< ywb< yvalue > >
 */
 
 
-inline yvalue::yvalue( uint64_t x )
-    :   x( x )
+inline yvalue yvalue::value( uint64_t x )
 {
+    yvalue v;
+    v.x = x;
+    return v;
 }
 
 #if ! Y64BIT
 
-inline yvalue::yvalue( uint32_t lo, uint32_t hi )
-    :   lo( lo )
-    ,   hi( hi )
+inline yvalue yvalue yvalue::value( uint32_t lo, uint32_t hi )
 {
+    yvalue v;
+    v.lo = lo;
+    v.hi = hi;
+    return v;
 }
 
 #endif
@@ -352,18 +356,8 @@ inline yvalue::yvalue( std::nullptr_t )
 {
 }
 
-inline yvalue::yvalue( bool value )
-    :   x( value ? VALUE_TRUE : VALUE_FALSE )
-{
-}
-
 inline yvalue::yvalue( double value )
 //  :   n( ! isnan( value ) ? value : signbit( value ) ? NEGATIVE_NAN : POSITIVE_NAN  )
-    :   n( value )
-{
-}
-
-inline yvalue::yvalue( uint32_t value )
     :   n( value )
 {
 }
@@ -396,7 +390,7 @@ inline yvalue::yvalue( void (*ythunk)( yframe ) )
 
 inline yvalue yvalue::native( void* native )
 {
-    return yvalue( TAG_NATIVE | (uintptr_t)native );
+    return yvalue::value( TAG_NATIVE | (uintptr_t)native );
 }
 
 
@@ -725,7 +719,7 @@ inline size_t std::hash< yvalue >::operator () ( const yvalue& v ) const
 
 
 inline ywb< yvalue >::ywb()
-    :   ywb( yvalue::undefined )
+    :   ywb( yvalue::yundefined )
 {
 }
 
@@ -761,12 +755,12 @@ inline ywb< yvalue >& ywb< yvalue >::operator = ( yvalue q )
 
 inline ywb< yvalue >::operator yvalue () const
 {
-    return yvalue( x.load( std::memory_order_relaxed ) );
+    return yvalue::value( x.load( std::memory_order_relaxed ) );
 }
 
 inline yvalue ywb< yvalue >::get() const
 {
-    return yvalue( x.load( std::memory_order_relaxed ) );
+    return yvalue::value( x.load( std::memory_order_relaxed ) );
 }
 
 
@@ -831,12 +825,12 @@ inline ywb< yvalue >& ywb< yvalue >::operator = ( yvalue q )
 
 inline ywb< yvalue >::operator yvalue () const
 {
-    return yvalue( lo, hi );
+    return yvalue::value( lo, hi );
 }
 
 inline yvalue ywb< yvalue >::get() const
 {
-    return yvalue( lo, hi );
+    return yvalue::value( lo, hi );
 }
 
 

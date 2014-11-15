@@ -25,7 +25,7 @@ void ystack::ensure_stack( size_t size )
 {
     if ( stack.size() < size )
     {
-        stack.insert( stack.end(), size - stack.size(), yvalue::undefined );
+        stack.insert( stack.end(), size - stack.size(), yvalue::yundefined );
     }
 }
 

@@ -61,7 +61,7 @@ inline yvalue ytable::getindex( yvalue key ) const
     if ( lookup )
         return lookup->value;
     else
-        return yvalue::undefined;
+        return yvalue::yundefined;
 }
 
 

@@ -47,7 +47,7 @@ void yexpand::delkey( ysymbol key )
             slots->set( index.dual - 2, yvalue::undefined );
         }
 #else
-        slots->set( lookup->value, yvalue::undefined );
+        slots->set( lookup->value, yvalue::yundefined );
 #endif
     }
 }

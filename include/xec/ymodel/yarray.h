@@ -72,7 +72,7 @@ inline yvalue yarray::getindex( size_t i ) const
     if ( values && i < count )
         return values->get( i );
     else
-        return yvalue::undefined;
+        return yvalue::yundefined;
 }
 
 inline void yarray::setindex( size_t i, yvalue value )
