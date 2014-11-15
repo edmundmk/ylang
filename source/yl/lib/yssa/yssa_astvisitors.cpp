@@ -294,9 +294,9 @@ yssaop* yssa_build_expr::visit( yl_expr_compare* node )
         case YL_ASTOP_EQUAL:        opcode = YSSA_EQ;               break;
         case YL_ASTOP_NOTEQUAL:     opcode = YSSA_EQ; neg = true;   break;
         case YL_ASTOP_LESS:         opcode = YSSA_LT;               break;
-        case YL_ASTOP_GREATER:      opcode = YSSA_LE; inv = true;   break;
+        case YL_ASTOP_GREATER:      opcode = YSSA_LT; inv = true;   break;
         case YL_ASTOP_LESSEQUAL:    opcode = YSSA_LE;               break;
-        case YL_ASTOP_GREATEREQUAL: opcode = YSSA_LT; inv = true;   break;
+        case YL_ASTOP_GREATEREQUAL: opcode = YSSA_LE; inv = true;   break;
         case YL_ASTOP_IN:           opcode = YSSA_IN;               break;
         case YL_ASTOP_NOTIN:        opcode = YSSA_IN; neg = true;   break;
         case YL_ASTOP_IS:           opcode = YSSA_IS;               break;

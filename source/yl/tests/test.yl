@@ -1,7 +1,3 @@
-
-
-def process( ... ) {}
-
 def assert( check )
 {
     if ( ! check )
@@ -9,6 +5,10 @@ def assert( check )
         printf( "check failed!\n" );
     }
 }
+
+
+def process( ... ) {}
+
 
 var sword = {};
 var op = 0x343043;

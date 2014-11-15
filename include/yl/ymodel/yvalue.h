@@ -675,7 +675,7 @@ inline bool operator <  ( yvalue a, yvalue b )
 inline bool operator <= ( yvalue a, yvalue b )
 {
     if ( ! a.is_string() )
-        return a.as_number() < b.as_number();
+        return a.as_number() <= b.as_number();
     else
         return ystring::strcmp( a.as_string(), b.as_string() ) <= 0;
 }
