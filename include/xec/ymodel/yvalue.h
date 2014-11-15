@@ -336,7 +336,7 @@ inline yvalue yvalue::value( uint64_t x )
 
 #if ! Y64BIT
 
-inline yvalue yvalue yvalue::value( uint32_t lo, uint32_t hi )
+inline yvalue yvalue::value( uint32_t lo, uint32_t hi )
 {
     yvalue v;
     v.lo = lo;
@@ -784,7 +784,7 @@ inline void ymarktraits< ywb< yvalue > >::mark(
 
 
 inline ywb< yvalue >::ywb()
-    :   ywb( yvalue::undefined )
+    :   ywb( yvalue::yundefined )
 {
 }
 

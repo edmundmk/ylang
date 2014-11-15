@@ -41,10 +41,10 @@ void yexpand::delkey( ysymbol key )
     {
 #if YSLOTS
         yslotindex index = lookup->value;
-        slots->set( index.slot, yvalue::undefined );
+        slots->set( index.slot, yvalue::yundefined );
         if ( index.dual >= 2 )
         {
-            slots->set( index.dual - 2, yvalue::undefined );
+            slots->set( index.dual - 2, yvalue::yundefined );
         }
 #else
         slots->set( lookup->value, yvalue::yundefined );
@@ -100,7 +100,7 @@ void yexpand::dualkey( ysymbol key, yslotindex index, yvalue value )
         {
             // Write number to number slot, and undefined to reference slot.
             slots->set( index.slot, value );
-            slots->set( dualslot, yvalue::undefined );
+            slots->set( dualslot, yvalue::yundefined );
         }
         else
         {
@@ -135,8 +135,9 @@ void yexpand::expanddual( ysymbol key, yslotindex index, yvalue value )
 
     // Find old and new slot sizes.
     size_t current_size = klass->refslots + klass->numslots;
-    current_size = std::max( ceil_pow2( current_size ), (size_t)8 );
-    assert( slots->size() == current_size );
+    if ( current_size )
+        current_size = std::max( ceil_pow2( current_size ), (size_t)8 );
+    assert( slots ? current_size == slots->size() : current_size == 0 );
     
     size_t expand_size = expand->refslots + expand->numslots;
     expand_size = std::max( ceil_pow2( expand_size ), (size_t)8 );
@@ -165,6 +166,9 @@ void yexpand::expanddual( ysymbol key, yslotindex index, yvalue value )
         {
             newslots->set( i + expand_size - current_size, slots->get( i ) );
         }
+
+        newslots->set_watermark( expand->refslots );
+        this->slots = newslots;
         
         if ( key )
         {
@@ -173,11 +177,8 @@ void yexpand::expanddual( ysymbol key, yslotindex index, yvalue value )
         else
         {
             assert( ! is_number );
-            newslots->set( 0, value );
+            slots->set( 0, value );
         }
-        
-        newslots->set_watermark( expand->refslots );
-        this->slots = newslots;
     }
     else if ( key )
     {
@@ -212,7 +213,7 @@ void yexpand::storedual( yslotindex index, size_t newslot, yvalue value )
         if ( is_number )
         {
             assert( index.dual == yslotindex::REFERENCE );
-            slots->set( index.slot, yvalue::undefined );
+            slots->set( index.slot, yvalue::yundefined );
             slots->set( newslot, value );
         }
         else

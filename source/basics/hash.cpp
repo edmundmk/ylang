@@ -696,7 +696,7 @@ template <> hash_t hash32or64< 4 >( const void* data, size_t size )
 
 template <> hash_t hash32or64< 8 >( const void* data, size_t size )
 {
-    return hash64( data, size );
+    return (hash_t)hash64( data, size );
 }
 
 

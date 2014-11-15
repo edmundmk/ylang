@@ -55,7 +55,7 @@ ystring* ymodel::make_symbol( const char* s )
     newsym->shash = hash;
     newsym->shashed = true;
     newsym->ssymbol = true;
-    symbols.emplace( key, newsym );
+    symbols.emplace( symkey( hash, newsym->c_str(), size ), newsym );
     return newsym;
 }
 
