@@ -15,6 +15,11 @@
 #include <hash.h>
 
 
+/*
+    symkeys can be used in place of string keys for hash tables, when the
+    string memory is managed elsewhere (perhaps as part of the corresponding
+    value).  It stores the already-calculated hash.
+*/
 
 
 class symkey
