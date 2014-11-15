@@ -14,7 +14,7 @@
 #include "xssa.h"
 #include <vector>
 #include <utility>
-#include <symbol.h>
+#include <symkey.h>
 
 
 struct xec_ast;

@@ -12,7 +12,7 @@
 
 #include <deque>
 #include <unordered_set>
-#include <symbol.h>
+#include <symkey.h>
 #include "xec_script.h"
 #include "xec_ast.h"
 

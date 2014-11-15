@@ -13,7 +13,7 @@
 #include <deque>
 #include <unordered_map>
 #include <region.h>
-#include "symbol.h"
+#include <symkey.h>
 
 
 class xec_script;

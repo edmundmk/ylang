@@ -13,7 +13,7 @@
 #include <vector>
 #include <unordered_map>
 #include <thread>
-#include <symbol.h>
+#include <symkey.h>
 #include <seglist.h>
 
 

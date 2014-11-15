@@ -1,13 +1,13 @@
 //
-// symbol.h
+// symkey.h
 //
 // Created 3rd October 2013.
 // (c) Edmund Kapusniak 2013.  All rights reserved.
 //
 
 
-#ifndef SYMBOL_H
-#define SYMBOL_H
+#ifndef SYMKEY_H
+#define SYMKEY_H
 
 
 #include <string>
@@ -127,5 +127,5 @@ inline bool operator != ( const symkey& a, const symkey& b )
 
 
 
-#endif /* SYMBOL_H */
+#endif /* SYMKEY_H */
 

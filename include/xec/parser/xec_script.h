@@ -15,7 +15,7 @@
 #include <string>
 #include <memory>
 #include <region.h>
-#include <symbol.h>
+#include <symkey.h>
 
 
 struct xec_ast;
