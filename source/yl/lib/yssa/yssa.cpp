@@ -15,88 +15,88 @@ const char* yssa_opname( yssa_opcode opcode )
 {
     switch ( opcode )
     {
-    case XSSA_NOP:      return "nop";
+    case YSSA_NOP:      return "nop";
 
-    case XSSA_NULL:     return "null";
-    case XSSA_NUMBER:   return "number";
-    case XSSA_BOOL:     return "bool";
-    case XSSA_STRING:   return "string";
+    case YSSA_NULL:     return "null";
+    case YSSA_NUMBER:   return "number";
+    case YSSA_BOOL:     return "bool";
+    case YSSA_STRING:   return "string";
 
-    case XSSA_POS:      return "pos";
-    case XSSA_NEG:      return "neg";
-    case XSSA_NOT:      return "not";
-    case XSSA_LNOT:     return "lnot";
+    case YSSA_POS:      return "pos";
+    case YSSA_NEG:      return "neg";
+    case YSSA_NOT:      return "not";
+    case YSSA_LNOT:     return "lnot";
 
-    case XSSA_MUL:      return "mul";
-    case XSSA_DIV:      return "div";
-    case XSSA_MOD:      return "mod";
-    case XSSA_INTDIV:   return "intdiv";
-    case XSSA_ADD:      return "add";
-    case XSSA_SUB:      return "sub";
-    case XSSA_LSL:      return "lsl";
-    case XSSA_LSR:      return "lsr";
-    case XSSA_ASR:      return "asr";
-    case XSSA_AND:      return "and";
-    case XSSA_XOR:      return "xor";
-    case XSSA_OR:       return "or";
-    case XSSA_CONCAT:   return "concat";
+    case YSSA_MUL:      return "mul";
+    case YSSA_DIV:      return "div";
+    case YSSA_MOD:      return "mod";
+    case YSSA_INTDIV:   return "intdiv";
+    case YSSA_ADD:      return "add";
+    case YSSA_SUB:      return "sub";
+    case YSSA_LSL:      return "lsl";
+    case YSSA_LSR:      return "lsr";
+    case YSSA_ASR:      return "asr";
+    case YSSA_AND:      return "and";
+    case YSSA_XOR:      return "xor";
+    case YSSA_OR:       return "or";
+    case YSSA_CONCAT:   return "concat";
     
-    case XSSA_EQ:       return "eq";
-    case XSSA_LT:       return "lt";
-    case XSSA_LE:       return "le";
-    case XSSA_IN:       return "in";
-    case XSSA_IS:       return "is";
+    case YSSA_EQ:       return "eq";
+    case YSSA_LT:       return "lt";
+    case YSSA_LE:       return "le";
+    case YSSA_IN:       return "in";
+    case YSSA_IS:       return "is";
 
-    case XSSA_LXOR:     return "lxor";
+    case YSSA_LXOR:     return "lxor";
     
-    case XSSA_KEY:      return "key";
-    case XSSA_INKEY:    return "inkey";
-    case XSSA_INDEX:    return "index";
-    case XSSA_GLOBAL:   return "global";
+    case YSSA_KEY:      return "key";
+    case YSSA_INKEY:    return "inkey";
+    case YSSA_INDEX:    return "index";
+    case YSSA_GLOBAL:   return "global";
 
-    case XSSA_SETKEY:   return "setkey";
-    case XSSA_SETINKEY: return "setinkey";
-    case XSSA_SETINDEX: return "setindex";
-    case XSSA_SETGLOBAL: return "setglobal";
+    case YSSA_SETKEY:   return "setkey";
+    case YSSA_SETINKEY: return "setinkey";
+    case YSSA_SETINDEX: return "setindex";
+    case YSSA_SETGLOBAL: return "setglobal";
     
-    case XSSA_DELKEY:   return "delkey";
-    case XSSA_DELINKEY: return "delinkey";
+    case YSSA_DELKEY:   return "delkey";
+    case YSSA_DELINKEY: return "delinkey";
     
-    case XSSA_NEWUP:    return "newup";
-    case XSSA_SETUP:    return "setup";
-    case XSSA_REFUP:    return "refup";
-    case XSSA_CLOUP:    return "cloup";
+    case YSSA_NEWUP:    return "newup";
+    case YSSA_SETUP:    return "setup";
+    case YSSA_REFUP:    return "refup";
+    case YSSA_CLOUP:    return "cloup";
     
-    case XSSA_OBJECT:   return "object";
-    case XSSA_TABLE:    return "table";
-    case XSSA_ARRAY:    return "array";
+    case YSSA_OBJECT:   return "object";
+    case YSSA_TABLE:    return "table";
+    case YSSA_ARRAY:    return "array";
 
-    case XSSA_APPEND:   return "append";
-    case XSSA_EXTEND:   return "extend";
+    case YSSA_APPEND:   return "append";
+    case YSSA_EXTEND:   return "extend";
     
-    case XSSA_CLOSURE:  return "closure";
+    case YSSA_CLOSURE:  return "closure";
 
-    case XSSA_VARALL:   return "varall";
-    case XSSA_UNPACK:   return "unpack";
-    case XSSA_CALL:     return "call";
-    case XSSA_YCALL:    return "ycall";
-    case XSSA_YIELD:    return "yield";
+    case YSSA_VARALL:   return "varall";
+    case YSSA_UNPACK:   return "unpack";
+    case YSSA_CALL:     return "call";
+    case YSSA_YCALL:    return "ycall";
+    case YSSA_YIELD:    return "yield";
     
-    case XSSA_ITER:     return "iter";
-    case XSSA_ITERKEY:  return "iterkey";
-    case XSSA_POPITER:  return "popiter";
-    case XSSA_NEXT:     return "next";
+    case YSSA_ITER:     return "iter";
+    case YSSA_ITERKEY:  return "iterkey";
+    case YSSA_POPITER:  return "popiter";
+    case YSSA_NEXT:     return "next";
     
-    case XSSA_RETURN:   return "return";
+    case YSSA_RETURN:   return "return";
     
-    case XSSA_PARAM:    return "param";
-    case XSSA_VARARG:   return "vararg";
-    case XSSA_SELECT:   return "select";
-    case XSSA_ELEM:     return "elem";
+    case YSSA_PARAM:    return "param";
+    case YSSA_VARARG:   return "vararg";
+    case YSSA_SELECT:   return "select";
+    case YSSA_ELEM:     return "elem";
 
-    case XSSA_PHI:      return "phi";
-    case XSSA_REF:      return "(ref)";
-    case XSSA_PSI:      return "(psi)";
+    case YSSA_PHI:      return "phi";
+    case YSSA_REF:      return "(ref)";
+    case YSSA_PSI:      return "(psi)";
     }
     
     return "???";
@@ -132,7 +132,7 @@ void yssa_print( yssa_func* func, yssaop* op )
 
     
     // Operands
-    if ( op->opcode == XSSA_CLOSURE )
+    if ( op->opcode == YSSA_CLOSURE )
     {
         printf( " %p %s", op->func, op->func->funcname );
     }
@@ -164,17 +164,17 @@ void yssa_print( yssa_func* func, yssaop* op )
         printf( " %d", op->immed );
     }
     
-    if ( op->opcode == XSSA_NUMBER )
+    if ( op->opcode == YSSA_NUMBER )
     {
         printf( " %g", op->number );
     }
     
-    if ( op->opcode == XSSA_BOOL )
+    if ( op->opcode == YSSA_BOOL )
     {
         printf( " %s", op->boolean ? "true" : "false" );
     }
     
-    if ( op->opcode == XSSA_STRING )
+    if ( op->opcode == YSSA_STRING )
     {
         printf( " \"" );
         for ( size_t i = 0; i < op->string->length; ++i )

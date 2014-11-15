@@ -1172,32 +1172,32 @@ struct yl_keywords
     
     yl_keywords()
     {
-        emplace( symkey( "break" ),     XEC_KEYWORD_BREAK );
-        emplace( symkey( "case" ),      XEC_KEYWORD_CASE );
-        emplace( symkey( "catch" ),     XEC_KEYWORD_CATCH );
-        emplace( symkey( "continue" ),  XEC_KEYWORD_CONTINUE );
-        emplace( symkey( "def" ),       XEC_KEYWORD_DEF );
-        emplace( symkey( "default" ),   XEC_KEYWORD_DEFAULT );
-        emplace( symkey( "delete" ),    XEC_KEYWORD_DELETE );
-        emplace( symkey( "do" ),        XEC_KEYWORD_DO );
-        emplace( symkey( "else" ),      XEC_KEYWORD_ELSE );
-        emplace( symkey( "false" ),     XEC_KEYWORD_FALSE );
-        emplace( symkey( "finally" ),   XEC_KEYWORD_FINALLY );
-        emplace( symkey( "for" ),       XEC_KEYWORD_FOR );
-        emplace( symkey( "if" ),        XEC_KEYWORD_IF );
-        emplace( symkey( "new" ),       XEC_KEYWORD_NEW );
-        emplace( symkey( "null" ),      XEC_KEYWORD_NULL );
-        emplace( symkey( "return" ),    XEC_KEYWORD_RETURN );
-        emplace( symkey( "switch" ),    XEC_KEYWORD_SWITCH );
-        emplace( symkey( "throw" ),     XEC_KEYWORD_THROW );
-        emplace( symkey( "true" ),      XEC_KEYWORD_TRUE );
-        emplace( symkey( "try" ),       XEC_KEYWORD_TRY );
-        emplace( symkey( "using" ),     XEC_KEYWORD_USING );
-        emplace( symkey( "var" ),       XEC_KEYWORD_VAR );
-        emplace( symkey( "while" ),     XEC_KEYWORD_WHILE );
-        emplace( symkey( "yield" ),     XEC_KEYWORD_YIELD );
-        emplace( symkey( "in" ),        XEC_TOKEN_IN );
-        emplace( symkey( "is" ),        XEC_TOKEN_IS );
+        emplace( symkey( "break" ),     YL_KEYWORD_BREAK );
+        emplace( symkey( "case" ),      YL_KEYWORD_CASE );
+        emplace( symkey( "catch" ),     YL_KEYWORD_CATCH );
+        emplace( symkey( "continue" ),  YL_KEYWORD_CONTINUE );
+        emplace( symkey( "def" ),       YL_KEYWORD_DEF );
+        emplace( symkey( "default" ),   YL_KEYWORD_DEFAULT );
+        emplace( symkey( "delete" ),    YL_KEYWORD_DELETE );
+        emplace( symkey( "do" ),        YL_KEYWORD_DO );
+        emplace( symkey( "else" ),      YL_KEYWORD_ELSE );
+        emplace( symkey( "false" ),     YL_KEYWORD_FALSE );
+        emplace( symkey( "finally" ),   YL_KEYWORD_FINALLY );
+        emplace( symkey( "for" ),       YL_KEYWORD_FOR );
+        emplace( symkey( "if" ),        YL_KEYWORD_IF );
+        emplace( symkey( "new" ),       YL_KEYWORD_NEW );
+        emplace( symkey( "null" ),      YL_KEYWORD_NULL );
+        emplace( symkey( "return" ),    YL_KEYWORD_RETURN );
+        emplace( symkey( "switch" ),    YL_KEYWORD_SWITCH );
+        emplace( symkey( "throw" ),     YL_KEYWORD_THROW );
+        emplace( symkey( "true" ),      YL_KEYWORD_TRUE );
+        emplace( symkey( "try" ),       YL_KEYWORD_TRY );
+        emplace( symkey( "using" ),     YL_KEYWORD_USING );
+        emplace( symkey( "var" ),       YL_KEYWORD_VAR );
+        emplace( symkey( "while" ),     YL_KEYWORD_WHILE );
+        emplace( symkey( "yield" ),     YL_KEYWORD_YIELD );
+        emplace( symkey( "in" ),        YL_TOKEN_IN );
+        emplace( symkey( "is" ),        YL_TOKEN_IS );
     }
     
 };
@@ -1223,14 +1223,14 @@ yl_token* yl_parser::make_identifier( int sloc, region_buffer* data )
     auto j = root->script->identifiers.find( key );
     if ( j != root->script->identifiers.end() )
     {
-        return make_token( XEC_TOKEN_IDENTIFIER, sloc, j->c_str(), j->size() );
+        return make_token( YL_TOKEN_IDENTIFIER, sloc, j->c_str(), j->size() );
     }
 
     // New identifier.
     data->append( '\0' );
     identifier = (const char*)data->tearoff();
     root->script->identifiers.emplace( key.hash(), identifier, length );
-    return make_token( XEC_TOKEN_IDENTIFIER, sloc, identifier, length );
+    return make_token( YL_TOKEN_IDENTIFIER, sloc, identifier, length );
 
 }
 
@@ -1606,7 +1606,7 @@ _match:
                     size_t length = data.size();
                     data.append( '\0' );
                     const char* number = (const char*)data.tearoff();
-                    MTOKEN( XEC_TOKEN_NUMBER, sloc, number, length );
+                    MTOKEN( YL_TOKEN_NUMBER, sloc, number, length );
                 }
 	break;
 	case 40:
@@ -1615,220 +1615,220 @@ _match:
                     size_t length = data.size();
                     data.append( '\0' );
                     const char* string = (const char*)data.tearoff();
-                    MTOKEN( XEC_TOKEN_STRING, sloc, string, length );
+                    MTOKEN( YL_TOKEN_STRING, sloc, string, length );
                 }
 	break;
 	case 41:
 #line 183 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_XMARK, sloc, "!", 1 ); }
+	{ MTOKEN( YL_TOKEN_XMARK, sloc, "!", 1 ); }
 	break;
 	case 42:
 #line 184 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_PERCENT, sloc, "%", 1 ); }
+	{ MTOKEN( YL_TOKEN_PERCENT, sloc, "%", 1 ); }
 	break;
 	case 43:
 #line 185 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_AMPERSAND, sloc, "&", 1 ); }
+	{ MTOKEN( YL_TOKEN_AMPERSAND, sloc, "&", 1 ); }
 	break;
 	case 44:
 #line 186 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LPN, sloc, "(", 1 ); }
+	{ MTOKEN( YL_TOKEN_LPN, sloc, "(", 1 ); }
 	break;
 	case 45:
 #line 187 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_RPN, sloc, ")", 1 ); }
+	{ MTOKEN( YL_TOKEN_RPN, sloc, ")", 1 ); }
 	break;
 	case 46:
 #line 188 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_ASTERISK, sloc, "*", 1 ); }
+	{ MTOKEN( YL_TOKEN_ASTERISK, sloc, "*", 1 ); }
 	break;
 	case 47:
 #line 189 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_PLUS, sloc, "+", 1 ); }
+	{ MTOKEN( YL_TOKEN_PLUS, sloc, "+", 1 ); }
 	break;
 	case 48:
 #line 190 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_COMMA, sloc, ",", 1 ); }
+	{ MTOKEN( YL_TOKEN_COMMA, sloc, ",", 1 ); }
 	break;
 	case 49:
 #line 191 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_MINUS, sloc, "-", 1 ); }
+	{ MTOKEN( YL_TOKEN_MINUS, sloc, "-", 1 ); }
 	break;
 	case 50:
 #line 192 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_PERIOD, sloc, ".", 1 ); }
+	{ MTOKEN( YL_TOKEN_PERIOD, sloc, ".", 1 ); }
 	break;
 	case 51:
 #line 193 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_SOLIDUS, sloc, "/", 1 ); }
+	{ MTOKEN( YL_TOKEN_SOLIDUS, sloc, "/", 1 ); }
 	break;
 	case 52:
 #line 194 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_COLON, sloc, ":", 1 ); }
+	{ MTOKEN( YL_TOKEN_COLON, sloc, ":", 1 ); }
 	break;
 	case 53:
 #line 195 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_SEMICOLON, sloc, ";", 1 ); }
+	{ MTOKEN( YL_TOKEN_SEMICOLON, sloc, ";", 1 ); }
 	break;
 	case 54:
 #line 196 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LESS, sloc, "<", 1 ); }
+	{ MTOKEN( YL_TOKEN_LESS, sloc, "<", 1 ); }
 	break;
 	case 55:
 #line 197 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_ASSIGN, sloc, "=", 1 ); }
+	{ MTOKEN( YL_TOKEN_ASSIGN, sloc, "=", 1 ); }
 	break;
 	case 56:
 #line 198 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_GREATER, sloc, ">", 1 ); }
+	{ MTOKEN( YL_TOKEN_GREATER, sloc, ">", 1 ); }
 	break;
 	case 57:
 #line 199 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_QMARK, sloc, "?", 1 ); }
+	{ MTOKEN( YL_TOKEN_QMARK, sloc, "?", 1 ); }
 	break;
 	case 58:
 #line 200 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LSQ, sloc, "[", 1 ); }
+	{ MTOKEN( YL_TOKEN_LSQ, sloc, "[", 1 ); }
 	break;
 	case 59:
 #line 201 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_RSQ, sloc, "]", 1 ); }
+	{ MTOKEN( YL_TOKEN_RSQ, sloc, "]", 1 ); }
 	break;
 	case 60:
 #line 202 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_CARET, sloc, "^", 1 ); }
+	{ MTOKEN( YL_TOKEN_CARET, sloc, "^", 1 ); }
 	break;
 	case 61:
 #line 203 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LBR, sloc, "{", 1 ); }
+	{ MTOKEN( YL_TOKEN_LBR, sloc, "{", 1 ); }
 	break;
 	case 62:
 #line 204 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_VBAR, sloc, "|", 1 ); }
+	{ MTOKEN( YL_TOKEN_VBAR, sloc, "|", 1 ); }
 	break;
 	case 63:
 #line 205 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_RBR, sloc, "}", 1 ); }
+	{ MTOKEN( YL_TOKEN_RBR, sloc, "}", 1 ); }
 	break;
 	case 64:
 #line 206 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_TILDE, sloc, "~", 1 ); }
+	{ MTOKEN( YL_TOKEN_TILDE, sloc, "~", 1 ); }
 	break;
 	case 65:
 #line 208 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_INCREMENT, sloc, "++", 2 ); }
+	{ MTOKEN( YL_TOKEN_INCREMENT, sloc, "++", 2 ); }
 	break;
 	case 66:
 #line 209 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_DECREMENT, sloc, "--", 2 ); }
+	{ MTOKEN( YL_TOKEN_DECREMENT, sloc, "--", 2 ); }
 	break;
 	case 67:
 #line 211 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_CONCATENATE, sloc, "..", 2 ); }
+	{ MTOKEN( YL_TOKEN_CONCATENATE, sloc, "..", 2 ); }
 	break;
 	case 68:
 #line 213 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LSHIFT, sloc, "<<", 2 ); }
+	{ MTOKEN( YL_TOKEN_LSHIFT, sloc, "<<", 2 ); }
 	break;
 	case 69:
 #line 214 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LRSHIFT, sloc, ">>", 2 ); }
+	{ MTOKEN( YL_TOKEN_LRSHIFT, sloc, ">>", 2 ); }
 	break;
 	case 70:
 #line 215 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_ARSHIFT, sloc, "~>>", 3 ); }
+	{ MTOKEN( YL_TOKEN_ARSHIFT, sloc, "~>>", 3 ); }
 	break;
 	case 71:
 #line 217 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_NOTEQUAL, sloc, "!=", 2 ); }
+	{ MTOKEN( YL_TOKEN_NOTEQUAL, sloc, "!=", 2 ); }
 	break;
 	case 72:
 #line 218 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LESSEQUAL, sloc, "<=", 2 ); }
+	{ MTOKEN( YL_TOKEN_LESSEQUAL, sloc, "<=", 2 ); }
 	break;
 	case 73:
 #line 219 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_EQUAL, sloc, "==", 2 ); }
+	{ MTOKEN( YL_TOKEN_EQUAL, sloc, "==", 2 ); }
 	break;
 	case 74:
 #line 220 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_GREATEREQUAL, sloc, ">=", 2 ); }
+	{ MTOKEN( YL_TOKEN_GREATEREQUAL, sloc, ">=", 2 ); }
 	break;
 	case 75:
 #line 221 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_NOTIN, sloc, "!in", 3 ); }
+	{ MTOKEN( YL_TOKEN_NOTIN, sloc, "!in", 3 ); }
 	break;
 	case 76:
 #line 222 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_NOTIS, sloc, "!is", 3 ); }
+	{ MTOKEN( YL_TOKEN_NOTIS, sloc, "!is", 3 ); }
 	break;
 	case 77:
 #line 224 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_MODASSIGN, sloc, "%=", 2 ); }
+	{ MTOKEN( YL_TOKEN_MODASSIGN, sloc, "%=", 2 ); }
 	break;
 	case 78:
 #line 225 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_BITANDASSIGN, sloc, "&=", 2 ); }
+	{ MTOKEN( YL_TOKEN_BITANDASSIGN, sloc, "&=", 2 ); }
 	break;
 	case 79:
 #line 226 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_MULASSIGN, sloc, "*=", 2 ); }
+	{ MTOKEN( YL_TOKEN_MULASSIGN, sloc, "*=", 2 ); }
 	break;
 	case 80:
 #line 227 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_ADDASSIGN, sloc, "+=", 2 ); }
+	{ MTOKEN( YL_TOKEN_ADDASSIGN, sloc, "+=", 2 ); }
 	break;
 	case 81:
 #line 228 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_SUBASSIGN, sloc, "-=", 2 ); }
+	{ MTOKEN( YL_TOKEN_SUBASSIGN, sloc, "-=", 2 ); }
 	break;
 	case 82:
 #line 229 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_DIVASSIGN, sloc, "/=", 2 ); }
+	{ MTOKEN( YL_TOKEN_DIVASSIGN, sloc, "/=", 2 ); }
 	break;
 	case 83:
 #line 230 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_BITXORASSIGN, sloc, "^=", 2 ); }
+	{ MTOKEN( YL_TOKEN_BITXORASSIGN, sloc, "^=", 2 ); }
 	break;
 	case 84:
 #line 231 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_BITORASSIGN, sloc, "|=", 2 ); }
+	{ MTOKEN( YL_TOKEN_BITORASSIGN, sloc, "|=", 2 ); }
 	break;
 	case 85:
 #line 232 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_INTDIVASSIGN, sloc, "~=", 2 ); }
+	{ MTOKEN( YL_TOKEN_INTDIVASSIGN, sloc, "~=", 2 ); }
 	break;
 	case 86:
 #line 233 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LSHIFTASSIGN, sloc, "<<=", 3 ); }
+	{ MTOKEN( YL_TOKEN_LSHIFTASSIGN, sloc, "<<=", 3 ); }
 	break;
 	case 87:
 #line 234 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LRSHIFTASSIGN, sloc, ">>=", 3 ); }
+	{ MTOKEN( YL_TOKEN_LRSHIFTASSIGN, sloc, ">>=", 3 ); }
 	break;
 	case 88:
 #line 235 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_ARSHIFTASSIGN, sloc, "~>>=", 4 ); }
+	{ MTOKEN( YL_TOKEN_ARSHIFTASSIGN, sloc, "~>>=", 4 ); }
 	break;
 	case 89:
 #line 237 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LOGICAND, sloc, "&&", 2 ); }
+	{ MTOKEN( YL_TOKEN_LOGICAND, sloc, "&&", 2 ); }
 	break;
 	case 90:
 #line 238 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LOGICXOR, sloc, "^^", 2 ); }
+	{ MTOKEN( YL_TOKEN_LOGICXOR, sloc, "^^", 2 ); }
 	break;
 	case 91:
 #line 239 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LOGICOR, sloc, "||", 2 ); }
+	{ MTOKEN( YL_TOKEN_LOGICOR, sloc, "||", 2 ); }
 	break;
 	case 92:
 #line 241 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_EACHKEY, sloc, "::", 2 ); }
+	{ MTOKEN( YL_TOKEN_EACHKEY, sloc, "::", 2 ); }
 	break;
 	case 93:
 #line 242 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_ELLIPSIS, sloc, "...", 3 ); }
+	{ MTOKEN( YL_TOKEN_ELLIPSIS, sloc, "...", 3 ); }
 	break;
 	case 94:
 #line 248 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
@@ -1889,7 +1889,7 @@ _again:
                     size_t length = data.size();
                     data.append( '\0' );
                     const char* number = (const char*)data.tearoff();
-                    MTOKEN( XEC_TOKEN_NUMBER, sloc, number, length );
+                    MTOKEN( YL_TOKEN_NUMBER, sloc, number, length );
                 }
 	break;
 	case 40:
@@ -1898,220 +1898,220 @@ _again:
                     size_t length = data.size();
                     data.append( '\0' );
                     const char* string = (const char*)data.tearoff();
-                    MTOKEN( XEC_TOKEN_STRING, sloc, string, length );
+                    MTOKEN( YL_TOKEN_STRING, sloc, string, length );
                 }
 	break;
 	case 41:
 #line 183 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_XMARK, sloc, "!", 1 ); }
+	{ MTOKEN( YL_TOKEN_XMARK, sloc, "!", 1 ); }
 	break;
 	case 42:
 #line 184 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_PERCENT, sloc, "%", 1 ); }
+	{ MTOKEN( YL_TOKEN_PERCENT, sloc, "%", 1 ); }
 	break;
 	case 43:
 #line 185 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_AMPERSAND, sloc, "&", 1 ); }
+	{ MTOKEN( YL_TOKEN_AMPERSAND, sloc, "&", 1 ); }
 	break;
 	case 44:
 #line 186 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LPN, sloc, "(", 1 ); }
+	{ MTOKEN( YL_TOKEN_LPN, sloc, "(", 1 ); }
 	break;
 	case 45:
 #line 187 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_RPN, sloc, ")", 1 ); }
+	{ MTOKEN( YL_TOKEN_RPN, sloc, ")", 1 ); }
 	break;
 	case 46:
 #line 188 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_ASTERISK, sloc, "*", 1 ); }
+	{ MTOKEN( YL_TOKEN_ASTERISK, sloc, "*", 1 ); }
 	break;
 	case 47:
 #line 189 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_PLUS, sloc, "+", 1 ); }
+	{ MTOKEN( YL_TOKEN_PLUS, sloc, "+", 1 ); }
 	break;
 	case 48:
 #line 190 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_COMMA, sloc, ",", 1 ); }
+	{ MTOKEN( YL_TOKEN_COMMA, sloc, ",", 1 ); }
 	break;
 	case 49:
 #line 191 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_MINUS, sloc, "-", 1 ); }
+	{ MTOKEN( YL_TOKEN_MINUS, sloc, "-", 1 ); }
 	break;
 	case 50:
 #line 192 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_PERIOD, sloc, ".", 1 ); }
+	{ MTOKEN( YL_TOKEN_PERIOD, sloc, ".", 1 ); }
 	break;
 	case 51:
 #line 193 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_SOLIDUS, sloc, "/", 1 ); }
+	{ MTOKEN( YL_TOKEN_SOLIDUS, sloc, "/", 1 ); }
 	break;
 	case 52:
 #line 194 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_COLON, sloc, ":", 1 ); }
+	{ MTOKEN( YL_TOKEN_COLON, sloc, ":", 1 ); }
 	break;
 	case 53:
 #line 195 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_SEMICOLON, sloc, ";", 1 ); }
+	{ MTOKEN( YL_TOKEN_SEMICOLON, sloc, ";", 1 ); }
 	break;
 	case 54:
 #line 196 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LESS, sloc, "<", 1 ); }
+	{ MTOKEN( YL_TOKEN_LESS, sloc, "<", 1 ); }
 	break;
 	case 55:
 #line 197 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_ASSIGN, sloc, "=", 1 ); }
+	{ MTOKEN( YL_TOKEN_ASSIGN, sloc, "=", 1 ); }
 	break;
 	case 56:
 #line 198 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_GREATER, sloc, ">", 1 ); }
+	{ MTOKEN( YL_TOKEN_GREATER, sloc, ">", 1 ); }
 	break;
 	case 57:
 #line 199 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_QMARK, sloc, "?", 1 ); }
+	{ MTOKEN( YL_TOKEN_QMARK, sloc, "?", 1 ); }
 	break;
 	case 58:
 #line 200 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LSQ, sloc, "[", 1 ); }
+	{ MTOKEN( YL_TOKEN_LSQ, sloc, "[", 1 ); }
 	break;
 	case 59:
 #line 201 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_RSQ, sloc, "]", 1 ); }
+	{ MTOKEN( YL_TOKEN_RSQ, sloc, "]", 1 ); }
 	break;
 	case 60:
 #line 202 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_CARET, sloc, "^", 1 ); }
+	{ MTOKEN( YL_TOKEN_CARET, sloc, "^", 1 ); }
 	break;
 	case 61:
 #line 203 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LBR, sloc, "{", 1 ); }
+	{ MTOKEN( YL_TOKEN_LBR, sloc, "{", 1 ); }
 	break;
 	case 62:
 #line 204 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_VBAR, sloc, "|", 1 ); }
+	{ MTOKEN( YL_TOKEN_VBAR, sloc, "|", 1 ); }
 	break;
 	case 63:
 #line 205 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_RBR, sloc, "}", 1 ); }
+	{ MTOKEN( YL_TOKEN_RBR, sloc, "}", 1 ); }
 	break;
 	case 64:
 #line 206 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_TILDE, sloc, "~", 1 ); }
+	{ MTOKEN( YL_TOKEN_TILDE, sloc, "~", 1 ); }
 	break;
 	case 65:
 #line 208 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_INCREMENT, sloc, "++", 2 ); }
+	{ MTOKEN( YL_TOKEN_INCREMENT, sloc, "++", 2 ); }
 	break;
 	case 66:
 #line 209 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_DECREMENT, sloc, "--", 2 ); }
+	{ MTOKEN( YL_TOKEN_DECREMENT, sloc, "--", 2 ); }
 	break;
 	case 67:
 #line 211 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_CONCATENATE, sloc, "..", 2 ); }
+	{ MTOKEN( YL_TOKEN_CONCATENATE, sloc, "..", 2 ); }
 	break;
 	case 68:
 #line 213 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LSHIFT, sloc, "<<", 2 ); }
+	{ MTOKEN( YL_TOKEN_LSHIFT, sloc, "<<", 2 ); }
 	break;
 	case 69:
 #line 214 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LRSHIFT, sloc, ">>", 2 ); }
+	{ MTOKEN( YL_TOKEN_LRSHIFT, sloc, ">>", 2 ); }
 	break;
 	case 70:
 #line 215 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_ARSHIFT, sloc, "~>>", 3 ); }
+	{ MTOKEN( YL_TOKEN_ARSHIFT, sloc, "~>>", 3 ); }
 	break;
 	case 71:
 #line 217 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_NOTEQUAL, sloc, "!=", 2 ); }
+	{ MTOKEN( YL_TOKEN_NOTEQUAL, sloc, "!=", 2 ); }
 	break;
 	case 72:
 #line 218 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LESSEQUAL, sloc, "<=", 2 ); }
+	{ MTOKEN( YL_TOKEN_LESSEQUAL, sloc, "<=", 2 ); }
 	break;
 	case 73:
 #line 219 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_EQUAL, sloc, "==", 2 ); }
+	{ MTOKEN( YL_TOKEN_EQUAL, sloc, "==", 2 ); }
 	break;
 	case 74:
 #line 220 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_GREATEREQUAL, sloc, ">=", 2 ); }
+	{ MTOKEN( YL_TOKEN_GREATEREQUAL, sloc, ">=", 2 ); }
 	break;
 	case 75:
 #line 221 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_NOTIN, sloc, "!in", 3 ); }
+	{ MTOKEN( YL_TOKEN_NOTIN, sloc, "!in", 3 ); }
 	break;
 	case 76:
 #line 222 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_NOTIS, sloc, "!is", 3 ); }
+	{ MTOKEN( YL_TOKEN_NOTIS, sloc, "!is", 3 ); }
 	break;
 	case 77:
 #line 224 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_MODASSIGN, sloc, "%=", 2 ); }
+	{ MTOKEN( YL_TOKEN_MODASSIGN, sloc, "%=", 2 ); }
 	break;
 	case 78:
 #line 225 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_BITANDASSIGN, sloc, "&=", 2 ); }
+	{ MTOKEN( YL_TOKEN_BITANDASSIGN, sloc, "&=", 2 ); }
 	break;
 	case 79:
 #line 226 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_MULASSIGN, sloc, "*=", 2 ); }
+	{ MTOKEN( YL_TOKEN_MULASSIGN, sloc, "*=", 2 ); }
 	break;
 	case 80:
 #line 227 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_ADDASSIGN, sloc, "+=", 2 ); }
+	{ MTOKEN( YL_TOKEN_ADDASSIGN, sloc, "+=", 2 ); }
 	break;
 	case 81:
 #line 228 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_SUBASSIGN, sloc, "-=", 2 ); }
+	{ MTOKEN( YL_TOKEN_SUBASSIGN, sloc, "-=", 2 ); }
 	break;
 	case 82:
 #line 229 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_DIVASSIGN, sloc, "/=", 2 ); }
+	{ MTOKEN( YL_TOKEN_DIVASSIGN, sloc, "/=", 2 ); }
 	break;
 	case 83:
 #line 230 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_BITXORASSIGN, sloc, "^=", 2 ); }
+	{ MTOKEN( YL_TOKEN_BITXORASSIGN, sloc, "^=", 2 ); }
 	break;
 	case 84:
 #line 231 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_BITORASSIGN, sloc, "|=", 2 ); }
+	{ MTOKEN( YL_TOKEN_BITORASSIGN, sloc, "|=", 2 ); }
 	break;
 	case 85:
 #line 232 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_INTDIVASSIGN, sloc, "~=", 2 ); }
+	{ MTOKEN( YL_TOKEN_INTDIVASSIGN, sloc, "~=", 2 ); }
 	break;
 	case 86:
 #line 233 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LSHIFTASSIGN, sloc, "<<=", 3 ); }
+	{ MTOKEN( YL_TOKEN_LSHIFTASSIGN, sloc, "<<=", 3 ); }
 	break;
 	case 87:
 #line 234 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LRSHIFTASSIGN, sloc, ">>=", 3 ); }
+	{ MTOKEN( YL_TOKEN_LRSHIFTASSIGN, sloc, ">>=", 3 ); }
 	break;
 	case 88:
 #line 235 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_ARSHIFTASSIGN, sloc, "~>>=", 4 ); }
+	{ MTOKEN( YL_TOKEN_ARSHIFTASSIGN, sloc, "~>>=", 4 ); }
 	break;
 	case 89:
 #line 237 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LOGICAND, sloc, "&&", 2 ); }
+	{ MTOKEN( YL_TOKEN_LOGICAND, sloc, "&&", 2 ); }
 	break;
 	case 90:
 #line 238 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LOGICXOR, sloc, "^^", 2 ); }
+	{ MTOKEN( YL_TOKEN_LOGICXOR, sloc, "^^", 2 ); }
 	break;
 	case 91:
 #line 239 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_LOGICOR, sloc, "||", 2 ); }
+	{ MTOKEN( YL_TOKEN_LOGICOR, sloc, "||", 2 ); }
 	break;
 	case 92:
 #line 241 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_EACHKEY, sloc, "::", 2 ); }
+	{ MTOKEN( YL_TOKEN_EACHKEY, sloc, "::", 2 ); }
 	break;
 	case 93:
 #line 242 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
-	{ MTOKEN( XEC_TOKEN_ELLIPSIS, sloc, "...", 3 ); }
+	{ MTOKEN( YL_TOKEN_ELLIPSIS, sloc, "...", 3 ); }
 	break;
 	case 94:
 #line 248 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
@@ -2132,7 +2132,7 @@ _again:
 
     if ( ! ferror( file ) )
     {
-        MTOKEN( XEC_TOKEN_EOF, offset, "", 0 );
+        MTOKEN( YL_TOKEN_EOF, offset, "", 0 );
     }
 
 #undef MTOKEN

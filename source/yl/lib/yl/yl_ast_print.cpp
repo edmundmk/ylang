@@ -14,61 +14,61 @@ const char* yl_operator_name( yl_ast_opkind op )
 {
     switch ( op )
     {
-    case XEC_ASTOP_DECLARE:          return "[declare]";
+    case YL_ASTOP_DECLARE:          return "[declare]";
 
-    case XEC_ASTOP_ASSIGN:           return "=";
-    case XEC_ASTOP_MULASSIGN:        return "*=";
-    case XEC_ASTOP_DIVASSIGN:        return "/=";
-    case XEC_ASTOP_MODASSIGN:        return "%=";
-    case XEC_ASTOP_INTDIVASSIGN:     return "~=";
-    case XEC_ASTOP_ADDASSIGN:        return "+=";
-    case XEC_ASTOP_SUBASSIGN:        return "-=";
-    case XEC_ASTOP_LSHIFTASSIGN:     return "<<=";
-    case XEC_ASTOP_LRSHIFTASSIGN:    return ">>=";
-    case XEC_ASTOP_ARSHIFTASSIGN:    return "~>>=";
-    case XEC_ASTOP_BITANDASSIGN:     return "&=";
-    case XEC_ASTOP_BITXORASSIGN:     return "^=";
-    case XEC_ASTOP_BITORASSIGN:      return "|=";
+    case YL_ASTOP_ASSIGN:           return "=";
+    case YL_ASTOP_MULASSIGN:        return "*=";
+    case YL_ASTOP_DIVASSIGN:        return "/=";
+    case YL_ASTOP_MODASSIGN:        return "%=";
+    case YL_ASTOP_INTDIVASSIGN:     return "~=";
+    case YL_ASTOP_ADDASSIGN:        return "+=";
+    case YL_ASTOP_SUBASSIGN:        return "-=";
+    case YL_ASTOP_LSHIFTASSIGN:     return "<<=";
+    case YL_ASTOP_LRSHIFTASSIGN:    return ">>=";
+    case YL_ASTOP_ARSHIFTASSIGN:    return "~>>=";
+    case YL_ASTOP_BITANDASSIGN:     return "&=";
+    case YL_ASTOP_BITXORASSIGN:     return "^=";
+    case YL_ASTOP_BITORASSIGN:      return "|=";
     
-    case XEC_ASTOP_PREINC:           return "++[preop]";
-    case XEC_ASTOP_PREDEC:           return "--[preop]";
+    case YL_ASTOP_PREINC:           return "++[preop]";
+    case YL_ASTOP_PREDEC:           return "--[preop]";
     
-    case XEC_ASTOP_POSTINC:          return "[postop]++";
-    case XEC_ASTOP_POSTDEC:          return "[postop]--";
+    case YL_ASTOP_POSTINC:          return "[postop]++";
+    case YL_ASTOP_POSTDEC:          return "[postop]--";
 
-    case XEC_ASTOP_POSITIVE:         return "+[unary]";
-    case XEC_ASTOP_NEGATIVE:         return "-[unary]";
-    case XEC_ASTOP_LOGICNOT:         return "![unary]";
-    case XEC_ASTOP_BITNOT:           return "~[unary]";
+    case YL_ASTOP_POSITIVE:         return "+[unary]";
+    case YL_ASTOP_NEGATIVE:         return "-[unary]";
+    case YL_ASTOP_LOGICNOT:         return "![unary]";
+    case YL_ASTOP_BITNOT:           return "~[unary]";
     
-    case XEC_ASTOP_MULTIPLY:         return "*";
-    case XEC_ASTOP_DIVIDE:           return "/";
-    case XEC_ASTOP_MODULUS:          return "%";
-    case XEC_ASTOP_INTDIV:           return "~";
-    case XEC_ASTOP_ADD:              return "+";
-    case XEC_ASTOP_SUBTRACT:         return "-";
-    case XEC_ASTOP_LSHIFT:           return "<<";
-    case XEC_ASTOP_LRSHIFT:          return ">>";
-    case XEC_ASTOP_ARSHIFT:          return "~>>";
-    case XEC_ASTOP_BITAND:           return "&";
-    case XEC_ASTOP_BITXOR:           return "^";
-    case XEC_ASTOP_BITOR:            return "|";
-    case XEC_ASTOP_CONCATENATE:      return "..";
+    case YL_ASTOP_MULTIPLY:         return "*";
+    case YL_ASTOP_DIVIDE:           return "/";
+    case YL_ASTOP_MODULUS:          return "%";
+    case YL_ASTOP_INTDIV:           return "~";
+    case YL_ASTOP_ADD:              return "+";
+    case YL_ASTOP_SUBTRACT:         return "-";
+    case YL_ASTOP_LSHIFT:           return "<<";
+    case YL_ASTOP_LRSHIFT:          return ">>";
+    case YL_ASTOP_ARSHIFT:          return "~>>";
+    case YL_ASTOP_BITAND:           return "&";
+    case YL_ASTOP_BITXOR:           return "^";
+    case YL_ASTOP_BITOR:            return "|";
+    case YL_ASTOP_CONCATENATE:      return "..";
     
-    case XEC_ASTOP_EQUAL:            return "==";
-    case XEC_ASTOP_NOTEQUAL:         return "!=";
-    case XEC_ASTOP_LESS:             return "<";
-    case XEC_ASTOP_GREATER:          return ">";
-    case XEC_ASTOP_LESSEQUAL:        return "<=";
-    case XEC_ASTOP_GREATEREQUAL:     return ">=";
-    case XEC_ASTOP_IN:               return "in";
-    case XEC_ASTOP_NOTIN:            return "!in";
-    case XEC_ASTOP_IS:               return "is";
-    case XEC_ASTOP_NOTIS:            return "!is";
+    case YL_ASTOP_EQUAL:            return "==";
+    case YL_ASTOP_NOTEQUAL:         return "!=";
+    case YL_ASTOP_LESS:             return "<";
+    case YL_ASTOP_GREATER:          return ">";
+    case YL_ASTOP_LESSEQUAL:        return "<=";
+    case YL_ASTOP_GREATEREQUAL:     return ">=";
+    case YL_ASTOP_IN:               return "in";
+    case YL_ASTOP_NOTIN:            return "!in";
+    case YL_ASTOP_IS:               return "is";
+    case YL_ASTOP_NOTIS:            return "!is";
     
-    case XEC_ASTOP_LOGICAND:         return "&&";
-    case XEC_ASTOP_LOGICXOR:         return "^^";
-    case XEC_ASTOP_LOGICOR:          return "||";
+    case YL_ASTOP_LOGICAND:         return "&&";
+    case YL_ASTOP_LOGICXOR:         return "^^";
+    case YL_ASTOP_LOGICOR:          return "||";
     }
     
     return "??";
@@ -179,15 +179,15 @@ void yl_ast_printer::print_func( yl_ast_func* node )
             printf( "%*s[ %d ] ", indent, "", (int)i );
             switch ( upval->kind )
             {
-            case XEC_UPVAL_LOCAL:
+            case YL_UPVAL_LOCAL:
                 printf( "local %s %p \n", upval->local->name, upval->local );
                 break;
 
-            case XEC_UPVAL_OBJECT:
+            case YL_UPVAL_OBJECT:
                 printf( "object %p\n", upval->object );
                 break;
             
-            case XEC_UPVAL_UPVAL:
+            case YL_UPVAL_UPVAL:
                 printf( "upval %d\n", upval->upval );
                 break;
             }
@@ -685,12 +685,12 @@ void yl_ast_printer::print_scope( yl_ast_scope* scope, int indent )
     const char* kind_name = "??";
     switch ( scope->kind )
     {
-    case XEC_SCOPE_SCRIPT:      kind_name = "SCRIPT";       break;
-    case XEC_SCOPE_BLOCK:       kind_name = "BLOCK";        break;
-    case XEC_SCOPE_SWITCH:      kind_name = "SWITCH";       break;
-    case XEC_SCOPE_IMPLICIT:    kind_name = "IMPLICIT";     break;
-    case XEC_SCOPE_OBJECT:      kind_name = "OBJECT";       break;
-    case XEC_SCOPE_IMPLIED:     kind_name = "IMPLIED";      break;
+    case YL_SCOPE_SCRIPT:      kind_name = "SCRIPT";       break;
+    case YL_SCOPE_BLOCK:       kind_name = "BLOCK";        break;
+    case YL_SCOPE_SWITCH:      kind_name = "SWITCH";       break;
+    case YL_SCOPE_IMPLICIT:    kind_name = "IMPLICIT";     break;
+    case YL_SCOPE_OBJECT:      kind_name = "OBJECT";       break;
+    case YL_SCOPE_IMPLIED:     kind_name = "IMPLIED";      break;
     }
 
     printf( "%*sscope %s %p:\n", indent, "", kind_name, scope );

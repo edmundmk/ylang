@@ -6,8 +6,8 @@
 //
 
 
-#ifndef XSSA_H
-#define XSSA_H
+#ifndef YSSA_H
+#define YSSA_H
 
 
 #include <memory>
@@ -82,105 +82,105 @@ typedef std::unordered_set< yssa_block* >   yssa_blockset;
 
 enum yssa_opcode : uint16_t
 {
-    XSSA_NOP,       // no-op
+    YSSA_NOP,       // no-op
     
     // constants
-    XSSA_NULL,      // null value
-    XSSA_NUMBER,    // number
-    XSSA_BOOL,      // boolean
-    XSSA_STRING,    // string
+    YSSA_NULL,      // null value
+    YSSA_NUMBER,    // number
+    YSSA_BOOL,      // boolean
+    YSSA_STRING,    // string
 
     // unary operations
-    XSSA_POS,       // unary +
-    XSSA_NEG,       // unary -
-    XSSA_NOT,       // unary ~
-    XSSA_LNOT,      // unary !
+    YSSA_POS,       // unary +
+    YSSA_NEG,       // unary -
+    YSSA_NOT,       // unary ~
+    YSSA_LNOT,      // unary !
 
     // binary operations
-    XSSA_MUL,       // *
-    XSSA_DIV,       // /
-    XSSA_MOD,       // %
-    XSSA_INTDIV,    // ~
-    XSSA_ADD,       // +
-    XSSA_SUB,       // -
-    XSSA_LSL,       // <<
-    XSSA_LSR,       // >>
-    XSSA_ASR,       // ~>>
-    XSSA_AND,       // &
-    XSSA_XOR,       // ^
-    XSSA_OR,        // |
-    XSSA_CONCAT,    // ..
+    YSSA_MUL,       // *
+    YSSA_DIV,       // /
+    YSSA_MOD,       // %
+    YSSA_INTDIV,    // ~
+    YSSA_ADD,       // +
+    YSSA_SUB,       // -
+    YSSA_LSL,       // <<
+    YSSA_LSR,       // >>
+    YSSA_ASR,       // ~>>
+    YSSA_AND,       // &
+    YSSA_XOR,       // ^
+    YSSA_OR,        // |
+    YSSA_CONCAT,    // ..
     
     // comparisons
-    XSSA_EQ,        // ==
-    XSSA_LT,        // <
-    XSSA_LE,        // <=
-    XSSA_IN,        // in
-    XSSA_IS,        // is
+    YSSA_EQ,        // ==
+    YSSA_LT,        // <
+    YSSA_LE,        // <=
+    YSSA_IN,        // in
+    YSSA_IS,        // is
 
     // logical operations
-    XSSA_LXOR,      // ^^
+    YSSA_LXOR,      // ^^
     
     // indexing
-    XSSA_KEY,       // object.key
-    XSSA_INKEY,     // object.[ key ]
-    XSSA_INDEX,     // container[ index ]
-    XSSA_GLOBAL,    // global.key
+    YSSA_KEY,       // object.key
+    YSSA_INKEY,     // object.[ key ]
+    YSSA_INDEX,     // container[ index ]
+    YSSA_GLOBAL,    // global.key
 
     // assignment
-    XSSA_SETKEY,    // object.key = value
-    XSSA_SETINKEY,  // object.[ key ] = value
-    XSSA_SETINDEX,  // container[ index ] = value
-    XSSA_SETGLOBAL, // global.key = value
+    YSSA_SETKEY,    // object.key = value
+    YSSA_SETINKEY,  // object.[ key ] = value
+    YSSA_SETINDEX,  // container[ index ] = value
+    YSSA_SETGLOBAL, // global.key = value
     
     // key deletion
-    XSSA_DELKEY,    // delete object.key
-    XSSA_DELINKEY,  // delete object.[ key ]
+    YSSA_DELKEY,    // delete object.key
+    YSSA_DELINKEY,  // delete object.[ key ]
     
     // upvals (loads/stores are represented explicitly)
-    XSSA_NEWUP,     // upvals[ index ] = new upval( value )
-    XSSA_SETUP,     // upvals[ index ].set( value )
-    XSSA_REFUP,     // upvals[ index ].get()
-    XSSA_CLOUP,     // upvals[ index ] = null
+    YSSA_NEWUP,     // upvals[ index ] = new upval( value )
+    YSSA_SETUP,     // upvals[ index ].set( value )
+    YSSA_REFUP,     // upvals[ index ].get()
+    YSSA_CLOUP,     // upvals[ index ] = null
     
     // allocation
-    XSSA_OBJECT,    // create object with prototype
-    XSSA_TABLE,     // create table (with space for n elements)
-    XSSA_ARRAY,     // create array (with space for n elements)
+    YSSA_OBJECT,    // create object with prototype
+    YSSA_TABLE,     // create table (with space for n elements)
+    YSSA_ARRAY,     // create array (with space for n elements)
 
     // array operations.
-    XSSA_APPEND,    // append to an array
-    XSSA_EXTEND,    // extend an array (consumes multival)
+    YSSA_APPEND,    // append to an array
+    YSSA_EXTEND,    // extend an array (consumes multival)
     
     // closures
-    XSSA_CLOSURE,   // create a function closure (closing over upvals)
+    YSSA_CLOSURE,   // create a function closure (closing over upvals)
 
     // multival
-    XSSA_VARALL,    // all varargs
-    XSSA_UNPACK,    // all elements of an array
-    XSSA_CALL,      // function call (can also consume multival)
-    XSSA_YCALL,     // yield call (can also consume multival)
-    XSSA_YIELD,     // yield (can also conume multival)
+    YSSA_VARALL,    // all varargs
+    YSSA_UNPACK,    // all elements of an array
+    YSSA_CALL,      // function call (can also consume multival)
+    YSSA_YCALL,     // yield call (can also consume multival)
+    YSSA_YIELD,     // yield (can also conume multival)
     
     // iterators
-    XSSA_ITER,      // push iterator over elements of container
-    XSSA_ITERKEY,   // push iterator over keys of object
-    XSSA_POPITER,   // pop iterator
-    XSSA_NEXT,      // produces exactly n values, also used as branch flag
+    YSSA_ITER,      // push iterator over elements of container
+    YSSA_ITERKEY,   // push iterator over keys of object
+    YSSA_POPITER,   // pop iterator
+    YSSA_NEXT,      // produces exactly n values, also used as branch flag
     
     // flow control
-    XSSA_RETURN,    // return from procedure (can conume multival)
+    YSSA_RETURN,    // return from procedure (can conume multival)
     
     // selection
-    XSSA_PARAM,     // nth parameter (numbered from 0).
-    XSSA_VARARG,    // nth variable argument (numbered from 0).
-    XSSA_SELECT,    // nth result of a multival op.
-    XSSA_ELEM,      // nth element of an array.
+    YSSA_PARAM,     // nth parameter (numbered from 0).
+    YSSA_VARARG,    // nth variable argument (numbered from 0).
+    YSSA_SELECT,    // nth result of a multival op.
+    YSSA_ELEM,      // nth element of an array.
 
     // SSA-form
-    XSSA_PHI,       // SSA ɸ-function.
-    XSSA_REF,       // A reference used when building SSA.
-    XSSA_PSI,       // An 'incomplete' ɸ-function used when building SSA.
+    YSSA_PHI,       // SSA ɸ-function.
+    YSSA_REF,       // A reference used when building SSA.
+    YSSA_PSI,       // An 'incomplete' ɸ-function used when building SSA.
     
 };
 
@@ -332,35 +332,35 @@ void yssa_print( yssa_func* func, yssaop* op );
 
 inline bool yssaop::has_multival( yssa_opcode opcode )
 {
-    return opcode == XSSA_EXTEND
-        || opcode == XSSA_CALL
-        || opcode == XSSA_YCALL
-        || opcode == XSSA_YIELD
-        || opcode == XSSA_RETURN;
+    return opcode == YSSA_EXTEND
+        || opcode == YSSA_CALL
+        || opcode == YSSA_YCALL
+        || opcode == YSSA_YIELD
+        || opcode == YSSA_RETURN;
 }
 
 inline bool yssaop::has_key( yssa_opcode opcode )
 {
-    return opcode == XSSA_KEY
-        || opcode == XSSA_GLOBAL
-        || opcode == XSSA_GLOBAL
-        || opcode == XSSA_SETKEY
-        || opcode == XSSA_SETGLOBAL
-        || opcode == XSSA_DELKEY;
+    return opcode == YSSA_KEY
+        || opcode == YSSA_GLOBAL
+        || opcode == YSSA_GLOBAL
+        || opcode == YSSA_SETKEY
+        || opcode == YSSA_SETGLOBAL
+        || opcode == YSSA_DELKEY;
 }
 
 inline bool yssaop::has_immed( yssa_opcode opcode )
 {
-    return opcode == XSSA_NEWUP
-        || opcode == XSSA_SETUP
-        || opcode == XSSA_REFUP
-        || opcode == XSSA_CLOUP
-        || opcode == XSSA_TABLE
-        || opcode == XSSA_ARRAY
-        || opcode == XSSA_PARAM
-        || opcode == XSSA_VARARG
-        || opcode == XSSA_SELECT
-        || opcode == XSSA_ELEM;
+    return opcode == YSSA_NEWUP
+        || opcode == YSSA_SETUP
+        || opcode == YSSA_REFUP
+        || opcode == YSSA_CLOUP
+        || opcode == YSSA_TABLE
+        || opcode == YSSA_ARRAY
+        || opcode == YSSA_PARAM
+        || opcode == YSSA_VARARG
+        || opcode == YSSA_SELECT
+        || opcode == YSSA_ELEM;
 }
 
 

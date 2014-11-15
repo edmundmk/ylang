@@ -6,8 +6,8 @@
 //
 
 
-#ifndef XSSA_CFGANALYSIS_H
-#define XSSA_CFGANALYSIS_H
+#ifndef YSSA_CFGANALYSIS_H
+#define YSSA_CFGANALYSIS_H
 
 
 struct yssa_func;

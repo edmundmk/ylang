@@ -6,8 +6,8 @@
 //
 
 
-#ifndef XSSA_REGALLOC_H
-#define XSSA_REGALLOC_H
+#ifndef YSSA_REGALLOC_H
+#define YSSA_REGALLOC_H
 
 
 struct yssa_linear;

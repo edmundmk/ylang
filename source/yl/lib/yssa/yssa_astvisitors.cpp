@@ -22,22 +22,22 @@ static yssa_opcode assign_opcode( yl_ast_opkind assignop )
 {
     switch ( assignop )
     {
-    case XEC_ASTOP_MULASSIGN:       return XSSA_MUL;
-    case XEC_ASTOP_DIVASSIGN:       return XSSA_DIV;
-    case XEC_ASTOP_MODASSIGN:       return XSSA_MOD;
-    case XEC_ASTOP_INTDIVASSIGN:    return XSSA_INTDIV;
-    case XEC_ASTOP_ADDASSIGN:       return XSSA_ADD;
-    case XEC_ASTOP_SUBASSIGN:       return XSSA_SUB;
-    case XEC_ASTOP_LSHIFTASSIGN:    return XSSA_LSL;
-    case XEC_ASTOP_LRSHIFTASSIGN:   return XSSA_LSR;
-    case XEC_ASTOP_ARSHIFTASSIGN:   return XSSA_ASR;
-    case XEC_ASTOP_BITANDASSIGN:    return XSSA_AND;
-    case XEC_ASTOP_BITXORASSIGN:    return XSSA_XOR;
-    case XEC_ASTOP_BITORASSIGN:     return XSSA_OR;
+    case YL_ASTOP_MULASSIGN:       return YSSA_MUL;
+    case YL_ASTOP_DIVASSIGN:       return YSSA_DIV;
+    case YL_ASTOP_MODASSIGN:       return YSSA_MOD;
+    case YL_ASTOP_INTDIVASSIGN:    return YSSA_INTDIV;
+    case YL_ASTOP_ADDASSIGN:       return YSSA_ADD;
+    case YL_ASTOP_SUBASSIGN:       return YSSA_SUB;
+    case YL_ASTOP_LSHIFTASSIGN:    return YSSA_LSL;
+    case YL_ASTOP_LRSHIFTASSIGN:   return YSSA_LSR;
+    case YL_ASTOP_ARSHIFTASSIGN:   return YSSA_ASR;
+    case YL_ASTOP_BITANDASSIGN:    return YSSA_AND;
+    case YL_ASTOP_BITXORASSIGN:    return YSSA_XOR;
+    case YL_ASTOP_BITORASSIGN:     return YSSA_OR;
     default: assert( ! "invalid operator" ); break;
     }
 
-    return XSSA_NOP;
+    return YSSA_NOP;
 }
 
 
@@ -64,28 +64,28 @@ yssaop* yssa_build_expr::visit( yl_ast_func* node )
     yssa_func* func = b->func( node );
     
     // Retrieve upvals.
-    yssaop* l = yssaop::op( node->sloc, XSSA_CLOSURE, node->upvals.size() );
+    yssaop* l = yssaop::op( node->sloc, YSSA_CLOSURE, node->upvals.size() );
     l->func = func;
     for ( size_t i = 0; i < node->upvals.size(); ++i )
     {
         const yl_ast_upval& upval = node->upvals.at( i );
         switch ( upval.kind )
         {
-        case XEC_UPVAL_LOCAL:
+        case YL_UPVAL_LOCAL:
         {
             l->operand[ i ] = b->lookup( node->sloc, upval.local );
             break;
         }
         
-        case XEC_UPVAL_OBJECT:
+        case YL_UPVAL_OBJECT:
         {
             l->operand[ i ] = b->lookup( upval.object );
             break;
         }
         
-        case XEC_UPVAL_UPVAL:
+        case YL_UPVAL_UPVAL:
         {
-            l->operand[ i ] = b->op( node->sloc, XSSA_REFUP );
+            l->operand[ i ] = b->op( node->sloc, YSSA_REFUP );
             l->operand[ i ]->immed = upval.upval;
             break;
         }
@@ -98,26 +98,26 @@ yssaop* yssa_build_expr::visit( yl_ast_func* node )
 
 yssaop* yssa_build_expr::visit( yl_expr_null* node )
 {
-    return b->op( node->sloc, XSSA_NULL );
+    return b->op( node->sloc, YSSA_NULL );
 }
 
 yssaop* yssa_build_expr::visit( yl_expr_bool* node )
 {
-    yssaop* boolean = b->op( node->sloc, XSSA_BOOL );
+    yssaop* boolean = b->op( node->sloc, YSSA_BOOL );
     boolean->boolean = node->value;
     return boolean;
 }
 
 yssaop* yssa_build_expr::visit( yl_expr_number* node )
 {
-    yssaop* number = b->op( node->sloc, XSSA_NUMBER );
+    yssaop* number = b->op( node->sloc, YSSA_NUMBER );
     number->number = node->value;
     return number;
 }
 
 yssaop* yssa_build_expr::visit( yl_expr_string* node )
 {
-    yssaop* s = b->op( node->sloc, XSSA_STRING );
+    yssaop* s = b->op( node->sloc, YSSA_STRING );
     s->string = yssa_string::s( node->sloc, node->length, node->string );
     return s;
 }
@@ -129,14 +129,14 @@ yssaop* yssa_build_expr::visit( yl_expr_local* node )
 
 yssaop* yssa_build_expr::visit( yl_expr_global* node )
 {
-    yssaop* global = b->op( node->sloc, XSSA_GLOBAL );
+    yssaop* global = b->op( node->sloc, YSSA_GLOBAL );
     global->key = b->key( node->name );
     return global;
 }
 
 yssaop* yssa_build_expr::visit( yl_expr_upref* node )
 {
-    yssaop* refup = b->op( node->sloc, XSSA_REFUP );
+    yssaop* refup = b->op( node->sloc, YSSA_REFUP );
     refup->immed = node->index;
     return refup;
 }
@@ -149,7 +149,7 @@ yssaop* yssa_build_expr::visit( yl_expr_objref* node )
 yssaop* yssa_build_expr::visit( yl_expr_key* node )
 {
     yssaop* object = visit( node->object );
-    yssaop* key = b->op( node->sloc, XSSA_KEY, object );
+    yssaop* key = b->op( node->sloc, YSSA_KEY, object );
     key->key = b->key( node->key );
     return key;
 }
@@ -158,14 +158,14 @@ yssaop* yssa_build_expr::visit( yl_expr_inkey* node )
 {
     yssaop* object = visit( node->object );
     yssaop* key    = visit( node->key );
-    return b->op( node->sloc, XSSA_INKEY, object, key );
+    return b->op( node->sloc, YSSA_INKEY, object, key );
 }
 
 yssaop* yssa_build_expr::visit( yl_expr_index* node )
 {
     yssaop* object = visit( node->object );
     yssaop* index  = visit( node->index );
-    return b->op( node->sloc, XSSA_INDEX, object, index );
+    return b->op( node->sloc, YSSA_INDEX, object, index );
 }
 
 yssaop* yssa_build_expr::visit( yl_expr_preop* node )
@@ -174,14 +174,14 @@ yssaop* yssa_build_expr::visit( yl_expr_preop* node )
     b->lvalue( &lvalue, node->lvalue );
 
     yssaop* value   = b->lvalue_value( &lvalue );
-    yssaop* literal = b->op( node->sloc, XSSA_NUMBER );
+    yssaop* literal = b->op( node->sloc, YSSA_NUMBER );
     literal->number = 1.0;
     
-    yssa_opcode opcode = XSSA_NOP;
+    yssa_opcode opcode = YSSA_NOP;
     switch ( node->opkind )
     {
-    case XEC_ASTOP_PREINC:   opcode = XSSA_ADD;   break;
-    case XEC_ASTOP_PREDEC:   opcode = XSSA_SUB;   break;
+    case YL_ASTOP_PREINC:   opcode = YSSA_ADD;   break;
+    case YL_ASTOP_PREDEC:   opcode = YSSA_SUB;   break;
     default:
         assert( ! "invalid operator" );
         break;
@@ -198,14 +198,14 @@ yssaop* yssa_build_expr::visit( yl_expr_postop* node )
     b->lvalue( &lvalue, node->lvalue );
 
     yssaop* value   = b->lvalue_value( &lvalue );
-    yssaop* literal = b->op( node->sloc, XSSA_NUMBER );
+    yssaop* literal = b->op( node->sloc, YSSA_NUMBER );
     literal->number = 1.0;
     
-    yssa_opcode opcode = XSSA_NOP;
+    yssa_opcode opcode = YSSA_NOP;
     switch ( node->opkind )
     {
-    case XEC_ASTOP_POSTINC:  opcode = XSSA_ADD;   break;
-    case XEC_ASTOP_POSTDEC:  opcode = XSSA_SUB;   break;
+    case YL_ASTOP_POSTINC:  opcode = YSSA_ADD;   break;
+    case YL_ASTOP_POSTDEC:  opcode = YSSA_SUB;   break;
     default: assert( ! "invalid operator" ); break;
     }
     
@@ -218,13 +218,13 @@ yssaop* yssa_build_expr::visit( yl_expr_unary* node )
 {
     yssaop* operand = visit( node->operand );
     
-    yssa_opcode opcode = XSSA_NOP;
+    yssa_opcode opcode = YSSA_NOP;
     switch ( node->opkind )
     {
-    case XEC_ASTOP_POSITIVE: opcode = XSSA_POS;         break;
-    case XEC_ASTOP_NEGATIVE: opcode = XSSA_NEG;         break;
-    case XEC_ASTOP_BITNOT:   opcode = XSSA_NOT;         break;
-    case XEC_ASTOP_LOGICNOT: opcode = XSSA_LNOT;        break;
+    case YL_ASTOP_POSITIVE: opcode = YSSA_POS;         break;
+    case YL_ASTOP_NEGATIVE: opcode = YSSA_NEG;         break;
+    case YL_ASTOP_BITNOT:   opcode = YSSA_NOT;         break;
+    case YL_ASTOP_LOGICNOT: opcode = YSSA_LNOT;        break;
     default: assert( ! "invalid operator" ); break;
     }
     
@@ -236,22 +236,22 @@ yssaop* yssa_build_expr::visit( yl_expr_binary* node )
     yssaop* operanda = visit( node->lhs );
     yssaop* operandb = visit( node->rhs );
     
-    yssa_opcode opcode = XSSA_NOP;
+    yssa_opcode opcode = YSSA_NOP;
     switch ( node->opkind )
     {
-    case XEC_ASTOP_MULTIPLY:     opcode = XSSA_MUL;     break;
-    case XEC_ASTOP_DIVIDE:       opcode = XSSA_DIV;     break;
-    case XEC_ASTOP_MODULUS:      opcode = XSSA_MOD;     break;
-    case XEC_ASTOP_INTDIV:       opcode = XSSA_INTDIV;  break;
-    case XEC_ASTOP_ADD:          opcode = XSSA_ADD;     break;
-    case XEC_ASTOP_SUBTRACT:     opcode = XSSA_SUB;     break;
-    case XEC_ASTOP_LSHIFT:       opcode = XSSA_LSL;     break;
-    case XEC_ASTOP_LRSHIFT:      opcode = XSSA_LSR;     break;
-    case XEC_ASTOP_ARSHIFT:      opcode = XSSA_ASR;     break;
-    case XEC_ASTOP_BITAND:       opcode = XSSA_AND;     break;
-    case XEC_ASTOP_BITXOR:       opcode = XSSA_XOR;     break;
-    case XEC_ASTOP_BITOR:        opcode = XSSA_OR;      break;
-    case XEC_ASTOP_CONCATENATE:  opcode = XSSA_CONCAT;  break;
+    case YL_ASTOP_MULTIPLY:     opcode = YSSA_MUL;     break;
+    case YL_ASTOP_DIVIDE:       opcode = YSSA_DIV;     break;
+    case YL_ASTOP_MODULUS:      opcode = YSSA_MOD;     break;
+    case YL_ASTOP_INTDIV:       opcode = YSSA_INTDIV;  break;
+    case YL_ASTOP_ADD:          opcode = YSSA_ADD;     break;
+    case YL_ASTOP_SUBTRACT:     opcode = YSSA_SUB;     break;
+    case YL_ASTOP_LSHIFT:       opcode = YSSA_LSL;     break;
+    case YL_ASTOP_LRSHIFT:      opcode = YSSA_LSR;     break;
+    case YL_ASTOP_ARSHIFT:      opcode = YSSA_ASR;     break;
+    case YL_ASTOP_BITAND:       opcode = YSSA_AND;     break;
+    case YL_ASTOP_BITXOR:       opcode = YSSA_XOR;     break;
+    case YL_ASTOP_BITOR:        opcode = YSSA_OR;      break;
+    case YL_ASTOP_CONCATENATE:  opcode = YSSA_CONCAT;  break;
     default: assert( ! "invalid operator" ); break;
     }
     
@@ -287,20 +287,20 @@ yssaop* yssa_build_expr::visit( yl_expr_compare* node )
                 l !is r -> not ( l is r )
         */
         
-        yssa_opcode opcode = XSSA_NOP;
+        yssa_opcode opcode = YSSA_NOP;
         bool inv = false, neg = false;
         switch ( opkind )
         {
-        case XEC_ASTOP_EQUAL:        opcode = XSSA_EQ;               break;
-        case XEC_ASTOP_NOTEQUAL:     opcode = XSSA_EQ; neg = true;   break;
-        case XEC_ASTOP_LESS:         opcode = XSSA_LT;               break;
-        case XEC_ASTOP_GREATER:      opcode = XSSA_LE; inv = true;   break;
-        case XEC_ASTOP_LESSEQUAL:    opcode = XSSA_LE;               break;
-        case XEC_ASTOP_GREATEREQUAL: opcode = XSSA_LT; inv = true;   break;
-        case XEC_ASTOP_IN:           opcode = XSSA_IN;               break;
-        case XEC_ASTOP_NOTIN:        opcode = XSSA_IN; neg = true;   break;
-        case XEC_ASTOP_IS:           opcode = XSSA_IS;               break;
-        case XEC_ASTOP_NOTIS:        opcode = XSSA_IS; neg = true;   break;
+        case YL_ASTOP_EQUAL:        opcode = YSSA_EQ;               break;
+        case YL_ASTOP_NOTEQUAL:     opcode = YSSA_EQ; neg = true;   break;
+        case YL_ASTOP_LESS:         opcode = YSSA_LT;               break;
+        case YL_ASTOP_GREATER:      opcode = YSSA_LE; inv = true;   break;
+        case YL_ASTOP_LESSEQUAL:    opcode = YSSA_LE;               break;
+        case YL_ASTOP_GREATEREQUAL: opcode = YSSA_LT; inv = true;   break;
+        case YL_ASTOP_IN:           opcode = YSSA_IN;               break;
+        case YL_ASTOP_NOTIN:        opcode = YSSA_IN; neg = true;   break;
+        case YL_ASTOP_IS:           opcode = YSSA_IS;               break;
+        case YL_ASTOP_NOTIS:        opcode = YSSA_IS; neg = true;   break;
         default: assert( ! "invalid operator" ); break;
         }
         
@@ -309,7 +309,7 @@ yssaop* yssa_build_expr::visit( yl_expr_compare* node )
         else
             result = b->op( node->sloc, opcode, rhs, lhs );
         if ( neg )
-            result = b->op( node->sloc, XSSA_LNOT, result );
+            result = b->op( node->sloc, YSSA_LNOT, result );
         
         // Keep the result in a temporary, as if it is false we shortcut
         // evaluation of later terms.
@@ -333,7 +333,7 @@ yssaop* yssa_build_expr::visit( yl_expr_logical* node )
 {
     switch ( node->opkind )
     {
-    case XEC_ASTOP_LOGICAND:
+    case YL_ASTOP_LOGICAND:
     {
         // Only evaluate rhs if lhs is true.
         yssaop* lhs = visit( node->lhs );
@@ -346,15 +346,15 @@ yssaop* yssa_build_expr::visit( yl_expr_logical* node )
         return b->lookup( node );
     }
     
-    case XEC_ASTOP_LOGICXOR:
+    case YL_ASTOP_LOGICXOR:
     {
         // Does not perform shortcut evaluation.
         yssaop* lhs = visit( node->lhs );
         yssaop* rhs = visit( node->rhs );
-        return b->op( node->sloc, XSSA_XOR, lhs, rhs );
+        return b->op( node->sloc, YSSA_XOR, lhs, rhs );
     }
     
-    case XEC_ASTOP_LOGICOR:
+    case YL_ASTOP_LOGICOR:
     {
         // Only evaluate rhs if the lhs is false.
         yssaop* lhs = visit( node->lhs );
@@ -394,10 +394,10 @@ yssaop* yssa_build_expr::visit( yl_new_new* node )
     yssaop* proto = visit( node->proto );
 
     // Create object inheriting from prototype.
-    yssaop* object = b->op( node->sloc, XSSA_OBJECT, proto );
+    yssaop* object = b->op( node->sloc, YSSA_OBJECT, proto );
     
     // Lookup 'this' method.
-    yssaop* constructor = b->op( node->sloc, XSSA_KEY, object );
+    yssaop* constructor = b->op( node->sloc, YSSA_KEY, object );
     constructor->key = b->key( "this" );
 
     // Get arguments (unpacked).
@@ -405,7 +405,7 @@ yssaop* yssa_build_expr::visit( yl_new_new* node )
     b->unpack( &arguments, node->arguments, -1 );
 
     // Call constructor.
-    yssaop* call = b->op( node->sloc, XSSA_CALL, 2 + arguments.values.size() );
+    yssaop* call = b->op( node->sloc, YSSA_CALL, 2 + arguments.values.size() );
     call->result_count = 0;
     call->operand[ 0 ] = constructor;
     call->operand[ 1 ] = object;
@@ -421,7 +421,7 @@ yssaop* yssa_build_expr::visit( yl_new_object* node )
 {
     // Construct object.
     yssaop* proto = node->proto ? visit( node->proto ) : nullptr;
-    yssaop* object = b->op( node->sloc, XSSA_OBJECT, proto );
+    yssaop* object = b->op( node->sloc, YSSA_OBJECT, proto );
     
     // Define object so objrefs can find it with lookup.
     b->define( node, object );
@@ -439,7 +439,7 @@ yssaop* yssa_build_expr::visit( yl_new_object* node )
 yssaop* yssa_build_expr::visit( yl_new_array* node )
 {
     // Construct array.
-    yssaop* array = b->op( node->sloc, XSSA_ARRAY );
+    yssaop* array = b->op( node->sloc, YSSA_ARRAY );
     array->immed = (int)node->values.size();
     
     // Append all values.
@@ -447,7 +447,7 @@ yssaop* yssa_build_expr::visit( yl_new_array* node )
     {
         yl_ast_node* elem = node->values.at( i );
         yssaop* value = visit( node->values.at( i ) );
-        b->op( elem->sloc, XSSA_APPEND, array, value );
+        b->op( elem->sloc, YSSA_APPEND, array, value );
     }
     
     if ( node->final )
@@ -459,12 +459,12 @@ yssaop* yssa_build_expr::visit( yl_new_array* node )
         for ( size_t i = 0; i < values.values.size(); ++i )
         {
             yssaop* value = values.values.at( i );
-            b->op( node->final->sloc, XSSA_APPEND, array, value );
+            b->op( node->final->sloc, YSSA_APPEND, array, value );
         }
         
         if ( values.multival )
         {
-            yssaop* extend = b->op( node->final->sloc, XSSA_EXTEND, array );
+            yssaop* extend = b->op( node->final->sloc, YSSA_EXTEND, array );
             extend->multival = values.multival;
         }
     }
@@ -475,7 +475,7 @@ yssaop* yssa_build_expr::visit( yl_new_array* node )
 yssaop* yssa_build_expr::visit( yl_new_table* node )
 {
     // Construct table.
-    yssaop* table = b->op( node->sloc, XSSA_TABLE );
+    yssaop* table = b->op( node->sloc, YSSA_TABLE );
     table->immed = (int)node->elements.size();
     
     // Add elements.
@@ -484,7 +484,7 @@ yssaop* yssa_build_expr::visit( yl_new_table* node )
         const yl_key_value& e = node->elements.at( i );
         yssaop* key   = visit( e.key );
         yssaop* value = visit( e.value );
-        b->op( node->sloc, XSSA_SETINDEX, table, key, value );
+        b->op( node->sloc, YSSA_SETINDEX, table, key, value );
     }
     
     return table;
@@ -512,7 +512,7 @@ yssaop* yssa_build_expr::visit( yl_expr_yield* node )
 yssaop* yssa_build_expr::visit( yl_expr_vararg* node )
 {
     // Fetch the first variable argument.
-    yssaop* vararg = b->op( node->sloc, XSSA_VARARG );
+    yssaop* vararg = b->op( node->sloc, YSSA_VARARG );
     vararg->immed = 0;
     return vararg;
 }
@@ -536,8 +536,8 @@ yssaop* yssa_build_expr::visit( yl_expr_assign* node )
     yssa_lvalue lvalue;
     b->lvalue( &lvalue, node->lvalue );
     
-    if ( node->assignop == XEC_ASTOP_DECLARE
-            || node->assignop == XEC_ASTOP_ASSIGN )
+    if ( node->assignop == YL_ASTOP_DECLARE
+            || node->assignop == YL_ASTOP_ASSIGN )
     {
         yssaop* rvalue = visit( node->rvalue );
         b->lvalue_assign( &lvalue, rvalue );
@@ -577,7 +577,7 @@ void yssa_build_unpack::fallback(
     // Unpack NULL for remaining values.
     if ( valcount > 1 )
     {
-        yssaop* nullval = b->op( node->sloc, XSSA_NULL );
+        yssaop* nullval = b->op( node->sloc, YSSA_NULL );
         for ( int i = 1; i < valcount; ++i )
         {
             values->values.push_back( nullval );
@@ -612,21 +612,21 @@ void yssa_build_unpack::visit(
     yssaop* thisval  = nullptr;
     switch ( node->function->kind )
     {
-    case XEC_EXPR_KEY:
+    case YL_EXPR_KEY:
     {
         yl_expr_key* key = (yl_expr_key*)node->function;
         thisval = b->expr( key->object );
-        function = b->op( key->sloc, XSSA_KEY, thisval );
+        function = b->op( key->sloc, YSSA_KEY, thisval );
         function->key = b->key( key->key );
         break;
     }
     
-    case XEC_EXPR_INKEY:
+    case YL_EXPR_INKEY:
     {
         yl_expr_inkey* inkey = (yl_expr_inkey*)node->function;
         thisval = b->expr( inkey->object );
         yssaop* key = b->expr( inkey->key );
-        function = b->op( inkey->sloc, XSSA_INKEY, thisval, key );
+        function = b->op( inkey->sloc, YSSA_INKEY, thisval, key );
         break;
     }
     
@@ -646,7 +646,7 @@ void yssa_build_unpack::visit(
     }
 
     // Construct call.
-    yssa_opcode opcode = node->yieldcall ? XSSA_YCALL : XSSA_CALL;
+    yssa_opcode opcode = node->yieldcall ? YSSA_YCALL : YSSA_CALL;
     size_t operand_count = 1 + ( thisval ? 1 : 0 ) + arguments.values.size();
     yssaop* call = b->op( node->sloc, opcode, operand_count );
     call->result_count = valcount;
@@ -668,7 +668,7 @@ void yssa_build_unpack::visit(
         // We requested a finite number of values, select them.
         for ( int i = 0; i < valcount; ++i )
         {
-            yssaop* sel = b->op( node->sloc, XSSA_SELECT, call );
+            yssaop* sel = b->op( node->sloc, YSSA_SELECT, call );
             sel->immed = i;
             values->values.push_back( sel );
         }
@@ -698,7 +698,7 @@ void yssa_build_unpack::visit(
     }
     
     // Construct yield.
-    yssaop* yield = b->op( node->sloc, XSSA_YIELD, arguments.values.size() );
+    yssaop* yield = b->op( node->sloc, YSSA_YIELD, arguments.values.size() );
     yield->result_count = valcount;
     for ( size_t i = 0; i < arguments.values.size(); ++i )
         yield->operand[ i ] = arguments.values.at( i );
@@ -714,7 +714,7 @@ void yssa_build_unpack::visit(
         // We requested a finite number of values, select them.
         for ( int i = 0; i < valcount; ++i )
         {
-            yssaop* sel = b->op( node->sloc, XSSA_SELECT, yield );
+            yssaop* sel = b->op( node->sloc, YSSA_SELECT, yield );
             sel->immed = i;
             values->values.push_back( sel );
         }
@@ -733,14 +733,14 @@ void yssa_build_unpack::visit(
     {
         for ( int i = 0; i < valcount; ++i )
         {
-            yssaop* vararg = b->op( node->sloc, XSSA_VARARG );
+            yssaop* vararg = b->op( node->sloc, YSSA_VARARG );
             vararg->immed = i;
             values->values.push_back( vararg );
         }
     }
     else
     {
-        yssaop* varall = b->op( node->sloc, XSSA_VARALL );
+        yssaop* varall = b->op( node->sloc, YSSA_VARALL );
         varall->result_count = -1;
         values->multival = varall;
     }
@@ -754,14 +754,14 @@ void yssa_build_unpack::visit(
     {
         for ( int i = 0; i < valcount; ++i )
         {
-            yssaop* elem = b->op( node->sloc, XSSA_ELEM, array );
+            yssaop* elem = b->op( node->sloc, YSSA_ELEM, array );
             elem->immed = i;
             values->values.push_back( elem );
         }
     }
     else
     {
-        yssaop* unpack = b->op( node->sloc, XSSA_UNPACK, array );
+        yssaop* unpack = b->op( node->sloc, YSSA_UNPACK, array );
         unpack->result_count = -1;
         values->multival = unpack;
     }
@@ -803,7 +803,7 @@ void yssa_build_unpack::visit(
     else if ( required > 0 )
     {
         // Fill in the rest with null.
-        yssaop* nullval = b->op( node->sloc, XSSA_NULL );
+        yssaop* nullval = b->op( node->sloc, YSSA_NULL );
         for ( int i = 0; i < required; ++i )
         {
             values->values.push_back( nullval );
@@ -833,8 +833,8 @@ void yssa_build_unpack::visit(
         yssa_lvalue lvalue = lvalues.at( i );
         
         yssaop* v = nullptr;
-        if ( node->assignop == XEC_ASTOP_DECLARE
-                || node->assignop == XEC_ASTOP_ASSIGN )
+        if ( node->assignop == YL_ASTOP_DECLARE
+                || node->assignop == YL_ASTOP_ASSIGN )
         {
             v = rvalues.values.at( i );
             b->lvalue_assign( &lvalue, v );
@@ -858,7 +858,7 @@ void yssa_build_unpack::visit(
     if ( valcount != -1 && valcount > (int)lvalues.size() )
     {
         int required = valcount - (int)lvalues.size();
-        yssaop* nullval = b->op( node->sloc, XSSA_NULL );
+        yssaop* nullval = b->op( node->sloc, YSSA_NULL );
         for ( int i = 0; i < required; ++i )
         {
             values->values.push_back( nullval );
@@ -945,7 +945,7 @@ void yssa_build_stmt::visit( yl_stmt_do* node )
 void yssa_build_stmt::visit( yl_stmt_foreach* node )
 {
     // Construct iterator.
-    yssa_opcode opcode = node->eachkey ? XSSA_ITERKEY : XSSA_ITER;
+    yssa_opcode opcode = node->eachkey ? YSSA_ITERKEY : YSSA_ITER;
     yssaop* list = b->expr( node->list );
     b->op( node->sloc, opcode, list );
 
@@ -954,13 +954,13 @@ void yssa_build_stmt::visit( yl_stmt_foreach* node )
     
     // Get values for this iteration.
     int request = (int)node->lvalues.size();
-    yssaop* next = b->op( node->sloc, XSSA_NEXT );
+    yssaop* next = b->op( node->sloc, YSSA_NEXT );
     next->result_count = request;
     for ( int i = 0; i < node->lvalues.size(); ++i )
     {
         yssa_lvalue lvalue;
         b->lvalue( &lvalue, node->lvalues.at( i ) );
-        yssaop* rvalue = b->op( node->sloc, XSSA_SELECT, next );
+        yssaop* rvalue = b->op( node->sloc, YSSA_SELECT, next );
         rvalue->immed = i;
         b->lvalue_assign( &lvalue, rvalue );
     }
@@ -978,7 +978,7 @@ void yssa_build_stmt::visit( yl_stmt_foreach* node )
     b->close_scope( node->scope );
     
     // Pop iterator.
-    b->op( node->sloc, XSSA_POPITER );
+    b->op( node->sloc, YSSA_POPITER );
 }
 
 void yssa_build_stmt::visit( yl_stmt_for* node )
@@ -1028,20 +1028,20 @@ void yssa_build_stmt::visit( yl_stmt_delete* node )
     for ( size_t i = 0; i < node->delvals.size(); ++i )
     {
         yl_ast_node* delval = node->delvals.at( i );
-        if ( delval->kind == XEC_EXPR_KEY )
+        if ( delval->kind == YL_EXPR_KEY )
         {
             yl_expr_key* expr = (yl_expr_key*)node;
             yssaop* object = b->expr( expr->object );
-            yssaop* delkey = b->op( delval->sloc, XSSA_DELKEY, object );
+            yssaop* delkey = b->op( delval->sloc, YSSA_DELKEY, object );
             delkey->key = b->key( expr->key );
             
         }
-        else if ( delval->kind == XEC_EXPR_INKEY )
+        else if ( delval->kind == YL_EXPR_INKEY )
         {
             yl_expr_inkey* expr = (yl_expr_inkey*)node;
             yssaop* object = b->expr( expr->object );
             yssaop* key = b->expr( expr->key );
-            b->op( delval->sloc, XSSA_DELINKEY, object, key );
+            b->op( delval->sloc, YSSA_DELINKEY, object, key );
         }
     }
 }
@@ -1056,7 +1056,7 @@ void yssa_build_stmt::visit( yl_stmt_case* node )
 void yssa_build_stmt::visit( yl_stmt_continue* node )
 {
     // If we're in a for loop, update the for before continuing.
-    if ( node->target->node->kind == XEC_STMT_FOR )
+    if ( node->target->node->kind == YL_STMT_FOR )
     {
         yl_stmt_for* forstmt = (yl_stmt_for*)node->target;
         if ( forstmt->update )
@@ -1086,7 +1086,7 @@ void yssa_build_stmt::visit( yl_stmt_break* node )
     }
     
     // Break out of either for loop or switch block.
-    if ( node->target->node->kind == XEC_STMT_SWITCH )
+    if ( node->target->node->kind == YL_STMT_SWITCH )
     {
         b->switchbreak();
     }
@@ -1107,7 +1107,7 @@ void yssa_build_stmt::visit( yl_stmt_return* node )
     while ( true )
     {
         b->close_scope( scope );
-        if ( scope->node->kind == XEC_AST_FUNC )
+        if ( scope->node->kind == YL_AST_FUNC )
             break;
         scope = scope->outer;
     }
@@ -1116,15 +1116,15 @@ void yssa_build_stmt::visit( yl_stmt_return* node )
     scope = node->scope;
     while ( true )
     {
-        if ( scope->node->kind == XEC_STMT_FOREACH )
-            b->op( scope->node->sloc, XSSA_POPITER );
-        if ( scope->node->kind == XEC_AST_FUNC )
+        if ( scope->node->kind == YL_STMT_FOREACH )
+            b->op( scope->node->sloc, YSSA_POPITER );
+        if ( scope->node->kind == YL_AST_FUNC )
             break;
         scope = scope->outer;
     }
     
     // Emit return operation.
-    yssaop* r = b->op( node->sloc, XSSA_RETURN, values.values.size() );
+    yssaop* r = b->op( node->sloc, YSSA_RETURN, values.values.size() );
     for ( size_t i = 0; i < values.values.size(); ++i )
         r->operand[ i ] = values.values.at( i );
     r->multival = values.multival;

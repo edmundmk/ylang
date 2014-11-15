@@ -6,8 +6,8 @@
 //
 
 
-#ifndef XSSA_LIVENESS_H
-#define XSSA_LIVENESS_H
+#ifndef YSSA_LIVENESS_H
+#define YSSA_LIVENESS_H
 
 
 struct yssa_func;

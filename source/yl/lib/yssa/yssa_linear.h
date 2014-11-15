@@ -6,8 +6,8 @@
 //
 
 
-#ifndef XSSA_LINEAR_H
-#define XSSA_LINEAR_H
+#ifndef YSSA_LINEAR_H
+#define YSSA_LINEAR_H
 
 
 #include <vector>
@@ -36,10 +36,10 @@ struct yssa_linear
 
 enum yssa_lopkind : int
 {
-    XSSA_LOP_BEGIN,                 // start of block.
-    XSSA_LOP_END,                   // end of block.
-    XSSA_LOP_LIVE,                  // start of live range (without op).
-    XSSA_LOP_OP,                    // actual op.
+    YSSA_LOP_BEGIN,                 // start of block.
+    YSSA_LOP_END,                   // end of block.
+    YSSA_LOP_LIVE,                  // start of live range (without op).
+    YSSA_LOP_OP,                    // actual op.
 };
 
 

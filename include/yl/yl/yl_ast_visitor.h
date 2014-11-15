@@ -6,8 +6,8 @@
 //
 
 
-#ifndef XEC_AST_VISITOR_H
-#define XEC_AST_VISITOR_H
+#ifndef YL_AST_VISITOR_H
+#define YL_AST_VISITOR_H
 
 
 #include "yl_ast.h"

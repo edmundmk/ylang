@@ -38,25 +38,25 @@ yssalop::yssalop( yssa_lopkind kind, yssaop* op )
 
 static bool is_action( yssa_opcode opcode )
 {
-    return opcode == XSSA_SETKEY
-        || opcode == XSSA_SETINKEY
-        || opcode == XSSA_SETINDEX
-        || opcode == XSSA_SETGLOBAL
-        || opcode == XSSA_DELKEY
-        || opcode == XSSA_DELINKEY
-        || opcode == XSSA_NEWUP
-        || opcode == XSSA_SETUP
-        || opcode == XSSA_CLOUP
-        || opcode == XSSA_APPEND
-        || opcode == XSSA_EXTEND
-        || opcode == XSSA_CALL
-        || opcode == XSSA_YCALL
-        || opcode == XSSA_YIELD
-        || opcode == XSSA_ITER
-        || opcode == XSSA_ITERKEY
-        || opcode == XSSA_POPITER
-        || opcode == XSSA_NEXT
-        || opcode == XSSA_RETURN;
+    return opcode == YSSA_SETKEY
+        || opcode == YSSA_SETINKEY
+        || opcode == YSSA_SETINDEX
+        || opcode == YSSA_SETGLOBAL
+        || opcode == YSSA_DELKEY
+        || opcode == YSSA_DELINKEY
+        || opcode == YSSA_NEWUP
+        || opcode == YSSA_SETUP
+        || opcode == YSSA_CLOUP
+        || opcode == YSSA_APPEND
+        || opcode == YSSA_EXTEND
+        || opcode == YSSA_CALL
+        || opcode == YSSA_YCALL
+        || opcode == YSSA_YIELD
+        || opcode == YSSA_ITER
+        || opcode == YSSA_ITERKEY
+        || opcode == YSSA_POPITER
+        || opcode == YSSA_NEXT
+        || opcode == YSSA_RETURN;
 }
 
 
@@ -127,7 +127,7 @@ void yssa_build_linear( yssa_linear* linear, yssa_func* func )
 
 
     // Begin block.
-    linear->lops.emplace_back( XSSA_LOP_BEGIN, block );
+    linear->lops.emplace_back( YSSA_LOP_BEGIN, block );
         
     
     
@@ -138,12 +138,12 @@ void yssa_build_linear( yssa_linear* linear, yssa_func* func )
         if ( ! op )
             continue;
     
-        assert( op->opcode == XSSA_PHI );
+        assert( op->opcode == YSSA_PHI );
         
         
         // Add op.
         int index = (int)linear->lops.size();
-        linear->lops.emplace_back( XSSA_LOP_OP, op );
+        linear->lops.emplace_back( YSSA_LOP_OP, op );
         yssalop& lop = linear->lops.back();
     
     
@@ -168,7 +168,7 @@ void yssa_build_linear( yssa_linear* linear, yssa_func* func )
         {
             // Add new span.
             int index = (int)linear->lops.size();
-            linear->lops.emplace_back( XSSA_LOP_LIVE, op );
+            linear->lops.emplace_back( YSSA_LOP_LIVE, op );
             yssalop& lop = linear->lops.back();
 
 
@@ -216,7 +216,7 @@ void yssa_build_linear( yssa_linear* linear, yssa_func* func )
         {
             // Add op.
             int index = (int)linear->lops.size();
-            linear->lops.emplace_back( XSSA_LOP_OP, op );
+            linear->lops.emplace_back( YSSA_LOP_OP, op );
             yssalop& lop = linear->lops.back();
             
             // An op should come before all its references, since the CFG
@@ -234,7 +234,7 @@ void yssa_build_linear( yssa_linear* linear, yssa_func* func )
             // at all if it has side effects.
             if ( is_action( op->opcode ) )
             {
-                linear->lops.emplace_back( XSSA_LOP_OP, op );
+                linear->lops.emplace_back( YSSA_LOP_OP, op );
             }
         }
         
@@ -267,7 +267,7 @@ void yssa_build_linear( yssa_linear* linear, yssa_func* func )
     
 
     // End of block.
-    linear->lops.emplace_back( XSSA_LOP_END, block );
+    linear->lops.emplace_back( YSSA_LOP_END, block );
     
 
     
@@ -305,7 +305,7 @@ void yssa_print( yssa_linear* linear )
     for ( size_t i = 0; i < linear->lops.size(); ++i )
     {
         yssalop& lop = linear->lops.at( i );
-        if ( lop.kind == XSSA_LOP_OP )
+        if ( lop.kind == YSSA_LOP_OP )
             lop.op->index = (int)i;
     }
     
@@ -328,13 +328,13 @@ void yssa_print( yssa_linear* linear )
 
         switch ( lop.kind )
         {
-        case XSSA_LOP_BEGIN:
+        case YSSA_LOP_BEGIN:
         {
             printf( "  [%04X]\n", lop.block->index );
             break;
         }
         
-        case XSSA_LOP_END:
+        case YSSA_LOP_END:
         {
             if ( lop.block->condition )
             {
@@ -353,7 +353,7 @@ void yssa_print( yssa_linear* linear )
             break;
         }
         
-        case XSSA_LOP_LIVE:
+        case YSSA_LOP_LIVE:
         {
             print_liveness( &lop );
             printf( " (live)\n" );
@@ -361,7 +361,7 @@ void yssa_print( yssa_linear* linear )
         }
         
         
-        case XSSA_LOP_OP:
+        case YSSA_LOP_OP:
         {
             print_liveness( &lop );
             printf( " " );

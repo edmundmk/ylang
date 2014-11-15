@@ -29,7 +29,7 @@ yl_script* yl_parse( const char* path, size_t argc, const char* const* argv )
     ast->function = new ( ast->alloc ) yl_ast_func( -1 );
     ast->functions.push_back( ast->function );
     ast->function->scope = new ( ast->alloc ) yl_ast_scope(
-                    XEC_SCOPE_SCRIPT, NULL, ast->function, ast->function );
+                    YL_SCOPE_SCRIPT, NULL, ast->function, ast->function );
     ast->function->block = new ( ast->alloc ) yl_stmt_block( -1 );
     ast->function->scope->block = ast->function->block;
     
@@ -140,7 +140,7 @@ yl_ast_scope* yl_parser::block_scope( yl_ast_node* node )
 {
     yl_ast_scope* outer = get_scope();
     yl_ast_scope* scope = alloc< yl_ast_scope >(
-                    XEC_SCOPE_BLOCK, outer, node, outer->func );
+                    YL_SCOPE_BLOCK, outer, node, outer->func );
     scopes.push_back( scope );
     return scope;
 }
@@ -154,7 +154,7 @@ void yl_parser::close_scope( yl_ast_scope* scope )
 
 void yl_parser::close_switch( yl_ast_scope* scope )
 {
-    if ( scope->kind == XEC_SCOPE_IMPLICIT )
+    if ( scope->kind == YL_SCOPE_IMPLICIT )
     {
         // Fallen through to the end of the switch.
         root->script->error( scope->node->sloc, "missing break" );
@@ -190,7 +190,7 @@ yl_new_object* yl_parser::object(
     yl_ast_scope* outer = get_scope();
     yl_new_object* object = alloc< yl_new_object >( sloc, proto );
     object->scope = alloc< yl_ast_scope >(
-                    XEC_SCOPE_OBJECT, outer, object, outer->func );
+                    YL_SCOPE_OBJECT, outer, object, outer->func );
 
     // Declare or assign.
     declname( sloc, name, object );
@@ -201,13 +201,13 @@ yl_new_object* yl_parser::object(
         yl_ast_scope* scope = NULL;
         const char* s = NULL;
         
-        if ( name->kind == XEC_NAME_NAME )
+        if ( name->kind == YL_NAME_NAME )
         {
             yl_name_name* qual = (yl_name_name*)name;
             scope = outer;
             s = qual->name;
         }
-        else if ( name->kind == XEC_NAME_QUAL )
+        else if ( name->kind == YL_NAME_QUAL )
         {
             yl_name_qual* qual = (yl_name_qual*)name;
             scope = imply( outer, qual->scope, false );
@@ -233,7 +233,7 @@ void yl_parser::prototype( int sloc,
                 yl_ast_node* name, yl_name_list* params, bool yield )
 {
     // Prototypes must sit directly in an object scope.
-    if ( name->kind != XEC_NAME_NAME )
+    if ( name->kind != YL_NAME_NAME )
     {
         root->script->error( sloc, "invalid prototype name" );
         return;
@@ -260,12 +260,12 @@ yl_ast_func* yl_parser::function( int sloc, yl_ast_node* name,
     // Create function.
     yl_ast_func* func = alloc< yl_ast_func >( sloc );
     root->functions.push_back( func );
-    func->scope = alloc< yl_ast_scope >( XEC_SCOPE_BLOCK, outer, func, func );
+    func->scope = alloc< yl_ast_scope >( YL_SCOPE_BLOCK, outer, func, func );
     
-    if ( outer->kind == XEC_SCOPE_OBJECT )
+    if ( outer->kind == YL_SCOPE_OBJECT )
     {
         // Function is a member of an object (so has implicit-this).
-        assert( outer->node->kind == XEC_NEW_OBJECT );
+        assert( outer->node->kind == YL_NEW_OBJECT );
         func->memberof = (yl_new_object*)outer->node;
     }
     
@@ -278,7 +278,7 @@ yl_ast_func* yl_parser::function( int sloc, yl_ast_node* name,
     // Enter function scope to declare parameters.
     scopes.push_back( func->scope );
 
-    if ( outer->kind == XEC_SCOPE_OBJECT || dot )
+    if ( outer->kind == YL_SCOPE_OBJECT || dot )
     {
         // Function has automatic this parameter (and super).
         func->thisname = declare( sloc, "this" );
@@ -320,13 +320,13 @@ yl_ast_func* yl_parser::function( int sloc, yl_ast_node* name,
             {
                 funcname = "." + funcname;
             }
-            if ( n->kind == XEC_NAME_NAME )
+            if ( n->kind == YL_NAME_NAME )
             {
                 yl_name_name* nn = (yl_name_name*)n;
                 funcname = nn->name + funcname;
                 break;
             }
-            else if ( n->kind == XEC_NAME_QUAL )
+            else if ( n->kind == YL_NAME_QUAL )
             {
                 yl_name_qual* qq = (yl_name_qual*)n;
                 funcname = qq->name + funcname;
@@ -365,14 +365,14 @@ void yl_parser::var( int sloc, yl_ast_node* names, yl_ast_node* rvals )
 {
     yl_ast_scope* scope = get_scope();
     
-    if ( scope->kind == XEC_SCOPE_OBJECT )
+    if ( scope->kind == YL_SCOPE_OBJECT )
     {
         // Declare object member.
-        assert( scope->node->kind == XEC_NEW_OBJECT );
+        assert( scope->node->kind == YL_NEW_OBJECT );
         yl_new_object* object = (yl_new_object*)scope->node;
 
         // Declare.
-        if ( names->kind == XEC_NAME_NAME )
+        if ( names->kind == YL_NAME_NAME )
         {
             yl_name_name* n = (yl_name_name*)names;
             declare( n->sloc, n->name );
@@ -381,13 +381,13 @@ void yl_parser::var( int sloc, yl_ast_node* names, yl_ast_node* rvals )
                 return;
             
             yl_expr_assign* assign = alloc< yl_expr_assign >(
-                            sloc, XEC_ASTOP_DECLARE );
+                            sloc, YL_ASTOP_DECLARE );
             yl_expr_objref* objref = alloc< yl_expr_objref >( sloc, object );
             assign->lvalue = alloc< yl_expr_key> ( sloc, objref, n->name );
             assign->rvalue = rvals;
             object->members.push_back( assign );
         }
-        else if ( names->kind == XEC_NAME_LIST )
+        else if ( names->kind == YL_NAME_LIST )
         {
             yl_name_list* l = (yl_name_list*)names;
             for ( size_t i = 0; i < l->names.size(); ++i )
@@ -400,7 +400,7 @@ void yl_parser::var( int sloc, yl_ast_node* names, yl_ast_node* rvals )
                 return;
          
             yl_expr_assign_list* assign = alloc< yl_expr_assign_list >(
-                            sloc, XEC_ASTOP_DECLARE );
+                            sloc, YL_ASTOP_DECLARE );
             for ( size_t i = 0; i < l->names.size(); ++i )
             {
                 yl_name_name* n = l->names[ i ];
@@ -429,15 +429,15 @@ void yl_parser::statement( yl_ast_node* stmt )
         return;
 
     yl_ast_scope* scope = get_scope();
-    assert( scope->kind != XEC_SCOPE_OBJECT );
-    assert( scope->kind != XEC_SCOPE_IMPLIED );
+    assert( scope->kind != YL_SCOPE_OBJECT );
+    assert( scope->kind != YL_SCOPE_IMPLIED );
 
 
     /*
         case statements are only allowed inside a switch block.
     */
     
-    if ( stmt->kind == XEC_STMT_CASE && scope->kind != XEC_SCOPE_SWITCH )
+    if ( stmt->kind == YL_STMT_CASE && scope->kind != YL_SCOPE_SWITCH )
     {
         root->script->error( stmt->sloc, "case outside switch" );
     }
@@ -450,14 +450,14 @@ void yl_parser::statement( yl_ast_node* stmt )
         statements without risking skipping declarations.
     */
     
-    if ( scope->kind == XEC_SCOPE_SWITCH )
+    if ( scope->kind == YL_SCOPE_SWITCH )
     {
         /*
             In the switch scope, which means the switch has just been opened, or
             an implicit block has just been closed with a break.
         */
         
-        if ( stmt->kind == XEC_STMT_CASE )
+        if ( stmt->kind == YL_STMT_CASE )
         {
             // Add case to switch block.
             scope->block->stmts.push_back( stmt );
@@ -465,7 +465,7 @@ void yl_parser::statement( yl_ast_node* stmt )
         else
         {
             // It's not a case - make sure there's been at least one case.
-            assert( scope->node->kind == XEC_STMT_SWITCH );
+            assert( scope->node->kind == YL_STMT_SWITCH );
             yl_stmt_switch* swstmt = (yl_stmt_switch*)scope->node;
             if ( swstmt->body->stmts.empty() )
             {
@@ -475,7 +475,7 @@ void yl_parser::statement( yl_ast_node* stmt )
             // Open implicit block.
             yl_stmt_block* block = alloc< yl_stmt_block >( stmt->sloc );
             block->scope = alloc< yl_ast_scope >(
-                    XEC_SCOPE_IMPLICIT, scope, block, scope->func );
+                    YL_SCOPE_IMPLICIT, scope, block, scope->func );
             scopes.push_back( block->scope );
             scope = block->scope;
             
@@ -483,23 +483,23 @@ void yl_parser::statement( yl_ast_node* stmt )
             scope->block->stmts.push_back( stmt );
         }
     }
-    else if ( scope->kind == XEC_SCOPE_IMPLICIT )
+    else if ( scope->kind == YL_SCOPE_IMPLICIT )
     {
         /*
             In an implicit block inside a switch statement.
         */
     
-        if ( stmt->kind == XEC_STMT_CASE )
+        if ( stmt->kind == YL_STMT_CASE )
         {
             // Close the implicit block (with no break, it will fall-through).
             close_scope( scope );
             scope = get_scope();
 
             // Add the case to the switch scope.
-            assert( scope->kind == XEC_SCOPE_SWITCH );
+            assert( scope->kind == YL_SCOPE_SWITCH );
             scope->block->stmts.push_back( stmt );
         }
-        else if ( stmt->kind == XEC_STMT_BREAK )
+        else if ( stmt->kind == YL_STMT_BREAK )
         {
             // Add the break to the implicit block.
             assert( ( (yl_stmt_break*)stmt )->target == scope );
@@ -526,10 +526,10 @@ yl_ast_scope* yl_parser::continue_target( int sloc )
     for ( yl_ast_scope* scope = get_scope();
                     scope != NULL; scope = scope->outer )
     {
-        if ( scope->node->kind == XEC_STMT_WHILE
-                || scope->node->kind == XEC_STMT_DO
-                || scope->node->kind == XEC_STMT_FOREACH
-                || scope->node->kind == XEC_STMT_FOR )
+        if ( scope->node->kind == YL_STMT_WHILE
+                || scope->node->kind == YL_STMT_DO
+                || scope->node->kind == YL_STMT_FOREACH
+                || scope->node->kind == YL_STMT_FOR )
             return scope;
     
         if ( scope->outer && scope->outer->func != scope->func )
@@ -546,11 +546,11 @@ yl_ast_scope* yl_parser::break_target( int sloc )
     for ( yl_ast_scope* scope = get_scope();
                     scope != NULL; scope = scope->outer )
     {
-        if ( scope->node->kind == XEC_STMT_SWITCH
-                || scope->node->kind == XEC_STMT_WHILE
-                || scope->node->kind == XEC_STMT_DO
-                || scope->node->kind == XEC_STMT_FOREACH
-                || scope->node->kind == XEC_STMT_FOR )
+        if ( scope->node->kind == YL_STMT_SWITCH
+                || scope->node->kind == YL_STMT_WHILE
+                || scope->node->kind == YL_STMT_DO
+                || scope->node->kind == YL_STMT_FOREACH
+                || scope->node->kind == YL_STMT_FOR )
             return scope;
     
         if ( scope->outer && scope->outer->func != scope->func )
@@ -586,7 +586,7 @@ yl_ast_node* yl_parser::lookup( int sloc, const char* identifier, bool outer )
         return alloc< yl_expr_global >( sloc, identifier, false );
     }
     
-    if ( name->scope->kind != XEC_SCOPE_OBJECT )
+    if ( name->scope->kind != YL_SCOPE_OBJECT )
     {
         // If the name is 'super' then we actually reference 'this'.
         yl_ast_name* lookname = name->superthis ? name->superthis : name;
@@ -626,7 +626,7 @@ yl_ast_node* yl_parser::lookup( int sloc, const char* identifier, bool outer )
     else
     {
         // It's an object member.
-        assert( name->scope->node->kind == XEC_NEW_OBJECT );
+        assert( name->scope->node->kind == YL_NEW_OBJECT );
         yl_new_object* object = (yl_new_object*)name->scope->node;
         
         if ( name->scope->func == local->func )
@@ -658,7 +658,7 @@ yl_ast_node* yl_parser::lookup( int sloc, const char* identifier, bool outer )
 
 yl_ast_node* yl_parser::key( int sloc, yl_ast_node* obj, const char* key )
 {
-    if ( obj->kind == XEC_EXPR_GLOBAL )
+    if ( obj->kind == YL_EXPR_GLOBAL )
     {
         yl_expr_global* global = (yl_expr_global*)obj;
         if ( ! global->gexplicit && strcmp( global->name, "global" ) == 0 )
@@ -683,16 +683,16 @@ yl_ast_node* yl_parser::lvalue( yl_ast_node* lvalue )
     
     switch ( lvalue->kind )
     {
-    case XEC_EXPR_LOCAL:
-    case XEC_EXPR_UPREF:
-    case XEC_EXPR_KEY:
-    case XEC_EXPR_INKEY:
-    case XEC_EXPR_INDEX:
+    case YL_EXPR_LOCAL:
+    case YL_EXPR_UPREF:
+    case YL_EXPR_KEY:
+    case YL_EXPR_INKEY:
+    case YL_EXPR_INDEX:
     {
         break;
     }
     
-    case XEC_EXPR_GLOBAL:
+    case YL_EXPR_GLOBAL:
     {
         yl_expr_global* g = (yl_expr_global*)lvalue;
         if ( ! g->gexplicit )
@@ -717,7 +717,7 @@ yl_ast_node* yl_parser::lvalue( yl_ast_node* lvalue )
 void yl_parser::lvalue_list(
         yl_ast_node* list, yl_ast_node_list* lvalues )
 {
-    if ( list->kind == XEC_EXPR_LIST )
+    if ( list->kind == YL_EXPR_LIST )
     {
         yl_expr_list* l = (yl_expr_list*)list;
         for ( size_t i = 0; i < l->values.size(); ++i )
@@ -735,13 +735,13 @@ void yl_parser::lvalue_list(
 
 yl_name_list* yl_parser::name_list( yl_ast_node* list )
 {
-    if ( list->kind == XEC_NAME_LIST )
+    if ( list->kind == YL_NAME_LIST )
     {
         return (yl_name_list*)list;
     }
     else
     {
-        assert( list->kind == XEC_NAME_NAME );
+        assert( list->kind == YL_NAME_NAME );
         yl_name_list* l = alloc< yl_name_list >( list->sloc );
         l->names.push_back( (yl_name_name*)list );
         return l;
@@ -752,7 +752,7 @@ yl_name_list* yl_parser::name_list( yl_ast_node* list )
 
 yl_expr_list* yl_parser::expr_list( yl_ast_node* list )
 {
-    if ( list->kind == XEC_EXPR_LIST )
+    if ( list->kind == YL_EXPR_LIST )
     {
         return (yl_expr_list*)list;
     }
@@ -770,14 +770,14 @@ yl_ast_node* yl_parser::mono( yl_ast_node* expr )
     // Suppress multiple values and method calls.
     switch ( expr->kind )
     {
-    case XEC_EXPR_KEY:
-    case XEC_EXPR_INKEY:
-    case XEC_EXPR_CALL:
-    case XEC_EXPR_YIELD:
-    case XEC_EXPR_VARARG:
-    case XEC_EXPR_UNPACK:
-    case XEC_EXPR_LIST:
-    case XEC_EXPR_ASSIGN_LIST:
+    case YL_EXPR_KEY:
+    case YL_EXPR_INKEY:
+    case YL_EXPR_CALL:
+    case YL_EXPR_YIELD:
+    case YL_EXPR_VARARG:
+    case YL_EXPR_UNPACK:
+    case YL_EXPR_LIST:
+    case YL_EXPR_ASSIGN_LIST:
         return alloc< yl_expr_mono >( expr->sloc, expr );
         
     default:
@@ -792,14 +792,14 @@ yl_ast_node* yl_parser::unpack( yl_ast_node* expr )
     // Assign unpack to call expressions.
     switch ( expr->kind )
     {
-    case XEC_EXPR_CALL:
+    case YL_EXPR_CALL:
     {
         yl_expr_call* call = (yl_expr_call*)expr;
         call->unpack = true;
         break;
     }
     
-    case XEC_EXPR_YIELD:
+    case YL_EXPR_YIELD:
     {
         yl_expr_yield* yield = (yl_expr_yield*)expr;
         yield->unpack = true;
@@ -823,7 +823,7 @@ yl_ast_node* yl_parser::compare( int sloc,
 {
     // Build a compare expression.
     yl_expr_compare* c;
-    if ( lhs->kind == XEC_EXPR_COMPARE )
+    if ( lhs->kind == YL_EXPR_COMPARE )
         c = (yl_expr_compare*)lhs;
     else
         c = alloc< yl_expr_compare >( lhs->sloc, lhs );
@@ -843,7 +843,7 @@ yl_ast_node* yl_parser::compare( int sloc,
 yl_ast_node* yl_parser::assign( int sloc,
                 yl_ast_opkind op, yl_ast_node* lv, yl_ast_node* rv )
 {
-    if ( lv->kind == XEC_EXPR_LIST )
+    if ( lv->kind == YL_EXPR_LIST )
     {
         yl_expr_assign_list* a;
         a = alloc< yl_expr_assign_list >( lv->sloc, op );
@@ -872,18 +872,18 @@ yl_ast_node* yl_parser::varstmt(
         rvals = alloc< yl_expr_null >( sloc );
     
     // Declare.
-    if ( names->kind == XEC_NAME_NAME )
+    if ( names->kind == YL_NAME_NAME )
     {
         yl_expr_assign* assign =
-                alloc< yl_expr_assign >( sloc, XEC_ASTOP_DECLARE );
+                alloc< yl_expr_assign >( sloc, YL_ASTOP_DECLARE );
         assign->lvalue = declare( names );
         assign->rvalue = rvals;
         return assign;
     }
-    else if ( names->kind == XEC_NAME_LIST )
+    else if ( names->kind == YL_NAME_LIST )
     {
         yl_expr_assign_list* assign = alloc< yl_expr_assign_list >(
-                        sloc, XEC_ASTOP_DECLARE );
+                        sloc, YL_ASTOP_DECLARE );
         declare_list( names, &assign->lvalues );
         assign->rvalues = rvals;
         return assign;
@@ -896,7 +896,7 @@ yl_ast_node* yl_parser::varstmt(
 yl_ast_node* yl_parser::delstmt( int sloc, yl_ast_node* expr )
 {
     yl_stmt_delete* del = alloc< yl_stmt_delete >( sloc );
-    if ( expr->kind == XEC_EXPR_LIST )
+    if ( expr->kind == YL_EXPR_LIST )
     {
         yl_expr_list* l = (yl_expr_list*)expr;
         for ( size_t i = 0; i < l->values.size(); ++l )
@@ -995,7 +995,7 @@ yl_ast_name* yl_parser::declare( int sloc, const char* name )
 
 yl_ast_node* yl_parser::declare( yl_ast_node* name )
 {
-    assert( name->kind == XEC_NAME_NAME );
+    assert( name->kind == YL_NAME_NAME );
     yl_name_name* n = (yl_name_name*)name;
     yl_ast_name* m = declare( n->sloc, n->name );
     return alloc< yl_expr_local >( m->sloc, m );
@@ -1004,11 +1004,11 @@ yl_ast_node* yl_parser::declare( yl_ast_node* name )
 
 void yl_parser::declare_list( yl_ast_node* names, yl_ast_node_list* lv )
 {
-    if ( names->kind == XEC_NAME_NAME )
+    if ( names->kind == YL_NAME_NAME )
     {
         lv->push_back( declare( names ) );
     }
-    else if ( names->kind == XEC_NAME_LIST )
+    else if ( names->kind == YL_NAME_LIST )
     {
         yl_name_list* l = (yl_name_list*)names;
         for ( size_t i = 0; i < l->names.size(); ++i )
@@ -1039,23 +1039,23 @@ void yl_parser::declname( int sloc, yl_ast_node* name, yl_ast_node* decl )
     // Find object.
     yl_ast_scope* scope = get_scope();
     yl_new_object* object = NULL;
-    if ( scope->kind == XEC_SCOPE_OBJECT )
+    if ( scope->kind == YL_SCOPE_OBJECT )
     {
-        assert( scope->node->kind == XEC_NEW_OBJECT );
+        assert( scope->node->kind == YL_NEW_OBJECT );
         object = (yl_new_object*)scope->node;
     }
 
 
     // Resolve and create lvalue to assign to.
     yl_expr_assign* assign =
-                    alloc< yl_expr_assign >( sloc, XEC_ASTOP_ASSIGN );
+                    alloc< yl_expr_assign >( sloc, YL_ASTOP_ASSIGN );
     
-    if ( name->kind == XEC_NAME_NAME )
+    if ( name->kind == YL_NAME_NAME )
     {
         // Single names declare things.
         yl_name_name* n = (yl_name_name*)name;
         yl_ast_name* declname = declare( n->sloc, n->name );
-        assign->assignop = XEC_ASTOP_DECLARE;
+        assign->assignop = YL_ASTOP_DECLARE;
         
         if ( object )
         {
@@ -1068,7 +1068,7 @@ void yl_parser::declname( int sloc, yl_ast_node* name, yl_ast_node* decl )
             assign->lvalue = alloc< yl_expr_local >( sloc, declname );
         }
     }
-    else if ( name->kind == XEC_NAME_QUAL )
+    else if ( name->kind == YL_NAME_QUAL )
     {
         assign->lvalue = declqual( sloc, name, object == NULL );
     }
@@ -1086,12 +1086,12 @@ void yl_parser::declname( int sloc, yl_ast_node* name, yl_ast_node* decl )
 
 yl_ast_node* yl_parser::declqual( int sloc, yl_ast_node* name, bool outer )
 {
-    if ( name->kind == XEC_NAME_NAME )
+    if ( name->kind == YL_NAME_NAME )
     {
         yl_name_name* n = (yl_name_name*)name;
         return lookup( n->sloc, n->name, outer );
     }
-    else if ( name->kind == XEC_NAME_QUAL )
+    else if ( name->kind == YL_NAME_QUAL )
     {
         yl_name_qual* q = (yl_name_qual*)name;
         yl_ast_node* scope = declqual( q->sloc, q->scope, outer );
@@ -1111,13 +1111,13 @@ yl_ast_scope* yl_parser::imply(
     // corresponding prototypes.
 
     const char* s = NULL;
-    if ( name->kind == XEC_NAME_NAME )
+    if ( name->kind == YL_NAME_NAME )
     {
         // Declare/lookup using the name.
         yl_name_name* n = (yl_name_name*)name;
         s = n->name;
     }
-    else if ( name->kind == XEC_NAME_QUAL )
+    else if ( name->kind == YL_NAME_QUAL )
     {
         // Recurse on scopes and get the rightmost name.
         yl_name_qual* q = (yl_name_qual*)name;
@@ -1141,7 +1141,7 @@ yl_ast_scope* yl_parser::imply(
     
     // Actually imply.
     yl_ast_scope* implied = alloc< yl_ast_scope >(
-                XEC_SCOPE_IMPLIED, scope, nullptr, scope->func );
+                YL_SCOPE_IMPLIED, scope, nullptr, scope->func );
     scope->implied.emplace( s, implied );
     return implied;
 }
@@ -1161,14 +1161,14 @@ yl_ast_scope* yl_parser::lookup_prototype( int sloc,
     yl_ast_scope* scope = NULL;
     const char* s = NULL;
     
-    if ( name->kind == XEC_NAME_NAME )
+    if ( name->kind == YL_NAME_NAME )
     {
         // Use name.
         yl_name_name* n = (yl_name_name*)name;
         scope = outer;
         s = n->name;
     }
-    else if ( name->kind == XEC_NAME_QUAL )
+    else if ( name->kind == YL_NAME_QUAL )
     {
         // Look up implied scopes and use rightmost name.
         yl_name_qual* q = (yl_name_qual*)name;
@@ -1176,7 +1176,7 @@ yl_ast_scope* yl_parser::lookup_prototype( int sloc,
         s = q->name;
     }
     
-    if ( ! scope || scope->kind != XEC_SCOPE_OBJECT )
+    if ( ! scope || scope->kind != YL_SCOPE_OBJECT )
         return outer;
 
     // Look up prototype.
@@ -1237,7 +1237,7 @@ int yl_parser::upval( yl_ast_func* func, yl_ast_upval uv )
     yl_ast_func* outer = func->scope->outer->func;
     switch ( uv.kind )
     {
-    case XEC_UPVAL_LOCAL:
+    case YL_UPVAL_LOCAL:
         if ( uv.local->scope->func != outer )
         {
             // Import upval into outer function.
@@ -1250,7 +1250,7 @@ int yl_parser::upval( yl_ast_func* func, yl_ast_upval uv )
         }
         break;
     
-    case XEC_UPVAL_OBJECT:
+    case YL_UPVAL_OBJECT:
         if ( uv.object->scope->func != outer )
         {
             // Import upval into outer function.
@@ -1263,7 +1263,7 @@ int yl_parser::upval( yl_ast_func* func, yl_ast_upval uv )
         }
         break;
     
-    case XEC_UPVAL_UPVAL:
+    case YL_UPVAL_UPVAL:
         assert( ! "cannot resolve already resolved upval" );
         break;
     }
@@ -1293,8 +1293,8 @@ yl_ast_node* yl_parser::delval( yl_ast_node* delval )
     // Expression must be a single deletable lvalue.
     switch ( delval->kind )
     {
-    case XEC_EXPR_KEY:
-    case XEC_EXPR_INKEY:
+    case YL_EXPR_KEY:
+    case YL_EXPR_INKEY:
         break;
     
     default:

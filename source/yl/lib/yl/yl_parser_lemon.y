@@ -462,14 +462,14 @@ expr_suffix(x)  ::= expr_suffix(expr) INCREMENT(token) .
                 {
                     expr = p->lvalue( expr );
                     x = p->alloc< yl_expr_postop >(
-                             expr->sloc, XEC_ASTOP_POSTINC, expr );
+                             expr->sloc, YL_ASTOP_POSTINC, expr );
                     p->destroy( token );
                 }
 expr_suffix(x)  ::= expr_suffix(expr) DECREMENT(token) .
                 {
                     expr = p->lvalue( expr );
                     x = p->alloc< yl_expr_postop >(
-                             expr->sloc, XEC_ASTOP_POSTDEC, expr );
+                             expr->sloc, YL_ASTOP_POSTDEC, expr );
                     p->destroy( token );
                 }
 
@@ -480,39 +480,39 @@ expr_unary(x)   ::= expr_suffix(expr) .
 expr_unary(x)   ::= PLUS(token) expr_unary(expr) .
                 {
                     x = p->alloc< yl_expr_unary >(
-                             token->sloc, XEC_ASTOP_POSITIVE, expr );
+                             token->sloc, YL_ASTOP_POSITIVE, expr );
                     p->destroy( token );
                 }
 expr_unary(x)   ::= MINUS(token) expr_unary(expr) .
                 {
                     x = p->alloc< yl_expr_unary >(
-                             token->sloc, XEC_ASTOP_NEGATIVE, expr );
+                             token->sloc, YL_ASTOP_NEGATIVE, expr );
                     p->destroy( token );
                 }
 expr_unary(x)   ::= XMARK(token) expr_unary(expr) .
                 {
                     x = p->alloc< yl_expr_unary >(
-                             token->sloc, XEC_ASTOP_LOGICNOT, expr );
+                             token->sloc, YL_ASTOP_LOGICNOT, expr );
                     p->destroy( token );
                 }
 expr_unary(x)   ::= TILDE(token) expr_unary(expr) .
                 {
                     x = p->alloc< yl_expr_unary >(
-                             token->sloc, XEC_ASTOP_BITNOT, expr );
+                             token->sloc, YL_ASTOP_BITNOT, expr );
                     p->destroy( token );
                 }
 expr_unary(x)   ::= INCREMENT(token) expr_unary(expr) .
                 {
                     expr = p->lvalue( expr );
                     x = p->alloc< yl_expr_preop >(
-                             token->sloc, XEC_ASTOP_PREINC, expr );
+                             token->sloc, YL_ASTOP_PREINC, expr );
                     p->destroy( token );
                 }
 expr_unary(x)   ::= DECREMENT(token) expr_unary(expr) .
                 {
                     expr = p->lvalue( expr );
                     x = p->alloc< yl_expr_preop >(
-                             token->sloc, XEC_ASTOP_PREDEC, expr );
+                             token->sloc, YL_ASTOP_PREDEC, expr );
                     p->destroy( token );
                 }
 
@@ -523,25 +523,25 @@ expr_mul(x)     ::= expr_unary(expr) .
 expr_mul(x)     ::= expr_mul(lhs) ASTERISK(token) expr_unary(rhs) .
                 {
                     x = p->alloc< yl_expr_binary >( lhs->sloc,
-                                    XEC_ASTOP_MULTIPLY, lhs, rhs );
+                                    YL_ASTOP_MULTIPLY, lhs, rhs );
                     p->destroy( token );
                 }
 expr_mul(x)     ::= expr_mul(lhs) SOLIDUS(token) expr_unary(rhs) .
                 {
                     x = p->alloc< yl_expr_binary >( lhs->sloc,
-                                    XEC_ASTOP_DIVIDE, lhs, rhs );
+                                    YL_ASTOP_DIVIDE, lhs, rhs );
                     p->destroy( token );
                 }
 expr_mul(x)     ::= expr_mul(lhs) PERCENT(token) expr_unary(rhs) .
                 {
                     x = p->alloc< yl_expr_binary >( lhs->sloc,
-                                    XEC_ASTOP_MODULUS, lhs, rhs );
+                                    YL_ASTOP_MODULUS, lhs, rhs );
                     p->destroy( token );
                 }
 expr_mul(x)     ::= expr_mul(lhs) TILDE(token) expr_unary(rhs) .
                 {
                     x = p->alloc< yl_expr_binary >( lhs->sloc,
-                                    XEC_ASTOP_INTDIV, lhs, rhs );
+                                    YL_ASTOP_INTDIV, lhs, rhs );
                     p->destroy( token );
                 }
 
@@ -552,13 +552,13 @@ expr_add(x)     ::= expr_mul(expr) .
 expr_add(x)     ::= expr_add(lhs) PLUS(token) expr_mul(rhs) .
                 {
                     x = p->alloc< yl_expr_binary >( lhs->sloc,
-                                    XEC_ASTOP_ADD, lhs, rhs );
+                                    YL_ASTOP_ADD, lhs, rhs );
                     p->destroy( token );
                 }
 expr_add(x)     ::= expr_add(lhs) MINUS(token) expr_mul(rhs) .
                 {
                     x = p->alloc< yl_expr_binary >( lhs->sloc,
-                                    XEC_ASTOP_SUBTRACT, lhs, rhs );
+                                    YL_ASTOP_SUBTRACT, lhs, rhs );
                     p->destroy( token );
                 }
 
@@ -569,19 +569,19 @@ expr_shift(x)   ::= expr_add(expr) .
 expr_shift(x)   ::= expr_shift(lhs) LSHIFT(token) expr_add(rhs) .
                 {
                     x = p->alloc< yl_expr_binary >( lhs->sloc,
-                                    XEC_ASTOP_LSHIFT, lhs, rhs );
+                                    YL_ASTOP_LSHIFT, lhs, rhs );
                     p->destroy( token );
                 }
 expr_shift(x)   ::= expr_shift(lhs) LRSHIFT(token) expr_add(rhs) .
                 {
                     x = p->alloc< yl_expr_binary >( lhs->sloc,
-                                    XEC_ASTOP_LRSHIFT, lhs, rhs );
+                                    YL_ASTOP_LRSHIFT, lhs, rhs );
                     p->destroy( token );
                 }
 expr_shift(x)   ::= expr_shift(lhs) ARSHIFT(token) expr_add(rhs) .
                 {
                     x = p->alloc< yl_expr_binary >( lhs->sloc,
-                                    XEC_ASTOP_ARSHIFT, lhs, rhs );
+                                    YL_ASTOP_ARSHIFT, lhs, rhs );
                     p->destroy( token );
                 }
 
@@ -592,7 +592,7 @@ expr_bitand(x)  ::= expr_shift(expr) .
 expr_bitand(x)  ::= expr_bitand(lhs) AMPERSAND(token) expr_shift(rhs) .
                 {
                     x = p->alloc< yl_expr_binary >( lhs->sloc,
-                                    XEC_ASTOP_BITAND, lhs, rhs );
+                                    YL_ASTOP_BITAND, lhs, rhs );
                     p->destroy( token );
                 }
 
@@ -603,7 +603,7 @@ expr_bitxor(x)  ::= expr_bitand(expr) .
 expr_bitxor(x)  ::= expr_bitxor(lhs) CARET(token) expr_bitand(rhs) .
                 {
                     x = p->alloc< yl_expr_binary >( lhs->sloc,
-                                    XEC_ASTOP_BITXOR, lhs, rhs );
+                                    YL_ASTOP_BITXOR, lhs, rhs );
                     p->destroy( token );
                 }
 
@@ -614,7 +614,7 @@ expr_bitor(x)   ::= expr_bitxor(expr) .
 expr_bitor(x)   ::= expr_bitor(lhs) VBAR(token) expr_bitxor(rhs) .
                 {
                     x = p->alloc< yl_expr_binary >( lhs->sloc,
-                                    XEC_ASTOP_BITOR, lhs, rhs );
+                                    YL_ASTOP_BITOR, lhs, rhs );
                     p->destroy( token );
                 }
 
@@ -625,7 +625,7 @@ expr_concat(x)  ::= expr_bitor(expr) .
 expr_concat(x)  ::= expr_concat(lhs) CONCATENATE(token) expr_bitor(rhs) .
                 {
                     x = p->alloc< yl_expr_binary >( lhs->sloc,
-                                    XEC_ASTOP_CONCATENATE, lhs, rhs );
+                                    YL_ASTOP_CONCATENATE, lhs, rhs );
                     p->destroy( token );
                 }
 
@@ -641,43 +641,43 @@ expr_compare(x) ::= expr_compare(lhs) compare_op(tokenop) expr_concat(rhs) .
 
 compare_op(x)   ::= EQUAL(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_EQUAL );
+                    x = make_token_op( token, YL_ASTOP_EQUAL );
                 }
 compare_op(x)   ::= NOTEQUAL(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_NOTEQUAL );
+                    x = make_token_op( token, YL_ASTOP_NOTEQUAL );
                 }
 compare_op(x)   ::= LESS(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_LESS );
+                    x = make_token_op( token, YL_ASTOP_LESS );
                 }
 compare_op(x)   ::= GREATER(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_GREATER );
+                    x = make_token_op( token, YL_ASTOP_GREATER );
                 }
 compare_op(x)   ::= LESSEQUAL(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_LESSEQUAL );
+                    x = make_token_op( token, YL_ASTOP_LESSEQUAL );
                 }
 compare_op(x)   ::= GREATEREQUAL(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_GREATEREQUAL );
+                    x = make_token_op( token, YL_ASTOP_GREATEREQUAL );
                 }
 compare_op(x)   ::= IN(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_IN );
+                    x = make_token_op( token, YL_ASTOP_IN );
                 }
 compare_op(x)   ::= NOTIN(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_NOTIN );
+                    x = make_token_op( token, YL_ASTOP_NOTIN );
                 }
 compare_op(x)   ::= IS(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_IS );
+                    x = make_token_op( token, YL_ASTOP_IS );
                 }
 compare_op(x)   ::= NOTIS(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_NOTIS );
+                    x = make_token_op( token, YL_ASTOP_NOTIS );
                 }
 
 
@@ -688,7 +688,7 @@ expr_and(x)     ::= expr_compare(expr) .
 expr_and(x)     ::= expr_and(lhs) LOGICAND(token) expr_compare(rhs) .
                 {
                     x = p->alloc< yl_expr_logical >( lhs->sloc,
-                                    XEC_ASTOP_LOGICAND, lhs, rhs );
+                                    YL_ASTOP_LOGICAND, lhs, rhs );
                     p->destroy( token );
                 }
 
@@ -699,7 +699,7 @@ expr_xor(x)     ::= expr_and(expr) .
 expr_xor(x)     ::= expr_xor(lhs) LOGICXOR(token) expr_and(rhs) .
                 {
                     x = p->alloc< yl_expr_logical >( lhs->sloc,
-                                    XEC_ASTOP_LOGICXOR, lhs, rhs );
+                                    YL_ASTOP_LOGICXOR, lhs, rhs );
                     p->destroy( token );
                 }
 
@@ -710,7 +710,7 @@ expr_or(x)      ::= expr_xor(expr) .
 expr_or(x)      ::= expr_or(lhs) LOGICOR(token) expr_xor(rhs) .
                 {
                     x = p->alloc< yl_expr_logical >( lhs->sloc,
-                                    XEC_ASTOP_LOGICOR, lhs, rhs );
+                                    YL_ASTOP_LOGICOR, lhs, rhs );
                     p->destroy( token );
                 }
 
@@ -875,55 +875,55 @@ expr_assign(x)  ::= expr_lbody(lv) assign_op(tokenop) expr_assign(rv) .
 // Assignment operators.
 assign_op(x)    ::= ASSIGN(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_ASSIGN );
+                    x = make_token_op( token, YL_ASTOP_ASSIGN );
                 }
 assign_op(x)    ::= MULASSIGN(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_MULASSIGN );
+                    x = make_token_op( token, YL_ASTOP_MULASSIGN );
                 }
 assign_op(x)    ::= DIVASSIGN(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_DIVASSIGN );
+                    x = make_token_op( token, YL_ASTOP_DIVASSIGN );
                 }
 assign_op(x)    ::= MODASSIGN(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_MODASSIGN );
+                    x = make_token_op( token, YL_ASTOP_MODASSIGN );
                 }
 assign_op(x)    ::= INTDIVASSIGN(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_INTDIVASSIGN );
+                    x = make_token_op( token, YL_ASTOP_INTDIVASSIGN );
                 }
 assign_op(x)    ::= ADDASSIGN(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_ADDASSIGN );
+                    x = make_token_op( token, YL_ASTOP_ADDASSIGN );
                 }
 assign_op(x)    ::= SUBASSIGN(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_SUBASSIGN );
+                    x = make_token_op( token, YL_ASTOP_SUBASSIGN );
                 }
 assign_op(x)    ::= LSHIFTASSIGN(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_LSHIFTASSIGN );
+                    x = make_token_op( token, YL_ASTOP_LSHIFTASSIGN );
                 }
 assign_op(x)    ::= LRSHIFTASSIGN(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_LRSHIFTASSIGN );
+                    x = make_token_op( token, YL_ASTOP_LRSHIFTASSIGN );
                 }
 assign_op(x)    ::= ARSHIFTASSIGN(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_ARSHIFTASSIGN );
+                    x = make_token_op( token, YL_ASTOP_ARSHIFTASSIGN );
                 }
 assign_op(x)    ::= BITANDASSIGN(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_BITANDASSIGN );
+                    x = make_token_op( token, YL_ASTOP_BITANDASSIGN );
                 }
 assign_op(x)    ::= BITXORASSIGN(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_BITXORASSIGN );
+                    x = make_token_op( token, YL_ASTOP_BITXORASSIGN );
                 }
 assign_op(x)    ::= BITORASSIGN(token) .
                 {
-                    x = make_token_op( token, XEC_ASTOP_BITORASSIGN );
+                    x = make_token_op( token, YL_ASTOP_BITORASSIGN );
                 }
 
 // Non-empty lists for list [ ... ] constructors.

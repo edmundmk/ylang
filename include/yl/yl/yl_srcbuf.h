@@ -6,8 +6,8 @@
 //
 
 
-#ifndef XEC_SRCBUF_H
-#define XEC_SRCBUF_H
+#ifndef YL_SRCBUF_H
+#define YL_SRCBUF_H
 
 
 #include <stdarg.h>

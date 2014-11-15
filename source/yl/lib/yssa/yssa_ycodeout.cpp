@@ -57,7 +57,7 @@ static size_t collect_ops( std::vector< yssaop* >* ops,
     while ( index < l->lops.size() )
     {
         yssalop* lop = &l->lops.at( index );
-        if ( lop->kind == XSSA_LOP_OP && lop->op->opcode == opcode )
+        if ( lop->kind == YSSA_LOP_OP && lop->op->opcode == opcode )
         {
             ops->push_back( lop->op );
             index += 1;
@@ -117,14 +117,14 @@ void yssa_ycodeout::build_func( yssa_linear* l )
     
     
     // At the start of a block, remember label so we can jump to it.
-    if ( lop->kind == XSSA_LOP_BEGIN )
+    if ( lop->kind == YSSA_LOP_BEGIN )
     {
         label( lop->block );
         continue;
     }
     
     // At the end of a block, do control flow.
-    if ( lop->kind == XSSA_LOP_END )
+    if ( lop->kind == YSSA_LOP_END )
     {
         control_flow( lop->block );
         continue;
@@ -133,7 +133,7 @@ void yssa_ycodeout::build_func( yssa_linear* l )
     
     
     // live markers are uninteresting.
-    if ( lop->kind == XSSA_LOP_LIVE )
+    if ( lop->kind == YSSA_LOP_LIVE )
     {
         continue;
     }
@@ -142,143 +142,143 @@ void yssa_ycodeout::build_func( yssa_linear* l )
     
     
     // Assemble code for normal ops.
-    assert( lop->kind == XSSA_LOP_OP );
+    assert( lop->kind == YSSA_LOP_OP );
     yssaop* op = lop->op;
     
     switch ( op->opcode )
     {
-    case XSSA_NOP:
+    case YSSA_NOP:
         break;
     
     // constants
-    case XSSA_NULL:
+    case YSSA_NULL:
         inst( Y_NULL, o( op->r ), 0, 0 );
         break;
-    case XSSA_NUMBER:
+    case YSSA_NUMBER:
         value( o( op->r ), op->number );
         break;
-    case XSSA_BOOL:
+    case YSSA_BOOL:
         value( o( op->r ), op->boolean ? yvalue::ytrue : yvalue::yfalse );
         break;
-    case XSSA_STRING:
+    case YSSA_STRING:
         value( o( op->r ), ystring::alloc( op->string->length, op->string->string ) );
         break;
 
     // unary operations
-    case XSSA_POS:
+    case YSSA_POS:
         inst( Y_POS, o( op->r ), o( op->operand[ 0 ] ), 0 );
         break;
-    case XSSA_NEG:
+    case YSSA_NEG:
         inst( Y_NEG, o( op->r ), o( op->operand[ 0 ] ), 0 );
         break;
-    case XSSA_NOT:
+    case YSSA_NOT:
         inst( Y_NOT, o( op->r ), o( op->operand[ 0 ] ), 0 );
         break;
-    case XSSA_LNOT:
+    case YSSA_LNOT:
         inst( Y_LNOT, o( op->r ), o( op->operand[ 0 ] ), 0 );
         break;
 
     // binary operations
-    case XSSA_MUL:
+    case YSSA_MUL:
         inst( Y_MUL, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_DIV:
+    case YSSA_DIV:
         inst( Y_DIV, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_MOD:
+    case YSSA_MOD:
         inst( Y_MOD, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_INTDIV:
+    case YSSA_INTDIV:
         inst( Y_INTDIV, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_ADD:
+    case YSSA_ADD:
         inst( Y_ADD, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_SUB:
+    case YSSA_SUB:
         inst( Y_SUB, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_LSL:
+    case YSSA_LSL:
         inst( Y_LSL, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_LSR:
+    case YSSA_LSR:
         inst( Y_LSR, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_ASR:
+    case YSSA_ASR:
         inst( Y_ASR, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_AND:
+    case YSSA_AND:
         inst( Y_AND, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_XOR:
+    case YSSA_XOR:
         inst( Y_XOR, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_OR:
+    case YSSA_OR:
         inst( Y_OR, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_CONCAT:
+    case YSSA_CONCAT:
         inst( Y_CONCAT, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
     
     // comparisons
-    case XSSA_EQ:
+    case YSSA_EQ:
         inst( Y_EQ, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_LT:
+    case YSSA_LT:
         inst( Y_LT, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_LE:
+    case YSSA_LE:
         inst( Y_LE, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_IN:
+    case YSSA_IN:
         inst( Y_IN, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_IS:
+    case YSSA_IS:
         inst( Y_IS, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
 
     // logical operations
-    case XSSA_LXOR:
+    case YSSA_LXOR:
         inst( Y_LXOR, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
     
     // indexing
-    case XSSA_KEY:
+    case YSSA_KEY:
         inst( Y_KEY, o( op->r ), o( op->operand[ 0 ] ), k( op->key ) );
         break;
-    case XSSA_INKEY:
+    case YSSA_INKEY:
         inst( Y_INKEY, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_INDEX:
+    case YSSA_INDEX:
         inst( Y_INDEX, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_GLOBAL:
+    case YSSA_GLOBAL:
         inst( Y_GLOBAL, o( op->r ), 0, k( op->key ) );
         break;
 
     // assignment
-    case XSSA_SETKEY:
+    case YSSA_SETKEY:
         inst( Y_SETKEY, o( op->operand[ 1 ] ), o( op->operand[ 0 ] ), k( op->key ) );
         break;
-    case XSSA_SETINKEY:
+    case YSSA_SETINKEY:
         inst( Y_SETINKEY, o( op->operand[ 2 ] ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_SETINDEX:
+    case YSSA_SETINDEX:
         inst( Y_SETINDEX, o( op->operand[ 2 ] ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_SETGLOBAL:
+    case YSSA_SETGLOBAL:
         inst( Y_SETGLOBAL, o( op->operand[ 0 ] ), 0, k( op->key ) );
         break;
     
     // key deletion
-    case XSSA_DELKEY:
+    case YSSA_DELKEY:
         inst( Y_INKEY, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
-    case XSSA_DELINKEY:
+    case YSSA_DELINKEY:
         inst( Y_INKEY, o( op->r ), o( op->operand[ 0 ] ), o( op->operand[ 1 ] ) );
         break;
     
     // upvals (loads/stores are represented explicitly)
-    case XSSA_NEWUP:
+    case YSSA_NEWUP:
     {
         assert( op->immed >= func->upvalcount );
         int nuindex = op->immed - func->upvalcount;
@@ -286,7 +286,7 @@ void yssa_ycodeout::build_func( yssa_linear* l )
         break;
     }
     
-    case XSSA_SETUP:
+    case YSSA_SETUP:
     {
         if ( op->immed < func->upvalcount )
         {
@@ -300,7 +300,7 @@ void yssa_ycodeout::build_func( yssa_linear* l )
         break;
     }
     
-    case XSSA_REFUP:
+    case YSSA_REFUP:
     {
         // Upvals which are inputs to closures shouldn't have been allocated
         // a destination register.
@@ -322,11 +322,11 @@ void yssa_ycodeout::build_func( yssa_linear* l )
         break;
     }
     
-    case XSSA_CLOUP:
+    case YSSA_CLOUP:
     {
         // Collect a run of closes and sort them.
         std::vector< yssaop* > close_ops;
-        index = collect_ops( &close_ops, l, index, XSSA_CLOUP );
+        index = collect_ops( &close_ops, l, index, YSSA_CLOUP );
         std::sort( close_ops.begin(), close_ops.end(), compare_immed );
 
         // Close adjacent upvals in one go.
@@ -362,33 +362,33 @@ void yssa_ycodeout::build_func( yssa_linear* l )
     }
     
     // allocation
-    case XSSA_OBJECT:
+    case YSSA_OBJECT:
     {
         int proto = op->operand[ 0 ] ? o( op->operand[ 0 ] ) : Y_NOVAL;
         inst( Y_OBJECT, o( op->r ), proto, 0 );
         break;
     }
     
-    case XSSA_TABLE:
+    case YSSA_TABLE:
     {
         inst( Y_TABLE, o( op->r ), op->immed );
         break;
     }
     
-    case XSSA_ARRAY:
+    case YSSA_ARRAY:
     {
         inst( Y_ARRAY, o( op->r ), op->immed );
         break;
     }
 
     // array operations.
-    case XSSA_APPEND:
+    case YSSA_APPEND:
     {
         inst( Y_APPEND, o( op->operand[ 1 ] ), o( op->operand[ 0 ] ), 0 );
         break;
     }
     
-    case XSSA_EXTEND:
+    case YSSA_EXTEND:
     {
         // Extend should only have the array and multival operands.
         assert( op->operand_count == 1 );
@@ -398,7 +398,7 @@ void yssa_ycodeout::build_func( yssa_linear* l )
     }
     
     // closures
-    case XSSA_CLOSURE:
+    case YSSA_CLOSURE:
     {
         // Number of upvals must match the number expected.
         assert( op->operand_count == op->func->upvalcount );
@@ -424,7 +424,7 @@ void yssa_ycodeout::build_func( yssa_linear* l )
         for ( size_t i = 0; i < op->operand_count; ++i )
         {
             yssaop* refup = op->operand[ i ];
-            assert( refup->opcode == XSSA_REFUP );
+            assert( refup->opcode == YSSA_REFUP );
             if ( refup->immed < func->upvalcount )
             {
                 inst( Y_ENVUP, 0, refup->immed );
@@ -440,7 +440,7 @@ void yssa_ycodeout::build_func( yssa_linear* l )
     }
 
     // multival
-    case XSSA_VARALL:
+    case YSSA_VARALL:
     {
         // Stacklike unpack of all varags.
         assert( op->r == op->stacktop );
@@ -449,7 +449,7 @@ void yssa_ycodeout::build_func( yssa_linear* l )
         break;
     }
     
-    case XSSA_UNPACK:
+    case YSSA_UNPACK:
     {
         // Stacklike unpack of all elements.
         assert( op->operand_count == 1 );
@@ -459,49 +459,49 @@ void yssa_ycodeout::build_func( yssa_linear* l )
         break;
     }
     
-    case XSSA_CALL:
+    case YSSA_CALL:
     {
         index = call( Y_CALL, l, index );
         break;
     }
     
-    case XSSA_YCALL:
+    case YSSA_YCALL:
     {
         index = call( Y_YCALL, l, index );
         break;
     }
     
-    case XSSA_YIELD:
+    case YSSA_YIELD:
     {
         index = call( Y_YIELD, l, index );
         break;
     }
     
     // iterators
-    case XSSA_ITER:
+    case YSSA_ITER:
     {
         inst( Y_ITER, o( op->r ), o( op->operand[ 0 ] ), 0 );
         break;
     }
     
-    case XSSA_ITERKEY:
+    case YSSA_ITERKEY:
     {
         inst( Y_ITERKEY, o( op->r ), o( op->operand[ 0 ] ), 0 );
         break;
     }
     
-    case XSSA_POPITER:
+    case YSSA_POPITER:
     {
         std::vector< yssaop* > popiter_ops;
-        index = collect_ops( &popiter_ops, l, index, XSSA_POPITER );
+        index = collect_ops( &popiter_ops, l, index, YSSA_POPITER );
         inst( Y_POPITER, 0, (int)popiter_ops.size() );
         break;
     }
     
-    case XSSA_NEXT:
+    case YSSA_NEXT:
     {
         std::vector< yssaop* > select_ops;
-        size_t last = collect_ops( &select_ops, l, index + 1, XSSA_SELECT );
+        size_t last = collect_ops( &select_ops, l, index + 1, YSSA_SELECT );
     
         if ( op->result_count == 1 && select_ops.size() == 1 )
         {
@@ -526,7 +526,7 @@ void yssa_ycodeout::build_func( yssa_linear* l )
     }
     
     // flow control
-    case XSSA_RETURN:
+    case YSSA_RETURN:
     {
         arguments( op );
         int a = op->multival ? Y_MARK : op->operand_count;
@@ -535,11 +535,11 @@ void yssa_ycodeout::build_func( yssa_linear* l )
     }
     
     // selection
-    case XSSA_PARAM:
+    case YSSA_PARAM:
     {
         // Collect parameters.
         std::vector< yssaop* > param_ops;
-        index = collect_ops( &param_ops, l, index, XSSA_PARAM );
+        index = collect_ops( &param_ops, l, index, YSSA_PARAM );
         
         // Construct register transfer graph.
         yssa_rtgraph rtg;
@@ -554,33 +554,33 @@ void yssa_ycodeout::build_func( yssa_linear* l )
         break;
     }
     
-    case XSSA_VARARG:
+    case YSSA_VARARG:
     {
         inst( Y_VARARG, o( op->r ), op->immed );
         break;
     }
     
-    case XSSA_SELECT:
+    case YSSA_SELECT:
     {
         // Should be dealt with as part of the ops they select from.
         break;
     }
     
-    case XSSA_ELEM:
+    case YSSA_ELEM:
     {
         inst( Y_ELEM, o( op->r ), op->immed );
         break;
     }
 
     // SSA-form
-    case XSSA_PHI:
+    case YSSA_PHI:
     {
         // Dealt with in control_flow().
         break;
     }
     
-    case XSSA_REF:
-    case XSSA_PSI:
+    case YSSA_REF:
+    case YSSA_PSI:
     {
         assert( ! "virtual SSA op" );
         break;
@@ -923,7 +923,7 @@ void yssa_ycodeout::arguments( yssaop* op )
 size_t yssa_ycodeout::call( ycode opcode, yssa_linear* l, size_t index )
 {
     yssalop* lop = &l->lops.at( index );
-    assert( lop->kind == XSSA_LOP_OP );
+    assert( lop->kind == YSSA_LOP_OP );
     yssaop* op = lop->op;
 
     // Build register transfer to get arguments in correct positions.
@@ -945,7 +945,7 @@ size_t yssa_ycodeout::select( yssa_linear* l, size_t index )
 {
     // The op that we're at is the one that generates the values to select.
     yssalop* lop = &l->lops.at( index );
-    assert( lop->kind == XSSA_LOP_OP );
+    assert( lop->kind == YSSA_LOP_OP );
     yssaop* op = lop->op;
 
     // Build register transfer graph.
@@ -960,7 +960,7 @@ size_t yssa_ycodeout::select( yssa_linear* l, size_t index )
 
     // Or there might be selects after all.
     std::vector< yssaop* > select_ops;
-    index = collect_ops( &select_ops, l, index + 1, XSSA_SELECT );
+    index = collect_ops( &select_ops, l, index + 1, YSSA_SELECT );
     for ( size_t i = 0; i < select_ops.size(); ++i )
     {
         yssaop* select = select_ops.at( i );
@@ -1108,7 +1108,7 @@ void yssa_ycodeout::phi(
     for ( size_t i = 0; i < to->phi.size(); ++i )
     {
         yssaop* phiop = to->phi.at( i );
-        if ( ! phiop || phiop->opcode != XSSA_PHI )
+        if ( ! phiop || phiop->opcode != YSSA_PHI )
         {
             continue;
         }
@@ -1180,7 +1180,7 @@ void yssa_ycodeout::jump( ycode opcode, int r, void* label )
 
 void yssa_ycodeout::branch( yssaop* condition, bool iftrue, void* label )
 {
-    if ( condition->opcode == XSSA_NEXT )
+    if ( condition->opcode == YSSA_NEXT )
     {
         ycode opcode = iftrue ? Y_IFITER : Y_IFNITER;
         jump( opcode, 0, label );

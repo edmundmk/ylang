@@ -33,9 +33,9 @@
     Loop and undefined markers used when looking up definitions of variables.
 */
 
-static yssaop* const XSSA_UNDEF = (yssaop*)-1;
-static yssaop* const XSSA_LOOP  = (yssaop*)-2;
-static yssaop* const XSSA_SELF  = (yssaop*)-3;
+static yssaop* const YSSA_UNDEF = (yssaop*)-1;
+static yssaop* const YSSA_LOOP  = (yssaop*)-2;
+static yssaop* const YSSA_SELF  = (yssaop*)-3;
 
 
 
@@ -45,7 +45,7 @@ static yssaop* const XSSA_SELF  = (yssaop*)-3;
 */
 
 yssa_lvalue::yssa_lvalue()
-    :   opcode( XSSA_NOP )
+    :   opcode( YSSA_NOP )
     ,   object( nullptr )
     ,   index( nullptr )
 {
@@ -66,10 +66,10 @@ yssa_valist::yssa_valist()
 
 enum yssa_follow_kind
 {
-    XSSA_FOLLOW_NONE,    // Nowhere, or code is unreachable.
-    XSSA_FOLLOW_BLOCK,   // Place nodes in the active block.
-    XSSA_FOLLOW_IFTRUE,  // Link as iftrue block.
-    XSSA_FOLLOW_IFFALSE, // Link as iffalse block.
+    YSSA_FOLLOW_NONE,    // Nowhere, or code is unreachable.
+    YSSA_FOLLOW_BLOCK,   // Place nodes in the active block.
+    YSSA_FOLLOW_IFTRUE,  // Link as iftrue block.
+    YSSA_FOLLOW_IFFALSE, // Link as iffalse block.
 };
 
 struct yssa_follow
@@ -85,7 +85,7 @@ struct yssa_follow
 
 
 yssa_follow::yssa_follow()
-    :   kind( XSSA_FOLLOW_NONE )
+    :   kind( YSSA_FOLLOW_NONE )
     ,   block( NULL )
 {
 }
@@ -104,7 +104,7 @@ void yssa_follow::reset( yssa_follow_kind kind, yssa_build_block* block )
 
 yssa_follow::operator bool() const
 {
-    return kind != XSSA_FOLLOW_NONE;
+    return kind != YSSA_FOLLOW_NONE;
 }
 
 
@@ -348,7 +348,7 @@ void yssa_builder::define( yl_ast_name* name, yssaop* value )
         if ( i != b->upvals.end() )
         {
             // Existing upval.
-            yssaop* setup = op( name->sloc, XSSA_SETUP, value );
+            yssaop* setup = op( name->sloc, YSSA_SETUP, value );
             setup->immed = i->second;
         }
         else
@@ -357,7 +357,7 @@ void yssa_builder::define( yl_ast_name* name, yssaop* value )
             int index = b->func->upvalcount + b->func->newupcount;
             b->upvals.emplace( name, index );
             b->func->newupcount += 1;
-            yssaop* newup = op( name->sloc, XSSA_NEWUP, value );
+            yssaop* newup = op( name->sloc, YSSA_NEWUP, value );
             newup->immed = index;
         }
     }
@@ -397,7 +397,7 @@ void yssa_builder::define( yl_new_object* object, yssaop* value )
         int index = b->func->upvalcount + b->func->newupcount;
         b->upvals.emplace( object, index );
         b->func->newupcount += 1;
-        yssaop* newup = op( object->sloc, XSSA_NEWUP, value );
+        yssaop* newup = op( object->sloc, YSSA_NEWUP, value );
         newup->immed = index;
     }
 
@@ -415,7 +415,7 @@ yssaop* yssa_builder::lookup( int sloc, yl_ast_name* name )
     if ( name->upval )
     {
         // If this is an upval then construct code to get its value.
-        yssaop* refup = op( sloc, XSSA_REFUP );
+        yssaop* refup = op( sloc, YSSA_REFUP );
         refup->immed = b->upvals.at( name );
         return refup;
     }
@@ -447,18 +447,18 @@ void yssa_builder::close_scope( yl_ast_scope* scope )
         yl_ast_name* decl = *i;
         if ( decl->upval )
         {
-            yssaop* cloup = op( decl->sloc, XSSA_CLOUP );
+            yssaop* cloup = op( decl->sloc, YSSA_CLOUP );
             cloup->immed = b->upvals.at( decl );
         }
     }
     
     // Close object upval if there is one.
-    if ( scope->node->kind == XEC_NEW_OBJECT )
+    if ( scope->node->kind == YL_NEW_OBJECT )
     {
         yl_new_object* object = (yl_new_object*)scope->node;
         if ( object->upval )
         {
-            yssaop* cloup = op( object->sloc, XSSA_CLOUP );
+            yssaop* cloup = op( object->sloc, YSSA_CLOUP );
             cloup->immed = b->upvals.at( object );
         }
     }
@@ -474,8 +474,8 @@ void yssa_builder::ifthen( yssaop* condition )
     if ( follow_block() )
     {
         b->follow.block->block->condition = condition;
-        b->follow.reset( XSSA_FOLLOW_IFTRUE, b->follow.block );
-        buildif.iffalse.reset( XSSA_FOLLOW_IFFALSE, b->follow.block );
+        b->follow.reset( YSSA_FOLLOW_IFTRUE, b->follow.block );
+        buildif.iffalse.reset( YSSA_FOLLOW_IFFALSE, b->follow.block );
     }
 }
 
@@ -516,7 +516,7 @@ void yssa_builder::ifend()
     link( &buildif.aftertrue, join );
     link( &b->follow, join );
     seal_block( join );
-    b->follow.reset( XSSA_FOLLOW_BLOCK, join );
+    b->follow.reset( YSSA_FOLLOW_BLOCK, join );
     b->ifstack.pop_back();
 }
 
@@ -562,7 +562,7 @@ void yssa_builder::loopopen( bool dowhile )
     {
         buildloop.loop = make_block();
         link( &b->follow, buildloop.loop );
-        b->follow.reset( XSSA_FOLLOW_BLOCK, buildloop.loop );
+        b->follow.reset( YSSA_FOLLOW_BLOCK, buildloop.loop );
     }
     else
     {
@@ -587,7 +587,7 @@ void yssa_builder::loopcontinue()
     }
     
     // Now unreachable.
-    b->follow.reset( XSSA_FOLLOW_NONE, NULL );
+    b->follow.reset( YSSA_FOLLOW_NONE, NULL );
 }
 
 void yssa_builder::loopbreak()
@@ -598,7 +598,7 @@ void yssa_builder::loopbreak()
     buildloop.breaks.push_back( b->follow );
 
     // Further statements are unreachable.
-    b->follow.reset( XSSA_FOLLOW_NONE, NULL );
+    b->follow.reset( YSSA_FOLLOW_NONE, NULL );
 }
 
 void yssa_builder::loopdowhile()
@@ -637,7 +637,7 @@ void yssa_builder::loopdowhile()
     
     
     // Continue with this block.
-    b->follow.reset( XSSA_FOLLOW_BLOCK, dowhile );
+    b->follow.reset( YSSA_FOLLOW_BLOCK, dowhile );
 }
 
 void yssa_builder::loopend()
@@ -670,7 +670,7 @@ void yssa_builder::loopend()
             link( &follow, after );
         }
         seal_block( after );
-        b->follow.reset( XSSA_FOLLOW_BLOCK, after );
+        b->follow.reset( YSSA_FOLLOW_BLOCK, after );
     }
 
     b->loopstack.pop_back();
@@ -680,7 +680,7 @@ void yssa_builder::loopend()
 void yssa_builder::funcreturn()
 {
     // Further statements are unreachable.
-    b->follow.reset( XSSA_FOLLOW_NONE, NULL );
+    b->follow.reset( YSSA_FOLLOW_NONE, NULL );
 }
 
 
@@ -712,52 +712,52 @@ void yssa_builder::lvalue( yssa_lvalue* lvalue, yl_ast_node* node )
 
     switch ( node->kind )
     {
-    case XEC_EXPR_LOCAL:
+    case YL_EXPR_LOCAL:
     {
         yl_expr_local* local = (yl_expr_local*)node;
-        lvalue->opcode = XSSA_NOP;
+        lvalue->opcode = YSSA_NOP;
         lvalue->local  = local->name;
         break;
     }
     
-    case XEC_EXPR_GLOBAL:
+    case YL_EXPR_GLOBAL:
     {
         yl_expr_global* global = (yl_expr_global*)node;
-        lvalue->opcode = XSSA_GLOBAL;
+        lvalue->opcode = YSSA_GLOBAL;
         lvalue->key = key( global->name );
         break;
     }
     
-    case XEC_EXPR_UPREF:
+    case YL_EXPR_UPREF:
     {
         yl_expr_upref* upref = (yl_expr_upref*)node;
-        lvalue->opcode = XSSA_SETUP;
+        lvalue->opcode = YSSA_SETUP;
         lvalue->upval  = upref->index;
         break;
     }
     
-    case XEC_EXPR_KEY:
+    case YL_EXPR_KEY:
     {
         yl_expr_key* keyexpr = (yl_expr_key*)node;
-        lvalue->opcode = XSSA_SETKEY;
+        lvalue->opcode = YSSA_SETKEY;
         lvalue->object = expr( keyexpr->object );
         lvalue->key = key( keyexpr->key );
         break;
     }
     
-    case XEC_EXPR_INKEY:
+    case YL_EXPR_INKEY:
     {
         yl_expr_inkey* inkey = (yl_expr_inkey*)node;
-        lvalue->opcode = XSSA_SETINKEY;
+        lvalue->opcode = YSSA_SETINKEY;
         lvalue->object = expr( inkey->object );
         lvalue->index = expr( inkey->key );
         break;
     }
     
-    case XEC_EXPR_INDEX:
+    case YL_EXPR_INDEX:
     {
         yl_expr_index* index = (yl_expr_index*)node;
-        lvalue->opcode = XSSA_SETINDEX;
+        lvalue->opcode = YSSA_SETINDEX;
         lvalue->object = expr( index->object );
         lvalue->index = expr( index->index );
         break;
@@ -773,40 +773,40 @@ yssaop* yssa_builder::lvalue_value( yssa_lvalue* lvalue )
 {
     switch ( lvalue->opcode )
     {
-    case XSSA_NOP:
+    case YSSA_NOP:
     {
         return lookup( lvalue->sloc, lvalue->local );
     }
     
-    case XSSA_GLOBAL:
+    case YSSA_GLOBAL:
     {
-        yssaop* global = op( lvalue->sloc, XSSA_GLOBAL );
+        yssaop* global = op( lvalue->sloc, YSSA_GLOBAL );
         global->key = lvalue->key;
         return global;
     }
     
-    case XSSA_SETUP:
+    case YSSA_SETUP:
     {
-        yssaop* refup = op( lvalue->sloc, XSSA_REFUP );
+        yssaop* refup = op( lvalue->sloc, YSSA_REFUP );
         refup->immed = lvalue->upval;
         return refup;
     }
     
-    case XSSA_SETKEY:
+    case YSSA_SETKEY:
     {
-        yssaop* key = op( lvalue->sloc, XSSA_KEY, lvalue->object );
+        yssaop* key = op( lvalue->sloc, YSSA_KEY, lvalue->object );
         key->key = lvalue->key;
         return key;
     }
     
-    case XSSA_SETINKEY:
+    case YSSA_SETINKEY:
     {
-        return op( lvalue->sloc, XSSA_INKEY, lvalue->object, lvalue->index );
+        return op( lvalue->sloc, YSSA_INKEY, lvalue->object, lvalue->index );
     }
     
-    case XSSA_SETINDEX:
+    case YSSA_SETINDEX:
     {
-        return op( lvalue->sloc, XSSA_INDEX, lvalue->object, lvalue->index );
+        return op( lvalue->sloc, YSSA_INDEX, lvalue->object, lvalue->index );
     }
     
     default:
@@ -820,33 +820,33 @@ void yssa_builder::lvalue_assign(
 {
     switch ( lvalue->opcode )
     {
-    case XSSA_NOP:
+    case YSSA_NOP:
         define( lvalue->local, val );
         break;
         
-    case XSSA_GLOBAL:
+    case YSSA_GLOBAL:
     {
-        yssaop* setglobal = op( lvalue->sloc, XSSA_SETGLOBAL, val );
+        yssaop* setglobal = op( lvalue->sloc, YSSA_SETGLOBAL, val );
         setglobal->key = lvalue->key;
         break;
     }
         
-    case XSSA_SETUP:
+    case YSSA_SETUP:
     {
-        yssaop* setup = op( lvalue->sloc, XSSA_SETUP, val );
+        yssaop* setup = op( lvalue->sloc, YSSA_SETUP, val );
         setup->immed = lvalue->upval;
         break;
     }
 
-    case XSSA_SETKEY:
+    case YSSA_SETKEY:
     {
-        yssaop* setkey = op( lvalue->sloc, XSSA_SETKEY, lvalue->object, val );
+        yssaop* setkey = op( lvalue->sloc, YSSA_SETKEY, lvalue->object, val );
         setkey->key = lvalue->key;
         break;
     }
     
-    case XSSA_SETINKEY:
-    case XSSA_SETINDEX:
+    case YSSA_SETINKEY:
+    case YSSA_SETINDEX:
     {
         op( lvalue->sloc, lvalue->opcode, lvalue->object, lvalue->index, val );
         break;
@@ -872,14 +872,14 @@ void yssa_builder::build_function( yl_ast_func* astf, yssa_func* ssaf )
     // Open block.
     yssa_build_block* block = make_block();
     seal_block( block );
-    b->follow.reset( XSSA_FOLLOW_BLOCK, block );
+    b->follow.reset( YSSA_FOLLOW_BLOCK, block );
 
 
     // Add parameters.
     for ( size_t i = 0; i < astf->parameters.size(); ++i )
     {
         yl_ast_name* param = astf->parameters.at( i );
-        yssaop* n = op( param->sloc, XSSA_PARAM );
+        yssaop* n = op( param->sloc, YSSA_PARAM );
         n->immed = (int)i;
         define( param, n );
     }
@@ -891,7 +891,7 @@ void yssa_builder::build_function( yl_ast_func* astf, yssa_func* ssaf )
     
     // Close scope and return nothing.
     close_scope( astf->scope );
-    yssaop* r = op( astf->sloc, XSSA_RETURN );
+    yssaop* r = op( astf->sloc, YSSA_RETURN );
     r->multival = nullptr;
     funcreturn();
     
@@ -937,13 +937,13 @@ void yssa_builder::link( yssa_follow* follow, yssa_build_block* block )
 
     switch ( follow->kind )
     {
-    case XSSA_FOLLOW_NONE:
+    case YSSA_FOLLOW_NONE:
     {
         // Unreachable code.
         break;
     }
         
-    case XSSA_FOLLOW_BLOCK:
+    case YSSA_FOLLOW_BLOCK:
     {
         assert( ! follow->block->block->condition );
         assert( ! follow->block->block->next );
@@ -952,7 +952,7 @@ void yssa_builder::link( yssa_follow* follow, yssa_build_block* block )
         break;
     }
     
-    case XSSA_FOLLOW_IFTRUE:
+    case YSSA_FOLLOW_IFTRUE:
     {
         assert( follow->block->block->condition );
         assert( ! follow->block->block->iftrue );
@@ -961,7 +961,7 @@ void yssa_builder::link( yssa_follow* follow, yssa_build_block* block )
         break;
     }
     
-    case XSSA_FOLLOW_IFFALSE:
+    case YSSA_FOLLOW_IFFALSE:
     {
         assert( follow->block->block->condition );
         assert( ! follow->block->block->iffalse );
@@ -980,26 +980,26 @@ bool yssa_builder::follow_block()
 
     switch ( b->follow.kind )
     {
-    case XSSA_FOLLOW_NONE:
+    case YSSA_FOLLOW_NONE:
     {
         // Unreachable code.
         return false;
     }
         
-    case XSSA_FOLLOW_BLOCK:
+    case YSSA_FOLLOW_BLOCK:
     {
         // Already following.
         return true;
     }
     
-    case XSSA_FOLLOW_IFTRUE:
-    case XSSA_FOLLOW_IFFALSE:
+    case YSSA_FOLLOW_IFTRUE:
+    case YSSA_FOLLOW_IFFALSE:
     {
         // Make real block and link appropriately.
         yssa_build_block* block = make_block();
         link( &b->follow, block );
         seal_block( block );
-        b->follow.reset( XSSA_FOLLOW_BLOCK, block );
+        b->follow.reset( YSSA_FOLLOW_BLOCK, block );
         return true;
     }
     
@@ -1033,7 +1033,7 @@ yssaop* yssa_builder::lookup_name(
 
         // Should have resolved to a real definition.
         assert( ! lookup.join );
-        assert( lookup.def != XSSA_UNDEF );
+        assert( lookup.def != YSSA_UNDEF );
 
         
         return lookup.def;
@@ -1068,14 +1068,14 @@ yssaop* yssa_builder::lookup_block(
     // Check for a return to the header of a loop (and there is no definition).
     if ( block == loop )
     {
-        return XSSA_LOOP;
+        return YSSA_LOOP;
     }
     
     
     // If it's an unsealed block then we can't proceed - add an incomplete phi.
     if ( ! block->sealed )
     {
-        yssaop* phi = yssaop::op( -1, XSSA_PSI, nullptr );
+        yssaop* phi = yssaop::op( -1, YSSA_PSI, nullptr );
         block->block->phi.push_back( phi );
         block->incomplete.emplace( phi, name );
         block->defined[ name ] = phi;
@@ -1086,7 +1086,7 @@ yssaop* yssa_builder::lookup_block(
     // If there's no predecessors then the name is undefined.
     if ( block->block->previous.size() == 0 )
     {
-        return XSSA_UNDEF;
+        return YSSA_UNDEF;
     }
     
     
@@ -1119,7 +1119,7 @@ yssaop* yssa_builder::lookup_block(
     {
         // Join collapses away.
         
-        if ( def != XSSA_UNDEF )
+        if ( def != YSSA_UNDEF )
         {
             block->defined[ name ] = def;
         }
@@ -1133,7 +1133,7 @@ yssaop* yssa_builder::lookup_block(
     assert( block->phi );
     
     // Build phi list.
-    yssaop* phi = yssaop::op( -1, XSSA_PHI, lookups.size() );
+    yssaop* phi = yssaop::op( -1, YSSA_PHI, lookups.size() );
     for ( size_t i = 0; i < lookups.size(); ++i )
     {
         phi->operand[ i ] = lookups[ i ];
@@ -1171,23 +1171,23 @@ void yssa_builder::seal_block( yssa_build_block* block )
             // Join collapses away.
             
             // Change the phi to a ref.
-            block->phi->opcode          = XSSA_REF;
+            block->phi->opcode          = YSSA_REF;
             block->phi->operand[ 0 ]   = def;
             
             // Update definition.
-            if ( def != XSSA_UNDEF && block->defined.at( name ) == block->phi )
+            if ( def != YSSA_UNDEF && block->defined.at( name ) == block->phi )
             {
                 block->defined[ name ] = def;
             }
             
-            assert( def != XSSA_UNDEF );
+            assert( def != YSSA_UNDEF );
             continue;
             
         }
         
      
         // Fill in the incomplete ɸ-function.
-        yssaop* phi = yssaop::op( -1, XSSA_PHI, lookups.size() );
+        yssaop* phi = yssaop::op( -1, YSSA_PHI, lookups.size() );
         for ( size_t i = 0; i < lookups.size(); ++i )
         {
             phi->operand[ i ] = lookups[ i ];
@@ -1225,10 +1225,10 @@ yssaop* yssa_builder::lookup_join(
             // This is a back-edge.  Perform lookup restricted to the subtree
             // dominated by this loop header.
             def = lookup_block( block, build_prev, name );
-            if ( def == XSSA_LOOP )
+            if ( def == YSSA_LOOP )
             {
                 // Reached the header of the sub-loop - this block.
-                def = XSSA_SELF;
+                def = YSSA_SELF;
             }
         }
         else
@@ -1237,10 +1237,10 @@ yssaop* yssa_builder::lookup_join(
             def = lookup_block( loop, build_prev, name );
         }
         
-        if ( def == XSSA_UNDEF )
+        if ( def == YSSA_UNDEF )
         {
             // Undefined on at least one code path, undefined.
-            return XSSA_UNDEF;
+            return YSSA_UNDEF;
         }
         
         lookups->push_back( def );
@@ -1254,7 +1254,7 @@ yssaop* yssa_builder::lookup_join(
     for ( ; i < lookups->size(); ++i )
     {
         yssaop* def = lookups->at( i );
-        if ( def != XSSA_SELF && def != block->phi )
+        if ( def != YSSA_SELF && def != block->phi )
         {
             single = def;
             break;
@@ -1264,7 +1264,7 @@ yssaop* yssa_builder::lookup_join(
     for ( ; i < lookups->size(); ++i )
     {
         yssaop* def = lookups->at( i );
-        if ( def != XSSA_SELF && def != block->phi && def != single )
+        if ( def != YSSA_SELF && def != block->phi && def != single )
         {
             single = nullptr;
             break;
@@ -1286,11 +1286,11 @@ yssaop* yssa_builder::lookup_join(
     {
         yssaop* def = lookups->at( i );
         
-        if ( def == XSSA_LOOP )
+        if ( def == YSSA_LOOP )
         {
             lookups->at( i ) = ensure_phi( loop );
         }
-        else if ( def == XSSA_SELF )
+        else if ( def == YSSA_SELF )
         {
             lookups->at( i ) = ensure_phi( block );
         }
@@ -1307,7 +1307,7 @@ yssaop* yssa_builder::ensure_phi( yssa_build_block* block )
     if ( ! block->phi )
     {
         // Create phi (without payload).
-        block->phi = yssaop::op( -1, XSSA_PSI, nullptr );
+        block->phi = yssaop::op( -1, YSSA_PSI, nullptr );
         block->block->phi.push_back( block->phi );
     }
     
@@ -1325,7 +1325,7 @@ void yssa_builder::remove_ref( yssa_block* block )
     {
         yssaop* op = block->phi.at( i );
 
-        if ( op->opcode == XSSA_PSI )
+        if ( op->opcode == YSSA_PSI )
         {
             op = op->operand[ 0 ];
             block->phi[ i ] = op;
@@ -1338,7 +1338,7 @@ void yssa_builder::remove_ref( yssa_block* block )
                 }
             }
         }
-        else if ( op->opcode == XSSA_REF )
+        else if ( op->opcode == YSSA_REF )
         {
             block->phi[ i ] = nullptr;
         }
@@ -1371,7 +1371,7 @@ void yssa_builder::remove_ref( yssa_block* block )
 
 yssaop* yssa_builder::remove_ref( yssaop* op )
 {
-    while ( op->opcode == XSSA_REF || op->opcode == XSSA_PSI )
+    while ( op->opcode == YSSA_REF || op->opcode == YSSA_PSI )
     {
         op = op->operand[ 0 ];
     }

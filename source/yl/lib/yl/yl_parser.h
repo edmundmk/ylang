@@ -6,8 +6,8 @@
 //
 
 
-#ifndef XEC_PARSER_H
-#define XEC_PARSER_H
+#ifndef YL_PARSER_H
+#define YL_PARSER_H
 
 
 #include <deque>
@@ -142,7 +142,7 @@ object_t* yl_parser::alloc( arguments_t ... arguments )
 
 
 
-#endif /* XEC_ASTBUILDER */
+#endif /* YL_ASTBUILDER */
 
 
 

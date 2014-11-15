@@ -158,7 +158,7 @@ static void successor( yssa_opset* live, yssa_block* prev, yssa_block* block )
     for ( size_t i = 0; i < block->phi.size(); ++i )
     {
         yssaop* op = block->phi.at( i );
-        if ( op && op->opcode == XSSA_PHI )
+        if ( op && op->opcode == YSSA_PHI )
         {
             live->insert( op->operand[ index ] );
         }

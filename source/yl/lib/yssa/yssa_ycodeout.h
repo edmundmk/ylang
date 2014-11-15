@@ -6,8 +6,8 @@
 //
 
 
-#ifndef XSSA_YCODEOUT_H
-#define XSSA_YCODEOUT_H
+#ifndef YSSA_YCODEOUT_H
+#define YSSA_YCODEOUT_H
 
 
 #include "ycode.h"

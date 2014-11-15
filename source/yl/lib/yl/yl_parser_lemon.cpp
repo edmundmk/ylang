@@ -2643,7 +2643,7 @@ static void yy_reduce(
 {
                     yymsp[-1].minor.yy308 = p->lvalue( yymsp[-1].minor.yy308 );
                     yygotominor.yy308 = p->alloc< yl_expr_postop >(
-                             yymsp[-1].minor.yy308->sloc, XEC_ASTOP_POSTINC, yymsp[-1].minor.yy308 );
+                             yymsp[-1].minor.yy308->sloc, YL_ASTOP_POSTINC, yymsp[-1].minor.yy308 );
                     p->destroy( yymsp[0].minor.yy0 );
                 }
 #line 2650 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2653,7 +2653,7 @@ static void yy_reduce(
 {
                     yymsp[-1].minor.yy308 = p->lvalue( yymsp[-1].minor.yy308 );
                     yygotominor.yy308 = p->alloc< yl_expr_postop >(
-                             yymsp[-1].minor.yy308->sloc, XEC_ASTOP_POSTDEC, yymsp[-1].minor.yy308 );
+                             yymsp[-1].minor.yy308->sloc, YL_ASTOP_POSTDEC, yymsp[-1].minor.yy308 );
                     p->destroy( yymsp[0].minor.yy0 );
                 }
 #line 2660 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2662,7 +2662,7 @@ static void yy_reduce(
 #line 481 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_unary >(
-                             yymsp[-1].minor.yy0->sloc, XEC_ASTOP_POSITIVE, yymsp[0].minor.yy308 );
+                             yymsp[-1].minor.yy0->sloc, YL_ASTOP_POSITIVE, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2669 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2671,7 +2671,7 @@ static void yy_reduce(
 #line 487 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_unary >(
-                             yymsp[-1].minor.yy0->sloc, XEC_ASTOP_NEGATIVE, yymsp[0].minor.yy308 );
+                             yymsp[-1].minor.yy0->sloc, YL_ASTOP_NEGATIVE, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2678 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2680,7 +2680,7 @@ static void yy_reduce(
 #line 493 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_unary >(
-                             yymsp[-1].minor.yy0->sloc, XEC_ASTOP_LOGICNOT, yymsp[0].minor.yy308 );
+                             yymsp[-1].minor.yy0->sloc, YL_ASTOP_LOGICNOT, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2687 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2689,7 +2689,7 @@ static void yy_reduce(
 #line 499 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_unary >(
-                             yymsp[-1].minor.yy0->sloc, XEC_ASTOP_BITNOT, yymsp[0].minor.yy308 );
+                             yymsp[-1].minor.yy0->sloc, YL_ASTOP_BITNOT, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2696 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2699,7 +2699,7 @@ static void yy_reduce(
 {
                     yymsp[0].minor.yy308 = p->lvalue( yymsp[0].minor.yy308 );
                     yygotominor.yy308 = p->alloc< yl_expr_preop >(
-                             yymsp[-1].minor.yy0->sloc, XEC_ASTOP_PREINC, yymsp[0].minor.yy308 );
+                             yymsp[-1].minor.yy0->sloc, YL_ASTOP_PREINC, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2706 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2709,7 +2709,7 @@ static void yy_reduce(
 {
                     yymsp[0].minor.yy308 = p->lvalue( yymsp[0].minor.yy308 );
                     yygotominor.yy308 = p->alloc< yl_expr_preop >(
-                             yymsp[-1].minor.yy0->sloc, XEC_ASTOP_PREDEC, yymsp[0].minor.yy308 );
+                             yymsp[-1].minor.yy0->sloc, YL_ASTOP_PREDEC, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2716 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2718,7 +2718,7 @@ static void yy_reduce(
 #line 524 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_binary >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_MULTIPLY, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_MULTIPLY, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2725 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2727,7 +2727,7 @@ static void yy_reduce(
 #line 530 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_binary >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_DIVIDE, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_DIVIDE, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2734 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2736,7 +2736,7 @@ static void yy_reduce(
 #line 536 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_binary >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_MODULUS, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_MODULUS, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2743 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2745,7 +2745,7 @@ static void yy_reduce(
 #line 542 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_binary >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_INTDIV, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_INTDIV, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2752 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2754,7 +2754,7 @@ static void yy_reduce(
 #line 553 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_binary >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_ADD, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_ADD, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2761 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2763,7 +2763,7 @@ static void yy_reduce(
 #line 559 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_binary >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_SUBTRACT, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_SUBTRACT, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2770 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2772,7 +2772,7 @@ static void yy_reduce(
 #line 570 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_binary >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_LSHIFT, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_LSHIFT, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2779 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2781,7 +2781,7 @@ static void yy_reduce(
 #line 576 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_binary >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_LRSHIFT, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_LRSHIFT, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2788 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2790,7 +2790,7 @@ static void yy_reduce(
 #line 582 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_binary >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_ARSHIFT, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_ARSHIFT, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2797 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2799,7 +2799,7 @@ static void yy_reduce(
 #line 593 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_binary >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_BITAND, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_BITAND, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2806 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2808,7 +2808,7 @@ static void yy_reduce(
 #line 604 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_binary >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_BITXOR, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_BITXOR, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2815 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2817,7 +2817,7 @@ static void yy_reduce(
 #line 615 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_binary >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_BITOR, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_BITOR, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2824 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2826,7 +2826,7 @@ static void yy_reduce(
 #line 626 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_binary >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_CONCATENATE, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_CONCATENATE, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2833 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2842,70 +2842,70 @@ static void yy_reduce(
       case 83: /* compare_op ::= EQUAL */
 #line 643 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_EQUAL );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_EQUAL );
                 }
 #line 2848 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 84: /* compare_op ::= NOTEQUAL */
 #line 647 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_NOTEQUAL );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_NOTEQUAL );
                 }
 #line 2855 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 85: /* compare_op ::= LESS */
 #line 651 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_LESS );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_LESS );
                 }
 #line 2862 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 86: /* compare_op ::= GREATER */
 #line 655 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_GREATER );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_GREATER );
                 }
 #line 2869 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 87: /* compare_op ::= LESSEQUAL */
 #line 659 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_LESSEQUAL );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_LESSEQUAL );
                 }
 #line 2876 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 88: /* compare_op ::= GREATEREQUAL */
 #line 663 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_GREATEREQUAL );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_GREATEREQUAL );
                 }
 #line 2883 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 89: /* compare_op ::= IN */
 #line 667 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_IN );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_IN );
                 }
 #line 2890 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 90: /* compare_op ::= NOTIN */
 #line 671 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_NOTIN );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_NOTIN );
                 }
 #line 2897 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 91: /* compare_op ::= IS */
 #line 675 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_IS );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_IS );
                 }
 #line 2904 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 92: /* compare_op ::= NOTIS */
 #line 679 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_NOTIS );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_NOTIS );
                 }
 #line 2911 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
@@ -2913,7 +2913,7 @@ static void yy_reduce(
 #line 689 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_logical >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_LOGICAND, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_LOGICAND, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2920 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2922,7 +2922,7 @@ static void yy_reduce(
 #line 700 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_logical >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_LOGICXOR, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_LOGICXOR, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2929 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -2931,7 +2931,7 @@ static void yy_reduce(
 #line 711 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy308 = p->alloc< yl_expr_logical >( yymsp[-2].minor.yy308->sloc,
-                                    XEC_ASTOP_LOGICOR, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
+                                    YL_ASTOP_LOGICOR, yymsp[-2].minor.yy308, yymsp[0].minor.yy308 );
                     p->destroy( yymsp[-1].minor.yy0 );
                 }
 #line 2938 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
@@ -3157,91 +3157,91 @@ static void yy_reduce(
       case 128: /* assign_op ::= ASSIGN */
 #line 877 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_ASSIGN );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_ASSIGN );
                 }
 #line 3163 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 129: /* assign_op ::= MULASSIGN */
 #line 881 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_MULASSIGN );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_MULASSIGN );
                 }
 #line 3170 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 130: /* assign_op ::= DIVASSIGN */
 #line 885 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_DIVASSIGN );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_DIVASSIGN );
                 }
 #line 3177 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 131: /* assign_op ::= MODASSIGN */
 #line 889 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_MODASSIGN );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_MODASSIGN );
                 }
 #line 3184 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 132: /* assign_op ::= INTDIVASSIGN */
 #line 893 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_INTDIVASSIGN );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_INTDIVASSIGN );
                 }
 #line 3191 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 133: /* assign_op ::= ADDASSIGN */
 #line 897 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_ADDASSIGN );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_ADDASSIGN );
                 }
 #line 3198 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 134: /* assign_op ::= SUBASSIGN */
 #line 901 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_SUBASSIGN );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_SUBASSIGN );
                 }
 #line 3205 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 135: /* assign_op ::= LSHIFTASSIGN */
 #line 905 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_LSHIFTASSIGN );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_LSHIFTASSIGN );
                 }
 #line 3212 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 136: /* assign_op ::= LRSHIFTASSIGN */
 #line 909 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_LRSHIFTASSIGN );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_LRSHIFTASSIGN );
                 }
 #line 3219 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 137: /* assign_op ::= ARSHIFTASSIGN */
 #line 913 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_ARSHIFTASSIGN );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_ARSHIFTASSIGN );
                 }
 #line 3226 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 138: /* assign_op ::= BITANDASSIGN */
 #line 917 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_BITANDASSIGN );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_BITANDASSIGN );
                 }
 #line 3233 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 139: /* assign_op ::= BITXORASSIGN */
 #line 921 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_BITXORASSIGN );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_BITXORASSIGN );
                 }
 #line 3240 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
       case 140: /* assign_op ::= BITORASSIGN */
 #line 925 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
-                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, XEC_ASTOP_BITORASSIGN );
+                    yygotominor.yy40 = make_token_op( yymsp[0].minor.yy0, YL_ASTOP_BITORASSIGN );
                 }
 #line 3247 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;

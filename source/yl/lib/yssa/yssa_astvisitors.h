@@ -6,8 +6,8 @@
 //
 
 
-#ifndef XSSA_ASTVISITORS_H
-#define XSSA_ASTVISITORS_H
+#ifndef YSSA_ASTVISITORS_H
+#define YSSA_ASTVISITORS_H
 
 
 #include "yl_ast_visitor.h"

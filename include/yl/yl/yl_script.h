@@ -6,8 +6,8 @@
 //
 
 
-#ifndef XEC_SCRIPT_H
-#define XEC_SCRIPT_H
+#ifndef YL_SCRIPT_H
+#define YL_SCRIPT_H
 
 
 
