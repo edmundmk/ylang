@@ -29,13 +29,13 @@ yarray::yarray( ymetatype* metatype )
 }
 
 
-static void yarray_length( yframe frame )
+static void yarray_length( yframe& frame )
 {
     yarray* array = frame[ 0 ].as< yarray >();
     frame.result( (uint32_t)array->length() );
 }
 
-static void yarray_resize( yframe frame )
+static void yarray_resize( yframe& frame )
 {
     yarray* array = frame[ 0 ].as< yarray >();
     array->resize( (size_t)frame[ 1 ].as_number() );

@@ -69,7 +69,7 @@ public:
     yvalue( ystring* string );
     yvalue( yexpand* expand );
     
-    yvalue( void (*thunk)( yframe ) );
+    yvalue( void (*thunk)( yframe& ) );
     static yvalue native( void* native );
 
     explicit operator bool() const;
@@ -96,7 +96,7 @@ public:
     ystring*    as_string() const;
     yexpand*    as_expand() const;
     
-    void     (* as_thunk() const )( yframe );
+    void     (* as_thunk() const )( yframe& );
     void*       as_native() const;
     
     template < typename object_t > bool is() const;
@@ -383,7 +383,7 @@ inline yvalue::yvalue( yexpand* expand )
 {
 }
 
-inline yvalue::yvalue( void (*ythunk)( yframe ) )
+inline yvalue::yvalue( void (*ythunk)( yframe& ) )
     :   x( TAG_THUNK | (uintptr_t)ythunk )
 {
 }
@@ -564,16 +564,16 @@ inline yexpand* yvalue::as_expand() const
 #endif
 }
 
-inline void (* yvalue::as_thunk() const )( yframe )
+inline void (* yvalue::as_thunk() const )( yframe& )
 {
 #if Y64BIT
     if ( is_thunk() )
-        return (void (*)( yframe ))( x & POINTER_MASK );
+        return (void (*)( yframe& ))( x & POINTER_MASK );
     else
         throw yerror( "expected thunk" );
 #else
     if ( is_thunk() )
-        return (void (*)( yframe ))lo;
+        return (void (*)( yframe& ))lo;
     else
         throw yerror( "expected object" );
 #endif

@@ -19,7 +19,7 @@
 
 
 
-void y_atoi( yframe frame )
+void y_atoi( yframe& frame )
 {
     double n = 0;
     if ( frame.count() >= 2 )
@@ -35,7 +35,7 @@ void y_atoi( yframe frame )
     frame.result( n );
 }
 
-void y_printf( yframe frame )
+void y_printf( yframe& frame )
 {
     const char* format = frame[ 0 ].c_str();
     if ( frame.count() == 2 )
@@ -51,13 +51,13 @@ void y_printf( yframe frame )
     }
 }
 
-void y_sqrt( yframe frame )
+void y_sqrt( yframe& frame )
 {
     double n = frame[ 0 ].as_number();
     frame.result( sqrt( n ) );
 }
 
-void y_max( yframe frame )
+void y_max( yframe& frame )
 {
     double a = frame[ 0 ].as_number();
     double b = frame[ 1 ].as_number();

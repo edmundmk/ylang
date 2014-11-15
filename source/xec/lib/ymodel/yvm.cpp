@@ -98,7 +98,7 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
         // Set missing arguments to null.
         for ( unsigned i = incount; i <= recipe->param_count(); ++i )
         {
-            stack->stack[ sp + i ] = nullptr;
+            stack->stack[ sp + i ] = yvalue::ynull;
         }
     }
     else if ( recipe->is_varargs() )
@@ -146,7 +146,7 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
         break;
     
     case Y_NULL:
-        s[ i.r() ] = nullptr;
+        s[ i.r() ] = yvalue::ynull;
         break;
     case Y_VALUE:
         s[ i.r() ] = module->value( i.c() );
@@ -479,10 +479,27 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
         }
         else
         {
+            // Build yframe to pass arguments to native code.
             yvalue* limit = stack->stack.data() + stack->stack.size();
             yframe frame( s + i.r(), limit, i.a() - 1 );
+            
+            // Call native thunk.
             f.as_thunk()( frame );
-            // TODO: fill in results that are missing with null.
+            s = stack->stack.data() + fp;
+            
+            // Ensure we have correct number of results.
+            size_t result_count = frame.s - ( s + i.r() );
+            if ( i.b() != Y_MARK )
+            {
+                for ( size_t index = result_count; index < i.b(); ++index )
+                {
+                    s[ i.r() + index ] = yvalue::ynull;
+                }
+            }
+            else
+            {
+                stack->mark = frame.s - stack->stack.data();
+            }
         }
         break;
     }
@@ -518,7 +535,7 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
         {
             for ( size_t index = valcount; index < outcount; ++index )
             {
-                stack->stack[ sp + index ] = nullptr;
+                stack->stack[ sp + index ] = yvalue::ynull;
             }
         }
         else

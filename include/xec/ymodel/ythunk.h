@@ -39,7 +39,7 @@ private:
 };
 
 
-typedef void (*ythunk)( yframe );
+typedef void (*ythunk)( yframe& );
 
 
 
