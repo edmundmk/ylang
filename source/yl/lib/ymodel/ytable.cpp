@@ -7,6 +7,7 @@
 
 
 #include "ytable.h"
+#include "ythunk.h"
 
 
 
@@ -26,10 +27,18 @@ ytable::ytable( ymetatype* metatype )
 }
 
 
+static void ytable_length( yframe& frame )
+{
+    ytable* table = frame[ 0 ].as< ytable >();
+    frame.result( (uint32_t)table->length() );
+}
+
 
 yexpand* ytable::make_proto()
 {
-    return yexpand::alloc();
+    yexpand* proto = yexpand::alloc();
+    proto->setkey( "length", ytable_length );
+    return proto;
 }
 
 

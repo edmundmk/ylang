@@ -52,12 +52,10 @@ Features
 - Block scoping of variables.
 
         var i = 0;
-        for ( i = 4; i < 20; ++i )
+        for ( var i = 4; i < 20; ++i )
         {
             if ( i_need_more_i )
-            {
                 var i = 30;
-            }
             assert( i >= 4 && i < 20 );
         }
         assert( i == 0 );

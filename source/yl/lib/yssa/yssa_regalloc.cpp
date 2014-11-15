@@ -37,17 +37,17 @@ static bool interfere( yssa_linear* l, yssaop* a, yssaop* b )
     }
 
 
-    // If either doesn't have a live range they don't interfere (I guess...)
+    // If either doesn't have a live range they don't interfere.
     if ( aindex == -1 || bindex == -1 )
     {
         return false;
     }
 
 
-    // If they share a live range then they interfere (I guess...).
+    // If they are the same value then they don't interfere.
     if ( aindex == bindex )
     {
-        return true;
+        return false;
     }
     
 
@@ -589,6 +589,7 @@ static void linear_scan( yssa_revlist* v )
     // of the stack at this point.
     if ( rev->kind == XSSA_REV_STACK )
     {
+        // Find index of highest non-empty register.
         int r = (int)reg.r.size() - 1;
         for ( ; r >= 0; --r )
         {
@@ -598,7 +599,29 @@ static void linear_scan( yssa_revlist* v )
             }
         }
         
-        value->op->stacktop = r + 1;
+        
+        // And index of free slot at top of stack.
+        r += 1;
+        
+        
+        /*
+            Stack instructions become live in the revlist after the rev that
+            ssigns their stack top.  So by the time we get here it's likely
+            that this value has already been allocated a register which is now
+            free.
+         
+            Ensure that we prefer the stack location where we expect the
+            results.  This is required to make multival/unpacks work correctly.
+        */
+        if ( value->op->r != (uint8_t)-1 )
+        {
+            r = std::max( (int)value->op->r, r );
+        }
+        
+        
+        // Assign stack top.
+        value->op->stacktop = r;
+
         continue;
     }
     

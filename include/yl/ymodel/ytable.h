@@ -25,6 +25,7 @@ public:
 
     static ytable* alloc();
     
+    size_t  length() const;
     yvalue  getindex( yvalue key ) const;
     void    setindex( yvalue key, yvalue value );
 
@@ -53,6 +54,12 @@ private:
 /*
 
 */
+
+
+inline size_t ytable::length() const
+{
+    return table.size();
+}
 
 
 inline yvalue ytable::getindex( yvalue key ) const

@@ -27,7 +27,7 @@ ymodule* yl_compile( yl_ast* ast )
     {
         yssa_func* func = ssam.funcs.at( i ).get();
         
-//        yssa_print( func );
+        yssa_print( func );
         
         yssa_order_depth_first( func );
 //        yssa_print( func );
@@ -43,7 +43,7 @@ ymodule* yl_compile( yl_ast* ast )
 //        yssa_print( &linear );
         
         yssa_regalloc( &linear );
-//        yssa_print( &linear );
+        yssa_print( &linear );
   
         ycodeout.build_func( &linear );
         

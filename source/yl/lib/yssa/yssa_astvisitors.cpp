@@ -321,6 +321,7 @@ yssaop* yssa_build_expr::visit( yl_expr_compare* node )
     
     for ( size_t i = 0; i < ifcount; ++i )
     {
+        b->ifelse();
         b->ifend();
     }
     
@@ -340,6 +341,7 @@ yssaop* yssa_build_expr::visit( yl_expr_logical* node )
         b->ifthen( lhs );
         yssaop* rhs = visit( node->rhs );
         b->define( node, rhs );
+        b->ifelse();
         b->ifend();
         return b->lookup( node );
     }
@@ -357,8 +359,8 @@ yssaop* yssa_build_expr::visit( yl_expr_logical* node )
         // Only evaluate rhs if the lhs is false.
         yssaop* lhs = visit( node->lhs );
         b->define( node, lhs );
-        yssaop* invlhs = b->op( node->sloc, XSSA_LNOT, lhs );
-        b->ifthen( invlhs );
+        b->ifthen( lhs );
+        b->ifelse();
         yssaop* rhs = visit( node->rhs );
         b->define( node, rhs );
         b->ifend();

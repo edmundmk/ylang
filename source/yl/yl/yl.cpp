@@ -38,7 +38,11 @@ void y_atoi( yframe& frame )
 void y_printf( yframe& frame )
 {
     const char* format = frame[ 0 ].c_str();
-    if ( frame.count() == 2 )
+    if ( frame.count() == 1 )
+    {
+        printf( "%s", format );
+    }
+    else if ( frame.count() == 2 )
     {
         double n = frame[ 1 ].as_number();
         printf( format, n );

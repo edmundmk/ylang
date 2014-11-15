@@ -1,26 +1,89 @@
 
 
+def process( ... ) {}
 
-
-def energy( bodies )
+def assert( check )
 {
-    var e = 0;
-    for ( var bi : bodies )
+    if ( ! check )
     {
-        e += 0.5 * bi.mass * ( bi.vx * bi.vx + bi.vy * bi.vy + bi.vz * bi.vz );
-        for ( var bj : bodies )
-        {
-            var dx, dy, dz = bi.x - bj.x, bi.y - bj.y, bi.z - bj.z;
-            var distance = sqrt( dx * dx + dy * dy + dz * dz );
-            e -= ( bi.mass * bj.mass ) / distance;
-        }
+        printf( "check failed!\n" );
     }
-    return e;
+}
+
+var sword = {};
+var op = 0x343043;
+var MOP = 4;
+var MA = 4;
+var MB = 4;
+var SA = 4;
+var SB = 4;
+var i_need_more_i = true;
+
+def silver_sword : sword
+{
+    var description = "Those who play with the devil's toys will "
+            "be brought by degrees to wield his sword.";
+    var bonus;
+    def damage();
+}
+
+def silver_sword.damage()
+{
+    return roll( "3d8" ) + bonus;
 }
 
 
+//var bindings = [];
+//for ( var element : list )
+//{
+//    list.append( ?() { return element.invoke(); } );
+//}
+
+
+def unpack( op )
+{
+    return op & MOP, ( op & MA ) >> SA, ( op & MB ) >> SB; 
+}
+
+var a, b, c = unpack( op ) ...;
+var abc = [ unpack( op ) ... ];
+
+process( a, b, c );
+process( abc[] ... );
+process( unpack( op ) ... );
+
+
+var i = 0;
+for ( var i = 4; i < 20; ++i )
+{
+    printf( "hello %g\n", i );
+
+    if ( i_need_more_i )
+    {
+        var i = 30;
+    }
+    assert( i >= 4 && i < 20 );
+}
+assert( i == 0 );
+
+
+var type = null;
+type = "ok";
+//typo = null; // !!! error - typo hasn't been declared
+
+def global.function() { return "ok"; }
+global.variable = "ok";
+
+
+var mapping = {};
+mapping[ "length" ] = 5;
+assert( mapping.length() == 1 );
+//assert( mapping.[ "length" ] is function );
+mapping.[ "length" ] = ?() { return 200; };
+assert( mapping.length() == 200 );
+
+
+printf( "done!\n" );
 
 
 
-var a, b = hello() ...;
-print( a, b );
