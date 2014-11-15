@@ -17,8 +17,9 @@ class yframe
 {
 public:
 
-    size_t      argcount();
-    yvalue      argument( size_t index );
+    size_t      count() const;
+    yvalue      operator [] ( size_t index ) const;
+
     void        result( yvalue result );
 
 
@@ -26,13 +27,13 @@ private:
 
     friend void yexec( size_t, unsigned, unsigned );
 
-    yframe( yvalue* s, yvalue* limit, unsigned acount );
+    yframe( yvalue* s, yvalue* limit, size_t argcount );
 
     void        grow_stack();
 
     yvalue*     s;
     yvalue*     limit;
-    unsigned    acount;
+    size_t      argcount;
 
 
 };
@@ -47,21 +48,23 @@ typedef void (*ythunk)( yframe );
 
 */
 
-inline yframe::yframe( yvalue* s, yvalue* limit, unsigned acount )
+inline yframe::yframe( yvalue* s, yvalue* limit, size_t argcount )
     :   s( s )
     ,   limit( limit )
-    ,   acount( acount )
+    ,   argcount( argcount )
 {
 }
 
-inline size_t yframe::argcount()
+inline size_t yframe::count() const
 {
-    return acount;
+    assert( argcount != (size_t)-1 );
+    return argcount;
 }
 
-inline yvalue yframe::argument( size_t index )
+inline yvalue yframe::operator [] ( size_t index ) const
 {
-    if ( index < acount )
+    assert( argcount != (size_t)-1 );
+    if ( index < argcount )
         return s[ 1 + index ];
     else
         return nullptr;
@@ -72,7 +75,7 @@ inline void yframe::result( yvalue result )
     if ( s >= limit )
         grow_stack();
     *s++ = result;
-    acount = 0;
+    argcount = -1;
 }
 
 

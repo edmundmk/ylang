@@ -22,11 +22,11 @@
 void y_atoi( yframe frame )
 {
     double n = 0;
-    if ( frame.argcount() >= 2 )
-        n = frame.argument( 1 ).as_number();
-    if ( ! frame.argument( 0 ).is_null() )
+    if ( frame.count() >= 2 )
+        n = frame[ 1 ].as_number();
+    if ( ! frame[ 0 ].is_null() )
     {
-        const char* a = frame.argument( 0 ).c_str();
+        const char* a = frame[ 0 ].c_str();
         char* endp = nullptr;
         long i = strtol( a, &endp, 10 );
         if ( endp[ 0 ] == '\0' )
@@ -37,30 +37,30 @@ void y_atoi( yframe frame )
 
 void y_printf( yframe frame )
 {
-    const char* format = frame.argument( 0 ).c_str();
-    if ( frame.argcount() == 2 )
+    const char* format = frame[ 0 ].c_str();
+    if ( frame.count() == 2 )
     {
-        double n = frame.argument( 1 ).as_number();
+        double n = frame[ 1 ].as_number();
         printf( format, n );
     }
-    else if ( frame.argcount() == 3 )
+    else if ( frame.count() == 3 )
     {
-        double n = frame.argument( 1 ).as_number();
-        double m = frame.argument( 2 ).as_number();
+        double n = frame[ 1 ].as_number();
+        double m = frame[ 2 ].as_number();
         printf( format, n, m );
     }
 }
 
 void y_sqrt( yframe frame )
 {
-    double n = frame.argument( 0 ).as_number();
+    double n = frame[ 0 ].as_number();
     frame.result( sqrt( n ) );
 }
 
 void y_max( yframe frame )
 {
-    double a = frame.argument( 0 ).as_number();
-    double b = frame.argument( 1 ).as_number();
+    double a = frame[ 0 ].as_number();
+    double b = frame[ 1 ].as_number();
     frame.result( std::max( a, b ) );
 }
 
