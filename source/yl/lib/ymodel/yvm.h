@@ -15,6 +15,9 @@
 #include "yfunction.h"
 
 
+class yarray;
+class ytable;
+
 
 /*
     A standin acts as the prototype of a primitive type or an object which is
@@ -61,24 +64,51 @@ private:
     An iterator implements for ( : ) and for ( :: ) loops.
 */
 
-struct yiterator
+class yiterator
 {
+public:
+
     enum kind
     {
         KEYS,           // over the keys of an object
         ARRAY_INDEX,    // over the elements of an array
         TABLE_INDEX,    // over the keyvalues of a table
-        GENERATOR,      // over the values returned by a generator coroutine
     };
+
     
+    explicit yiterator( yexpand* expand );
+    explicit yiterator( yarray* array );
+    explicit yiterator( ytable* table );
+
+
+    bool        valid();
+    void        next1( yvalue* a );
+    void        next2( yvalue* a, yvalue* b );
+    void        next( ystack* stack, size_t sp, unsigned count );
+
+    void        next_key( yvalue* a, yvalue* b );
+    void        next_array( yvalue* a );
+    void        next_table( yvalue* a, yvalue* b );
+
+
+private:
+
     kind        kind;
     size_t      index;
     union
     {
-        ytuple< ykeyval< yvalue, yvalue > >*    table;
-        ytuple< yvalue >*                       array;
+        struct
+        {
+    yarray*     array;
+    ytuple< yvalue >* values;
+        };
+        struct
+        {
+    ytable*     table;
+    ytuple< ykeyval< yvalue, yvalue > >* keyvals;
+        };
     };
-    
+
 };
 
 

@@ -54,6 +54,7 @@ public:
 
 private:
 
+    friend class yiterator;
     friend struct ymarktraits< ymap< key_t, value_t > >;
 
     void            rehash( size_t new_capacity );

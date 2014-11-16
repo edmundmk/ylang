@@ -50,6 +50,8 @@ protected:
 
 private:
 
+    friend class yiterator;
+
     void ensure( size_t capacity );
 
     size_t  count;

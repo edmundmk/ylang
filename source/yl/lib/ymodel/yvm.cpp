@@ -88,6 +88,189 @@ void ystack::ensure_upvals( size_t size )
 
 
 
+/*
+    yiterator
+*/
+
+
+yiterator::yiterator( yexpand* expand )
+    :   kind( KEYS )
+    ,   index( 0 )
+{
+    assert( ! "not implemented" );
+}
+
+yiterator::yiterator( yarray* array )
+    :   kind( ARRAY_INDEX )
+    ,   index( -1 )
+    ,   array( array )
+    ,   values( array->values )
+{
+}
+
+yiterator::yiterator( ytable* table )
+    :   kind( TABLE_INDEX )
+    ,   index( -1 )
+    ,   table( table )
+    ,   keyvals( table->table.keyvals )
+{
+}
+
+
+bool yiterator::valid()
+{
+    return index != (size_t)-1;
+}
+
+void yiterator::next1( yvalue* a )
+{
+    switch ( kind )
+    {
+    case KEYS:
+    {
+        yvalue ignore;
+        next_key( a, &ignore );
+        break;
+    }
+    
+    case ARRAY_INDEX:
+    {
+        next_array( a );
+        break;
+    }
+    
+    case TABLE_INDEX:
+    {
+        yvalue ignore;
+        next_table( a, &ignore );
+        break;
+    }
+    
+    }
+}
+
+void yiterator::next2( yvalue* a, yvalue* b )
+{
+    switch ( kind )
+    {
+    case KEYS:
+    {
+        next_key( a, b );
+        break;
+    }
+    
+    case ARRAY_INDEX:
+    {
+        next_array( a );
+        *b = yvalue::ynull;
+        break;
+    }
+        
+    case TABLE_INDEX:
+    {
+        next_table( a, b );
+        break;
+    }
+    
+    }
+}
+
+void yiterator::next( ystack* stack, size_t sp, unsigned count )
+{
+    assert( count > 2 );
+    size_t valcount = 0;
+
+    switch ( kind )
+    {
+    case KEYS:
+    {
+        stack->ensure_stack( sp + 2 );
+        yvalue* s = stack->stack.data();
+        next_key( s + sp, s + sp + 1 );
+        valcount = 2;
+        break;
+    }
+    
+    case ARRAY_INDEX:
+    {
+        stack->ensure_stack( sp + 1 );
+        yvalue* s = stack->stack.data();
+        next_array( s + sp );
+        valcount = 1;
+        break;
+    }
+    
+    case TABLE_INDEX:
+    {
+        stack->ensure_stack( sp + 2 );
+        yvalue* s = stack->stack.data();
+        next_table( s + sp, s + sp + 1 );
+        valcount = 2;
+        break;
+    }
+    
+    }
+
+    if ( count != Y_MARK )
+    {
+        for ( size_t i = valcount; i < count; ++i )
+        {
+            stack->stack[ sp + i ] = yvalue::ynull;
+        }
+    }
+    else
+    {
+        stack->mark = sp + valcount;
+    }
+
+}
+
+
+void yiterator::next_key( yvalue* a, yvalue* b )
+{
+    // TODO: Actually do this.
+    *a = yvalue::yundefined;
+    *b = yvalue::yundefined;
+}
+
+void yiterator::next_array( yvalue* a )
+{
+    index += 1;
+    if ( values && values == array->values && index < array->length() )
+    {
+        *a = values->get( index );
+        return;
+    }
+
+    *a = yvalue::yundefined;
+    index = (size_t)-1;
+}
+
+void yiterator::next_table( yvalue* a, yvalue* b )
+{
+    if ( keyvals && keyvals == table->table.keyvals )
+    {
+        for ( index += 1; index < keyvals->size(); ++index )
+        {
+            ykeyval< yvalue, yvalue >& kv = keyvals->at( index );
+            if ( kv.next != nullptr )
+            {
+                *a = kv.key;
+                *b = kv.value;
+                return;
+            }
+        }
+    }
+    
+    *a = yvalue::yundefined;
+    *b = yvalue::yundefined;
+    index = (size_t)-1;
+}
+
+
+
+
+
 
 /*
     helper functions
@@ -449,16 +632,62 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
     }
     
     case Y_ITER:
-    case Y_ITERKEY:
-    case Y_NEXT1:
-    case Y_NEXT2:
-    case Y_NEXT:
-    case Y_IFITER:
-    case Y_IFNITER:
-    case Y_POPITER:
-        assert( ! "not implemented!" );
+    {
+        yvalue value = s[ i.a() ];
+        if ( value.is< yarray >() )
+            stack->iterators.emplace_back( value.as< yarray >() );
+        else if ( value.is< ytable >() )
+            stack->iterators.emplace_back( value.as< ytable >() );
+        else
+            throw yerror( "expected indexable value" );
         break;
+    }
     
+    case Y_ITERKEY:
+    {
+        stack->iterators.emplace_back( s[ i.a() ].as_expand() );
+        break;
+    }
+    
+    case Y_NEXT1:
+    {
+        stack->iterators.back().next1( s + i.r() );
+        break;
+    }
+    
+    case Y_NEXT2:
+    {
+        stack->iterators.back().next2( s + i.r(), s + i.a() );
+        break;
+    }
+    
+    case Y_NEXT:
+    {
+        stack->iterators.back().next( stack, fp + i.r(), i.b() );
+        s = stack->stack.data() + fp;
+        break;
+    }
+    
+    case Y_IFITER:
+    {
+        if ( stack->iterators.back().valid() )
+            ip += i.j();
+        break;
+    }
+    
+    case Y_IFNITER:
+    {
+        if ( ! stack->iterators.back().valid() )
+            ip += i.j();
+        break;
+    }
+    
+    case Y_POPITER:
+    {
+        stack->iterators.pop_back();
+        break;
+    }
+        
     case Y_TABLE:
     {
         s[ i.r() ] = ytable::alloc();

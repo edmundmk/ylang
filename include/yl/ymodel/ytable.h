@@ -46,6 +46,8 @@ protected:
 
 private:
 
+    friend class yiterator;
+
     ymap< yvalue, yvalue > table;
 
 };
