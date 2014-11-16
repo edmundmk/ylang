@@ -14,6 +14,54 @@
 #include "ythunk.h"
 
 
+
+/*
+    ystandin
+*/
+
+ystandin* ystandin::alloc( kind kind )
+{
+    void* p = malloc( sizeof( ystandin ) );
+    return new ( p ) ystandin( &metatype, kind );
+}
+
+ystandin::ystandin( ymetatype* metatype, kind kind )
+    :   yobject( metatype )
+    ,   skind( kind )
+{
+}
+
+
+bool ystandin::value_is_this( yvalue value )
+{
+    switch ( skind )
+    {
+    case BOOLEAN:
+        return value.is_boolean();
+    case NUMBER:
+        return value.is_number();
+    case STRING:
+        return value.is_string();
+    case FUNCTION:
+        return value.is_thunk() || value.is< yfunction >();
+    }
+}
+
+
+ymetatype ystandin::metatype = { nullptr, "prototype" };
+
+
+
+
+
+
+
+
+/*
+    ystack
+*/
+
+
 ystack::ystack()
     :   up( 0 )
     ,   mark( 0 )
@@ -41,6 +89,9 @@ void ystack::ensure_upvals( size_t size )
 
 
 
+/*
+    helper functions
+*/
 
 static inline double mod( double a, double b )
 {
@@ -61,6 +112,14 @@ static inline size_t check_integer( yvalue v )
     else
         throw yerror( "expected integer" );
 }
+
+
+
+
+
+/*
+    yexec
+*/
 
 
 void yexec( size_t sp, unsigned incount, unsigned outcount )
@@ -225,13 +284,26 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
         
     case Y_IS:
     {
-        yexpand* prototype = s[ i.b() ].as_expand();
-        if ( s[ i.a() ].is_expand() )
-            s[ i.r() ] = yexpand::is( s[ i.a() ].as_expand(), prototype );
-        else if ( s[ i.a() ].is_thunk() && prototype == yscope::scope->model->function_proto() )
-            s[ i.r() ] = yvalue::ytrue;
+        yvalue value = s[ i.a() ];
+        yvalue prototype = s[ i.b() ];
+        if ( prototype.is_expand() )
+        {
+            yexpand* exproto = prototype.as_expand();
+            if ( exproto == yscope::scope->model->object_proto() )
+                s[ i.r() ] = yvalue::ytrue;
+            else if ( value.is_expand() )
+                s[ i.r() ] = yexpand::is( value.as_expand(), exproto );
+            else
+                s[ i.r() ] = yvalue::yfalse;
+        }
+        else if ( prototype.is< ystandin >() )
+        {
+            s[ i.r() ] = prototype.as< ystandin >()->value_is_this( value );
+        }
         else
+        {
             s[ i.r() ] = yvalue::yfalse;
+        }
         break;
     }
  

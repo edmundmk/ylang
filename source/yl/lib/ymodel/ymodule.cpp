@@ -256,9 +256,9 @@ void yrecipe::print( yrecipe* routine )
                 case 'v':
                 {
                     yvalue v = routine->module()->value( i.c() );
-                    if ( v.is_bool() )
+                    if ( v.is_boolean() )
                     {
-                        printf( "%s", v.as_bool() ? "true" : "false" );
+                        printf( "%s", v.as_boolean() ? "true" : "false" );
                     }
                     else if ( v.is_number() )
                     {

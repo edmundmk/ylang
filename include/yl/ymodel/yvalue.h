@@ -78,7 +78,7 @@ public:
     
     bool        is_null() const;
     bool        is_undefined() const;
-    bool        is_bool() const;
+    bool        is_boolean() const;
     bool        is_number() const;
     
     bool        is_object() const;
@@ -89,7 +89,7 @@ public:
     bool        is_native() const;
 
     
-    bool        as_bool() const;
+    bool        as_boolean() const;
     double      as_number() const;
 
     yobject*    as_object() const;
@@ -428,7 +428,7 @@ inline bool yvalue::is_undefined() const
 #endif
 }
 
-inline bool yvalue::is_bool() const
+inline bool yvalue::is_boolean() const
 {
 #if Y64BIT
     return x == VALUE_FALSE || x == VALUE_TRUE;
@@ -492,7 +492,7 @@ inline bool yvalue::is_native() const
 }
 
 
-inline bool yvalue::as_bool() const
+inline bool yvalue::as_boolean() const
 {
 #if Y64BIT
     if ( x == VALUE_FALSE )

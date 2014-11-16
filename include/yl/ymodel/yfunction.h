@@ -71,7 +71,7 @@ private:
     Function closures.
 */
 
-class yfunction : public yexpand
+class yfunction : public yobject
 {
 public:
 
@@ -91,10 +91,6 @@ protected:
 
     yfunction( ymetatype* metatype, yexpand* global, yrecipe* recipe );
     
-    
-    friend class ymodel;
-    static yexpand* make_proto();
-
     
 private:
 

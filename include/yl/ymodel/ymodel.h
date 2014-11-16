@@ -118,7 +118,6 @@ private:
     yexpand* object_proto();
     yexpand* array_proto();
     yexpand* table_proto();
-    yexpand* function_proto();
     
     void mark_grey( yobject* object );
 

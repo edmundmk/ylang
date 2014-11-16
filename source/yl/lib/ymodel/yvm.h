@@ -17,6 +17,47 @@
 
 
 /*
+    A standin acts as the prototype of a primitive type or an object which is
+    not an expand.  It is necessary so that the is operator has something to
+    check against.
+*/
+
+class ystandin : public yobject
+{
+public:
+
+    enum kind
+    {
+        BOOLEAN,
+        NUMBER,
+        STRING,
+        FUNCTION,
+    };
+
+    static ystandin* alloc( kind kind );
+    
+    bool value_is_this( yvalue value );
+
+    
+protected:
+
+    friend class yobject;
+    static ymetatype metatype;
+    
+    explicit ystandin( ymetatype* metatype, kind kind );
+    
+    
+private:
+
+    kind skind;
+
+};
+
+
+
+
+
+/*
     An iterator implements for ( : ) and for ( :: ) loops.
 */
 

@@ -83,6 +83,14 @@ mapping.[ "length" ] = ?() { return 200; };
 assert( mapping.length() == 200 );
 
 
+assert( 5 is number );
+assert( true is boolean );
+assert( "hello" is string );
+
+
+assert( 5 is boolean );
+
+
 printf( "done!\n" );
 
 
