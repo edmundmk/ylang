@@ -13,6 +13,12 @@ ymetatype yexpand::metatype = { &mark_expand, "object" };
 
 
 
+yexpand* yexpand::superof( yexpand* object )
+{
+    return object->klass->prototype;
+}
+
+
 bool yexpand::is( yexpand* object, yexpand* prototype )
 {
     while ( object )

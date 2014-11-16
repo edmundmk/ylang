@@ -60,6 +60,7 @@ void yl_token::debug_print()
     case YL_KEYWORD_NEW:           kind_name = "NEW";              break;
     case YL_KEYWORD_NULL:          kind_name = "NULL";             break;
     case YL_KEYWORD_RETURN:        kind_name = "RETURN";           break;
+    case YL_KEYWORD_SUPEROF:       kind_name = "SUPEROF";          break;
     case YL_KEYWORD_SWITCH:        kind_name = "SWITCH";           break;
     case YL_KEYWORD_THROW:         kind_name = "THROW";            break;
     case YL_KEYWORD_TRUE:          kind_name = "TRUE";             break;

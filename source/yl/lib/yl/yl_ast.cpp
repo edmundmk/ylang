@@ -177,6 +177,13 @@ yl_expr_objref::yl_expr_objref( int sloc, yl_new_object* object )
 
 
 
+yl_expr_superof::yl_expr_superof( int sloc, yl_ast_node* expr )
+    :   yl_ast_node( YL_EXPR_SUPEROF, sloc )
+    ,   expr( expr )
+{
+}
+
+
 yl_expr_key::yl_expr_key( int sloc, yl_ast_node* object, const char* key )
     :   yl_ast_node( YL_EXPR_KEY, sloc )
     ,   object( object )

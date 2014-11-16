@@ -27,6 +27,10 @@ ymodel::ymodel()
     expand_object_proto     = yexpand::make_proto();
     expand_array_proto      = yarray::make_proto();
     expand_table_proto      = ytable::make_proto();
+    expand_boolean_proto    = ystandin::alloc( ystandin::BOOLEAN );
+    expand_number_proto     = ystandin::alloc( ystandin::NUMBER );
+    expand_string_proto     = ystandin::alloc( ystandin::STRING );
+    expand_function_proto   = ystandin::alloc( ystandin::FUNCTION );
 }
 
 ymodel::~ymodel()
@@ -40,10 +44,10 @@ yexpand* ymodel::make_global()
     global->setkey( "object", expand_object_proto );
     global->setkey( "array", expand_array_proto );
     global->setkey( "table", expand_table_proto );
-    global->setkey( "boolean", ystandin::alloc( ystandin::BOOLEAN ) );
-    global->setkey( "number", ystandin::alloc( ystandin::NUMBER ) );
-    global->setkey( "string", ystandin::alloc( ystandin::STRING ) );
-    global->setkey( "function", ystandin::alloc( ystandin::FUNCTION ) );
+    global->setkey( "boolean", expand_boolean_proto );
+    global->setkey( "number", expand_number_proto );
+    global->setkey( "string", expand_string_proto );
+    global->setkey( "function", expand_function_proto );
     return global;
 }
 
@@ -120,6 +124,26 @@ yexpand* ymodel::array_proto()
 yexpand* ymodel::table_proto()
 {
     return expand_table_proto;
+}
+
+ystandin* ymodel::boolean_proto()
+{
+    return expand_boolean_proto;
+}
+
+ystandin* ymodel::number_proto()
+{
+    return expand_number_proto;
+}
+
+ystandin* ymodel::string_proto()
+{
+    return expand_string_proto;
+}
+
+ystandin* ymodel::function_proto()
+{
+    return expand_function_proto;
 }
 
 

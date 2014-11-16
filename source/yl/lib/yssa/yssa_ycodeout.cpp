@@ -242,6 +242,9 @@ void yssa_ycodeout::build_func( yssa_linear* l )
         break;
     
     // indexing
+    case YSSA_SUPER:
+        inst( Y_SUPER, o( op->r ), o( op->operand[ 0 ] ), 0 );
+        break;
     case YSSA_KEY:
         inst( Y_KEY, o( op->r ), o( op->operand[ 0 ] ), k( op->key ) );
         break;

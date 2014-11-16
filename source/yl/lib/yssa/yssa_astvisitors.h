@@ -43,6 +43,7 @@ public:
     yssaop* visit( yl_expr_global* node );
     yssaop* visit( yl_expr_upref* node );
     yssaop* visit( yl_expr_objref* node );
+    yssaop* visit( yl_expr_superof* node );
     yssaop* visit( yl_expr_key* node );
     yssaop* visit( yl_expr_inkey* node );
     yssaop* visit( yl_expr_index* node );

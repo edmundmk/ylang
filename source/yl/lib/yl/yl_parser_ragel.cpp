@@ -1188,6 +1188,7 @@ struct yl_keywords
         emplace( symkey( "new" ),       YL_KEYWORD_NEW );
         emplace( symkey( "null" ),      YL_KEYWORD_NULL );
         emplace( symkey( "return" ),    YL_KEYWORD_RETURN );
+        emplace( symkey( "superof" ),   YL_KEYWORD_SUPEROF );
         emplace( symkey( "switch" ),    YL_KEYWORD_SWITCH );
         emplace( symkey( "throw" ),     YL_KEYWORD_THROW );
         emplace( symkey( "true" ),      YL_KEYWORD_TRUE );
@@ -1314,12 +1315,12 @@ bool yl_parser::parse( const char* path )
     int cs;
     
     
-#line 1318 "yl_parser_ragel.cpp"
+#line 1319 "yl_parser_ragel.cpp"
 	{
 	cs = lexer_start;
 	}
 
-#line 430 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
+#line 431 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
     
     
     // Perform lexing.
@@ -1355,7 +1356,7 @@ bool yl_parser::parse( const char* path )
         const unsigned char* eof    = iseof ? pe : NULL;
 
         
-#line 1359 "yl_parser_ragel.cpp"
+#line 1360 "yl_parser_ragel.cpp"
 	{
 	int _klen;
 	unsigned int _trans;
@@ -1834,7 +1835,7 @@ _match:
 #line 248 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
 	{ {cs = 29; goto _again;} }
 	break;
-#line 1838 "yl_parser_ragel.cpp"
+#line 1839 "yl_parser_ragel.cpp"
 		}
 	}
 
@@ -2117,7 +2118,7 @@ _again:
 #line 248 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
 	{ {cs = 29; goto _again;} }
 	break;
-#line 2121 "yl_parser_ragel.cpp"
+#line 2122 "yl_parser_ragel.cpp"
 		}
 	}
 	}
@@ -2125,7 +2126,7 @@ _again:
 	_out: {}
 	}
 
-#line 465 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
+#line 466 "../../toolbox/source/yl/lib/parser/yl_parser_ragel.rl"
         
         offset += read;
     }

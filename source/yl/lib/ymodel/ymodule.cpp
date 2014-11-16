@@ -119,6 +119,7 @@ public:
         add( Y_LNOT,      "lnot      %r %a" );
         add( Y_LXOR,      "lxor      %r %a %b" );
     
+        add( Y_SUPER,     "super     %r %a" );
         add( Y_KEY,       "key       %r %a %k" );
         add( Y_INKEY,     "inkey     %r %a %b" );
         add( Y_INDEX,     "index     %r %a %b" );

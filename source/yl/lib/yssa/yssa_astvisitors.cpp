@@ -146,6 +146,12 @@ yssaop* yssa_build_expr::visit( yl_expr_objref* node )
     return b->lookup( node->object );
 }
 
+yssaop* yssa_build_expr::visit( yl_expr_superof* node )
+{
+    yssaop* expr = visit( node->expr );
+    return b->op( node->sloc, YSSA_SUPER, expr );
+}
+
 yssaop* yssa_build_expr::visit( yl_expr_key* node )
 {
     yssaop* object = visit( node->object );

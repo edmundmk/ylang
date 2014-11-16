@@ -34,6 +34,7 @@ class yexpand : public yobject
 {
 public:
 
+    static yexpand* superof( yexpand* object );
     static bool is( yexpand* object, yexpand* prototype );
     static bool in( ysymbol key, yexpand* object );
 

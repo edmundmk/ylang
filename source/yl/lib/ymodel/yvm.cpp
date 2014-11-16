@@ -500,6 +500,25 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
         s[ i.r() ] = (bool)s[ i.a() ] != (bool)s[ i.b() ];
         break;
         
+    case Y_SUPER:
+    {
+        yvalue value = s[ i.a() ];
+        if ( value.is_expand() )
+            s[ i.r() ] = yexpand::superof( value.as_expand() );
+        else if ( value.is_boolean() )
+            s[ i.r() ] = yscope::scope->model->boolean_proto();
+        else if ( value.is_number() )
+            s[ i.r() ] = yscope::scope->model->number_proto();
+        else if ( value.is_string() )
+            s[ i.r() ] = yscope::scope->model->string_proto();
+        else if ( value.is_thunk() || value.is< yfunction >() )
+            s[ i.r() ] = yscope::scope->model->function_proto();
+        else if ( value.is< ystandin >() )
+            s[ i.r() ] = yscope::scope->model->object_proto();
+        else
+            s[ i.r() ] = yvalue::ynull;
+        break;
+    }
     case Y_KEY:
     {
         ysymbol o = module->symbol( i.b() );

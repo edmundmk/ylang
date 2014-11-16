@@ -25,6 +25,7 @@ class yexpand;
 class ystack;
 class yframe;
 class yfunction;
+class ystandin;
 
 
 /*
@@ -118,6 +119,10 @@ private:
     yexpand* object_proto();
     yexpand* array_proto();
     yexpand* table_proto();
+    ystandin* boolean_proto();
+    ystandin* number_proto();
+    ystandin* string_proto();
+    ystandin* function_proto();
     
     void mark_grey( yobject* object );
 
@@ -135,7 +140,10 @@ private:
     yexpand* expand_object_proto;
     yexpand* expand_array_proto;
     yexpand* expand_table_proto;
-    yexpand* expand_function_proto;
+    ystandin* expand_boolean_proto;
+    ystandin* expand_number_proto;
+    ystandin* expand_string_proto;
+    ystandin* expand_function_proto;
     
     std::mutex greylist_mutex;
     yworklist greylist;

@@ -122,6 +122,7 @@ enum yssa_opcode : uint16_t
     YSSA_LXOR,      // ^^
     
     // indexing
+    YSSA_SUPER,     //
     YSSA_KEY,       // object.key
     YSSA_INKEY,     // object.[ key ]
     YSSA_INDEX,     // container[ index ]

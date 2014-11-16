@@ -100,6 +100,7 @@ public:
     void visit( yl_expr_global* node, int indent );
     void visit( yl_expr_upref* node, int indent );
     void visit( yl_expr_objref* node, int indent );
+    void visit( yl_expr_superof* node, int indent );
     void visit( yl_expr_key* node, int indent );
     void visit( yl_expr_inkey* node, int indent );
     void visit( yl_expr_index* node, int indent );
@@ -292,6 +293,12 @@ void yl_ast_printer::visit( yl_expr_upref* node, int indent )
 void yl_ast_printer::visit( yl_expr_objref* node, int indent ) 
 {
     printf( "%*sobject %p\n", indent, "", node->object );
+}
+
+void yl_ast_printer::visit( yl_expr_superof* node, int indent )
+{
+    printf( "%*ssuperof:\n", indent, "" );
+    visit( node->expr, indent + INDENT );
 }
 
 void yl_ast_printer::visit( yl_expr_key* node, int indent ) 

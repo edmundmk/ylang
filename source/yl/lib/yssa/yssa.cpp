@@ -49,6 +49,7 @@ const char* yssa_opname( yssa_opcode opcode )
 
     case YSSA_LXOR:     return "lxor";
     
+    case YSSA_SUPER:    return "super";
     case YSSA_KEY:      return "key";
     case YSSA_INKEY:    return "inkey";
     case YSSA_INDEX:    return "index";

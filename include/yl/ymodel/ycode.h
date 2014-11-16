@@ -57,6 +57,7 @@ enum ycode
     Y_LNOT,         // r = not (bool)a
     Y_LXOR,         // r = (bool)a xor (bool)b
     
+    Y_SUPER,        // r = prototype of a
     Y_KEY,          // r = a lookup keys[ b ]
     Y_INKEY,        // r = a lookup (string)b
     Y_INDEX,        // r = a index b

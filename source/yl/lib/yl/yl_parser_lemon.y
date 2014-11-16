@@ -328,6 +328,11 @@ expr_index(x)   ::= LPN expr_assign(expr) RPN .
                 {
                     x = p->mono( expr );
                 }
+expr_index(x)   ::= SUPEROF(token) LPN expr_assign(expr) RPN .
+                {
+                    x = p->alloc< yl_expr_superof >( token->sloc, expr );
+                    p->destroy( token );
+                }
 expr_index(x)   ::= IDENTIFIER(token) .
                 {
                     x = p->lookup( token->sloc, token->text, true );

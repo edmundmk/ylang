@@ -105,6 +105,25 @@ for ( var key, value : map )
 }
 
 
+def base
+{
+}
+
+def derived : base
+{
+}
+
+assert( superof( derived ) == base );
+assert( superof( base ) == object );
+assert( superof( assert ) == function );
+assert( superof( function ) == object );
+assert( superof( object ) == null );
+assert( superof( false ) == boolean );
+assert( superof( 532 ) == number );
+assert( superof( "goodbye" ) == string );
+assert( superof( number ) == object );
+
+
 printf( "done!\n" );
 
 

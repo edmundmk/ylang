@@ -62,6 +62,7 @@ enum yl_ast_node_kind
     YL_EXPR_OBJREF,
     
     // Lookup.
+    YL_EXPR_SUPEROF,
     YL_EXPR_KEY,
     YL_EXPR_INKEY,
     YL_EXPR_INDEX,
@@ -429,11 +430,19 @@ struct yl_expr_objref : public yl_ast_node
     Lookup.
 */
 
+struct yl_expr_superof : public yl_ast_node
+{
+    yl_expr_superof( int sloc, yl_ast_node* expr );
+    
+    yl_ast_node*        expr;
+};
+
+
 struct yl_expr_key : public yl_ast_node
 {
     yl_expr_key( int sloc, yl_ast_node* object, const char* key );
 
-    yl_ast_node*       object;
+    yl_ast_node*        object;
     const char*         key;
 };
 

@@ -301,6 +301,7 @@ struct yl_keywords
         emplace( symkey( "new" ),       YL_KEYWORD_NEW );
         emplace( symkey( "null" ),      YL_KEYWORD_NULL );
         emplace( symkey( "return" ),    YL_KEYWORD_RETURN );
+        emplace( symkey( "superof" ),   YL_KEYWORD_SUPEROF );
         emplace( symkey( "switch" ),    YL_KEYWORD_SWITCH );
         emplace( symkey( "throw" ),     YL_KEYWORD_THROW );
         emplace( symkey( "true" ),      YL_KEYWORD_TRUE );

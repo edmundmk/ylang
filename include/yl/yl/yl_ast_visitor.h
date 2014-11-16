@@ -41,6 +41,8 @@ public:
         { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
     return_t visit( yl_expr_objref* node, arguments_t ... arguments )
         { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
+    return_t visit( yl_expr_superof* node, arguments_t ... arguments )
+        { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
     return_t visit( yl_expr_key* node, arguments_t ... arguments )
         { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
     return_t visit( yl_expr_inkey* node, arguments_t ... arguments )
@@ -150,6 +152,7 @@ return_t yl_ast_visitor< visitor_t, return_t, arguments_t ... >::
         &visitor_t::template dispatch< yl_expr_global >,
         &visitor_t::template dispatch< yl_expr_upref >,
         &visitor_t::template dispatch< yl_expr_objref >,
+        &visitor_t::template dispatch< yl_expr_superof >,
         &visitor_t::template dispatch< yl_expr_key >,
         &visitor_t::template dispatch< yl_expr_inkey >,
         &visitor_t::template dispatch< yl_expr_index >,
