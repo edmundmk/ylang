@@ -107,10 +107,19 @@ for ( var key, value : map )
 
 def base
 {
+    def method()
+    {
+        printf( "got here!\n" );
+    }
 }
 
 def derived : base
 {
+    def method()
+    {
+        printf( "went there!\n" );
+        super.method();
+    }
 }
 
 assert( superof( derived ) == base );
@@ -122,6 +131,9 @@ assert( superof( false ) == boolean );
 assert( superof( 532 ) == number );
 assert( superof( "goodbye" ) == string );
 assert( superof( number ) == object );
+
+
+derived.method();
 
 
 printf( "done!\n" );

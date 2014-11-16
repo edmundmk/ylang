@@ -614,11 +614,10 @@ yl_ast_node* yl_parser::lookup( int sloc, const char* identifier, bool outer )
                         sloc, local->func, upval( local->func, lookname ) );
         }
         
-        // If the name is 'super' then transform to 'this.super'.
+        // If the name is 'super' then transform to 'superof( this )'
         if ( name->superthis )
         {
-            nameref = alloc< yl_expr_key >(
-                            sloc, nameref, name->name );
+            nameref = alloc< yl_expr_superof >( sloc, nameref );
         }
         
         return nameref;
