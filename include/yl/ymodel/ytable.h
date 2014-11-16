@@ -24,6 +24,7 @@ class ytable : public yexpand
 public:
 
     static ytable* alloc();
+    static ytable* alloc( yexpand* prototype );
     
     size_t  length() const;
     yvalue  getindex( yvalue key ) const;
@@ -36,7 +37,7 @@ protected:
     static ymetatype metatype;
     static void mark_table( yobject* object, yworklist* work, ycolour colour );
 
-    explicit ytable( ymetatype* metatype );
+    explicit ytable( ymetatype* metatype, yclass* klass );
 
 
     friend class ymodel;

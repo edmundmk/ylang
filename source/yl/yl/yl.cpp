@@ -104,7 +104,7 @@ int main( int argc, char* argv[] )
     ymodule::print( module );
 
 
-    yexpand* global = yexpand::alloc();
+    yexpand* global = model.make_global();
     global->setkey( "atoi", y_atoi );
     global->setkey( "printf", y_printf );
     global->setkey( "sqrt", y_sqrt );

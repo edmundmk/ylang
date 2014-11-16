@@ -34,6 +34,10 @@ class yexpand : public yobject
 {
 public:
 
+    static bool is( yexpand* object, yexpand* prototype );
+    static bool in( ysymbol key, yexpand* object );
+
+
     static yexpand* alloc();
     static yexpand* alloc( yexpand* prototype );
     
@@ -52,6 +56,10 @@ protected:
     static void mark_expand( yobject* object, yworklist* work, ycolour colour );
 
     yexpand( ymetatype* metatype, yclass* klass );
+    
+    
+    friend class ymodel;
+    static yexpand* make_proto();
 
 
 private:

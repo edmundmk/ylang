@@ -25,6 +25,7 @@ class yarray : public yexpand
 public:
 
     static yarray* alloc();
+    static yarray* alloc( yexpand* prototype );
     
     size_t  length() const;
     yvalue  getindex( size_t i ) const;
@@ -40,7 +41,7 @@ protected:
     static ymetatype metatype;
     static void mark_array( yobject* object, yworklist* work, ycolour colour );
 
-    explicit yarray( ymetatype* metatype );
+    explicit yarray( ymetatype* metatype, yclass* klass );
 
 
     friend class ymodel;

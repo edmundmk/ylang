@@ -17,13 +17,18 @@ ymetatype yarray::metatype = { &mark_array, "array" };
 
 yarray* yarray::alloc()
 {
+    return alloc( yscope::scope->model->array_proto() );
+}
+
+yarray* yarray::alloc( yexpand* prototype )
+{
     void* p = malloc( sizeof( yarray ) );
-    return new ( p ) yarray( &metatype );
+    return new ( p ) yarray( &metatype, prototype->empty_class() );
 }
 
 
-yarray::yarray( ymetatype* metatype )
-    :   yexpand( metatype, yscope::scope->model->array_class() )
+yarray::yarray( ymetatype* metatype, yclass* klass )
+    :   yexpand( metatype, klass )
     ,   count( 0 )
 {
 }

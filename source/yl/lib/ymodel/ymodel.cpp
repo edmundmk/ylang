@@ -21,16 +21,28 @@
 */
 
 ymodel::ymodel()
-    :   expand_empty( nullptr )
 {
     yscope scope( this );
-    expand_empty = yclass::alloc();
-    array_proto = yarray::make_proto();
-    table_proto = ytable::make_proto();
+    expand_empty_class      = yclass::alloc();
+    expand_object_proto     = yexpand::make_proto();
+    expand_array_proto      = yarray::make_proto();
+    expand_table_proto      = ytable::make_proto();
+    expand_function_proto   = yfunction::make_proto();
 }
 
 ymodel::~ymodel()
 {
+}
+
+
+yexpand* ymodel::make_global()
+{
+    yexpand* global = yexpand::alloc();
+    global->setkey( "object", expand_object_proto );
+    global->setkey( "array", expand_array_proto );
+    global->setkey( "table", expand_table_proto );
+    global->setkey( "function", expand_function_proto );
+    return global;
 }
 
 
@@ -89,18 +101,31 @@ ystring* ymodel::make_symbol( ystring* s )
 
 yclass* ymodel::empty_class()
 {
-    return expand_empty;
+    return expand_empty_class;
 }
 
-yclass* ymodel::array_class()
+
+yexpand* ymodel::object_proto()
 {
-    return array_proto->empty_class();
+    return expand_object_proto;
 }
 
-yclass* ymodel::table_class()
+yexpand* ymodel::array_proto()
 {
-    return table_proto->empty_class();
+    return expand_array_proto;
 }
+
+yexpand* ymodel::table_proto()
+{
+    return expand_table_proto;
+}
+
+yexpand* ymodel::function_proto()
+{
+    return expand_function_proto;
+}
+
+
 
 
 #if YSLOTS

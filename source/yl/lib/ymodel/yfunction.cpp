@@ -40,7 +40,6 @@ void yupval::mark_upval( yobject* object, yworklist* work, ycolour colour )
 
 
 
-
 ymetatype yfunction::metatype = { &mark_function, "function" };
 
 
@@ -52,7 +51,7 @@ yfunction* yfunction::alloc( yexpand* global, yrecipe* recipe )
 
 
 yfunction::yfunction( ymetatype* metatype, yexpand* global, yrecipe* recipe )
-    :   yobject( metatype )
+    :   yexpand( metatype, yscope::scope->model->function_proto()->empty_class() )
     ,   fglobal( global )
     ,   frecipe( recipe )
     ,   fupvals( ytuple< yupval* >::alloc( recipe->upval_count() ) )
@@ -67,6 +66,19 @@ void yfunction::mark_function( yobject* object, yworklist* work, ycolour colour 
     ymark( function->frecipe, work, colour );
     ymark( function->fupvals, work, colour );
 }
+
+
+
+
+yexpand* yfunction::make_proto()
+{
+    return yexpand::alloc();
+}
+
+
+
+
+
 
 
 

@@ -47,6 +47,7 @@ public:
     yvalue  get();
     void    set( yvalue value );
 
+
 protected:
 
     friend class yobject;
@@ -70,7 +71,7 @@ private:
     Function closures.
 */
 
-class yfunction : public yobject
+class yfunction : public yexpand
 {
 public:
 
@@ -89,6 +90,10 @@ protected:
     static void mark_function( yobject* object, yworklist* work, ycolour colour );
 
     yfunction( ymetatype* metatype, yexpand* global, yrecipe* recipe );
+    
+    
+    friend class ymodel;
+    static yexpand* make_proto();
 
     
 private:

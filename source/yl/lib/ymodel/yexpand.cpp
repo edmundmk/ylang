@@ -13,10 +13,55 @@ ymetatype yexpand::metatype = { &mark_expand, "object" };
 
 
 
+bool yexpand::is( yexpand* object, yexpand* prototype )
+{
+    while ( object )
+    {
+        yclass* klass = object->klass;
+        yexpand* objproto = klass->prototype;
+        
+        if ( objproto == prototype )
+        {
+            return true;
+        }
+        
+        object = objproto;
+    }
+
+    return false;
+}
+
+
+bool yexpand::in( ysymbol key, yexpand* object )
+{
+    yclass* klass = object->klass;
+    yvalue v = yvalue::yundefined;
+
+    auto lookup = klass->lookup.lookup( key );
+    if ( lookup )
+    {
+#if YSLOTS
+        v = object->slots->get( lookup->value.slot );
+#else
+        v = object->slots->get( lookup->value );
+#endif
+    }
+
+    return ! v.is_undefined();
+}
+
+
+
+
+
+
+
+
 yexpand* yexpand::alloc()
 {
+    yexpand* prototype = yscope::scope->model->object_proto();
     void* p = malloc( sizeof( yexpand ) );
-    return new ( p ) yexpand( &metatype, nullptr );
+    return new ( p ) yexpand( &metatype, prototype->empty_class() );
 }
 
 yexpand* yexpand::alloc( yexpand* prototype )
@@ -28,7 +73,7 @@ yexpand* yexpand::alloc( yexpand* prototype )
 
 yexpand::yexpand( ymetatype* metatype, yclass* klass )
     :   yobject( metatype )
-    ,   klass( klass ? klass : yscope::scope->model->empty_class() )
+    ,   klass( klass )
 {
 }
 
@@ -311,6 +356,15 @@ void yexpand::mark_expand( yobject* object, yworklist* work, ycolour colour )
     ymark( expand->slots, work, colour );
 }
 
+
+
+
+yexpand* yexpand::make_proto()
+{
+    yclass* klass = yscope::scope->model->empty_class();
+    void* p = malloc( sizeof( yexpand ) );
+    return new ( p ) yexpand( &metatype, klass );
+}
 
 
 

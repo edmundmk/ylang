@@ -87,6 +87,9 @@ public:
 
     ymodel();
     ~ymodel();
+    
+    yexpand* make_global();
+    
 
 private:
 
@@ -95,7 +98,9 @@ private:
     friend class yexpand;
     friend class yarray;
     friend class ytable;
+    friend class yfunction;
     template < typename object_t > friend class yroot;
+    friend void yexec( size_t, unsigned, unsigned );
 
     void add_root( yobject* object );
     void remove_root( yobject* object );
@@ -110,8 +115,10 @@ private:
     yclass* expand_class( yclass* klass, ysymbol key );
 #endif
 
-    yclass* array_class();
-    yclass* table_class();
+    yexpand* object_proto();
+    yexpand* array_proto();
+    yexpand* table_proto();
+    yexpand* function_proto();
     
     void mark_grey( yobject* object );
 
@@ -125,9 +132,11 @@ private:
     std::unordered_map< symkey, ysymbol > symbols;
     
     std::mutex expand_mutex;
-    yclass* expand_empty;
-    yexpand* array_proto;
-    yexpand* table_proto;
+    yclass* expand_empty_class;
+    yexpand* expand_object_proto;
+    yexpand* expand_array_proto;
+    yexpand* expand_table_proto;
+    yexpand* expand_function_proto;
     
     std::mutex greylist_mutex;
     yworklist greylist;
@@ -157,6 +166,7 @@ private:
     friend class yarray;
     friend class ytable;
     friend class yframe;
+    friend class yfunction;
     friend void yinvoke( yfunction* );
     friend void yexec( size_t, unsigned, unsigned );
 

@@ -218,12 +218,22 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
     case Y_LE:
         s[ i.r() ] = ( s[ i.a() ] <= s[ i.b() ] );
         break;
+        
     case Y_IN:
-        assert( ! "not implemented!" );
+        s[ i.r() ] = yexpand::in( s[ i.a() ].as_string(), s[ i.b() ].as_expand() );
         break;
+        
     case Y_IS:
-        assert( ! "not implemented!" );
+    {
+        yexpand* prototype = s[ i.b() ].as_expand();
+        if ( s[ i.a() ].is_expand() )
+            s[ i.r() ] = yexpand::is( s[ i.a() ].as_expand(), prototype );
+        else if ( s[ i.a() ].is_thunk() && prototype == yscope::scope->model->function_proto() )
+            s[ i.r() ] = yvalue::ytrue;
+        else
+            s[ i.r() ] = yvalue::yfalse;
         break;
+    }
  
     case Y_TEST:
         s[ i.r() ] = (bool)s[ i.a() ];
@@ -384,12 +394,22 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
     }
     case Y_OBJECT:
     {
-        // TODO: If the prototype is a table/an array (or the prototypes of
-        // same), so should this object be.
         if ( i.a() == Y_NOVAL )
+        {
             s[ i.r() ] = yexpand::alloc();
+        }
         else
-            s[ i.r() ] = yexpand::alloc( s[ i.a() ].as_expand() );
+        {
+            yexpand* prototype = s[ i.a() ].as_expand();
+            yexpand* arrayproto = yscope::scope->model->array_proto();
+            yexpand* tableproto = yscope::scope->model->table_proto();
+            if ( prototype == arrayproto || yexpand::is( prototype, arrayproto ) )
+                s[ i.r() ] = yarray::alloc( prototype );
+            else if ( prototype == tableproto || yexpand::is( prototype, tableproto ) )
+                s[ i.r() ] = ytable::alloc( prototype );
+            else
+                s[ i.r() ] = yexpand::alloc( prototype );
+        }
         break;
     }
 

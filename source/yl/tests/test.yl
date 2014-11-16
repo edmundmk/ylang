@@ -71,14 +71,14 @@ var type = null;
 type = "ok";
 //typo = null; // !!! error - typo hasn't been declared
 
-def global.function() { return "ok"; }
-global.variable = "ok";
+def global.global_function() { return "ok"; }
+global.global_variable = "ok";
 
 
 var mapping = {};
 mapping[ "length" ] = 5;
 assert( mapping.length() == 1 );
-//assert( mapping.[ "length" ] is function );
+assert( mapping.[ "length" ] is function );
 mapping.[ "length" ] = ?() { return 200; };
 assert( mapping.length() == 200 );
 

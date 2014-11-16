@@ -16,13 +16,18 @@ ymetatype ytable::metatype = { &mark_table, "table" };
 
 ytable* ytable::alloc()
 {
+    return alloc( yscope::scope->model->table_proto() );
+}
+
+ytable* ytable::alloc( yexpand* prototype )
+{
     void* p = malloc( sizeof( ytable ) );
-    return new ( p ) ytable( &metatype );
+    return new ( p ) ytable( &metatype, prototype->empty_class() );
 }
 
 
-ytable::ytable( ymetatype* metatype )
-    :   yexpand( metatype, yscope::scope->model->table_class() )
+ytable::ytable( ymetatype* metatype, yclass* klass )
+    :   yexpand( metatype, klass )
 {
 }
 

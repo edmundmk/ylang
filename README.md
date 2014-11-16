@@ -58,7 +58,9 @@ Features
         for ( var i = 4; i < 20; ++i )
         {
             if ( i_need_more_i )
+            {
                 var i = 30;
+            }
             assert( i >= 4 && i < 20 );
         }
         assert( i == 0 );
@@ -69,8 +71,8 @@ Features
         type = "ok";
         typo = null; // !!! error - typo hasn't been declared
         
-        def global.function() { return "ok"; }
-        global.variable = "ok";
+        def global.global_function() { return "ok"; }
+        global.global_variable = "ok";
 
 - Clear separation between property keys and the indexes of a table or array.
 
