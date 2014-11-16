@@ -36,8 +36,6 @@ public:
 
     static yexpand* superof( yexpand* object );
     static bool is( yexpand* object, yexpand* prototype );
-    static bool in( ysymbol key, yexpand* object );
-
 
     static yexpand* alloc();
     static yexpand* alloc( yexpand* prototype );
@@ -64,6 +62,8 @@ protected:
 
 
 private:
+
+    friend class yiterator;
 
 #if YSLOTS
     void        dualkey( ysymbol key, yslotindex index, yvalue value );
@@ -119,6 +119,7 @@ private:
 
     friend class ymodel;
     friend class yexpand;
+    friend class yiterator;
 
     ywb< yexpand* >                 prototype;
 #if YSLOTS

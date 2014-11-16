@@ -291,6 +291,12 @@ inline ystring* ywb< ysymbol >::operator -> () const
     return string.load( std::memory_order_relaxed );
 }
 
+inline ystring* ywb< ysymbol >::get() const
+{
+    return string.load( std::memory_order_relaxed );
+}
+
+
 
 
 inline void ymarktraits< ywb< ysymbol > >::mark(

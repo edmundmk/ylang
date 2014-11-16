@@ -93,11 +93,12 @@ void ystack::ensure_upvals( size_t size )
 */
 
 
-yiterator::yiterator( yexpand* expand )
+yiterator::yiterator( yexpand* object )
     :   kind( KEYS )
-    ,   index( 0 )
+    ,   index( -1 )
+    ,   object( object )
+    ,   klass( object->klass )
 {
-    assert( ! "not implemented" );
 }
 
 yiterator::yiterator( yarray* array )
@@ -228,9 +229,27 @@ void yiterator::next( ystack* stack, size_t sp, unsigned count )
 
 void yiterator::next_key( yvalue* a, yvalue* b )
 {
-    // TODO: Actually do this.
+    if ( object->klass == klass && klass->lookup.keyvals )
+    {
+        for ( index += 1; index < klass->lookup.keyvals->size(); ++index )
+        {
+            auto& kv = klass->lookup.keyvals->at( index );
+            if ( kv.next != nullptr )
+            {
+                *a = kv.key.get();
+#if YSLOTS
+                *b = object->slots->get( kv.value.slot );
+#else
+                *b = object->slots->get( kv.value );
+#endif
+                return;
+            }
+        }
+    }
+
     *a = yvalue::yundefined;
     *b = yvalue::yundefined;
+    index = (size_t)-1;
 }
 
 void yiterator::next_array( yvalue* a )
@@ -462,8 +481,13 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
         break;
         
     case Y_IN:
-        s[ i.r() ] = yexpand::in( s[ i.a() ].as_string(), s[ i.b() ].as_expand() );
+    {
+        // 'in' looks up the entire object hierarchy, like a normal lookup.
+        ysymbol o = s[ i.a() ].as_string();
+        yvalue v = s[ i.b() ].as_expand()->getkey( o );
+        s[ i.r() ] = v.is_undefined() ? yvalue::yfalse : yvalue::ytrue;
         break;
+    }
         
     case Y_IS:
     {

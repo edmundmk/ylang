@@ -38,27 +38,6 @@ bool yexpand::is( yexpand* object, yexpand* prototype )
 }
 
 
-bool yexpand::in( ysymbol key, yexpand* object )
-{
-    yclass* klass = object->klass;
-    yvalue v = yvalue::yundefined;
-
-    auto lookup = klass->lookup.lookup( key );
-    if ( lookup )
-    {
-#if YSLOTS
-        v = object->slots->get( lookup->value.slot );
-#else
-        v = object->slots->get( lookup->value );
-#endif
-    }
-
-    return ! v.is_undefined();
-}
-
-
-
-
 
 
 

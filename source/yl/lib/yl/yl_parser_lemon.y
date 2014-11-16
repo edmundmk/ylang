@@ -1121,7 +1121,7 @@ stmt_common(x)  ::= sexpr_assign(expr) SEMICOLON .
                 {
                     x = expr;
                 }
-stmt_common(x)  ::= stmt_if(stmt) LPN condition(expr) RPN stmt(block) .
+stmt_common(x)  ::= stmt_if(stmt) LPN condition(expr) RPN stmt(block) . [IF]
                 {
                     stmt->condition = expr;
                     stmt->iftrue    = block;
@@ -1129,7 +1129,7 @@ stmt_common(x)  ::= stmt_if(stmt) LPN condition(expr) RPN stmt(block) .
                     x = stmt;
                 }
 stmt_common(x)  ::= stmt_if(stmt) LPN condition(expr) RPN stmt(block)
-                                ELSE stmt(orblock) .
+                                ELSE stmt(orblock) . [IF]
                 {
                     stmt->condition = expr;
                     stmt->iftrue    = block;

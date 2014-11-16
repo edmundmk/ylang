@@ -76,7 +76,7 @@ public:
     };
 
     
-    explicit yiterator( yexpand* expand );
+    explicit yiterator( yexpand* object );
     explicit yiterator( yarray* array );
     explicit yiterator( ytable* table );
 
@@ -97,6 +97,11 @@ private:
     size_t      index;
     union
     {
+        struct
+        {
+    yexpand*    object;
+    yclass*     klass;
+        };
         struct
         {
     yarray*     array;

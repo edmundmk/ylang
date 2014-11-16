@@ -161,13 +161,13 @@ State 1:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  240
                            RBR shift  270
                            DEF shift  101
                          COLON shift  182
-                     SEMICOLON shift  403
+                     SEMICOLON shift  402
                            VAR shift  103
                        SUPEROF shift  153
                            LSQ shift  37
@@ -187,9 +187,9 @@ State 1:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -202,23 +202,23 @@ State 1:
                     newf_scope shift  180
                     stmt_block shift  117
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
-                   decl_object shift  405
+                   decl_object shift  404
                    expr_simple shift  351
-                     decl_func shift  406
-                      decl_var shift  407
+                     decl_func shift  405
+                      decl_var shift  406
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -235,13 +235,13 @@ State 1:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
-                          stmt shift  404
-                   stmt_common shift  239
+                          stmt shift  403
+                   stmt_common shift  409
                       stmt_try shift  287
 
 State 2:
@@ -395,12 +395,12 @@ State 2:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  240
                            DEF shift  101
                          COLON shift  182
-                     SEMICOLON shift  403
+                     SEMICOLON shift  402
                            VAR shift  103
                        SUPEROF shift  153
                            LSQ shift  37
@@ -420,9 +420,9 @@ State 2:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -435,23 +435,23 @@ State 2:
                     newf_scope shift  180
                     stmt_block shift  117
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
-                   decl_object shift  405
+                   decl_object shift  404
                    expr_simple shift  351
-                     decl_func shift  406
-                      decl_var shift  407
+                     decl_func shift  405
+                      decl_var shift  406
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -468,13 +468,13 @@ State 2:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
-                          stmt shift  404
-                   stmt_common shift  239
+                          stmt shift  403
+                   stmt_common shift  409
                       stmt_try shift  287
 
 State 3:
@@ -627,13 +627,13 @@ State 3:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  240
-                           RBR shift  408
+                           RBR shift  407
                            DEF shift  101
                          COLON shift  182
-                     SEMICOLON shift  403
+                     SEMICOLON shift  402
                            VAR shift  103
                        SUPEROF shift  153
                            LSQ shift  37
@@ -653,9 +653,9 @@ State 3:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -668,23 +668,23 @@ State 3:
                     newf_scope shift  180
                     stmt_block shift  117
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
-                   decl_object shift  405
+                   decl_object shift  404
                    expr_simple shift  351
-                     decl_func shift  406
-                      decl_var shift  407
+                     decl_func shift  405
+                      decl_var shift  406
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -701,13 +701,13 @@ State 3:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
-                          stmt shift  404
-                   stmt_common shift  239
+                          stmt shift  403
+                   stmt_common shift  409
                       stmt_try shift  287
 
 State 4:
@@ -860,13 +860,13 @@ State 4:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  240
-                           RBR shift  409
+                           RBR shift  239
                            DEF shift  101
                          COLON shift  182
-                     SEMICOLON shift  403
+                     SEMICOLON shift  402
                            VAR shift  103
                        SUPEROF shift  153
                            LSQ shift  37
@@ -886,9 +886,9 @@ State 4:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -901,23 +901,23 @@ State 4:
                     newf_scope shift  180
                     stmt_block shift  117
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
-                   decl_object shift  405
+                   decl_object shift  404
                    expr_simple shift  351
-                     decl_func shift  406
-                      decl_var shift  407
+                     decl_func shift  405
+                      decl_var shift  406
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -934,13 +934,13 @@ State 4:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
-                          stmt shift  404
-                   stmt_common shift  239
+                          stmt shift  403
+                   stmt_common shift  409
                       stmt_try shift  287
 
 State 5:
@@ -1093,12 +1093,12 @@ State 5:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  240
                            DEF shift  101
                          COLON shift  182
-                     SEMICOLON shift  403
+                     SEMICOLON shift  402
                            RPN shift  263
                            VAR shift  103
                        SUPEROF shift  153
@@ -1119,9 +1119,9 @@ State 5:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -1134,23 +1134,23 @@ State 5:
                     newf_scope shift  180
                     stmt_block shift  117
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
-                   decl_object shift  405
+                   decl_object shift  404
                    expr_simple shift  351
-                     decl_func shift  406
-                      decl_var shift  407
+                     decl_func shift  405
+                      decl_var shift  406
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -1167,13 +1167,13 @@ State 5:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
-                          stmt shift  404
-                   stmt_common shift  239
+                          stmt shift  403
+                   stmt_common shift  409
                       stmt_try shift  287
 
 State 6:
@@ -1326,13 +1326,13 @@ State 6:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  240
-                           RBR shift  392
+                           RBR shift  391
                            DEF shift  101
                          COLON shift  182
-                     SEMICOLON shift  403
+                     SEMICOLON shift  402
                            VAR shift  103
                        SUPEROF shift  153
                            LSQ shift  37
@@ -1352,9 +1352,9 @@ State 6:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -1367,23 +1367,23 @@ State 6:
                     newf_scope shift  180
                     stmt_block shift  117
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
-                   decl_object shift  405
+                   decl_object shift  404
                    expr_simple shift  351
-                     decl_func shift  406
-                      decl_var shift  407
+                     decl_func shift  405
+                      decl_var shift  406
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -1400,13 +1400,13 @@ State 6:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
-                          stmt shift  404
-                   stmt_common shift  239
+                          stmt shift  403
+                   stmt_common shift  409
                       stmt_try shift  287
 
 State 7:
@@ -1546,7 +1546,7 @@ State 7:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  240
                          COLON shift  182
@@ -1568,9 +1568,9 @@ State 7:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -1581,20 +1581,20 @@ State 7:
                     newf_scope shift  180
                     stmt_block shift  117
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
                    expr_simple shift  351
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -1611,13 +1611,13 @@ State 7:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
                           stmt shift  350
-                   stmt_common shift  239
+                   stmt_common shift  409
                       stmt_try shift  287
 
 State 8:
@@ -1757,7 +1757,7 @@ State 8:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  260
                          COLON shift  182
@@ -1779,9 +1779,9 @@ State 8:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -1792,20 +1792,20 @@ State 8:
                     newf_scope shift  180
                   stmt_reblock shift  116
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
                    expr_simple shift  351
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -1822,10 +1822,10 @@ State 8:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
                    stmt_common shift  278
                     stmt_reuse shift  266
@@ -1968,7 +1968,7 @@ State 9:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  260
                          COLON shift  182
@@ -1990,9 +1990,9 @@ State 9:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -2003,20 +2003,20 @@ State 9:
                     newf_scope shift  180
                   stmt_reblock shift  116
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
                    expr_simple shift  351
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -2033,10 +2033,10 @@ State 9:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
                    stmt_common shift  278
                     stmt_reuse shift  317
@@ -2179,7 +2179,7 @@ State 10:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  260
                          COLON shift  182
@@ -2201,9 +2201,9 @@ State 10:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -2214,20 +2214,20 @@ State 10:
                     newf_scope shift  180
                   stmt_reblock shift  116
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
                    expr_simple shift  351
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -2244,10 +2244,10 @@ State 10:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
                    stmt_common shift  278
                     stmt_reuse shift  281
@@ -2390,7 +2390,7 @@ State 11:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  260
                          COLON shift  182
@@ -2412,9 +2412,9 @@ State 11:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -2425,20 +2425,20 @@ State 11:
                     newf_scope shift  180
                   stmt_reblock shift  116
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
                    expr_simple shift  351
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -2455,10 +2455,10 @@ State 11:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
                    stmt_common shift  278
                     stmt_reuse shift  286
@@ -2601,7 +2601,7 @@ State 12:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  260
                          COLON shift  182
@@ -2623,9 +2623,9 @@ State 12:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -2636,20 +2636,20 @@ State 12:
                     newf_scope shift  180
                   stmt_reblock shift  116
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
                    expr_simple shift  351
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -2666,10 +2666,10 @@ State 12:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
                    stmt_common shift  278
                     stmt_reuse shift  279
@@ -2812,7 +2812,7 @@ State 13:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  240
                          COLON shift  182
@@ -2834,9 +2834,9 @@ State 13:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -2847,20 +2847,20 @@ State 13:
                     newf_scope shift  180
                     stmt_block shift  117
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
                    expr_simple shift  351
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -2877,13 +2877,13 @@ State 13:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
                           stmt shift  352
-                   stmt_common shift  239
+                   stmt_common shift  409
                       stmt_try shift  287
 
 State 14:
@@ -3023,7 +3023,7 @@ State 14:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  260
                          COLON shift  182
@@ -3045,9 +3045,9 @@ State 14:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -3058,20 +3058,20 @@ State 14:
                     newf_scope shift  180
                   stmt_reblock shift  116
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
                    expr_simple shift  351
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -3088,10 +3088,10 @@ State 14:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
                    stmt_common shift  278
                     stmt_reuse shift  354
@@ -3234,7 +3234,7 @@ State 15:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  240
                          COLON shift  182
@@ -3256,9 +3256,9 @@ State 15:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -3269,20 +3269,20 @@ State 15:
                     newf_scope shift  180
                     stmt_block shift  117
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
                    expr_simple shift  351
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -3299,13 +3299,13 @@ State 15:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
                           stmt shift  347
-                   stmt_common shift  239
+                   stmt_common shift  409
                       stmt_try shift  287
 
 State 16:
@@ -3445,7 +3445,7 @@ State 16:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  240
                          COLON shift  182
@@ -3467,9 +3467,9 @@ State 16:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -3480,20 +3480,20 @@ State 16:
                     newf_scope shift  180
                     stmt_block shift  117
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
                    expr_simple shift  351
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -3510,13 +3510,13 @@ State 16:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
                           stmt shift  255
-                   stmt_common shift  239
+                   stmt_common shift  409
                       stmt_try shift  287
 
 State 17:
@@ -3656,7 +3656,7 @@ State 17:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  260
                          COLON shift  182
@@ -3678,9 +3678,9 @@ State 17:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -3691,20 +3691,20 @@ State 17:
                     newf_scope shift  180
                   stmt_reblock shift  116
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
                    expr_simple shift  351
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -3721,10 +3721,10 @@ State 17:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
                    stmt_common shift  278
                     stmt_reuse shift  271
@@ -3868,7 +3868,7 @@ State 18:
                          YIELD shift  181
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  240
                          COLON shift  182
@@ -3890,9 +3890,9 @@ State 18:
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
-                       DEFAULT shift  209
-                      CONTINUE shift  210
-                         BREAK shift  211
+                       DEFAULT shift  210
+                      CONTINUE shift  211
+                         BREAK shift  212
                         RETURN shift  36
                          THROW shift  62
                         SWITCH shift  313
@@ -3903,20 +3903,20 @@ State 18:
                     newf_scope shift  180
                     stmt_block shift  117
                        stmt_if shift  195
-                   stmt_switch shift  198
-                    stmt_while shift  200
+                   stmt_switch shift  199
+                    stmt_while shift  201
                        stmt_do shift  9
-                  stmt_doblock shift  202
-                     scope_for shift  214
+                  stmt_doblock shift  203
+                     scope_for shift  215
                   stmt_foreach shift  12
                       stmt_for shift  10
-                    stmt_using shift  206
+                    stmt_using shift  207
                      try_block shift  98
                      try_catch shift  99
                    token_yield shift  35
                    expr_simple shift  351
                     expr_index shift  123
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -3933,13 +3933,13 @@ State 18:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  376
-                    expr_final shift  401
+                    expr_nolbr shift  375
+                    expr_final shift  400
                    sexpr_lbody shift  107
-                    sexpr_list shift  402
+                    sexpr_list shift  401
                   sexpr_assign shift  194
-                          stmt shift  253
-                   stmt_common shift  239
+                          stmt shift  198
+                   stmt_common shift  409
                       stmt_try shift  287
 
 State 19:
@@ -4046,7 +4046,7 @@ State 19:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -4069,11 +4069,11 @@ State 19:
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
-                     expr_list shift  398
+                     expr_list shift  397
                     expr_index shift  123
                    expr_assign shift  245
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -4090,11 +4090,11 @@ State 19:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  105
-                    expr_final shift  397
+                    expr_final shift  396
                      condition shift  343
-                      for_cond shift  219
+                      for_cond shift  220
                      {default} reduce 205
 
 State 20:
@@ -4195,7 +4195,7 @@ State 20:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -4218,11 +4218,11 @@ State 20:
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
-                     expr_list shift  398
+                     expr_list shift  397
                     expr_index shift  123
                    expr_assign shift  245
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -4239,10 +4239,10 @@ State 20:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  106
-                    expr_final shift  397
-                     condition shift  207
+                    expr_final shift  396
+                     condition shift  208
 
 State 21:
           expr_index ::= * LPN expr_assign RPN
@@ -4342,7 +4342,7 @@ State 21:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -4365,11 +4365,11 @@ State 21:
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
-                     expr_list shift  398
+                     expr_list shift  397
                     expr_index shift  123
                    expr_assign shift  245
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -4386,10 +4386,10 @@ State 21:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  106
-                    expr_final shift  397
-                     condition shift  201
+                    expr_final shift  396
+                     condition shift  202
 
 State 22:
           expr_index ::= * LPN expr_assign RPN
@@ -4489,7 +4489,7 @@ State 22:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -4512,11 +4512,11 @@ State 22:
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
-                     expr_list shift  398
+                     expr_list shift  397
                     expr_index shift  123
                    expr_assign shift  245
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -4533,10 +4533,10 @@ State 22:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  106
-                    expr_final shift  397
-                     condition shift  199
+                    expr_final shift  396
+                     condition shift  200
 
 State 23:
           expr_index ::= * LPN expr_assign RPN
@@ -4637,7 +4637,7 @@ State 23:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -4660,11 +4660,11 @@ State 23:
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
-                     expr_list shift  398
+                     expr_list shift  397
                     expr_index shift  123
                    expr_assign shift  245
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -4681,9 +4681,9 @@ State 23:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  106
-                    expr_final shift  397
+                    expr_final shift  396
                      condition shift  197
 
 State 24:
@@ -4784,7 +4784,7 @@ State 24:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -4806,11 +4806,11 @@ State 24:
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
-                     expr_list shift  398
+                     expr_list shift  397
                     expr_index shift  123
                    expr_assign shift  342
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -4827,10 +4827,10 @@ State 24:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  106
-                    expr_final shift  397
-                      for_expr shift  221
+                    expr_final shift  396
+                      for_expr shift  222
                      {default} reduce 207
 
 State 25:
@@ -4931,7 +4931,7 @@ State 25:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -4953,11 +4953,11 @@ State 25:
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
-                     expr_list shift  398
+                     expr_list shift  397
                     expr_index shift  123
                    expr_assign shift  342
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -4974,10 +4974,10 @@ State 25:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  106
-                    expr_final shift  397
-                      for_expr shift  220
+                    expr_final shift  396
+                      for_expr shift  221
                      {default} reduce 207
 
 State 26:
@@ -5077,7 +5077,7 @@ State 26:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -5096,14 +5096,14 @@ State 26:
                          XMARK shift  77
                          TILDE shift  78
                          QMARK shift  183
-                      arg_list shift  232
+                      arg_list shift  233
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
                      expr_list shift  323
                     expr_index shift  123
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -5120,9 +5120,9 @@ State 26:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  196
-                    expr_final shift  397
+                    expr_final shift  396
                      {default} reduce 125
 
 State 27:
@@ -5221,7 +5221,7 @@ State 27:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -5243,11 +5243,11 @@ State 27:
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
-                     expr_list shift  398
+                     expr_list shift  397
                     expr_index shift  123
-                   expr_assign shift  204
-                    expr_value shift  391
-                    expr_yield shift  361
+                   expr_assign shift  205
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -5264,9 +5264,9 @@ State 27:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  106
-                    expr_final shift  397
+                    expr_final shift  396
 
 State 28:
           expr_index ::= * LPN expr_assign RPN
@@ -5364,7 +5364,7 @@ State 28:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -5386,11 +5386,11 @@ State 28:
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
-                     expr_list shift  398
+                     expr_list shift  397
                     expr_index shift  123
                    expr_assign shift  154
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -5407,9 +5407,9 @@ State 28:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  106
-                    expr_final shift  397
+                    expr_final shift  396
 
 State 29:
           expr_index ::= * LPN expr_assign RPN
@@ -5507,7 +5507,7 @@ State 29:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -5529,11 +5529,11 @@ State 29:
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
-                     expr_list shift  398
+                     expr_list shift  397
                     expr_index shift  123
-                   expr_assign shift  399
-                    expr_value shift  391
-                    expr_yield shift  361
+                   expr_assign shift  398
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -5550,9 +5550,9 @@ State 29:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  106
-                    expr_final shift  397
+                    expr_final shift  396
 
 State 30:
           expr_index ::= * LPN expr_assign RPN
@@ -5650,7 +5650,7 @@ State 30:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -5675,8 +5675,8 @@ State 30:
                    expr_simple shift  351
                      expr_list shift  323
                     expr_index shift  123
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -5693,9 +5693,9 @@ State 30:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  196
-                    expr_final shift  397
+                    expr_final shift  396
                      {default} reduce 125
 
 State 31:
@@ -5794,7 +5794,7 @@ State 31:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -5816,11 +5816,11 @@ State 31:
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
-                     expr_list shift  398
+                     expr_list shift  397
                     expr_index shift  123
-                   expr_assign shift  400
-                    expr_value shift  391
-                    expr_yield shift  361
+                   expr_assign shift  399
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -5837,9 +5837,9 @@ State 31:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  106
-                    expr_final shift  397
+                    expr_final shift  396
 
 State 32:
           expr_index ::= * LPN expr_assign RPN
@@ -5938,7 +5938,7 @@ State 32:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -5957,14 +5957,14 @@ State 32:
                          XMARK shift  77
                          TILDE shift  78
                          QMARK shift  183
-                      arg_list shift  228
+                      arg_list shift  229
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
                      expr_list shift  323
                     expr_index shift  123
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -5981,9 +5981,9 @@ State 32:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  196
-                    expr_final shift  397
+                    expr_final shift  396
                      {default} reduce 125
 
 State 33:
@@ -6082,7 +6082,7 @@ State 33:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -6107,8 +6107,8 @@ State 33:
                    expr_simple shift  351
                      expr_list shift  323
                     expr_index shift  123
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -6125,9 +6125,9 @@ State 33:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  196
-                    expr_final shift  397
+                    expr_final shift  396
                      {default} reduce 125
 
 State 34:
@@ -6226,7 +6226,7 @@ State 34:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -6248,11 +6248,11 @@ State 34:
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
-                     expr_list shift  398
+                     expr_list shift  397
                     expr_index shift  123
                    expr_assign shift  152
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -6269,9 +6269,9 @@ State 34:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  106
-                    expr_final shift  397
+                    expr_final shift  396
 
 State 35:
           expr_index ::= * LPN expr_assign RPN
@@ -6368,7 +6368,7 @@ State 35:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -6393,8 +6393,8 @@ State 35:
                    expr_simple shift  351
                      expr_list shift  149
                     expr_index shift  123
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -6411,9 +6411,9 @@ State 35:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  196
-                    expr_final shift  397
+                    expr_final shift  396
 
 State 36:
           expr_index ::= * LPN expr_assign RPN
@@ -6510,7 +6510,7 @@ State 36:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -6533,10 +6533,10 @@ State 36:
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
-                     expr_list shift  212
+                     expr_list shift  213
                     expr_index shift  123
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -6553,9 +6553,9 @@ State 36:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  196
-                    expr_final shift  397
+                    expr_final shift  396
 
 State 37:
           expr_index ::= * LPN expr_assign RPN
@@ -6654,7 +6654,7 @@ State 37:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -6676,12 +6676,12 @@ State 37:
                          QMARK shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
-                   value_lbody shift  226
+                   value_lbody shift  227
                     value_list shift  173
                    expr_simple shift  351
                     expr_index shift  123
                     expr_value shift  274
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -6698,8 +6698,8 @@ State 37:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
-                    expr_final shift  227
+                    expr_nolbr shift  374
+                    expr_final shift  228
 
 State 38:
           decl_var ::= VAR name_list ASSIGN * expr_list SEMICOLON
@@ -6795,7 +6795,7 @@ State 38:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -6819,8 +6819,8 @@ State 38:
                    expr_simple shift  351
                      expr_list shift  179
                     expr_index shift  123
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -6837,9 +6837,9 @@ State 38:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  196
-                    expr_final shift  397
+                    expr_final shift  396
 
 State 39:
           expr_index ::= * LPN expr_assign RPN
@@ -6935,7 +6935,7 @@ State 39:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -6959,8 +6959,8 @@ State 39:
                    expr_simple shift  351
                      expr_list shift  250
                     expr_index shift  123
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -6977,9 +6977,9 @@ State 39:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  196
-                    expr_final shift  397
+                    expr_final shift  396
 
 State 40:
           expr_index ::= * LPN expr_assign RPN
@@ -7072,7 +7072,7 @@ State 40:
                     IDENTIFIER shift  264
                         PERIOD shift  186
                            LBR shift  40
-                           RBR shift  377
+                           RBR shift  376
                          COLON shift  182
                        SUPEROF shift  153
                            LSQ shift  37
@@ -7096,7 +7096,7 @@ State 40:
                    expr_simple shift  351
                     expr_index shift  133
                     expr_value shift  191
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -7113,7 +7113,7 @@ State 40:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 41:
           expr_index ::= * LPN expr_assign RPN
@@ -7205,7 +7205,7 @@ State 41:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -7228,8 +7228,8 @@ State 41:
                     newf_scope shift  180
                    expr_simple shift  351
                     expr_index shift  123
-                    expr_value shift  388
-                    expr_yield shift  361
+                    expr_value shift  387
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -7246,8 +7246,8 @@ State 41:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
-                    expr_final shift  389
+                    expr_nolbr shift  374
+                    expr_final shift  388
 
 State 42:
           expr_index ::= * LPN expr_assign RPN
@@ -7340,7 +7340,7 @@ State 42:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -7364,7 +7364,7 @@ State 42:
                    expr_simple shift  351
                     expr_index shift  123
                     expr_value shift  284
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -7381,7 +7381,7 @@ State 42:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_final shift  293
                      {default} reduce 147
 
@@ -7475,7 +7475,7 @@ State 43:
                          YIELD shift  156
                            LPN shift  34
                     IDENTIFIER shift  264
-                      ELLIPSIS shift  381
+                      ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  40
                          COLON shift  182
@@ -7498,8 +7498,8 @@ State 43:
                     newf_scope shift  180
                    expr_simple shift  351
                     expr_index shift  123
-                    expr_value shift  394
-                    expr_yield shift  361
+                    expr_value shift  393
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  127
                   expr_literal shift  337
@@ -7516,8 +7516,8 @@ State 43:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
-                    expr_final shift  395
+                    expr_nolbr shift  374
+                    expr_final shift  394
 
 State 44:
           expr_index ::= * LPN expr_assign RPN
@@ -7627,8 +7627,8 @@ State 44:
                     newf_scope shift  180
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_value shift  391
-                    expr_yield shift  361
+                    expr_value shift  390
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -7645,7 +7645,7 @@ State 44:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                     expr_lbody shift  140
 
 State 45:
@@ -7738,7 +7738,7 @@ State 45:
                          COLON shift  182
                        SUPEROF shift  153
                            LSQ shift  37
-                           RSQ shift  231
+                           RSQ shift  232
                            NEW shift  110
                           NULL shift  349
                           TRUE shift  348
@@ -7757,7 +7757,7 @@ State 45:
                    expr_simple shift  351
                     expr_index shift  133
                     expr_value shift  159
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -7774,7 +7774,7 @@ State 45:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 46:
           expr_index ::= * LPN expr_assign RPN
@@ -7866,7 +7866,7 @@ State 46:
                          COLON shift  182
                        SUPEROF shift  153
                            LSQ shift  37
-                           RSQ shift  235
+                           RSQ shift  236
                            NEW shift  110
                           NULL shift  349
                           TRUE shift  348
@@ -7885,7 +7885,7 @@ State 46:
                    expr_simple shift  351
                     expr_index shift  133
                     expr_value shift  155
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -7902,7 +7902,7 @@ State 46:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 47:
           expr_index ::= * LPN expr_assign RPN
@@ -8016,7 +8016,7 @@ State 47:
                    expr_simple shift  351
                     expr_index shift  133
                     expr_value shift  148
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -8033,7 +8033,7 @@ State 47:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 48:
           expr_index ::= * LPN expr_assign RPN
@@ -8142,7 +8142,7 @@ State 48:
                    expr_simple shift  351
                     expr_index shift  133
                     expr_value shift  268
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -8159,7 +8159,7 @@ State 48:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 49:
           expr_index ::= * LPN expr_assign RPN
@@ -8268,7 +8268,7 @@ State 49:
                    expr_simple shift  351
                     expr_index shift  133
                     expr_value shift  155
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -8285,7 +8285,7 @@ State 49:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 50:
           expr_index ::= * LPN expr_assign RPN
@@ -8393,8 +8393,8 @@ State 50:
                     newf_scope shift  180
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_value shift  234
-                    expr_yield shift  361
+                    expr_value shift  235
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -8411,7 +8411,7 @@ State 50:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 51:
           expr_index ::= * LPN expr_assign RPN
@@ -8520,7 +8520,7 @@ State 51:
                    expr_simple shift  351
                     expr_index shift  133
                     expr_value shift  172
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -8537,7 +8537,7 @@ State 51:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 52:
           expr_index ::= * LPN expr_assign RPN
@@ -8645,8 +8645,8 @@ State 52:
                     newf_scope shift  180
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_value shift  387
-                    expr_yield shift  361
+                    expr_value shift  386
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -8663,7 +8663,7 @@ State 52:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 53:
           expr_index ::= * LPN expr_assign RPN
@@ -8773,7 +8773,7 @@ State 53:
                    expr_simple shift  351
                     expr_index shift  133
                     expr_value shift  193
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -8790,7 +8790,7 @@ State 53:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
                      {default} reduce 152
 
 State 54:
@@ -8899,8 +8899,8 @@ State 54:
                     newf_scope shift  180
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_value shift  382
-                    expr_yield shift  361
+                    expr_value shift  381
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -8917,7 +8917,7 @@ State 54:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 55:
           expr_index ::= * LPN expr_assign RPN
@@ -9025,8 +9025,8 @@ State 55:
                     newf_scope shift  180
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_value shift  230
-                    expr_yield shift  361
+                    expr_value shift  231
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -9043,7 +9043,7 @@ State 55:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 56:
           expr_index ::= * LPN expr_assign RPN
@@ -9152,7 +9152,7 @@ State 56:
                    expr_simple shift  351
                     expr_index shift  133
                     expr_value shift  159
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -9169,7 +9169,7 @@ State 56:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 57:
           expr_index ::= * LPN expr_assign RPN
@@ -9277,8 +9277,8 @@ State 57:
                     newf_scope shift  180
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_value shift  218
-                    expr_yield shift  361
+                    expr_value shift  219
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -9295,7 +9295,7 @@ State 57:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 58:
           expr_index ::= * LPN expr_assign RPN
@@ -9403,8 +9403,8 @@ State 58:
                     newf_scope shift  180
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_value shift  217
-                    expr_yield shift  361
+                    expr_value shift  218
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -9421,7 +9421,7 @@ State 58:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 59:
           expr_index ::= * LPN expr_assign RPN
@@ -9529,8 +9529,8 @@ State 59:
                     newf_scope shift  180
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_value shift  216
-                    expr_yield shift  361
+                    expr_value shift  217
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -9547,7 +9547,7 @@ State 59:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 60:
           expr_index ::= * LPN expr_assign RPN
@@ -9655,8 +9655,8 @@ State 60:
                     newf_scope shift  180
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_value shift  215
-                    expr_yield shift  361
+                    expr_value shift  216
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -9673,7 +9673,7 @@ State 60:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 61:
           expr_index ::= * LPN expr_assign RPN
@@ -9781,8 +9781,8 @@ State 61:
                     newf_scope shift  180
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_value shift  394
-                    expr_yield shift  361
+                    expr_value shift  393
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -9799,7 +9799,7 @@ State 61:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 62:
           expr_index ::= * LPN expr_assign RPN
@@ -9907,8 +9907,8 @@ State 62:
                     newf_scope shift  180
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_value shift  213
-                    expr_yield shift  361
+                    expr_value shift  214
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -9925,7 +9925,7 @@ State 62:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 63:
           expr_index ::= * LPN expr_assign RPN
@@ -10033,8 +10033,8 @@ State 63:
                     newf_scope shift  180
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_value shift  208
-                    expr_yield shift  361
+                    expr_value shift  209
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -10051,7 +10051,7 @@ State 63:
                       expr_and shift  168
                       expr_xor shift  169
                        expr_or shift  147
-                    expr_nolbr shift  375
+                    expr_nolbr shift  374
 
 State 64:
           expr_index ::= * LPN expr_assign RPN
@@ -10135,7 +10135,7 @@ State 64:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -10232,7 +10232,7 @@ State 65:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -10326,7 +10326,7 @@ State 66:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -10417,7 +10417,7 @@ State 67:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -10505,7 +10505,7 @@ State 68:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -10590,7 +10590,7 @@ State 69:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -10672,7 +10672,7 @@ State 70:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -10751,7 +10751,7 @@ State 71:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -10825,7 +10825,7 @@ State 72:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -10898,7 +10898,7 @@ State 73:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -10971,7 +10971,7 @@ State 74:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -11041,7 +11041,7 @@ State 75:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -11110,7 +11110,7 @@ State 76:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -11174,7 +11174,7 @@ State 77:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -11237,7 +11237,7 @@ State 78:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -11300,7 +11300,7 @@ State 79:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -11363,7 +11363,7 @@ State 80:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -11426,7 +11426,7 @@ State 81:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -11489,7 +11489,7 @@ State 82:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -11552,7 +11552,7 @@ State 83:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -11615,7 +11615,7 @@ State 84:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -11678,7 +11678,7 @@ State 85:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -11741,7 +11741,7 @@ State 86:
                          TILDE shift  78
                    expr_simple shift  351
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                   expr_literal shift  337
@@ -11840,9 +11840,9 @@ State 89:
                          COLON shift  93
                        SUPEROF shift  153
                            NEW shift  110
-                   expr_simple shift  223
+                   expr_simple shift  224
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
                      {default} reduce 106
@@ -11874,9 +11874,9 @@ State 90:
                     IDENTIFIER shift  264
                        SUPEROF shift  153
                            NEW shift  110
-                   expr_simple shift  225
+                   expr_simple shift  226
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
 
@@ -11907,9 +11907,9 @@ State 91:
                     IDENTIFIER shift  264
                        SUPEROF shift  153
                            NEW shift  110
-                   expr_simple shift  224
+                   expr_simple shift  225
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
 
@@ -11942,7 +11942,7 @@ State 92:
                            NEW shift  110
                    expr_simple shift  334
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
 
@@ -11973,9 +11973,9 @@ State 93:
                     IDENTIFIER shift  264
                        SUPEROF shift  153
                            NEW shift  110
-                   expr_simple shift  390
+                   expr_simple shift  389
                     expr_index shift  133
-                    expr_yield shift  361
+                    expr_yield shift  377
                       expr_new shift  358
                   expr_postfix shift  130
 
@@ -12013,7 +12013,7 @@ State 95:
                     IDENTIFIER shift  359
                       ELLIPSIS shift  244
                           name shift  248
-                    param_list shift  236
+                    param_list shift  237
                      name_list shift  176
                      {default} reduce 4
 
@@ -12065,7 +12065,7 @@ State 98:
 
                          CATCH shift  355
                        FINALLY shift  7
-                   scope_catch shift  222
+                   scope_catch shift  223
                     stmt_catch shift  14
 
 State 99:
@@ -12081,7 +12081,7 @@ State 99:
 
                          CATCH shift  355
                        FINALLY shift  15
-                   scope_catch shift  222
+                   scope_catch shift  223
                     stmt_catch shift  8
                      {default} reduce 210
 
@@ -12169,19 +12169,19 @@ State 105:
 
                          COMMA shift  43
                          COLON shift  60
-                        ASSIGN shift  374
-                     MULASSIGN shift  362
-                     DIVASSIGN shift  363
-                     MODASSIGN shift  364
-                  INTDIVASSIGN shift  365
-                     ADDASSIGN shift  366
-                     SUBASSIGN shift  367
-                  LSHIFTASSIGN shift  368
-                 LRSHIFTASSIGN shift  369
-                 ARSHIFTASSIGN shift  370
-                  BITANDASSIGN shift  371
-                  BITXORASSIGN shift  372
-                   BITORASSIGN shift  373
+                        ASSIGN shift  373
+                     MULASSIGN shift  361
+                     DIVASSIGN shift  362
+                     MODASSIGN shift  363
+                  INTDIVASSIGN shift  364
+                     ADDASSIGN shift  365
+                     SUBASSIGN shift  366
+                  LSHIFTASSIGN shift  367
+                 LRSHIFTASSIGN shift  368
+                 ARSHIFTASSIGN shift  369
+                  BITANDASSIGN shift  370
+                  BITXORASSIGN shift  371
+                   BITORASSIGN shift  372
                        EACHKEY shift  59
                      assign_op shift  29
                      {default} reduce 123
@@ -12206,19 +12206,19 @@ State 106:
           assign_op ::= * BITORASSIGN
 
                          COMMA shift  43
-                        ASSIGN shift  374
-                     MULASSIGN shift  362
-                     DIVASSIGN shift  363
-                     MODASSIGN shift  364
-                  INTDIVASSIGN shift  365
-                     ADDASSIGN shift  366
-                     SUBASSIGN shift  367
-                  LSHIFTASSIGN shift  368
-                 LRSHIFTASSIGN shift  369
-                 ARSHIFTASSIGN shift  370
-                  BITANDASSIGN shift  371
-                  BITXORASSIGN shift  372
-                   BITORASSIGN shift  373
+                        ASSIGN shift  373
+                     MULASSIGN shift  361
+                     DIVASSIGN shift  362
+                     MODASSIGN shift  363
+                  INTDIVASSIGN shift  364
+                     ADDASSIGN shift  365
+                     SUBASSIGN shift  366
+                  LSHIFTASSIGN shift  367
+                 LRSHIFTASSIGN shift  368
+                 ARSHIFTASSIGN shift  369
+                  BITANDASSIGN shift  370
+                  BITXORASSIGN shift  371
+                   BITORASSIGN shift  372
                      assign_op shift  29
                      {default} reduce 123
 
@@ -12242,19 +12242,19 @@ State 107:
           sexpr_assign ::= sexpr_lbody * assign_op expr_assign
 
                          COMMA shift  41
-                        ASSIGN shift  374
-                     MULASSIGN shift  362
-                     DIVASSIGN shift  363
-                     MODASSIGN shift  364
-                  INTDIVASSIGN shift  365
-                     ADDASSIGN shift  366
-                     SUBASSIGN shift  367
-                  LSHIFTASSIGN shift  368
-                 LRSHIFTASSIGN shift  369
-                 ARSHIFTASSIGN shift  370
-                  BITANDASSIGN shift  371
-                  BITXORASSIGN shift  372
-                   BITORASSIGN shift  373
+                        ASSIGN shift  373
+                     MULASSIGN shift  361
+                     DIVASSIGN shift  362
+                     MODASSIGN shift  363
+                  INTDIVASSIGN shift  364
+                     ADDASSIGN shift  365
+                     SUBASSIGN shift  366
+                  LSHIFTASSIGN shift  367
+                 LRSHIFTASSIGN shift  368
+                 ARSHIFTASSIGN shift  369
+                  BITANDASSIGN shift  370
+                  BITXORASSIGN shift  371
+                   BITORASSIGN shift  372
                      assign_op shift  31
                      {default} reduce 156
 
@@ -12594,7 +12594,7 @@ State 134:
           decl_var ::= VAR name_list * ASSIGN expr_list SEMICOLON
 
                          COMMA shift  113
-                     SEMICOLON shift  396
+                     SEMICOLON shift  395
                         ASSIGN shift  38
 
 State 135:
@@ -12671,7 +12671,7 @@ State 143:
      (23) func_scope ::= DEF qual_name LPN param_list RPN *
           func_scope ::= DEF qual_name LPN param_list RPN * YIELD
 
-                         YIELD shift  237
+                         YIELD shift  238
                      SEMICOLON shift  310
                      {default} reduce 23
 
@@ -12686,7 +12686,7 @@ State 145:
           expr_index ::= expr_index PERIOD * IDENTIFIER
           expr_index ::= expr_index PERIOD * LSQ expr_value RSQ
 
-                    IDENTIFIER shift  249
+                    IDENTIFIER shift  251
                            LSQ shift  50
 
 State 146:
@@ -12712,7 +12712,7 @@ State 148:
           stmt_catch ::= scope_catch LPN expr_value * RPN
 
                          COLON shift  91
-                           RPN shift  385
+                           RPN shift  241
 
 State 149:
           stmt_common ::= token_yield expr_list * SEMICOLON
@@ -12747,7 +12747,7 @@ State 154:
 State 155:
           expr_index ::= expr_index LSQ expr_value * RSQ
 
-                           RSQ shift  243
+                           RSQ shift  249
 
 State 156:
           expr_yield ::= YIELD * LPN arg_list RPN
@@ -12757,12 +12757,12 @@ State 156:
 State 157:
           expr_yield ::= YIELD LPN arg_list * RPN
 
-                           RPN shift  241
+                           RPN shift  243
 
 State 158:
           expr_new ::= NEW expr_index LPN arg_list * RPN
 
-                           RPN shift  378
+                           RPN shift  379
 
 State 159:
           expr_postfix ::= expr_postfix LSQ expr_value * RSQ
@@ -12891,13 +12891,13 @@ State 178:
      (23) func_scope ::= DEF qual_name LPN param_list RPN *
           func_scope ::= DEF qual_name LPN param_list RPN * YIELD
 
-                         YIELD shift  238
+                         YIELD shift  408
                      {default} reduce 23
 
 State 179:
           decl_var ::= VAR name_list ASSIGN expr_list * SEMICOLON
 
-                     SEMICOLON shift  393
+                     SEMICOLON shift  392
 
 State 180:
           expr_nolbr ::= newf_scope * LBR stmt_list RBR
@@ -12934,7 +12934,7 @@ State 185:
     (108) newf_scope ::= QMARK LPN param_list RPN *
           newf_scope ::= QMARK LPN param_list RPN * YIELD
 
-                         YIELD shift  386
+                         YIELD shift  385
                      {default} reduce 108
 
 State 186:
@@ -12959,13 +12959,13 @@ State 189:
     (109) newf_scope ::= PERIOD QMARK LPN param_list RPN *
           newf_scope ::= PERIOD QMARK LPN param_list RPN * YIELD
 
-                         YIELD shift  384
+                         YIELD shift  383
                      {default} reduce 109
 
 State 190:
           expr_value ::= LBR keyval_list * RBR
 
-                           RBR shift  379
+                           RBR shift  378
 
 State 191:
           keyval_lbody ::= expr_value * COLON expr_value
@@ -13011,86 +13011,93 @@ State 197:
                            RPN shift  18
 
 State 198:
+    (175) stmt_common ::= stmt_if LPN condition RPN stmt *
+          stmt_common ::= stmt_if LPN condition RPN stmt * ELSE stmt
+
+                          ELSE shift  16
+                     {default} reduce 175
+
+State 199:
           stmt_common ::= stmt_switch * LPN condition RPN stmt_reblock stmt_list RPN
 
                            LPN shift  22
 
-State 199:
+State 200:
           stmt_common ::= stmt_switch LPN condition * RPN stmt_reblock stmt_list RPN
 
                            RPN shift  114
 
-State 200:
+State 201:
           stmt_common ::= stmt_while * LPN condition RPN stmt_reuse
 
                            LPN shift  21
 
-State 201:
+State 202:
           stmt_common ::= stmt_while LPN condition * RPN stmt_reuse
 
                            RPN shift  17
 
-State 202:
+State 203:
           stmt_common ::= stmt_doblock * WHILE LPN expr_assign RPN SEMICOLON
 
-                         WHILE shift  203
+                         WHILE shift  204
 
-State 203:
+State 204:
           stmt_common ::= stmt_doblock WHILE * LPN expr_assign RPN SEMICOLON
 
                            LPN shift  27
 
-State 204:
+State 205:
           stmt_common ::= stmt_doblock WHILE LPN expr_assign * RPN SEMICOLON
 
-                           RPN shift  205
+                           RPN shift  206
 
-State 205:
+State 206:
           stmt_common ::= stmt_doblock WHILE LPN expr_assign RPN * SEMICOLON
 
                      SEMICOLON shift  276
 
-State 206:
+State 207:
           stmt_common ::= stmt_using * LPN condition RPN stmt_reuse
 
                            LPN shift  20
 
-State 207:
+State 208:
           stmt_common ::= stmt_using LPN condition * RPN stmt_reuse
 
                            RPN shift  11
 
-State 208:
+State 209:
           stmt_common ::= CASE expr_value * COLON
 
                          COLON shift  294
 
-State 209:
+State 210:
           stmt_common ::= DEFAULT * COLON
 
                          COLON shift  296
 
-State 210:
+State 211:
           stmt_common ::= CONTINUE * SEMICOLON
 
                      SEMICOLON shift  298
 
-State 211:
+State 212:
           stmt_common ::= BREAK * SEMICOLON
 
                      SEMICOLON shift  300
 
-State 212:
+State 213:
           stmt_common ::= RETURN expr_list * SEMICOLON
 
                      SEMICOLON shift  304
 
-State 213:
+State 214:
           stmt_common ::= THROW expr_value * SEMICOLON
 
                      SEMICOLON shift  311
 
-State 214:
+State 215:
           stmt_foreach ::= scope_for * LPN expr_lbody COLON expr_value RPN
           stmt_foreach ::= scope_for * LPN expr_lbody EACHKEY expr_value RPN
           stmt_foreach ::= scope_for * LPN VAR name_list COLON expr_value RPN
@@ -13099,42 +13106,42 @@ State 214:
 
                            LPN shift  19
 
-State 215:
+State 216:
           stmt_foreach ::= scope_for LPN expr_lbody COLON expr_value * RPN
 
                            RPN shift  324
 
-State 216:
+State 217:
           stmt_foreach ::= scope_for LPN expr_lbody EACHKEY expr_value * RPN
 
                            RPN shift  327
 
-State 217:
+State 218:
           stmt_foreach ::= scope_for LPN VAR name_list COLON expr_value * RPN
 
                            RPN shift  332
 
-State 218:
+State 219:
           stmt_foreach ::= scope_for LPN VAR name_list EACHKEY expr_value * RPN
 
                            RPN shift  335
 
-State 219:
+State 220:
           stmt_for ::= scope_for LPN for_cond * SEMICOLON for_expr SEMICOLON for_expr RPN
 
                      SEMICOLON shift  25
 
-State 220:
+State 221:
           stmt_for ::= scope_for LPN for_cond SEMICOLON for_expr * SEMICOLON for_expr RPN
 
                      SEMICOLON shift  24
 
-State 221:
+State 222:
           stmt_for ::= scope_for LPN for_cond SEMICOLON for_expr SEMICOLON for_expr * RPN
 
                            RPN shift  341
 
-State 222:
+State 223:
           stmt_catch ::= scope_catch * LPN COLON expr_simple RPN
           stmt_catch ::= scope_catch * LPN expr_value COLON expr_simple RPN
           stmt_catch ::= scope_catch * LPN VAR name COLON expr_simple RPN
@@ -13143,22 +13150,22 @@ State 222:
 
                            LPN shift  47
 
-State 223:
+State 224:
           stmt_catch ::= scope_catch LPN COLON expr_simple * RPN
 
                            RPN shift  360
 
-State 224:
+State 225:
           stmt_catch ::= scope_catch LPN expr_value COLON expr_simple * RPN
 
-                           RPN shift  383
+                           RPN shift  384
 
-State 225:
+State 226:
           stmt_catch ::= scope_catch LPN VAR name COLON expr_simple * RPN
 
                            RPN shift  256
 
-State 226:
+State 227:
           value_lbody ::= value_lbody * COMMA expr_value
     (146) value_list ::= value_lbody *
           value_list ::= value_lbody * COMMA
@@ -13167,60 +13174,60 @@ State 226:
                          COMMA shift  42
                      {default} reduce 146
 
-State 227:
+State 228:
     (144) value_list ::= expr_final *
           value_list ::= expr_final * COMMA
 
                          COMMA shift  297
                      {default} reduce 144
 
-State 228:
+State 229:
           expr_postfix ::= expr_postfix LPN arg_list * RPN
           expr_simple ::= expr_postfix LPN arg_list * RPN YIELD
 
-                           RPN shift  229
+                           RPN shift  230
 
-State 229:
+State 230:
      (41) expr_postfix ::= expr_postfix LPN arg_list RPN *
           expr_simple ::= expr_postfix LPN arg_list RPN * YIELD
 
                          YIELD shift  319
                      {default} reduce 41
 
-State 230:
+State 231:
           expr_postfix ::= expr_postfix PERIOD LSQ expr_value * RSQ
 
                            RSQ shift  331
 
-State 231:
+State 232:
           expr_final ::= expr_postfix LSQ RSQ * ELLIPSIS
 
                       ELLIPSIS shift  338
 
-State 232:
+State 233:
           expr_postfix ::= expr_index LPN arg_list * RPN
           expr_simple ::= expr_index LPN arg_list * RPN YIELD
 
-                           RPN shift  233
+                           RPN shift  234
 
-State 233:
+State 234:
      (37) expr_postfix ::= expr_index LPN arg_list RPN *
           expr_simple ::= expr_index LPN arg_list RPN * YIELD
 
-                         YIELD shift  251
+                         YIELD shift  253
                      {default} reduce 37
 
-State 234:
+State 235:
           expr_index ::= expr_index PERIOD LSQ expr_value * RSQ
 
                            RSQ shift  295
 
-State 235:
+State 236:
           expr_final ::= expr_index LSQ RSQ * ELLIPSIS
 
                       ELLIPSIS shift  326
 
-State 236:
+State 237:
           decl_proto ::= DEF qual_name LPN param_list * RPN SEMICOLON
           decl_proto ::= DEF qual_name LPN param_list * RPN YIELD SEMICOLON
           func_scope ::= DEF qual_name LPN param_list * RPN
@@ -13228,22 +13235,17 @@ State 236:
 
                            RPN shift  143
 
-State 237:
+State 238:
           decl_proto ::= DEF qual_name LPN param_list RPN YIELD * SEMICOLON
      (24) func_scope ::= DEF qual_name LPN param_list RPN YIELD *
 
-                     SEMICOLON shift  380
-                     {default} reduce 24
-
-State 238:
-     (24) func_scope ::= DEF qual_name LPN param_list RPN YIELD *
-
+                     SEMICOLON shift  382
                      {default} reduce 24
 
 State 239:
-    (169) stmt ::= stmt_common *
+    (168) stmt ::= stmt_block stmt_list RBR *
 
-                     {default} reduce 169
+                     {default} reduce 168
 
 State 240:
     (170) stmt_block ::= LBR *
@@ -13251,9 +13253,9 @@ State 240:
                      {default} reduce 170
 
 State 241:
-     (33) expr_yield ::= YIELD LPN arg_list RPN *
+    (220) stmt_catch ::= scope_catch LPN expr_value RPN *
 
-                     {default} reduce 33
+                     {default} reduce 220
 
 State 242:
     (174) stmt_common ::= sexpr_assign SEMICOLON *
@@ -13261,9 +13263,9 @@ State 242:
                      {default} reduce 174
 
 State 243:
-     (32) expr_index ::= expr_index LSQ expr_value RSQ *
+     (33) expr_yield ::= YIELD LPN arg_list RPN *
 
-                     {default} reduce 32
+                     {default} reduce 33
 
 State 244:
       (6) param_list ::= ELLIPSIS *
@@ -13291,9 +13293,9 @@ State 248:
                      {default} reduce 2
 
 State 249:
-     (30) expr_index ::= expr_index PERIOD IDENTIFIER *
+     (32) expr_index ::= expr_index LSQ expr_value RSQ *
 
-                     {default} reduce 30
+                     {default} reduce 32
 
 State 250:
     (161) condition ::= VAR name_list ASSIGN expr_list *
@@ -13301,9 +13303,9 @@ State 250:
                      {default} reduce 161
 
 State 251:
-     (44) expr_simple ::= expr_index LPN arg_list RPN YIELD *
+     (30) expr_index ::= expr_index PERIOD IDENTIFIER *
 
-                     {default} reduce 44
+                     {default} reduce 30
 
 State 252:
      (19) object_decl ::= decl_var *
@@ -13311,10 +13313,9 @@ State 252:
                      {default} reduce 19
 
 State 253:
-    (175) stmt_common ::= stmt_if LPN condition RPN stmt *
-          stmt_common ::= stmt_if LPN condition RPN stmt * ELSE stmt
+     (44) expr_simple ::= expr_index LPN arg_list RPN YIELD *
 
-                     {default} reduce 175
+                     {default} reduce 44
 
 State 254:
      (18) object_decl ::= decl_func *
@@ -13852,249 +13853,249 @@ State 360:
                      {default} reduce 217
 
 State 361:
-     (35) expr_postfix ::= expr_yield *
-
-                     {default} reduce 35
-
-State 362:
     (130) assign_op ::= MULASSIGN *
 
                      {default} reduce 130
 
-State 363:
+State 362:
     (131) assign_op ::= DIVASSIGN *
 
                      {default} reduce 131
 
-State 364:
+State 363:
     (132) assign_op ::= MODASSIGN *
 
                      {default} reduce 132
 
-State 365:
+State 364:
     (133) assign_op ::= INTDIVASSIGN *
 
                      {default} reduce 133
 
-State 366:
+State 365:
     (134) assign_op ::= ADDASSIGN *
 
                      {default} reduce 134
 
-State 367:
+State 366:
     (135) assign_op ::= SUBASSIGN *
 
                      {default} reduce 135
 
-State 368:
+State 367:
     (136) assign_op ::= LSHIFTASSIGN *
 
                      {default} reduce 136
 
-State 369:
+State 368:
     (137) assign_op ::= LRSHIFTASSIGN *
 
                      {default} reduce 137
 
-State 370:
+State 369:
     (138) assign_op ::= ARSHIFTASSIGN *
 
                      {default} reduce 138
 
-State 371:
+State 370:
     (139) assign_op ::= BITANDASSIGN *
 
                      {default} reduce 139
 
-State 372:
+State 371:
     (140) assign_op ::= BITXORASSIGN *
 
                      {default} reduce 140
 
-State 373:
+State 372:
     (141) assign_op ::= BITORASSIGN *
 
                      {default} reduce 141
 
-State 374:
+State 373:
     (129) assign_op ::= ASSIGN *
 
                      {default} reduce 129
 
-State 375:
+State 374:
     (112) expr_value ::= expr_nolbr *
 
                      {default} reduce 112
 
-State 376:
+State 375:
     (153) sexpr_lbody ::= expr_nolbr *
 
                      {default} reduce 153
 
-State 377:
+State 376:
     (113) expr_value ::= LBR RBR *
 
                      {default} reduce 113
 
+State 377:
+     (35) expr_postfix ::= expr_yield *
+
+                     {default} reduce 35
+
 State 378:
-     (34) expr_new ::= NEW expr_index LPN arg_list RPN *
-
-                     {default} reduce 34
-
-State 379:
     (114) expr_value ::= LBR keyval_list RBR *
 
                      {default} reduce 114
 
+State 379:
+     (34) expr_new ::= NEW expr_index LPN arg_list RPN *
+
+                     {default} reduce 34
+
 State 380:
-     (21) decl_proto ::= DEF qual_name LPN param_list RPN YIELD SEMICOLON *
-
-                     {default} reduce 21
-
-State 381:
     (117) expr_final ::= ELLIPSIS *
 
                      {default} reduce 117
 
-State 382:
+State 381:
     (149) keyval_lbody ::= expr_value COLON expr_value *
 
                      {default} reduce 149
 
+State 382:
+     (21) decl_proto ::= DEF qual_name LPN param_list RPN YIELD SEMICOLON *
+
+                     {default} reduce 21
+
 State 383:
-    (218) stmt_catch ::= scope_catch LPN expr_value COLON expr_simple RPN *
-
-                     {default} reduce 218
-
-State 384:
     (111) newf_scope ::= PERIOD QMARK LPN param_list RPN YIELD *
 
                      {default} reduce 111
 
+State 384:
+    (218) stmt_catch ::= scope_catch LPN expr_value COLON expr_simple RPN *
+
+                     {default} reduce 218
+
 State 385:
-    (220) stmt_catch ::= scope_catch LPN expr_value RPN *
-
-                     {default} reduce 220
-
-State 386:
     (110) newf_scope ::= QMARK LPN param_list RPN YIELD *
 
                      {default} reduce 110
 
-State 387:
+State 386:
     (150) keyval_lbody ::= keyval_lbody COMMA expr_value COLON expr_value *
 
                      {default} reduce 150
 
-State 388:
+State 387:
     (154) sexpr_lbody ::= sexpr_lbody COMMA expr_value *
 
                      {default} reduce 154
 
-State 389:
+State 388:
     (157) sexpr_list ::= sexpr_lbody COMMA expr_final *
 
                      {default} reduce 157
 
-State 390:
+State 389:
     (107) newobj_scope ::= COLON COLON expr_simple *
 
                      {default} reduce 107
 
-State 391:
+State 390:
     (115) expr_lbody ::= expr_value *
 
                      {default} reduce 115
 
-State 392:
+State 391:
     (105) expr_nolbr ::= newf_scope LBR stmt_list RBR *
 
                      {default} reduce 105
 
-State 393:
+State 392:
      (26) decl_var ::= VAR name_list ASSIGN expr_list SEMICOLON *
 
                      {default} reduce 26
 
-State 394:
+State 393:
     (116) expr_lbody ::= expr_lbody COMMA expr_value *
 
                      {default} reduce 116
 
-State 395:
+State 394:
     (124) expr_list ::= expr_lbody COMMA expr_final *
 
                      {default} reduce 124
 
-State 396:
+State 395:
      (25) decl_var ::= VAR name_list SEMICOLON *
 
                      {default} reduce 25
 
-State 397:
+State 396:
     (122) expr_list ::= expr_final *
 
                      {default} reduce 122
 
-State 398:
+State 397:
     (127) expr_assign ::= expr_list *
 
                      {default} reduce 127
 
-State 399:
+State 398:
     (128) expr_assign ::= expr_lbody assign_op expr_assign *
 
                      {default} reduce 128
 
-State 400:
+State 399:
     (159) sexpr_assign ::= sexpr_lbody assign_op expr_assign *
 
                      {default} reduce 159
 
-State 401:
+State 400:
     (155) sexpr_list ::= expr_final *
 
                      {default} reduce 155
 
-State 402:
+State 401:
     (158) sexpr_assign ::= sexpr_list *
 
                      {default} reduce 158
 
-State 403:
+State 402:
     (163) stmt_list ::= stmt_list SEMICOLON *
 
                      {default} reduce 163
 
-State 404:
+State 403:
     (164) stmt_list ::= stmt_list stmt *
 
                      {default} reduce 164
 
-State 405:
+State 404:
     (165) stmt_list ::= stmt_list decl_object *
 
                      {default} reduce 165
 
-State 406:
+State 405:
     (166) stmt_list ::= stmt_list decl_func *
 
                      {default} reduce 166
 
-State 407:
+State 406:
     (167) stmt_list ::= stmt_list decl_var *
 
                      {default} reduce 167
 
-State 408:
+State 407:
      (22) decl_func ::= func_scope LBR stmt_list RBR *
 
                      {default} reduce 22
 
-State 409:
-    (168) stmt ::= stmt_block stmt_list RBR *
+State 408:
+     (24) func_scope ::= DEF qual_name LPN param_list RPN YIELD *
 
-                     {default} reduce 168
+                     {default} reduce 24
+
+State 409:
+    (169) stmt ::= stmt_common *
+
+                     {default} reduce 169
 
 ----------------------------------------------------
 Symbols:
