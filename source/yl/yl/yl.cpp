@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <strpath.h>
 #include <yl/yl_script.h>
 #include <yl/yl_ast.h>
 #include <yl/yl_srcbuf.h>
@@ -71,6 +72,16 @@ void y_max( yframe& frame )
 
 int main( int argc, char* argv[] )
 {
+    if ( argc <= 1 )
+    {
+        printf
+        (
+            "usage: %s script.yl [arguments ...]\n",
+            argc ? path_bare_filename( argv[ 0 ] ).c_str() : "yl"
+        );
+        return EXIT_FAILURE;
+    }
+
     const char* sargv[] = { "argv0", "..." };
     std::unique_ptr< yl_script > script( yl_parse( argv[ 1 ], 2, sargv ) );
     if ( script->error_count() )
