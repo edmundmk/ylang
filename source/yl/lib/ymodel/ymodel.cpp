@@ -17,6 +17,147 @@
 
 
 /*
+    The collector has three colours, plus grey.  In each collection epoch,
+    one colour represents dead objects, the next, unmarked objects, and the
+    last, marked objects.  Grey objects are live and have been added to the
+    grey list, but have not yet been marked.
+    
+    At the start of an epoch, a snapshot is taken.  Mutators are paused and
+    local roots are added to the work list.
+    
+    Mutators are restarted and do work.  The write barrier marks or greys
+    the original value of updated references.  This ensures that all objects
+    reachable at the snapshot time are marked.  New objects are created using
+    the current colour.
+    
+    The mark thread goes through the work list, or if the work list is empty,
+    the grey list, and marks all reachable objects.  Once both lists are
+    empty, marking is done.  It is guaranteed to read - for each reference -
+    a valid value at least as new as the snapshot.
+    
+    The sweep thread goes through the entire heap and sweeps dead objects.
+    
+    Then the colours are cycled and the next epoch begins.
+    
+    
+    e.g.
+    
+        this epoch:
+    
+            dead        green
+            unmarked    orange
+            marked      purple
+        
+        sweep thread finishes, no more green objects in heap.
+        mark thread finishes, all live objects are purple.
+        
+        next epoch:
+ 
+            dead        orange (unreachable in last epoch)
+            unmarked    purple
+            marked      green
+            
+        and we continue.
+    
+        
+    Marking an object grey and adding it to the grey list is performed inside
+    a critical section.  This ensures that when the marker is done and the
+    grey list is empty, there are no reachable objects waiting to be marked.
+    
+ 
+    Because there is no sychronization around local reference updates,
+    handshaking at safe points is required to communicate locals to the GC.
+ 
+    Entering a safe period means:
+        All heap updates to this point must be visible to the GC.
+        All local references must be in known locations visible to the GC.
+        This means a release fence, at least.
+        
+    During a safe period:
+        Neither heap or local references can be modified.
+        
+    Exiting a safe period means:
+        If the GC has begun marking this mutator's locals, wait for this
+            to complete before continuing.
+        After a handshake, take on the colours of the new epoch.
+    
+
+    We do not stop all mutator threads at the same time.  Each mutator is
+    stopped one after another.  This means mutator threads do not block
+    waiting for other mutator threads.  But it also means that different
+    threads enter the new epoch at different times.
+ 
+              |           green -> orange                   |
+        A  ---|---||----------------------------------------|---
+              |                                             |
+              |   purple -> green        green -> orange    |
+        B  ---|---------------------||----------------------|---
+              |                                             |
+ 
+    At the left barrier, the GC begins a new epoch.  All orange objects in the
+    heap have been swept and all reachable objects are green.  At the right
+    barrier, the GC has taken a snapshot of all locals, and heap marking
+    begins.
+
+    As long as B treats both orange and green objects as marked (i.e. it only
+    changes the colour of purple objects) then both A in the new epoch and
+    B in the previous epoch can run concurrently without problem.  Nothing is
+    creating new purple objects - in fact there are no reachable purple objects
+    for B to mark.
+    
+    However if there are mutable heap slots accessible to both A and B (or if
+    a reference can otherwise travel from B to A) then live objects can 'slip
+    through the cracks'.  A simple example:
+    
+        A performs its handshake.
+        A copies a reference to an object O from the heap onto its stack.
+        B clears the heap reference.  O is not purple and so is not marked.
+ 
+    If that heap reference was the last heap reference to O, then the only
+    remaining reference is in A's stack.  O is live, but it will not be
+    marked, as the GC will not revisit A's stack until the next epoch.
+    
+    Sliding-views collectors solve this problem by performing multiple
+    handshakes per epoch.  However a ylang environment is unlikely to be
+    multithreaded (yexpands are not in general thread-safe), so complicating
+    each GC cycle for a situation which will probably never arise is a bad
+    tradeoff.
+    
+    Instead we add a kind of lock called a yguard.  Multiple mutators can
+    be inside a yguard at the same time - a yguard does not provide
+    synchronisation.  Entering a yguard merely ensures that this mutator has
+    entered the new epoch (if the new epoch has begun).  Also, no other
+    mutator will enter a _later_ epoch while the yguard is held.
+    
+    Notice that the problem arises because B cleared a reference accessible
+    to A without marking it orange.  If the same sequence occurs _after_ B
+    enters the new epoch, then everything is fine.
+    
+    Consider the similar case of a reference moving from B's stack (having
+    left, it will not be marked at B's handshake), to A's stack (which is
+    already marked, so the referenced object will not be marked in this epoch
+    even though it is still reachable...).  In this case, yguards could be
+    used to force B's handshake to occur before the move, or to delay A's
+    handshake until after the move.
+ 
+    Correct multithreaded programming already requires careful locking, so
+    asking programmers to guard shared references in not unreasonable.
+ 
+ 
+    Both yclasses and ysymbols are immutable once created (at least currently),
+    and live under locks under the control of the ymodel itself, so handling
+    them correctly is somewhat simpler.
+ 
+*/
+
+
+
+
+
+
+
+
+/*
     ymodel
 */
 
@@ -101,6 +242,24 @@ ystring* ymodel::make_symbol( ystring* s )
     symbols.emplace( key, s );
     return s;
 }
+
+
+void ymodel::mark_grey( yobject* object )
+{
+    // Currently, mutators can only perform the unmarked -> grey transition
+    // with the mutex held.  This means more locking for mutators, but means
+    // that if the mark thread has marked all reachable objects, locks, and
+    // finds the grey list empty, it knows that marking is complete.
+    std::lock_guard< std::mutex > lock( greylist_mutex );
+    
+    // Pass in the actual mark colour in case somehow
+    object->mark( &greylist, yscope::scope->mark_colour );
+}
+
+
+
+
+
 
 
 
@@ -324,17 +483,8 @@ yclass* ymodel::expand_class( yclass* klass, ysymbol key )
 
 
 
-void ymodel::mark_grey( yobject* object )
-{
-    // Currently, mutators can only perform the unmarked -> grey transition
-    // with the mutex held.  This means more locking for mutators, but means
-    // that if the mark thread has marked all reachable objects, locks, and
-    // finds the grey list empty, it knows that marking is complete.
-    std::lock_guard< std::mutex > lock( greylist_mutex );
-    
-    // Pass in the actual mark colour in case somehow
-    object->mark( &greylist, yscope::scope->mark_colour );
-}
+
+
 
 
 

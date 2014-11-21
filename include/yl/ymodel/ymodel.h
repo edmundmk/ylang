@@ -17,6 +17,7 @@
 #include <seglist.h>
 
 
+class yheap;
 class yobject;
 class yclass;
 class ystring;
@@ -48,8 +49,6 @@ class ystandin;
 
 
 
-
-
 /*
     The core of ymodel is a concurrent, tri-colour garbage collector.
     Mutators are stopped only to find their roots.  Mutators run concurrently
@@ -73,13 +72,16 @@ typedef seglist< yobject* > yworklist;
 
 
 
+
 /*
     The ymodel is an environment which supports garbage-collected yobjects,
     fast-hash and fast-compare ysymbols, and an implicit class tree for
-    yexpands.  Multiple mutator threads can access the ymodel concurrently,
-    but note that lookup and assignment on a yexpand (including on prototypes)
-    is _not_ thread-safe - when accessing the same object from multiple
-    threads you must lock yourself.
+    yexpands.
+    
+    Multiple mutator threads can access the ymodel concurrently, but note
+    that yexpands (and remember yexpands share prototypes) are _not_
+    thread-safe.  Multithreaded access to yexpands, where that expand or its
+    prototypes might transition yclass, requires user locking.
 */
 
 class ymodel
@@ -103,12 +105,7 @@ private:
     template < typename object_t > friend class yroot;
     friend void yexec( size_t, unsigned, unsigned );
 
-    void add_root( yobject* object );
-    void remove_root( yobject* object );
 
-    ystring* make_symbol( const char* s );
-    ystring* make_symbol( ystring* s );
-    
     yclass* empty_class();
 #if YSLOTS
     yclass* expand_class( yclass* klass, ysymbol key, bool is_number );
@@ -123,18 +120,19 @@ private:
     ystandin* number_proto();
     ystandin* string_proto();
     ystandin* function_proto();
+
+
+    void add_root( yobject* object );
+    void remove_root( yobject* object );
+
+    ystring* make_symbol( const char* s );
+    ystring* make_symbol( ystring* s );
     
     void mark_grey( yobject* object );
 
     
 private:
 
-    std::mutex roots_mutex;
-    std::unordered_map< yobject*, size_t > roots;
-
-    std::mutex symbols_mutex;
-    std::unordered_map< symkey, ysymbol > symbols;
-    
     std::mutex expand_mutex;
     yclass* expand_empty_class;
     yexpand* expand_object_proto;
@@ -145,10 +143,18 @@ private:
     ystandin* expand_string_proto;
     ystandin* expand_function_proto;
     
+    
+    std::mutex roots_mutex;
+    std::unordered_map< yobject*, size_t > roots;
+
+    std::mutex symbols_mutex;
+    std::unordered_map< symkey, ysymbol > symbols;
+    
     std::mutex greylist_mutex;
     yworklist greylist;
 
 };
+
 
 
 
@@ -191,24 +197,72 @@ private:
 
 
 
-
 /*
-    Collections can only occur when it is safe.
+    yroot<> is a root that keeps an object alive.
 */
 
-void ycollect();
+template < typename value_t >
+class yroot;
+
+
+
+/*
+    ylocal<> is a local root.
+*/
+
+template < typename value_t >
+class ylocal;
+
+
+
+
+
+/*
+    When a thread is at a safepoint (or in a safe period), the thread can
+    have its local references marked.  During a safe period local references
+    (on the ylang stack and in ylocals) must not be modified.
+    
+    Leaving a safe period may block if the collector is marking locals.
+*/
+
+void ysafe();
+void yunsafe();
 void ysafepoint();
 
 
 
 
-
 /*
-    yroot< yobject > is a root that keeps an object alive.
+    Access to references that are visible to more than one thread must occur
+    inside a yguard (in addition to any other required locking - a yguard is
+    not a mutex).  This allows us to avoid pausing all threads at once while
+    guaranteeing that live objects do not slip through the cracks.
+    
+    Entering a yguard may block if this mutator is behind the epoch.
 */
 
-template < typename value_t >
-class yroot;
+class yguard
+{
+public:
+
+    yguard();
+    ~yguard();
+    
+
+private:
+
+    yguard& operator = ( const yguard& ) = delete;
+    
+};
+
+
+
+
+/*
+    Request a collection.
+*/
+
+void ycollect();
 
 
 
