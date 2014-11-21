@@ -174,7 +174,7 @@ private:
     friend class ytable;
     friend class yframe;
     friend class yfunction;
-    friend void yinvoke( yfunction* );
+    friend void yinvoke( yfunction*, yframe& );
     friend void yexec( size_t, unsigned, unsigned );
 
     static __thread yscope* scope;

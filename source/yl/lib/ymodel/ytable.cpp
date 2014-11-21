@@ -7,7 +7,7 @@
 
 
 #include "ytable.h"
-#include "ythunk.h"
+#include "yfunction.h"
 
 
 
@@ -35,7 +35,7 @@ ytable::ytable( ymetatype* metatype, yclass* klass )
 static void ytable_length( yframe& frame )
 {
     ytable* table = frame[ 0 ].as< ytable >();
-    frame.result( (uint32_t)table->length() );
+    frame.push( (uint32_t)table->length() );
 }
 
 

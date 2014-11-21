@@ -16,8 +16,72 @@
 
 
 class yrecipe;
+class yframe;
 class yupval;
 class yfunction;
+
+
+
+
+/*
+    yframe is a stack frame, used either to invoke a function or for the
+    parameters of a thunk from ylang to C++.  Once you start pushing values
+    size() will return 0 and operator [] is no longer valid.
+    
+    Example:
+ 
+        yframe frame;
+        frame.push( parameter )
+        frame.push( parameter )
+        yinvoke( function, frame );
+        yvalue result = frame[ 0 ];
+        
+ 
+    Thunk:
+    
+        void ythunk( yframe& frame )
+        {
+            ystring* string = frame[ 0 ].as_string();
+            double number = frame[ 1 ].as_number();
+            double result = number * number;
+            frame.push( result );
+        }
+ 
+*/
+
+
+class yframe
+{
+public:
+
+    yframe();
+
+    size_t size() const;
+    yvalue operator [] ( size_t index ) const;
+
+    template < typename ... arguments_t >
+    void push( yvalue val, arguments_t ... vals );
+    void push( yvalue val );
+
+
+
+private:
+
+    friend void yinvoke( yfunction* function, yframe& frame );
+    friend void yexec( size_t, unsigned, unsigned );
+
+    yframe( yvalue* s, yvalue* limit, size_t count );
+
+    void        grow_stack();
+
+    yvalue*     s;
+    yvalue*     limit;
+    size_t      count;
+
+};
+
+
+
 
 
 
@@ -102,13 +166,23 @@ private:
 
 
 
+/*
+    C++ thunks that ylang functions can invoke.
+*/
+
+typedef void (*ythunk)( yframe& );
+
+
+
 
 /*
     Invoking functions.
-    TODO: Support arguments and return values.
 */
 
-void yinvoke( yfunction* function );
+template < typename ... arguments_t >
+yvalue yinvoke( yfunction* function, arguments_t ... args );
+yvalue yinvoke( yfunction* function );
+void yinvoke( yfunction* function, yframe& frame );
 
 
 
@@ -116,6 +190,52 @@ void yinvoke( yfunction* function );
 /*
 
 */
+
+
+/*
+    yframe
+*/
+
+
+
+inline yframe::yframe( yvalue* s, yvalue* limit, size_t count )
+    :   s( s )
+    ,   limit( limit )
+    ,   count( count )
+{
+}
+
+inline size_t yframe::size() const
+{
+    return count;
+}
+
+inline yvalue yframe::operator [] ( size_t index ) const
+{
+    if ( index < count )
+        return s[ 1 + index ];
+    else
+        return nullptr;
+}
+
+template < typename ... arguments_t >
+inline void yframe::push( yvalue val, arguments_t ... vals )
+{
+    push( val );
+    push( vals ... );
+}
+
+inline void yframe::push( yvalue val )
+{
+    if ( s >= limit )
+    {
+        grow_stack();
+    }
+    *s++ = val;
+    count = 0;
+}
+
+
 
 
 /*
@@ -158,6 +278,32 @@ inline void yfunction::setupval( size_t u, yupval* upval )
 {
     fupvals->set( u, upval );
 }
+
+
+
+/*
+    yinvoke
+*/
+
+
+template < typename ... arguments_t >
+yvalue yinvoke( yfunction* function, arguments_t ... args )
+{
+    yframe frame;
+    frame.push( args ... );
+    yinvoke( function, frame );
+    return frame[ 0 ];
+}
+
+inline yvalue yinvoke( yfunction* function )
+{
+    yframe frame;
+    yinvoke( function, frame );
+    return frame[ 0 ];
+}
+
+
+
 
 
 

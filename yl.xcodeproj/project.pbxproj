@@ -29,7 +29,6 @@
 		4BF7EA2E1A17775C001AC127 /* yslots.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BF7E9F61A17775C001AC127 /* yslots.cpp */; };
 		4BF7EA2F1A17775C001AC127 /* ystring.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BF7E9F71A17775C001AC127 /* ystring.cpp */; };
 		4BF7EA301A17775C001AC127 /* ytable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BF7E9F81A17775C001AC127 /* ytable.cpp */; };
-		4BF7EA311A17775C001AC127 /* ythunk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BF7E9F91A17775C001AC127 /* ythunk.cpp */; };
 		4BF7EA321A17775C001AC127 /* ytuple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BF7E9FA1A17775C001AC127 /* ytuple.cpp */; };
 		4BF7EA331A17775C001AC127 /* yvalue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BF7E9FB1A17775C001AC127 /* yvalue.cpp */; };
 		4BF7EA341A17775C001AC127 /* yvm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BF7E9FC1A17775C001AC127 /* yvm.cpp */; };
@@ -58,6 +57,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		4B0068321A1FE5080005ABC2 /* fannkuch-redux.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fannkuch-redux.lua"; sourceTree = "<group>"; };
+		4B0068331A1FE5080005ABC2 /* fannkuch-redux.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = "fannkuch-redux.py"; sourceTree = "<group>"; };
+		4B0068341A1FE5080005ABC2 /* fannkuch-redux.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fannkuch-redux.yl"; sourceTree = "<group>"; };
+		4B0068351A1FE5080005ABC2 /* n-body.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "n-body.lua"; sourceTree = "<group>"; };
+		4B0068361A1FE5080005ABC2 /* n-body.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = "n-body.py"; sourceTree = "<group>"; };
+		4B0068371A1FE5080005ABC2 /* n-body.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "n-body.yl"; sourceTree = "<group>"; };
+		4B0068381A1FE5080005ABC2 /* test.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.yl; sourceTree = "<group>"; };
 		4B13958E1A1779170042A804 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		4B13958F1A177ACD0042A804 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		4BF7E9A81A177709001AC127 /* yl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = yl; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -89,7 +95,6 @@
 		4BF7E9D01A17775C001AC127 /* yslots.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yslots.h; sourceTree = "<group>"; };
 		4BF7E9D11A17775C001AC127 /* ystring.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ystring.h; sourceTree = "<group>"; };
 		4BF7E9D21A17775C001AC127 /* ytable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ytable.h; sourceTree = "<group>"; };
-		4BF7E9D31A17775C001AC127 /* ythunk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ythunk.h; sourceTree = "<group>"; };
 		4BF7E9D41A17775C001AC127 /* ytuple.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ytuple.h; sourceTree = "<group>"; };
 		4BF7E9D51A17775C001AC127 /* yvalue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yvalue.h; sourceTree = "<group>"; };
 		4BF7E9D61A17775C001AC127 /* make-osx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "make-osx"; sourceTree = "<group>"; };
@@ -121,7 +126,6 @@
 		4BF7E9F61A17775C001AC127 /* yslots.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yslots.cpp; sourceTree = "<group>"; };
 		4BF7E9F71A17775C001AC127 /* ystring.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ystring.cpp; sourceTree = "<group>"; };
 		4BF7E9F81A17775C001AC127 /* ytable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ytable.cpp; sourceTree = "<group>"; };
-		4BF7E9F91A17775C001AC127 /* ythunk.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ythunk.cpp; sourceTree = "<group>"; };
 		4BF7E9FA1A17775C001AC127 /* ytuple.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ytuple.cpp; sourceTree = "<group>"; };
 		4BF7E9FB1A17775C001AC127 /* yvalue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yvalue.cpp; sourceTree = "<group>"; };
 		4BF7E9FC1A17775C001AC127 /* yvm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yvm.cpp; sourceTree = "<group>"; };
@@ -143,13 +147,6 @@
 		4BF7EA0D1A17775C001AC127 /* yssa_regalloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yssa_regalloc.h; sourceTree = "<group>"; };
 		4BF7EA0E1A17775C001AC127 /* yssa_ycodeout.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yssa_ycodeout.cpp; sourceTree = "<group>"; };
 		4BF7EA0F1A17775C001AC127 /* yssa_ycodeout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yssa_ycodeout.h; sourceTree = "<group>"; };
-		4BF7EA111A17775C001AC127 /* fannkuch-redux.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fannkuch-redux.lua"; sourceTree = "<group>"; };
-		4BF7EA121A17775C001AC127 /* fannkuch-redux.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = "fannkuch-redux.py"; sourceTree = "<group>"; };
-		4BF7EA131A17775C001AC127 /* fannkuch-redux.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fannkuch-redux.yl"; sourceTree = "<group>"; };
-		4BF7EA141A17775C001AC127 /* n-body.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "n-body.lua"; sourceTree = "<group>"; };
-		4BF7EA151A17775C001AC127 /* n-body.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = "n-body.py"; sourceTree = "<group>"; };
-		4BF7EA161A17775C001AC127 /* n-body.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "n-body.yl"; sourceTree = "<group>"; };
-		4BF7EA171A17775C001AC127 /* test.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.yl; sourceTree = "<group>"; };
 		4BF7EA191A17775C001AC127 /* yl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -164,11 +161,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4B0068311A1FE5080005ABC2 /* tests */ = {
+			isa = PBXGroup;
+			children = (
+				4B0068321A1FE5080005ABC2 /* fannkuch-redux.lua */,
+				4B0068331A1FE5080005ABC2 /* fannkuch-redux.py */,
+				4B0068341A1FE5080005ABC2 /* fannkuch-redux.yl */,
+				4B0068351A1FE5080005ABC2 /* n-body.lua */,
+				4B0068361A1FE5080005ABC2 /* n-body.py */,
+				4B0068371A1FE5080005ABC2 /* n-body.yl */,
+				4B0068381A1FE5080005ABC2 /* test.yl */,
+			);
+			path = tests;
+			sourceTree = "<group>";
+		};
 		4BF7E99F1A177708001AC127 = {
 			isa = PBXGroup;
 			children = (
 				4BF7E9B21A17775C001AC127 /* include */,
 				4BF7E9D71A17775C001AC127 /* source */,
+				4B0068311A1FE5080005ABC2 /* tests */,
 				4B13958E1A1779170042A804 /* LICENSE */,
 				4B13958F1A177ACD0042A804 /* README.md */,
 				4BF7E9D61A17775C001AC127 /* make-osx */,
@@ -247,7 +259,6 @@
 				4BF7E9D01A17775C001AC127 /* yslots.h */,
 				4BF7E9D11A17775C001AC127 /* ystring.h */,
 				4BF7E9D21A17775C001AC127 /* ytable.h */,
-				4BF7E9D31A17775C001AC127 /* ythunk.h */,
 				4BF7E9D41A17775C001AC127 /* ytuple.h */,
 				4BF7E9D51A17775C001AC127 /* yvalue.h */,
 			);
@@ -277,7 +288,6 @@
 			isa = PBXGroup;
 			children = (
 				4BF7E9DD1A17775C001AC127 /* lib */,
-				4BF7EA101A17775C001AC127 /* tests */,
 				4BF7EA181A17775C001AC127 /* yl */,
 			);
 			path = yl;
@@ -328,7 +338,6 @@
 				4BF7E9F61A17775C001AC127 /* yslots.cpp */,
 				4BF7E9F71A17775C001AC127 /* ystring.cpp */,
 				4BF7E9F81A17775C001AC127 /* ytable.cpp */,
-				4BF7E9F91A17775C001AC127 /* ythunk.cpp */,
 				4BF7E9FA1A17775C001AC127 /* ytuple.cpp */,
 				4BF7E9FB1A17775C001AC127 /* yvalue.cpp */,
 				4BF7E9FC1A17775C001AC127 /* yvm.cpp */,
@@ -359,20 +368,6 @@
 				4BF7EA0F1A17775C001AC127 /* yssa_ycodeout.h */,
 			);
 			path = yssa;
-			sourceTree = "<group>";
-		};
-		4BF7EA101A17775C001AC127 /* tests */ = {
-			isa = PBXGroup;
-			children = (
-				4BF7EA111A17775C001AC127 /* fannkuch-redux.lua */,
-				4BF7EA121A17775C001AC127 /* fannkuch-redux.py */,
-				4BF7EA131A17775C001AC127 /* fannkuch-redux.yl */,
-				4BF7EA141A17775C001AC127 /* n-body.lua */,
-				4BF7EA151A17775C001AC127 /* n-body.py */,
-				4BF7EA161A17775C001AC127 /* n-body.yl */,
-				4BF7EA171A17775C001AC127 /* test.yl */,
-			);
-			path = tests;
 			sourceTree = "<group>";
 		};
 		4BF7EA181A17775C001AC127 /* yl */ = {
@@ -410,7 +405,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0610;
-				ORGANIZATIONNAME = birotanker;
+				ORGANIZATIONNAME = "Edmund Kapusniak";
 				TargetAttributes = {
 					4BF7E9A71A177709001AC127 = {
 						CreatedOnToolsVersion = 6.1;
@@ -470,7 +465,6 @@
 				4BF7EA291A17775C001AC127 /* yfunction.cpp in Sources */,
 				4BF7EA301A17775C001AC127 /* ytable.cpp in Sources */,
 				4BF7EA221A17775C001AC127 /* yl_parser_ragel.cpp in Sources */,
-				4BF7EA311A17775C001AC127 /* ythunk.cpp in Sources */,
 				4BF7EA361A17775C001AC127 /* yssa_astvisitors.cpp in Sources */,
 				4BF7EA3D1A17775C001AC127 /* yssa_ycodeout.cpp in Sources */,
 				4BF7EA261A17775C001AC127 /* yarray.cpp in Sources */,

@@ -15,7 +15,6 @@
 #include <ymodel/ymodel.h>
 #include <ymodel/yarray.h>
 #include <ymodel/ymodule.h>
-#include <ymodel/ythunk.h>
 #include <ymodel/yfunction.h>
 
 
@@ -23,7 +22,7 @@
 void y_atoi( yframe& frame )
 {
     double n = 0;
-    if ( frame.count() >= 2 )
+    if ( frame.size() >= 2 )
         n = frame[ 1 ].as_number();
     if ( ! frame[ 0 ].is_null() )
     {
@@ -33,22 +32,22 @@ void y_atoi( yframe& frame )
         if ( endp[ 0 ] == '\0' )
             n = i;
     }
-    frame.result( n );
+    frame.push( n );
 }
 
 void y_printf( yframe& frame )
 {
     const char* format = frame[ 0 ].c_str();
-    if ( frame.count() == 1 )
+    if ( frame.size() == 1 )
     {
         printf( "%s", format );
     }
-    else if ( frame.count() == 2 )
+    else if ( frame.size() == 2 )
     {
         double n = frame[ 1 ].as_number();
         printf( format, n );
     }
-    else if ( frame.count() == 3 )
+    else if ( frame.size() == 3 )
     {
         double n = frame[ 1 ].as_number();
         double m = frame[ 2 ].as_number();
@@ -59,14 +58,14 @@ void y_printf( yframe& frame )
 void y_sqrt( yframe& frame )
 {
     double n = frame[ 0 ].as_number();
-    frame.result( sqrt( n ) );
+    frame.push( sqrt( n ) );
 }
 
 void y_max( yframe& frame )
 {
     double a = frame[ 0 ].as_number();
     double b = frame[ 1 ].as_number();
-    frame.result( std::max( a, b ) );
+    frame.push( std::max( a, b ) );
 }
 
 
@@ -122,18 +121,20 @@ int main( int argc, char* argv[] )
     global->setkey( "max", y_max );
 
 
-    yarray* args = yarray::alloc();
-    for ( int argi = 2; argi < argc; ++argi )
-    {
-        args->append( ystring::alloc( argv[ argi ] ) );
-    }
-    global->setkey( "args", args );
-
-
     yfunction* f = yfunction::alloc( global, module->script() );
-    yinvoke( f );
+
+
+    yframe frame;
+    for ( int argi = 1; argi < argc; ++argi )
+    {
+        frame.push( argv[ argi ] );
+    }
+    yinvoke( f, frame );
+    yvalue result = frame[ 0 ];
+
     
-
-
-    return EXIT_SUCCESS;
+    return result.is_null() ? EXIT_SUCCESS : (int)result.as_number();
 }
+
+
+

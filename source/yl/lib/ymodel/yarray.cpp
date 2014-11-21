@@ -7,7 +7,7 @@
 
 
 #include "yarray.h"
-#include "ythunk.h"
+#include "yfunction.h"
 
 
 
@@ -37,7 +37,7 @@ yarray::yarray( ymetatype* metatype, yclass* klass )
 static void yarray_length( yframe& frame )
 {
     yarray* array = frame[ 0 ].as< yarray >();
-    frame.result( (uint32_t)array->length() );
+    frame.push( (uint32_t)array->length() );
 }
 
 static void yarray_resize( yframe& frame )

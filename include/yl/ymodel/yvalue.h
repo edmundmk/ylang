@@ -47,8 +47,7 @@ class yframe;
     object    1111111111111101pppppppppppppppp pppppppppppppppppppppppppppppppp
     expand    1111111111111100pppppppppppppppp pppppppppppppppppppppppppppppppp
     thunk     1111111111111011pppppppppppppppp pppppppppppppppppppppppppppppppp
-    native    1111111111111010pppppppppppppppp pppppppppppppppppppppppppppppppp
-    
+ 
 */
 
 
@@ -70,7 +69,6 @@ public:
     yvalue( yexpand* expand );
     
     yvalue( void (*thunk)( yframe& ) );
-    static yvalue native( void* native );
 
     explicit operator bool() const;
     const char* c_str() const;
@@ -86,7 +84,6 @@ public:
     bool        is_expand() const;
 
     bool        is_thunk() const;
-    bool        is_native() const;
 
     
     bool        as_boolean() const;
@@ -97,7 +94,6 @@ public:
     yexpand*    as_expand() const;
     
     void     (* as_thunk() const )( yframe& );
-    void*       as_native() const;
     
     template < typename object_t > bool is() const;
     template < typename object_t > object_t* as() const;
@@ -131,7 +127,6 @@ private:
     static const uint64_t TAG_EXPAND        = UINT64_C( 0xFFFC000000000000 );
 
     static const uint64_t TAG_THUNK         = UINT64_C( 0xFFF3000000000000 );
-    static const uint64_t TAG_NATIVE        = UINT64_C( 0xFFF2000000000000 );
 
     static const uint64_t MAX_REFERENCE     = UINT64_C( 0xFFFEFFFFFFFFFFFF );
     static const uint64_t MIN_REFERENCE     = UINT64_C( 0xFFFC000000000000 );
@@ -388,12 +383,6 @@ inline yvalue::yvalue( void (*ythunk)( yframe& ) )
 {
 }
 
-inline yvalue yvalue::native( void* native )
-{
-    return yvalue::value( TAG_NATIVE | (uintptr_t)native );
-}
-
-
 
 inline yvalue::operator bool() const
 {
@@ -482,15 +471,6 @@ inline bool yvalue::is_thunk() const
 #endif
 }
 
-inline bool yvalue::is_native() const
-{
-#if Y64BIT
-    return ( x & TAG_MASK ) == TAG_NATIVE;
-#else
-    return hi == HI( TAG_NATIVE );
-#endif
-}
-
 
 inline bool yvalue::as_boolean() const
 {
@@ -576,21 +556,6 @@ inline void (* yvalue::as_thunk() const )( yframe& )
         return (void (*)( yframe& ))lo;
     else
         throw yerror( "expected object" );
-#endif
-}
-
-inline void* yvalue::as_native() const
-{
-#if Y64BIT
-    if ( is_native() )
-        return (void*)( x & POINTER_MASK );
-    else
-        throw yerror( "expected native pointer" );
-#else
-    if ( is_native() )
-        return (void*)lo;
-    else
-        throw yerror( "expected native pointer" );
 #endif
 }
 

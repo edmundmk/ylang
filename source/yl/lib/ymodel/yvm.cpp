@@ -11,7 +11,7 @@
 #include "ystring.h"
 #include "yarray.h"
 #include "ytable.h"
-#include "ythunk.h"
+#include "yfunction.h"
 
 
 
@@ -357,6 +357,7 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
     if ( incount <= recipe->param_count() )
     {
         // Set missing arguments to null.
+        stack->ensure_stack( fp + 1 + recipe->param_count() );
         for ( unsigned i = incount; i <= recipe->param_count(); ++i )
         {
             stack->stack[ sp + i ] = yvalue::ynull;
@@ -852,6 +853,7 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
             yframe frame( s + i.r(), limit, i.a() - 1 );
             
             // Call native thunk.
+            stack->mark = fp + i.r() + i.a();
             f.as_thunk()( frame );
             s = stack->stack.data() + fp;
             

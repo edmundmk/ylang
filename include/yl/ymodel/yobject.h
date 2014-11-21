@@ -32,7 +32,6 @@ public:
 
     template < typename object_t > static const char* nameof();
     template < typename object_t > bool is();
-    template < typename object_t > object_t* as();
     
     
 protected:
@@ -168,15 +167,6 @@ inline bool yobject::is()
     uintptr_t word = this->word.load( std::memory_order_relaxed );
     ymetatype* metatype = (ymetatype*)( word & ~Y_COLOUR_MASK );
     return metatype == &object_t::metatype;
-}
-
-template < typename object_t >
-inline object_t* yobject::as()
-{
-    if ( is< object_t >() )
-        return (object_t*)this;
-    else
-        return nullptr;
 }
 
 inline void yobject::mark()
