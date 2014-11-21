@@ -84,7 +84,7 @@ def main( n )
 
 
 
-main( args[]... );
+return main( ... );
 
 
 
