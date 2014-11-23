@@ -152,6 +152,24 @@
 
 
 
+/*
+    The collector has the following states:
+    
+        GC_IDLE
+            Mark thread is idle.
+ 
+        GC_GUARD
+            Collection has been requested.  The epoch will change when there
+            are no active yguards.
+            
+        GC_HANDSHAKE
+            Handshaking with each active mutator scope in turn.
+            
+ 
+ 
+*/
+
+
 
 
 
@@ -163,7 +181,61 @@
 
 ymodel::ymodel()
 {
+    // Initialize collector state.
+    collection_request  = false;
+
+    epoch               = 0;
+    live_guard_count    = 0;
+    guard_count         = 0;
+
+    dead                = Y_GREEN;
+    unmarked            = Y_PURPLE;
+    marked              = Y_ORANGE;
+    
+    sweep_queue[ 0 ]    = Y_GREY;
+    sweep_queue[ 1 ]    = Y_GREY;
+
+    objects_head        = nullptr;
+    objects_last        = nullptr;
+
+
+    // Kick off collector threads.
+    mark_thread  = std::move( std::thread( &ymodel::mark, this ) );
+    sweep_thread = std::move( std::thread( &ymodel::sweep, this ) );
+
+
+    // Construct expandclasses.
+    make_expands();
+
+}
+
+ymodel::~ymodel()
+{
+    std::unique_lock< std::mutex > lock( collector_mutex );
+    destroy_request = true;
+    collector_condition.notify_all();
+    lock.unlock();
+    
+    mark_thread.join();
+    sweep_thread.join();
+    
+    yobject* object = objects_head;
+    while ( object )
+    {
+        yobject* next = object->get_next();
+        free( object );
+        object = next;
+    }
+}
+
+
+
+void ymodel::make_expands()
+{
+    // These objects are allocated so we need to enter a yscope on ourselves.
     yscope scope( this );
+    
+    // Construct prototypes for basic ylang types.
     expand_empty_class      = yclass::alloc();
     expand_object_proto     = yexpand::make_proto();
     expand_array_proto      = yarray::make_proto();
@@ -174,13 +246,11 @@ ymodel::ymodel()
     expand_function_proto   = ystandin::alloc( ystandin::FUNCTION );
 }
 
-ymodel::~ymodel()
-{
-}
 
 
 yexpand* ymodel::make_global()
 {
+    // Construct a global scope containing prototypes for ylang types.
     yexpand* global = yexpand::alloc();
     global->setkey( "object", expand_object_proto );
     global->setkey( "array", expand_array_proto );
@@ -468,6 +538,46 @@ ystring* ymodel::make_symbol( ystring* s )
 }
 
 
+unsigned ymodel::lock_guard()
+{
+    std::lock_guard< std::mutex > lock( collector_mutex );
+    
+    // Increment guard count.
+    guard_count += 1;
+    
+    
+    // Wait for this epoch's handshake with this thread.
+    
+    
+    return epoch;
+}
+
+
+void ymodel::unlock_guard( unsigned guard_epoch )
+{
+    std::lock_guard< std::mutex > lock( collector_mutex );
+    if ( epoch == guard_epoch )
+    {
+        // Guard released during current epoch.
+        assert( guard_count );
+        guard_count -= 1;
+    }
+    else
+    {
+        // We are entering new epoch and waiting for this guard to release.
+        assert( epoch == guard_epoch + 1 );
+        assert( live_guard_count );
+        live_guard_count -= 1;
+
+        // If all guards have released, wake collector threads.
+        if ( live_guard_count == 0 )
+        {
+            collector_condition.notify_all();
+        }
+    }
+}
+
+
 void ymodel::mark_grey( yobject* object )
 {
     // Currently, mutators can only perform the unmarked -> grey transition
@@ -487,23 +597,65 @@ void ymodel::mark_grey( yobject* object )
 void ymodel::mark()
 {
     yworklist worklist;
-    ycolour unmarked;
-    ycolour marked;
 
 
     while ( true )
     {
-    
-    // Wait for mark.
-    
-    
-    
-    
-    
-    // Mark locals, in turn.
-    
 
+    std::unique_lock< std::mutex > lock( collector_mutex );
+    
+    
+    // Wait for GC request.
+    while ( ! collection_request && ! destroy_request )
+    {
+        collector_condition.wait( lock );
+    }
+    
+    if ( destroy_request )
+    {
+        return;
+    }
+    
+    collection_request = false;
 
+    
+    // Wait for sweep of objects of current dead colour to complete.  This
+    // colour will be reused as the marked colour in the current epoch.
+    while ( sweep_queue[ 0 ] == dead || sweep_queue[ 1 ] == dead )
+    {
+        collector_condition.wait( lock );
+    }
+    assert( sweep_queue[ 1 ] == Y_GREY );
+
+    
+    // Enter new epoch.  Any yguards entered after this point will lock the
+    // new epoch (and will block until this epoch's handshake is complete).
+    epoch += 1;
+    
+    assert( live_guard_count == 0 );
+    live_guard_count = guard_count;
+    guard_count = 0;
+    
+    ycolour prev_dead = dead;
+    dead = unmarked;
+    unmarked = marked;
+    marked = prev_dead;
+    
+    
+    // Wait for yguards from previous epoch to unlock.
+    while ( live_guard_count )
+    {
+        collector_condition.wait( lock );
+    }
+    
+        
+    lock.unlock();
+    
+        
+    // Handshake with each mutator in turn.
+    
+    
+    
     
     
     // Perform actual marking.
@@ -528,6 +680,18 @@ void ymodel::mark()
     while ( worklist.size() );
 
 
+    lock.lock();
+
+
+    // Kick off sweep of unmarked objects (which are unreachable), and will
+    // be dead in the next epoch.  We begin sweeping as soon as possible
+    // after marking - this sweep is actually the sweep from the next epoch.
+    if ( sweep_queue[ 0 ] == Y_GREY )
+        sweep_queue[ 0 ] = unmarked;
+    else
+        sweep_queue[ 1 ] = unmarked;
+    collector_condition.notify_all();
+
 
     }
     
@@ -538,13 +702,27 @@ void ymodel::mark()
 
 void ymodel::sweep()
 {
-    ycolour dead;
-
     while ( true )
     {
     
+    std::unique_lock< std::mutex > lock( collector_mutex );
+
     
-    // Wait for sweep.
+    // Wait for sweep request.
+    while ( sweep_queue[ 0 ] == Y_GREY && ! destroy_request )
+    {
+        collector_condition.wait( lock );
+    }
+    
+    if ( destroy_request )
+    {
+        return;
+    }
+    
+    ycolour dead = sweep_queue[ 0 ];
+
+
+    lock.unlock();
     
     
     
@@ -609,6 +787,16 @@ void ymodel::sweep()
     
     // Add unswept objects back to list.
     add_objects( head, prev );
+    
+
+    lock.lock();
+    
+
+    // Done.
+    assert( sweep_queue[ 0 ] == dead );
+    sweep_queue[ 0 ] = sweep_queue[ 1 ];
+    sweep_queue[ 1 ] = Y_GREY;
+    collector_condition.notify_all();
     
     
     }
@@ -684,6 +872,24 @@ yscope::~yscope()
 }
 
 
+
+
+
+/*
+    Safepoints
+*/
+
+
+
+
+/*
+    Request collection
+*/
+
+void ycollect()
+{
+    
+}
 
 
 

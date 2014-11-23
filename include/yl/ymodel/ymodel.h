@@ -107,8 +107,10 @@ private:
     friend class yarray;
     friend class ytable;
     friend class yfunction;
+    friend class yguard;
     template < typename object_t > friend class yroot;
     friend void yexec( size_t, unsigned, unsigned );
+    friend void ycollect();
 
 
     yclass*     empty_class();
@@ -127,16 +129,21 @@ private:
     ystandin*   function_proto();
 
 
+    ystring*    make_symbol( const char* s );
+    ystring*    make_symbol( ystring* s );
+
     void        add_root( yobject* object );
     void        remove_root( yobject* object );
 
-    ystring*    make_symbol( const char* s );
-    ystring*    make_symbol( ystring* s );
+    unsigned    lock_guard();
+    void        unlock_guard( unsigned guard_epoch );
     
     void        mark_grey( yobject* object );
-
+    
     
 private:
+
+    void        make_expands();
 
     void        mark();
     void        sweep();
@@ -155,23 +162,38 @@ private:
     ystandin*   expand_string_proto;
     ystandin*   expand_function_proto;
     
-    
-    std::thread mark_thread;
-    std::thread sweep_thread;
-    
+    std::mutex  symbols_mutex;
+    std::unordered_map< symkey, ysymbol > symbols;
+
     std::mutex  roots_mutex;
     std::unordered_map< yobject*, size_t > roots;
 
-    std::mutex  symbols_mutex;
-    std::unordered_map< symkey, ysymbol > symbols;
+    std::mutex  collector_mutex;
+    std::condition_variable collector_condition;
+    
+    bool        collection_request;
+    bool        destroy_request;
+    
+    unsigned    epoch;
+    unsigned    live_guard_count;
+    unsigned    guard_count;
+    
+    ycolour     dead;
+    ycolour     unmarked;
+    ycolour     marked;
+    
+    ycolour     sweep_queue[ 2 ];
+
+    std::mutex  objects_mutex;
+    yobject*    objects_head;
+    yobject*    objects_last;
     
     std::mutex  greylist_mutex;
     yworklist   greylist;
     
-    std::mutex  objects_mutex;
-    yobject*    objects_head;
-    yobject*    objects_last;
-
+    std::thread mark_thread;
+    std::thread sweep_thread;
+    
 };
 
 
@@ -199,6 +221,7 @@ private:
     friend class ytable;
     friend class yframe;
     friend class yfunction;
+    friend class yguard;
     friend void yinvoke( yfunction*, yframe& );
     friend void yexec( size_t, unsigned, unsigned );
 
@@ -273,6 +296,9 @@ private:
 
     yguard& operator = ( const yguard& ) = delete;
     
+    ymodel*     model;
+    unsigned    epoch;
+    
 };
 
 
@@ -337,11 +363,38 @@ struct ymarktraits
 
 */
 
+
+/*
+    yguard
+*/
+
+inline yguard::yguard()
+    :   model( yscope::scope->model )
+    ,   epoch( model->lock_guard() )
+{
+}
+
+inline yguard::~yguard()
+{
+    model->unlock_guard( epoch );
+}
+
+
+
+
+/*
+    ymark
+*/
+
 template < typename wb_t >
 void ymark( wb_t& wb, yworklist* work, ycolour colour )
 {
     ymarktraits< wb_t >::mark( wb, work, colour );
 }
+
+/*
+    ymarktraits
+*/
 
 template < typename wb_t >
 void ymarktraits< wb_t >::mark( wb_t& wb, yworklist* work, ycolour colour )
