@@ -269,7 +269,7 @@ inline ywb< ysymbol >& ywb< ysymbol >::operator = ( ysymbol q )
     ystring* string = this->string.load( std::memory_order_relaxed );
     if ( string )
     {
-        string->mark();
+        string->mark_wb();
     }
     
     this->string.store( q.get(), std::memory_order_relaxed );
@@ -306,7 +306,7 @@ inline void ymarktraits< ywb< ysymbol > >::mark(
     ystring* string = wb.string.load( std::memory_order_consume );
     if ( string )
     {
-        string->mark( work, colour );
+        string->mark_ref( work, colour );
     }
 }
 

@@ -710,7 +710,7 @@ inline ywb< yvalue >& ywb< yvalue >::operator = ( yvalue q )
     if ( x >= yvalue::MIN_REFERENCE && x <= yvalue::MAX_REFERENCE )
     {
         yobject* p = (yobject*)( x & yvalue::POINTER_MASK );
-        p->mark();
+        p->mark_wb();
     }
     
     // Store new value.
@@ -738,7 +738,7 @@ inline void ymarktraits< ywb< yvalue > >::mark(
     if ( x >= yvalue::MIN_REFERENCE && x <= yvalue::MAX_REFERENCE )
     {
         yobject* p = (yobject*)( x & yvalue::POINTER_MASK );
-        p->mark( work, colour );
+        p->mark_ref( work, colour );
     }
 }
 
@@ -777,7 +777,7 @@ inline ywb< yvalue >& ywb< yvalue >::operator = ( yvalue q )
     yobject* p = this->p.load( std::memory_order_relaxed );
     if ( p )
     {
-        p->mark();
+        p->mark_wb();
     }
     
     // Store new value.
@@ -807,7 +807,7 @@ inline void ymarktraits< ywb< yvalue > >::mark(
     yobject* p = wb.p.load( std::memory_order_consume );
     if ( p )
     {
-        p->mark( work, colour );
+        p->mark_ref( work, colour );
     }
 }
 

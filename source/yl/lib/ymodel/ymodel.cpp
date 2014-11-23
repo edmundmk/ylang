@@ -45,16 +45,16 @@
         this epoch:
     
             dead        green
-            unmarked    orange
-            marked      purple
+            unmarked    purple
+            marked      orange
         
         sweep thread finishes, no more green objects in heap.
         mark thread finishes, all live objects are purple.
         
         next epoch:
  
-            dead        orange (unreachable in last epoch)
-            unmarked    purple
+            dead        purple (unreachable in last epoch)
+            unmarked    orange
             marked      green
             
         and we continue.
@@ -87,22 +87,22 @@
     waiting for other mutator threads.  But it also means that different
     threads enter the new epoch at different times.
  
-              |           green -> orange                   |
+              |           green -> purple                   |
         A  ---|---||----------------------------------------|---
               |                                             |
-              |   purple -> green        green -> orange    |
+              |   orange -> green        green -> purple    |
         B  ---|---------------------||----------------------|---
               |                                             |
  
-    At the left barrier, the GC begins a new epoch.  All orange objects in the
+    At the left barrier, the GC begins a new epoch.  All purple objects in the
     heap have been swept and all reachable objects are green.  At the right
     barrier, the GC has taken a snapshot of all locals, and heap marking
     begins.
 
-    As long as B treats both orange and green objects as marked (i.e. it only
-    changes the colour of purple objects) then both A in the new epoch and
+    As long as B treats both green and purple objects as marked (i.e. it only
+    changes the colour of orange objects) then both A in the new epoch and
     B in the previous epoch can run concurrently without problem.  Nothing is
-    creating new purple objects - in fact there are no reachable purple objects
+    creating new orange objects - in fact there are no reachable orange objects
     for B to mark.
     
     However if there are mutable heap slots accessible to both A and B (or if
@@ -141,7 +141,7 @@
     handshake until after the move.
  
     Correct multithreaded programming already requires careful locking, so
-    asking programmers to guard shared references in not unreasonable.
+    asking programmers to guard shared references is not unreasonable.
  
  
     Both yclasses and ysymbols are immutable once created (at least currently),
@@ -191,73 +191,6 @@ yexpand* ymodel::make_global()
     global->setkey( "function", expand_function_proto );
     return global;
 }
-
-
-ystring* ymodel::make_symbol( const char* s )
-{
-    std::lock_guard< std::mutex > lock( symbols_mutex );
-
-    // Look up symbol.
-    size_t size = strlen( s );
-    hash32_t hash = hash32( s, size );
-    symkey key( hash, s, size );
-    auto symbol = symbols.find( key );
-    if ( symbol != symbols.end() )
-    {
-        // Mark symbol before returning, in case we are resurrecting it.
-        symbol->second->mark( nullptr, yscope::scope->mark_colour );
-        return symbol->second.get();
-    }
-
-    // Create new symbol.
-    ystring* newsym = ystring::alloc( s );
-    newsym->shash = hash;
-    newsym->shashed = true;
-    newsym->ssymbol = true;
-    symbols.emplace( symkey( hash, newsym->c_str(), size ), newsym );
-    return newsym;
-}
-
-
-ystring* ymodel::make_symbol( ystring* s )
-{
-    std::lock_guard< std::mutex > lock( symbols_mutex );
-    
-    // Should already have checked if it's already a symbol.
-    assert( ! s->ssymbol );
-
-    // Look up symbol
-    symkey key( s->hash(), s->data(), s->size() );
-    auto symbol = symbols.find( key );
-    if ( symbol != symbols.end() )
-    {
-        // Mark symbol mark returning, in case we are resurrecting it.
-        symbol->second->mark( nullptr, yscope::scope->mark_colour );
-        return symbol->second.get();
-    }
-    
-    // Turn this string itself into a symbol and return it.
-    assert( ! s->ssymbol );
-    s->ssymbol = true;
-    symbols.emplace( key, s );
-    return s;
-}
-
-
-void ymodel::mark_grey( yobject* object )
-{
-    // Currently, mutators can only perform the unmarked -> grey transition
-    // with the mutex held.  This means more locking for mutators, but means
-    // that if the mark thread has marked all reachable objects, locks, and
-    // finds the grey list empty, it knows that marking is complete.
-    std::lock_guard< std::mutex > lock( greylist_mutex );
-    
-    // Pass in the actual mark colour in case somehow
-    object->mark( &greylist, yscope::scope->mark_colour );
-}
-
-
-
 
 
 
@@ -484,6 +417,235 @@ yclass* ymodel::expand_class( yclass* klass, ysymbol key )
 
 
 
+ystring* ymodel::make_symbol( const char* s )
+{
+    std::lock_guard< std::mutex > lock( symbols_mutex );
+
+    // Look up symbol.
+    size_t size = strlen( s );
+    hash32_t hash = hash32( s, size );
+    symkey key( hash, s, size );
+    auto symbol = symbols.find( key );
+    if ( symbol != symbols.end() )
+    {
+        // Mark symbol before returning, in case we are resurrecting it.
+        symbol->second->mark_wb();
+        return symbol->second.get();
+    }
+
+    // Create new symbol.
+    ystring* newsym = ystring::alloc( s );
+    newsym->shash = hash;
+    newsym->shashed = true;
+    newsym->ssymbol = true;
+    symbols.emplace( symkey( hash, newsym->c_str(), size ), newsym );
+    return newsym;
+}
+
+
+ystring* ymodel::make_symbol( ystring* s )
+{
+    std::lock_guard< std::mutex > lock( symbols_mutex );
+    
+    // Should already have checked if it's already a symbol.
+    assert( ! s->ssymbol );
+
+    // Look up symbol
+    symkey key( s->hash(), s->data(), s->size() );
+    auto symbol = symbols.find( key );
+    if ( symbol != symbols.end() )
+    {
+        // Mark symbol before returning, in case we are resurrecting it.
+        symbol->second->mark_wb();
+        return symbol->second.get();
+    }
+    
+    // Turn this string itself into a symbol and return it.
+    assert( ! s->ssymbol );
+    s->ssymbol = true;
+    symbols.emplace( key, s );
+    return s;
+}
+
+
+void ymodel::mark_grey( yobject* object )
+{
+    // Currently, mutators can only perform the unmarked -> grey transition
+    // with the mutex held.  This means more locking for mutators, but means
+    // that if the mark thread has marked all reachable objects, locks, and
+    // finds the grey list empty, it knows that marking is complete.
+
+    std::lock_guard< std::mutex > lock( greylist_mutex );
+    object->mark_ref( &greylist, yscope::scope->marked );
+}
+
+
+
+
+
+
+void ymodel::mark()
+{
+    yworklist worklist;
+    ycolour unmarked;
+    ycolour marked;
+
+
+    while ( true )
+    {
+    
+    // Wait for mark.
+    
+    
+    
+    
+    
+    // Mark locals, in turn.
+    
+
+
+    
+    
+    // Perform actual marking.
+    do
+    {
+
+        // Mark all unmarked objects reachable from work list.
+        while ( worklist.size() )
+        {
+            yobject* object = worklist.back();
+            worklist.pop_back();
+            object->mark_obj( &worklist, unmarked, marked );
+        }
+        
+        
+        // Add objects greyed by write barriers to work list.
+        std::lock_guard< std::mutex > lock( greylist_mutex );
+        assert( worklist.empty() );
+        worklist.swap( greylist );
+    
+    }
+    while ( worklist.size() );
+
+
+
+    }
+    
+}
+
+
+
+
+void ymodel::sweep()
+{
+    ycolour dead;
+
+    while ( true )
+    {
+    
+    
+    // Wait for sweep.
+    
+    
+    
+    // Sweep dead objects.
+    auto objects = get_objects();
+    yobject* head = objects.first;
+    yobject* prev = nullptr;
+    yobject* curr = head;
+
+    while ( curr )
+    {
+        yobject* next = curr->get_next();
+
+
+        // If object is live, leave it in list.
+        if ( curr->get_colour() != dead )
+        {
+            prev = curr;
+            curr = next;
+            continue;
+        }
+        
+        
+        // Remove symbols from symbol table.
+        if ( curr->is< ystring >() && ( (ystring*)curr )->ssymbol )
+        {
+            std::lock_guard< std::mutex > lock( symbols_mutex );
+            ystring* s = (ystring*)curr;
+            
+            // Might have been resurrected before we held the lock.
+            if ( s->get_colour() != dead )
+            {
+                prev = curr;
+                curr = next;
+                continue;
+            }
+            
+            // Remove from symbol table.
+            symbols.erase( symkey( s->shash, s->sdata, s->ssize ) );
+            
+            // Fall through to destroy object.
+        }
+        
+        
+        // Free dead object.
+        free( curr );
+
+
+        // Move to next.
+        if ( prev )
+            prev->set_next( next );
+        else
+            head = next;
+        curr = next;
+    }
+    
+    if ( prev )
+    {
+        prev->set_next( nullptr );
+    }
+    
+    
+    // Add unswept objects back to list.
+    add_objects( head, prev );
+    
+    
+    }
+
+
+}
+
+
+
+std::pair< yobject*, yobject* > ymodel::get_objects()
+{
+    std::lock_guard< std::mutex > lock( objects_mutex );
+    std::pair< yobject*, yobject* > objects( objects_head, objects_last );
+    objects_head = nullptr;
+    objects_last = nullptr;
+    return objects;
+}
+
+
+void ymodel::add_objects( yobject* head, yobject* last )
+{
+    std::lock_guard< std::mutex > lock( objects_mutex );
+    assert( last->get_next() == nullptr );
+    if ( objects_head )
+    {
+        assert( objects_last );
+        objects_last->set_next( head );
+        objects_last = last;
+    }
+    else
+    {
+        assert( objects_last == nullptr );
+        objects_head = head;
+        objects_last = last;
+    }
+}
+
 
 
 
@@ -500,7 +662,8 @@ __thread yscope* yscope::scope = nullptr;
 yscope::yscope( ymodel* model )
     :   previous( scope )
     ,   model( model )
-    ,   mark_colour( Y_GREEN ) // TEMP - ask model for current colour
+    ,   unmarked( Y_GREEN )
+    ,   marked( Y_PURPLE )
     ,   allocs( nullptr )
     ,   stack( new ystack() )
 {

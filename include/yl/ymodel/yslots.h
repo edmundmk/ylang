@@ -154,7 +154,7 @@ inline void yslots::set( size_t i, yvalue value )
         if ( x <= yvalue::MAX_REFERENCE )
         {
             yobject* p = (yobject*)( x & yvalue::POINTER_MASK );
-            p->mark();
+            p->mark_wb();
         }
     }
 
@@ -170,7 +170,7 @@ inline void yslots::set( size_t i, yvalue value )
         if ( lo != UNDEFINED )
         {
             yobject* p = (yobject*)lo;
-            p->mark();
+            p->mark_wb();
         }
     }
     

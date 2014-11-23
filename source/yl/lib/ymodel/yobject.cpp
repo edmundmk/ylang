@@ -11,7 +11,7 @@
 
 
 yobject::yobject( ymetatype* metatype )
-    :   word( (uintptr_t)metatype | yscope::scope->mark_colour )
+    :   word( (uintptr_t)metatype | yscope::scope->marked )
     ,   next( yscope::scope->allocs )
 {
     yscope::scope->allocs = this;

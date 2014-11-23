@@ -68,6 +68,11 @@ enum ycolour
 
 static const uintptr_t Y_COLOUR_MASK = (uintptr_t)0x03;
 
+inline ycolour ynextcolour( ycolour colour )
+{
+    return (ycolour)( ( colour + 1 ) % 3 );
+}
+
 typedef seglist< yobject* > yworklist;
 
 
@@ -106,52 +111,66 @@ private:
     friend void yexec( size_t, unsigned, unsigned );
 
 
-    yclass* empty_class();
+    yclass*     empty_class();
 #if YSLOTS
-    yclass* expand_class( yclass* klass, ysymbol key, bool is_number );
+    yclass*     expand_class( yclass* klass, ysymbol key, bool is_number );
 #else
-    yclass* expand_class( yclass* klass, ysymbol key );
+    yclass*     expand_class( yclass* klass, ysymbol key );
 #endif
 
-    yexpand* object_proto();
-    yexpand* array_proto();
-    yexpand* table_proto();
-    ystandin* boolean_proto();
-    ystandin* number_proto();
-    ystandin* string_proto();
-    ystandin* function_proto();
+    yexpand*    object_proto();
+    yexpand*    array_proto();
+    yexpand*    table_proto();
+    ystandin*   boolean_proto();
+    ystandin*   number_proto();
+    ystandin*   string_proto();
+    ystandin*   function_proto();
 
 
-    void add_root( yobject* object );
-    void remove_root( yobject* object );
+    void        add_root( yobject* object );
+    void        remove_root( yobject* object );
 
-    ystring* make_symbol( const char* s );
-    ystring* make_symbol( ystring* s );
+    ystring*    make_symbol( const char* s );
+    ystring*    make_symbol( ystring* s );
     
-    void mark_grey( yobject* object );
+    void        mark_grey( yobject* object );
 
     
 private:
 
-    std::mutex expand_mutex;
-    yclass* expand_empty_class;
-    yexpand* expand_object_proto;
-    yexpand* expand_array_proto;
-    yexpand* expand_table_proto;
-    ystandin* expand_boolean_proto;
-    ystandin* expand_number_proto;
-    ystandin* expand_string_proto;
-    ystandin* expand_function_proto;
+    void        mark();
+    void        sweep();
+
+    std::pair< yobject*, yobject* > get_objects();
+    void        add_objects( yobject* head, yobject* last );
+
+
+    std::mutex  expand_mutex;
+    yclass*     expand_empty_class;
+    yexpand*    expand_object_proto;
+    yexpand*    expand_array_proto;
+    yexpand*    expand_table_proto;
+    ystandin*   expand_boolean_proto;
+    ystandin*   expand_number_proto;
+    ystandin*   expand_string_proto;
+    ystandin*   expand_function_proto;
     
     
-    std::mutex roots_mutex;
+    std::thread mark_thread;
+    std::thread sweep_thread;
+    
+    std::mutex  roots_mutex;
     std::unordered_map< yobject*, size_t > roots;
 
-    std::mutex symbols_mutex;
+    std::mutex  symbols_mutex;
     std::unordered_map< symkey, ysymbol > symbols;
     
-    std::mutex greylist_mutex;
-    yworklist greylist;
+    std::mutex  greylist_mutex;
+    yworklist   greylist;
+    
+    std::mutex  objects_mutex;
+    yobject*    objects_head;
+    yobject*    objects_last;
 
 };
 
@@ -188,7 +207,8 @@ private:
     yscope*     previous;
     ymodel*     model;
     
-    ycolour     mark_colour;
+    ycolour     unmarked;
+    ycolour     marked;
     yobject*    allocs;
 
     ystack*     stack;

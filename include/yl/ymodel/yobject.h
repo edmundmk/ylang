@@ -46,8 +46,13 @@ private:
     template < typename value_t > friend class ywb;
     template < typename value_t > friend struct ymarktraits;
 
-    void mark();
-    void mark( yworklist* work, ycolour colour );
+    void        mark_wb();
+    void        mark_ref( yworklist* work, ycolour unmarked );
+    void        mark_obj( yworklist* work, ycolour unmarked, ycolour marked );
+    
+    ycolour     get_colour();
+    yobject*    get_next();
+    void        set_next( yobject* next );
     
     
 private:
@@ -67,7 +72,7 @@ private:
 
 struct ymetatype
 {
-    void (*mark)( yobject* object, yworklist* work, ycolour );
+    void (*mark)( yobject* object, yworklist* work, ycolour colour );
     const char* name;
 };
 
@@ -169,18 +174,18 @@ inline bool yobject::is()
     return metatype == &object_t::metatype;
 }
 
-inline void yobject::mark()
+inline void yobject::mark_wb()
 {
     // Called from write barriers to check if this object requires marking.
     // Objects which contain no references are marked directly.  Other objects
     // are added to the grey list for the mark thread to pick up.
 
-    ycolour mark_colour = yscope::scope->mark_colour;
+    ycolour unmarked = yscope::scope->unmarked;
     uintptr_t word = this->word.load( std::memory_order_relaxed );
     ymetatype* metatype = (ymetatype*)( word & ~Y_COLOUR_MASK );
     ycolour colour = (ycolour)( word & Y_COLOUR_MASK );
     
-    if ( colour != Y_GREY && colour != mark_colour )
+    if ( colour == yscope::scope->unmarked )
     {
         if ( metatype->mark )
         {
@@ -190,36 +195,78 @@ inline void yobject::mark()
         else
         {
             // Mark directly.
-            word = (uintptr_t)metatype | mark_colour;
+            word = (uintptr_t)metatype | ynextcolour( unmarked );
             this->word.store( word, std::memory_order_relaxed );
         }
     }
 }
 
-inline void yobject::mark( yworklist* work, ycolour mark_colour )
+inline void yobject::mark_ref( yworklist* work, ycolour unmarked )
 {
-    // Called from mark thread to mark objects.  Objects are again either
-    // added to the work list or marked directly.
+    // Called from mark thread to mark the target of a reference from a live
+    // object.  Objects are again either added to the work list or marked
+    // directly.
     
     uintptr_t word = this->word.load( std::memory_order_relaxed );
     ymetatype* metatype = (ymetatype*)( word & ~Y_COLOUR_MASK );
     ycolour colour = (ycolour)( word & Y_COLOUR_MASK );
     
-    if ( colour != Y_GREY && colour != mark_colour )
+    if ( colour == unmarked )
     {
-        // Add to work list.
-        word = (uintptr_t)metatype | Y_GREY;
-        this->word.store( word, std::memory_order_relaxed );
-        work->push_back( this );
-    }
-    else
-    {
-        // Mark directly.
-        word = (uintptr_t)metatype | mark_colour;
-        this->word.store( word, std::memory_order_relaxed );
+        if ( metatype->mark )
+        {
+            // Add to work list.
+            word = (uintptr_t)metatype | Y_GREY;
+            this->word.store( word, std::memory_order_relaxed );
+            work->push_back( this );
+        }
+        else
+        {
+            // Mark directly.
+            word = (uintptr_t)metatype | ynextcolour( unmarked );
+            this->word.store( word, std::memory_order_relaxed );
+        }
     }
 }
 
+
+inline void yobject::mark_obj(
+                yworklist* work, ycolour unmarked, ycolour marked )
+{
+    // Called from mark thread to mark grey objects.
+    
+    uintptr_t word = this->word.load( std::memory_order_relaxed );
+    ymetatype* metatype = (ymetatype*)( word & ~Y_COLOUR_MASK );
+    ycolour colour = (ycolour)( word & Y_COLOUR_MASK );
+
+    if ( colour == Y_GREY )
+    {
+        // Mark object.
+        word = (uintptr_t)metatype | marked;
+        this->word.store( word, std::memory_order_relaxed );
+
+        // Add children to work list.
+        assert( metatype->mark );
+        metatype->mark( this, work, unmarked );
+    }
+}
+
+
+inline ycolour yobject::get_colour()
+{
+    uintptr_t word = this->word.load( std::memory_order_relaxed );
+    return (ycolour)( word & Y_COLOUR_MASK );
+}
+
+inline yobject* yobject::get_next()
+{
+    return next;
+}
+
+inline void yobject::set_next( yobject* next )
+{
+    this->next = next;
+}
 
 
 
@@ -325,7 +372,7 @@ inline ywb< object_t* >& ywb< object_t* >::operator = ( object_t* q )
     object_t* p = this->p.load( std::memory_order_relaxed );
     if ( p )
     {
-        p->mark();
+        p->mark_wb();
     }
     
     // Update value.
@@ -353,7 +400,7 @@ inline void ymarktraits< ywb< object_t* > >::mark(
     object_t* p = wb.p.load( std::memory_order_consume );
     if ( p )
     {
-        p->mark( work, colour );
+        p->mark_ref( work, colour );
     }
 }
 
