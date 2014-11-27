@@ -651,6 +651,25 @@ void ymodel::safepoint()
 
 
 
+
+void ymodel::add_grey( yworklist* worklist )
+{
+    std::lock_guard< std::mutex > lock( greylist_mutex );
+    if ( greylist.empty() )
+    {
+        greylist.swap( *worklist );
+    }
+    else
+    {
+        while ( worklist->size() )
+        {
+            greylist.push_back( worklist->back() );
+            worklist->pop_back();
+        }
+    }
+}
+
+
 void ymodel::mark_locals( std::unique_lock< std::mutex >& lock, yscope* scope )
 {
     // Lock is held, now marking this scope.
@@ -660,10 +679,21 @@ void ymodel::mark_locals( std::unique_lock< std::mutex >& lock, yscope* scope )
     lock.unlock();
     
     
-    // Mark locals (can happen in parallel with other thread's marks).
+    // Mark locals on stack (can happen in parallel with other thread's marks).
+    yworklist worklist;
+    ystack* stack = scope->stack;
+    for ( size_t i = 0; i < stack->mark; ++i )
+    {
+        yvalue value = stack->stack.at( i );
+        if ( value.is_object() )
+        {
+            value.as_object()->mark_obj( &worklist, unmarked, marked );
+        }
+    }
     
     
-    
+    // Add marked objects to grey list.
+    add_grey( &worklist );
     
     
     lock.lock();
@@ -717,7 +747,6 @@ void ymodel::mark()
         collector_condition.wait( lock );
     }
     assert( sweep_queue[ 1 ] == Y_GREY );
-
 
 
     // At this point, any new guards lock the new epoch (and will pause their

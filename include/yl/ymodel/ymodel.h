@@ -160,6 +160,7 @@ private:
 
     void        make_expands();
 
+    void        add_grey( yworklist* worklist );
     void        mark_locals( std::unique_lock< std::mutex >& lock, yscope* scope );
 
     void        mark();
