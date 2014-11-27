@@ -133,13 +133,6 @@
     to A without marking it orange.  If the same sequence occurs _after_ B
     enters the new epoch, then everything is fine.
     
-    Consider the similar case of a reference moving from B's stack (having
-    left, it will not be marked at B's handshake), to A's stack (which is
-    already marked, so the referenced object will not be marked in this epoch
-    even though it is still reachable...).  In this case, yguards could be
-    used to force B's handshake to occur before the move, or to delay A's
-    handshake until after the move.
- 
     Correct multithreaded programming already requires careful locking, so
     asking programmers to guard shared references is not unreasonable.
  
@@ -152,27 +145,6 @@
 
 
 
-/*
-    The collector has the following states:
-    
-        GC_IDLE
-            Mark thread is idle.
- 
-        GC_GUARD
-            Collection has been requested.  The epoch will change when there
-            are no active yguards.
-            
-        GC_HANDSHAKE
-            Handshaking with each active mutator scope in turn.
-            
- 
- 
-*/
-
-
-
-
-
 
 
 /*
@@ -180,24 +152,20 @@
 */
 
 ymodel::ymodel()
+    :   collection_request( false )
+    ,   destroy_request( false )
+    ,   countdown( 0 )
+    ,   guard_epoch( 0 )
+    ,   live_guard_count( 0 )
+    ,   guard_count( 0 )
+    ,   scope_epoch( 0 )
+    ,   dead( Y_GREEN )
+    ,   unmarked( Y_PURPLE )
+    ,   marked( Y_ORANGE )
+    ,   sweep_queue{ Y_GREY, Y_GREY }
+    ,   objects_head( nullptr )
+    ,   objects_last( nullptr )
 {
-    // Initialize collector state.
-    collection_request  = false;
-
-    epoch               = 0;
-    live_guard_count    = 0;
-    guard_count         = 0;
-
-    dead                = Y_GREEN;
-    unmarked            = Y_PURPLE;
-    marked              = Y_ORANGE;
-    
-    sweep_queue[ 0 ]    = Y_GREY;
-    sweep_queue[ 1 ]    = Y_GREY;
-
-    objects_head        = nullptr;
-    objects_last        = nullptr;
-
 
     // Kick off collector threads.
     mark_thread  = std::move( std::thread( &ymodel::mark, this ) );
@@ -538,44 +506,15 @@ ystring* ymodel::make_symbol( ystring* s )
 }
 
 
-unsigned ymodel::lock_guard()
+
+
+void ymodel::collect()
 {
     std::lock_guard< std::mutex > lock( collector_mutex );
-    
-    // Increment guard count.
-    guard_count += 1;
-    
-    
-    // Wait for this epoch's handshake with this thread.
-    
-    
-    return epoch;
+    collection_request = true;
 }
 
 
-void ymodel::unlock_guard( unsigned guard_epoch )
-{
-    std::lock_guard< std::mutex > lock( collector_mutex );
-    if ( epoch == guard_epoch )
-    {
-        // Guard released during current epoch.
-        assert( guard_count );
-        guard_count -= 1;
-    }
-    else
-    {
-        // We are entering new epoch and waiting for this guard to release.
-        assert( epoch == guard_epoch + 1 );
-        assert( live_guard_count );
-        live_guard_count -= 1;
-
-        // If all guards have released, wake collector threads.
-        if ( live_guard_count == 0 )
-        {
-            collector_condition.notify_all();
-        }
-    }
-}
 
 
 void ymodel::mark_grey( yobject* object )
@@ -590,6 +529,158 @@ void ymodel::mark_grey( yobject* object )
 }
 
 
+
+
+
+
+unsigned ymodel::lock_guard()
+{
+    std::unique_lock< std::mutex > lock( collector_mutex );
+    
+    yscope* scope = yscope::scope;
+    assert( scope->state == yscope::UNSAFE );
+    
+    
+    // This guard was locked for the guard epoch.
+    scope->state = yscope::GUARD;
+    unsigned guard_epoch = this->guard_epoch;
+    guard_count += 1;
+    
+
+    if ( scope->epoch != guard_epoch )
+    {
+        // This thread is behind the guard epoch.  Wait until all previous
+        // guards have released and we have entered the new epoch.
+        while ( ! check_epoch( guard_epoch ) )
+        {
+            collector_condition.wait( lock );
+        }
+        
+        // Mark.
+        mark_locals( lock, scope );
+    }
+    
+    
+    return guard_epoch;
+}
+
+
+void ymodel::unlock_guard( unsigned guard_epoch )
+{
+    std::unique_lock< std::mutex > lock( collector_mutex );
+
+    yscope* scope = yscope::scope;
+    assert( scope->state == yscope::GUARD );
+
+
+    // Release guard.
+    if ( this->guard_epoch == guard_epoch )
+    {
+        // Guard released during current epoch.
+        assert( guard_count );
+        guard_count -= 1;
+    }
+    else
+    {
+        // We are entering new epoch and waiting for this guard to release.
+        assert( this->guard_epoch == guard_epoch + 1 );
+        assert( live_guard_count );
+        live_guard_count -= 1;
+
+        // If all guards have released, wake collector threads.
+        if ( live_guard_count == 0 )
+        {
+            collector_condition.notify_all();
+        }
+    }
+    
+    
+    // Back to unsafe.
+    scope->state = yscope::UNSAFE;
+}
+
+
+
+void ymodel::safe()
+{
+    std::unique_lock< std::mutex > lock( collector_mutex );
+
+    yscope* scope = yscope::scope;
+    assert( scope->state == yscope::UNSAFE );
+    
+    // If we're behind the epoch, mark.
+    if ( ! check_epoch( scope->epoch ) )
+    {
+        mark_locals( lock, scope );
+    }
+    
+    // Now safe.
+    scope->state = yscope::SAFE;
+}
+
+
+void ymodel::unsafe()
+{
+    std::unique_lock< std::mutex > lock( collector_mutex );
+
+    yscope* scope = yscope::scope;
+    assert( scope->state != yscope::UNSAFE );
+    
+    // Wait for any in-progress marking to complete.
+    while ( scope->state == yscope::MARKING )
+    {
+        collector_condition.wait( lock );
+    }
+    
+    // Now unsafe again.
+    scope->state = yscope::UNSAFE;
+}
+
+
+void ymodel::safepoint()
+{
+    std::unique_lock< std::mutex > lock( collector_mutex );
+
+    yscope* scope = yscope::scope;
+    assert( scope->state == yscope::UNSAFE );
+    
+    // Mark.
+    assert( ! check_epoch( scope->epoch ) );
+    mark_locals( lock, scope );
+}
+
+
+
+void ymodel::mark_locals( std::unique_lock< std::mutex >& lock, yscope* scope )
+{
+    // Lock is held, now marking this scope.
+    yscope::markstate state = scope->state;
+    scope->state = yscope::MARKING;
+    
+    lock.unlock();
+    
+    
+    // Mark locals (can happen in parallel with other thread's marks).
+    
+    
+    
+    
+    
+    lock.lock();
+    
+    // Now marked with the right epoch.
+    scope->epoch = this->scope_epoch.load( std::memory_order_relaxed );
+    assert( scope->state == yscope::MARKING );
+    scope->state = state;
+    
+    // One of the threads the marker was waiting on has handshaked.
+    assert( countdown );
+    countdown -= 1;
+    
+    // Wake threads that were waiting on this thread being marked.
+    collector_condition.notify_all();
+    
+}
 
 
 
@@ -627,41 +718,61 @@ void ymodel::mark()
     }
     assert( sweep_queue[ 1 ] == Y_GREY );
 
-    
-    // Enter new epoch.  Any yguards entered after this point will lock the
-    // new epoch (and will block until this epoch's handshake is complete).
-    epoch += 1;
-    
+
+
+    // At this point, any new guards lock the new epoch (and will pause their
+    // thread until the handshake).  All existing guards must unlock before we
+    // can enter the new epoch and begin handshaking.
+    guard_epoch += 1;
+
     assert( live_guard_count == 0 );
     live_guard_count = guard_count;
     guard_count = 0;
     
-    ycolour prev_dead = dead;
-    dead = unmarked;
-    unmarked = marked;
-    marked = prev_dead;
-    
-    
-    // Wait for yguards from previous epoch to unlock.
     while ( live_guard_count )
     {
         collector_condition.wait( lock );
     }
+
+
+    // Cycle mark colours for new epoch.
+    ycolour prev_dead = dead;
+    dead     = unmarked;
+    unmarked = marked;
+    marked   = prev_dead;
+
+
+    // Enter new epoch and request handshake with mutator threads.
+    this->scope_epoch.store( guard_epoch, std::memory_order_relaxed );
+    countdown = scopes.size();
+    collector_condition.notify_all();
+
+
+    // Mark all safe threads.  If any threads become safe while we are marking
+    // another then they should mark themselves.
+    for ( auto i = scopes.begin(); i != scopes.end(); ++i )
+    {
+        yscope* scope = *i;
+        if ( scope->state == yscope::SAFE && scope->epoch != guard_epoch )
+        {
+            mark_locals( lock, scope );
+        }
+    }
     
-        
+    
+    // Wait for all remaining threads to mark.
+    while ( countdown )
+    {
+        collector_condition.wait( lock );
+    }
+    
+
     lock.unlock();
-    
-        
-    // Handshake with each mutator in turn.
-    
-    
-    
     
     
     // Perform actual marking.
     do
     {
-
         // Mark all unmarked objects reachable from work list.
         while ( worklist.size() )
         {
@@ -850,6 +961,8 @@ __thread yscope* yscope::scope = nullptr;
 yscope::yscope( ymodel* model )
     :   previous( scope )
     ,   model( model )
+    ,   epoch( 0 )
+    ,   state( UNSAFE )
     ,   unmarked( Y_GREEN )
     ,   marked( Y_PURPLE )
     ,   allocs( nullptr )
@@ -879,6 +992,15 @@ yscope::~yscope()
     Safepoints
 */
 
+void ysafe()
+{
+    yscope::scope->model->safe();
+}
+
+void yunsafe()
+{
+    yscope::scope->model->unsafe();
+}
 
 
 
@@ -888,7 +1010,7 @@ yscope::~yscope()
 
 void ycollect()
 {
-    
+    yscope::scope->model->collect();
 }
 
 

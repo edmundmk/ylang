@@ -12,12 +12,14 @@
 
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <thread>
 #include <symkey.h>
 #include <seglist.h>
 
 
-class yheap;
+class ymodel;
+class yscope;
 class yobject;
 class yclass;
 class ystring;
@@ -109,8 +111,13 @@ private:
     friend class yfunction;
     friend class yguard;
     template < typename object_t > friend class yroot;
-    friend void yexec( size_t, unsigned, unsigned );
+
+    friend void ysafe();
+    friend void yunsafe();
+    friend void ysafepoint();
     friend void ycollect();
+
+    friend void yexec( size_t, unsigned, unsigned );
 
 
     yclass*     empty_class();
@@ -132,18 +139,28 @@ private:
     ystring*    make_symbol( const char* s );
     ystring*    make_symbol( ystring* s );
 
+
     void        add_root( yobject* object );
     void        remove_root( yobject* object );
 
+    void        collect();
+
+    void        mark_grey( yobject* object );
+    
     unsigned    lock_guard();
     void        unlock_guard( unsigned guard_epoch );
     
-    void        mark_grey( yobject* object );
+    bool        check_epoch( unsigned epoch );
+    void        safe();
+    void        unsafe();
+    void        safepoint();
     
     
 private:
 
     void        make_expands();
+
+    void        mark_locals( std::unique_lock< std::mutex >& lock, yscope* scope );
 
     void        mark();
     void        sweep();
@@ -174,9 +191,14 @@ private:
     bool        collection_request;
     bool        destroy_request;
     
-    unsigned    epoch;
+    std::unordered_set< yscope* > scopes;
+    size_t      countdown;
+    
+    unsigned    guard_epoch;
     unsigned    live_guard_count;
     unsigned    guard_count;
+
+    std::atomic< unsigned > scope_epoch;
     
     ycolour     dead;
     ycolour     unmarked;
@@ -222,18 +244,35 @@ private:
     friend class yframe;
     friend class yfunction;
     friend class yguard;
+
+    friend void ysafe();
+    friend void yunsafe();
+    friend void ysafepoint();
+    friend void ycollect();
+
     friend void yinvoke( yfunction*, yframe& );
     friend void yexec( size_t, unsigned, unsigned );
 
     static __thread yscope* scope;
+
+    enum markstate
+    {
+        UNSAFE,
+        SAFE,
+        GUARD,
+        MARKING,
+    };
     
     yscope*     previous;
     ymodel*     model;
+
+    unsigned    epoch;
+    markstate   state;
     
     ycolour     unmarked;
     ycolour     marked;
+    
     yobject*    allocs;
-
     ystack*     stack;
     
 };
@@ -282,6 +321,8 @@ void ysafepoint();
     guaranteeing that live objects do not slip through the cracks.
     
     Entering a yguard may block if this mutator is behind the epoch.
+    
+    Entering a yguard is a safepoint.
 */
 
 class yguard
@@ -362,6 +403,33 @@ struct ymarktraits
 /*
 
 */
+
+
+/*
+    ymodel
+*/
+
+inline bool ymodel::check_epoch( unsigned epoch )
+{
+    unsigned scope_epoch = this->scope_epoch.load( std::memory_order_relaxed );
+    return epoch == scope_epoch;
+}
+
+
+
+/*
+    Safepoints.
+*/
+
+inline void ysafepoint()
+{
+    ymodel* model = yscope::scope->model;
+    if ( ! model->check_epoch( yscope::scope->epoch ) )
+    {
+        model->safepoint();
+    }
+}
+
 
 
 /*
