@@ -187,7 +187,11 @@ private:
     std::unordered_map< yobject*, size_t > roots;
 
     std::mutex  collector_mutex;
-    std::condition_variable collector_condition;
+    std::condition_variable wait_for_request;
+    std::condition_variable wait_for_guard;
+    std::condition_variable wait_for_epoch;
+    std::condition_variable wait_for_handshake;
+    std::condition_variable wait_for_sweep;
     
     bool        collection_request;
     bool        destroy_request;

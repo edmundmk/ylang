@@ -181,7 +181,7 @@ ymodel::~ymodel()
 {
     std::unique_lock< std::mutex > lock( collector_mutex );
     destroy_request = true;
-    collector_condition.notify_all();
+    wait_for_request.notify_all();
     lock.unlock();
     
     mark_thread.join();
@@ -512,6 +512,7 @@ void ymodel::collect()
 {
     std::lock_guard< std::mutex > lock( collector_mutex );
     collection_request = true;
+    wait_for_request.notify_all();
 }
 
 
@@ -553,7 +554,7 @@ unsigned ymodel::lock_guard()
         // guards have released and we have entered the new epoch.
         while ( ! check_epoch( guard_epoch ) )
         {
-            collector_condition.wait( lock );
+            wait_for_epoch.wait( lock );
         }
         
         // Mark.
@@ -590,7 +591,7 @@ void ymodel::unlock_guard( unsigned guard_epoch )
         // If all guards have released, wake collector threads.
         if ( live_guard_count == 0 )
         {
-            collector_condition.notify_all();
+            wait_for_guard.notify_all();
         }
     }
     
@@ -629,7 +630,7 @@ void ymodel::unsafe()
     // Wait for any in-progress marking to complete.
     while ( scope->state == yscope::MARKING )
     {
-        collector_condition.wait( lock );
+        wait_for_handshake.wait( lock );
     }
     
     // Now unsafe again.
@@ -708,7 +709,7 @@ void ymodel::mark_locals( std::unique_lock< std::mutex >& lock, yscope* scope )
     countdown -= 1;
     
     // Wake threads that were waiting on this thread being marked.
-    collector_condition.notify_all();
+    wait_for_handshake.notify_all();
     
 }
 
@@ -729,7 +730,7 @@ void ymodel::mark()
     // Wait for GC request.
     while ( ! collection_request && ! destroy_request )
     {
-        collector_condition.wait( lock );
+        wait_for_request.wait( lock );
     }
     
     if ( destroy_request )
@@ -744,7 +745,7 @@ void ymodel::mark()
     // colour will be reused as the marked colour in the current epoch.
     while ( sweep_queue[ 0 ] == dead || sweep_queue[ 1 ] == dead )
     {
-        collector_condition.wait( lock );
+        wait_for_sweep.wait( lock );
     }
     assert( sweep_queue[ 1 ] == Y_GREY );
 
@@ -760,7 +761,7 @@ void ymodel::mark()
     
     while ( live_guard_count )
     {
-        collector_condition.wait( lock );
+        wait_for_guard.wait( lock );
     }
 
 
@@ -774,7 +775,7 @@ void ymodel::mark()
     // Enter new epoch and request handshake with mutator threads.
     this->scope_epoch.store( guard_epoch, std::memory_order_relaxed );
     countdown = scopes.size();
-    collector_condition.notify_all();
+    wait_for_epoch.notify_all();
 
 
     // Mark all safe threads.  If any threads become safe while we are marking
@@ -792,7 +793,7 @@ void ymodel::mark()
     // Wait for all remaining threads to mark.
     while ( countdown )
     {
-        collector_condition.wait( lock );
+        wait_for_handshake.wait( lock );
     }
     
 
@@ -830,7 +831,7 @@ void ymodel::mark()
         sweep_queue[ 0 ] = unmarked;
     else
         sweep_queue[ 1 ] = unmarked;
-    collector_condition.notify_all();
+    wait_for_request.notify_all();
 
 
     }
@@ -851,7 +852,7 @@ void ymodel::sweep()
     // Wait for sweep request.
     while ( sweep_queue[ 0 ] == Y_GREY && ! destroy_request )
     {
-        collector_condition.wait( lock );
+        wait_for_request.wait( lock );
     }
     
     if ( destroy_request )
@@ -936,7 +937,7 @@ void ymodel::sweep()
     assert( sweep_queue[ 0 ] == dead );
     sweep_queue[ 0 ] = sweep_queue[ 1 ];
     sweep_queue[ 1 ] = Y_GREY;
-    collector_condition.notify_all();
+    wait_for_sweep.notify_all();
     
     
     }
