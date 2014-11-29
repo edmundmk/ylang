@@ -508,13 +508,51 @@ ystring* ymodel::make_symbol( ystring* s )
 
 
 
+
+
+void ymodel::add_scope( yscope* scope )
+{
+    std::lock_guard< std::mutex > lock( collector_mutex );
+    
+    // This thread begins in the current epoch.
+    scope->epoch    = this->scope_epoch.load( std::memory_order_relaxed );
+    scope->unmarked = unmarked;
+    scope->marked   = marked;
+    
+    // Add to scope list.
+    scopes.insert( scope );
+
+}
+
+void ymodel::remove_scope( yscope* scope )
+{
+    std::lock_guard< std::mutex > lock( collector_mutex );
+    
+    // Make remaining allocations visible to the collector.
+    add_objects( scope->allocs_head, scope->allocs_last );
+    
+    // Remove scope.
+    scopes.erase( scope );
+    
+    // If we're behind the epoch, no need to mark (as there will are no locals
+    // on this thread once we exit the scope), but we do need to notify things
+    // that were waiting on our pending handshake.
+    if ( ! check_epoch( scope->epoch ) )
+    {
+        countdown -= 1;
+        wait_for_handshake.notify_all();
+    }
+    
+}
+
+
+
 void ymodel::collect()
 {
     std::lock_guard< std::mutex > lock( collector_mutex );
     collection_request = true;
     wait_for_request.notify_all();
 }
-
 
 
 
@@ -528,9 +566,6 @@ void ymodel::mark_grey( yobject* object )
     std::lock_guard< std::mutex > lock( greylist_mutex );
     object->mark_ref( &greylist, yscope::scope->marked );
 }
-
-
-
 
 
 
@@ -558,7 +593,7 @@ unsigned ymodel::lock_guard()
         }
         
         // Mark.
-        mark_locals( lock, scope );
+        handshake( lock, scope );
     }
     
     
@@ -612,7 +647,7 @@ void ymodel::safe()
     // If we're behind the epoch, mark.
     if ( ! check_epoch( scope->epoch ) )
     {
-        mark_locals( lock, scope );
+        handshake( lock, scope );
     }
     
     // Now safe.
@@ -647,31 +682,13 @@ void ymodel::safepoint()
     
     // Mark.
     assert( ! check_epoch( scope->epoch ) );
-    mark_locals( lock, scope );
+    handshake( lock, scope );
 }
 
 
 
 
-void ymodel::add_grey( yworklist* worklist )
-{
-    std::lock_guard< std::mutex > lock( greylist_mutex );
-    if ( greylist.empty() )
-    {
-        greylist.swap( *worklist );
-    }
-    else
-    {
-        while ( worklist->size() )
-        {
-            greylist.push_back( worklist->back() );
-            worklist->pop_back();
-        }
-    }
-}
-
-
-void ymodel::mark_locals( std::unique_lock< std::mutex >& lock, yscope* scope )
+void ymodel::handshake( std::unique_lock< std::mutex >& lock, yscope* scope )
 {
     // Lock is held, now marking this scope.
     yscope::markstate state = scope->state;
@@ -697,6 +714,12 @@ void ymodel::mark_locals( std::unique_lock< std::mutex >& lock, yscope* scope )
     add_grey( &worklist );
     
     
+    // Add allocations to allocated list.
+    add_objects( scope->allocs_head, scope->allocs_last );
+    scope->allocs_head = nullptr;
+    scope->allocs_last = nullptr;
+    
+    
     lock.lock();
     
     // Now marked with the right epoch.
@@ -713,6 +736,23 @@ void ymodel::mark_locals( std::unique_lock< std::mutex >& lock, yscope* scope )
     
 }
 
+
+void ymodel::add_grey( yworklist* worklist )
+{
+    std::lock_guard< std::mutex > lock( greylist_mutex );
+    if ( greylist.empty() )
+    {
+        greylist.swap( *worklist );
+    }
+    else
+    {
+        while ( worklist->size() )
+        {
+            greylist.push_back( worklist->back() );
+            worklist->pop_back();
+        }
+    }
+}
 
 
 
@@ -785,7 +825,7 @@ void ymodel::mark()
         yscope* scope = *i;
         if ( scope->state == yscope::SAFE && scope->epoch != guard_epoch )
         {
-            mark_locals( lock, scope );
+            handshake( lock, scope );
         }
     }
     
@@ -995,22 +1035,20 @@ yscope::yscope( ymodel* model )
     ,   state( UNSAFE )
     ,   unmarked( Y_GREEN )
     ,   marked( Y_PURPLE )
-    ,   allocs( nullptr )
+    ,   allocs_head( nullptr )
+    ,   allocs_last( nullptr )
+    ,   allocs_total( 0 )
     ,   stack( new ystack() )
 {
-    // TODO: register scope with model.
-
+    model->add_scope( this );
     scope = this;
 }
 
 yscope::~yscope()
 {
-    // TODO: dump pending allocs.
-    // TODO: deregister with model.
-    
+    model->remove_scope( this );
     assert( scope == this );
     scope = previous;
-    
     delete stack;
 }
 

@@ -52,7 +52,7 @@ yupval* yupval::alloc( yvalue value )
 
 
 yupval::yupval( ymetatype* metatype, yvalue value )
-    :   yobject( metatype )
+    :   yobject( metatype, sizeof( yupval ) )
     ,   value( value )
 {
 }
@@ -80,7 +80,7 @@ yfunction* yfunction::alloc( yexpand* global, yrecipe* recipe )
 
 
 yfunction::yfunction( ymetatype* metatype, yexpand* global, yrecipe* recipe )
-    :   yobject( metatype )
+    :   yobject( metatype, sizeof( yfunction ) )
     ,   fglobal( global )
     ,   frecipe( recipe )
     ,   fupvals( ytuple< yupval* >::alloc( recipe->upval_count() ) )

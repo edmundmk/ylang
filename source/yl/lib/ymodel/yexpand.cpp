@@ -57,7 +57,7 @@ yexpand* yexpand::alloc( yexpand* prototype )
 
 
 yexpand::yexpand( ymetatype* metatype, yclass* klass )
-    :   yobject( metatype )
+    :   yobject( metatype, sizeof( yexpand ) )
     ,   klass( klass )
 {
 }
@@ -368,7 +368,7 @@ yclass* yclass::alloc()
 
 
 yclass::yclass( ymetatype* metatype )
-    :   yobject( metatype )
+    :   yobject( metatype, sizeof( yclass ) )
 #if YSLOTS
     ,   refslots( 0 )
     ,   numslots( 0 )

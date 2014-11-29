@@ -26,7 +26,7 @@ ystandin* ystandin::alloc( kind kind )
 }
 
 ystandin::ystandin( ymetatype* metatype, kind kind )
-    :   yobject( metatype )
+    :   yobject( metatype, sizeof( ystandin ) )
     ,   skind( kind )
 {
 }
@@ -841,8 +841,10 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
     case Y_CALL:
     {
         yvalue f = s[ i.r() ];
+        
         if ( ! f.is_thunk() )
         {
+            // Call ylang function.
             yexec( fp + i.r(), i.a(), i.b() );
             s = stack->stack.data() + fp;
         }
@@ -871,6 +873,12 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
                 stack->mark = frame.s - stack->stack.data();
             }
         }
+
+        // Set mark for safepoint.
+        if ( i.b() != Y_MARK )
+            stack->mark = fp + i.r() + i.b();
+        ysafepoint();
+
         break;
     }
     case Y_YCALL:

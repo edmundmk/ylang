@@ -64,7 +64,7 @@ ytuple< element_t >* ytuple< element_t >::alloc( size_t size )
 
 template < typename element_t >
 ytuple< element_t >::ytuple( ymetatype* metatype, size_t size )
-    :   yobject( metatype )
+    :   yobject( metatype, sizeof( ytuple ) + sizeof( element_type ) * size )
     ,   tsize( size )
 {
     for ( size_t i = 0; i < tsize; ++i )

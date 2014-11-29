@@ -36,7 +36,7 @@ public:
     
 protected:
 
-    explicit yobject( ymetatype* metatype );
+    explicit yobject( ymetatype* metatype, size_t size );
     
     
 private:
@@ -72,38 +72,11 @@ private:
 
 struct ymetatype
 {
-    void (*mark)( yobject* object, yworklist* work, ycolour colour );
+    void        (*mark)( yobject* object, yworklist* work, ycolour colour );
     const char* name;
 };
 
 
-
-
-/*
-    yroot
-*/
-
-template < typename object_t >
-class yroot< object_t* >
-{
-public:
-
-    yroot();
-    yroot( const yroot& q );
-    yroot( object_t* q );
-    yroot& operator = ( const yroot& q );
-    yroot& operator = ( object_t* q );
-    ~yroot();
-    
-    operator object_t* () const;
-    object_t* operator -> () const;
-
-
-private:
-
-    object_t* p;
-
-};
 
 
 
@@ -267,72 +240,6 @@ inline void yobject::set_next( yobject* next )
 {
     this->next = next;
 }
-
-
-
-/*
-    yroot
-*/
-
-template < typename object_t >
-inline yroot< object_t* >::yroot()
-    :   yroot( nullptr )
-{
-}
-
-template < typename object_t >
-inline yroot< object_t* >::yroot( const yroot& q )
-    :   yroot( q.p )
-{
-}
-
-template < typename object_t >
-inline yroot< object_t* >::yroot( object_t* q )
-    :   p( q )
-{
-    if ( q )
-        yscope::scope->model->add_root( q );
-}
-
-template < typename object_t >
-yroot< object_t* >& yroot< object_t* >::operator = ( const yroot& q )
-{
-    return this->operator = ( (object_t*)q );
-}
-
-template < typename object_t >
-yroot< object_t* >& yroot< object_t* >::operator = ( object_t* q )
-{
-    if ( p != q )
-    {
-        if ( q )
-            yscope::scope->model->add_root( q );
-        if ( p )
-            yscope::scope->model->remove_root( p );
-    }
-    p = q;
-    return this;
-}
-
-template < typename object_t >
-inline yroot< object_t* >::~yroot()
-{
-    if ( p )
-        yscope::scope->model->remove_root( p );
-}
-
-template < typename object_t >
-inline yroot< object_t* >::operator object_t* () const
-{
-    return p;
-}
-
-template < typename object_t >
-inline object_t* yroot< object_t* >::operator -> () const
-{
-    return p;
-}
-
 
 
 

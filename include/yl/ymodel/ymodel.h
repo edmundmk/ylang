@@ -103,6 +103,7 @@ public:
 
 private:
 
+    friend class yscope;
     friend class yobject;
     friend class ysymbol;
     friend class yexpand;
@@ -140,8 +141,8 @@ private:
     ystring*    make_symbol( ystring* s );
 
 
-    void        add_root( yobject* object );
-    void        remove_root( yobject* object );
+    void        add_scope( yscope* scope );
+    void        remove_scope( yscope* scope );
 
     void        collect();
 
@@ -160,8 +161,8 @@ private:
 
     void        make_expands();
 
+    void        handshake( std::unique_lock< std::mutex >& lock, yscope* scope );
     void        add_grey( yworklist* worklist );
-    void        mark_locals( std::unique_lock< std::mutex >& lock, yscope* scope );
 
     void        mark();
     void        sweep();
@@ -273,33 +274,16 @@ private:
 
     unsigned    epoch;
     markstate   state;
-    
     ycolour     unmarked;
     ycolour     marked;
     
-    yobject*    allocs;
+    yobject*    allocs_head;
+    yobject*    allocs_last;
+    size_t      allocs_total;
+
     ystack*     stack;
     
 };
-
-
-
-/*
-    yroot<> is a root that keeps an object alive.
-*/
-
-template < typename value_t >
-class yroot;
-
-
-
-/*
-    ylocal<> is a local root.
-*/
-
-template < typename value_t >
-class ylocal;
-
 
 
 

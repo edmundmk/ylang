@@ -21,7 +21,7 @@ ymodule* ymodule::alloc()
 
 
 ymodule::ymodule( ymetatype* metatype )
-    :   yobject( metatype )
+    :   yobject( metatype, sizeof( ymodule ) )
 {
 }
 
@@ -48,7 +48,7 @@ yrecipe* yrecipe::alloc( size_t size )
 
 
 yrecipe::yrecipe( ymetatype* metatype, size_t size )
-    :   yobject( metatype )
+    :   yobject( metatype, sizeof( yrecipe ) )
     ,   fparamcount( 0 )
     ,   fupvalcount( 0 )
     ,   fnewupcount( 0 )

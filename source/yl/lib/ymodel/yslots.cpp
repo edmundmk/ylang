@@ -22,7 +22,7 @@ yslots* yslots::alloc( size_t size )
 
 
 yslots::yslots( ymetatype* metatype, size_t size )
-    :   yobject( metatype )
+    :   yobject( metatype, sizeof( yslots ) + sizeof( slot ) * size )
     ,   ssize( (uint32_t)size )
     ,   smark( 0 )
 {
@@ -53,7 +53,7 @@ void yslots::mark_slots( yobject* object, yworklist* work, ycolour colour )
         if ( x <= yvalue::MAX_REFERENCE )
         {
             yobject* p = (yobject*)( x & yvalue::POINTER_MASK );
-            p->mark( work, colour );
+            p->mark_ref( work, colour );
         }
 
 #else
@@ -62,7 +62,7 @@ void yslots::mark_slots( yobject* object, yworklist* work, ycolour colour )
         if ( lo != UNDEFINED )
         {
             yobject* p = (yobject*)lo;
-            p->mark( work, colour );
+            p->mark_ref( work, colour );
         }
 
 #endif

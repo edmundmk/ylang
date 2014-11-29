@@ -10,11 +10,37 @@
 
 
 
-yobject::yobject( ymetatype* metatype )
+static const size_t COLLECT_THRESHOLD = 64 * ( 1 << 10 );
+
+
+
+yobject::yobject( ymetatype* metatype, size_t size )
     :   word( (uintptr_t)metatype | yscope::scope->marked )
-    ,   next( yscope::scope->allocs )
+    ,   next( nullptr )
 {
-    yscope::scope->allocs = this;
+    // Add ourselves to allocation list.
+    yscope* scope = yscope::scope;
+    if ( scope->allocs_head )
+    {
+        scope->allocs_last->next = this;
+        scope->allocs_last = this;
+    }
+    else
+    {
+        scope->allocs_head = this;
+        scope->allocs_last = this;
+    }
+    
+    
+    // Increment allocation amount and request collection if it's over
+    // the threshold.
+    scope->allocs_total += size;
+    if ( scope->allocs_total >= COLLECT_THRESHOLD )
+    {
+        scope->allocs_total = 0;
+        ycollect();
+    }
+    
     
     // Ensure that the initialization of our word (with its colour) is
     // visible before any store of this new object into a slot visible

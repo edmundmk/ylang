@@ -34,7 +34,7 @@ ystring* ystring::alloc( const char* string )
 
 
 ystring::ystring( ymetatype* metatype, size_t size )
-    :   yobject( metatype )
+    :   yobject( metatype, sizeof( ystring ) )
     ,   shash( 0 )
     ,   ssize( size )
     ,   shashed( false )
