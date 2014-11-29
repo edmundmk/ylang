@@ -113,6 +113,7 @@ void yinvoke( yfunction* function, yframe& frame )
     // Execute function.
     yexec( stack->mark, (unsigned)( frame.s - s ), Y_MARK );
     s = stack->stack.data() + fp;
+    ysafepoint();
 
     // On exit, frame points to the element one before the first result.
     yvalue* limit = stack->stack.data() + stack->stack.size();
