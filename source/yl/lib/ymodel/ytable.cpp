@@ -34,7 +34,8 @@ ytable::ytable( ymetatype* metatype, yclass* klass )
 
 static void ytable_length( yframe& frame )
 {
-    ytable* table = frame[ 0 ].as< ytable >();
+    ytable* table = frame[ 1 ].as< ytable >();
+    frame.reset();
     frame.push( (uint32_t)table->length() );
 }
 

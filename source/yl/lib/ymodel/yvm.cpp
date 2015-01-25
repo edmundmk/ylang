@@ -376,6 +376,46 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
             sp + incount ->
     */
     
+    
+    /*
+        Check for thunk.
+    */
+    
+    yvalue f = stack->stack[ sp ];
+    if ( f.is_thunk() )
+    {
+        // Build yframe to pass arguments to native code.
+        yvalue* s = stack->stack.data() + sp;
+        yvalue* limit = stack->stack.data() + stack->stack.size();
+        yframe frame( s, limit, incount );
+        
+        // Call native thunk.
+        stack->mark = sp;
+        f.as_thunk()( frame );
+        s = stack->stack.data() + sp;
+        
+        // Ensure we have correct number of results.
+        if ( outcount != Y_MARK )
+        {
+            stack->ensure_stack( sp + outcount );
+            for ( size_t index = frame.count; index < outcount; ++index )
+            {
+                s[ sp + index ] = yvalue::ynull;
+            }
+        }
+        else
+        {
+            stack->mark = sp + frame.count;
+        }
+        
+        return;
+    }
+    
+    
+    /*
+        Ycode function.  Deal with varargs.
+    */
+    
     yfunction* function = stack->stack[ sp ].as< yfunction >();
     yrecipe* recipe = function->recipe();
     ymodule* module = recipe->module();
@@ -856,51 +896,32 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
     }
     case Y_VARALL:
     {
-        stack->mark = fp + i.r() + incount - 1;
-        stack->ensure_stack( stack->mark );
-        s = stack->stack.data() + fp;
-        for ( size_t index = 1; index < incount; ++index )
+        if ( incount > recipe->param_count() )
         {
-            s[ i.r() + index - 1 ] = stack->stack[ sp + index ];
+            size_t vstart = sp + 1 + recipe->param_count();
+            size_t vcount = incount - 1 - recipe->param_count();
+    
+            stack->mark = fp + i.r() + vcount;
+            stack->ensure_stack( stack->mark );
+            s = stack->stack.data() + fp;
+            
+            for ( size_t index = 0; index < vcount; ++index )
+            {
+                s[ i.r() + index ] = stack->stack[ vstart + index ];
+            }
+        }
+        else
+        {
+            stack->mark = fp + i.r();
         }
         break;
     }
     
     case Y_CALL:
     {
-        yvalue f = s[ i.r() ];
-        
-        if ( ! f.is_thunk() )
-        {
-            // Call ylang function.
-            yexec( fp + i.r(), i.a(), i.b() );
-            s = stack->stack.data() + fp;
-        }
-        else
-        {
-            // Build yframe to pass arguments to native code.
-            yvalue* limit = stack->stack.data() + stack->stack.size();
-            yframe frame( s + i.r(), limit, i.a() - 1 );
-            
-            // Call native thunk.
-            stack->mark = fp + i.r() + i.a();
-            f.as_thunk()( frame );
-            s = stack->stack.data() + fp;
-            
-            // Ensure we have correct number of results.
-            size_t result_count = frame.s - ( s + i.r() );
-            if ( i.b() != Y_MARK )
-            {
-                for ( size_t index = result_count; index < i.b(); ++index )
-                {
-                    s[ i.r() + index ] = yvalue::ynull;
-                }
-            }
-            else
-            {
-                stack->mark = frame.s - stack->stack.data();
-            }
-        }
+        // Execute function.
+        yexec( fp + i.r(), i.a(), i.b() );
+        s = stack->stack.data() + fp;
 
         // Set mark for safepoint.
         if ( i.b() != Y_MARK )

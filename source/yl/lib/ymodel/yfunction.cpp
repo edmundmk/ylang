@@ -19,10 +19,10 @@ yframe::yframe()
     ,   limit( nullptr )
     ,   count( 0 )
 {
-    // The stack mark is at the top of the stack.  Start pushing arguments
-    // one after this, to leave space for the function.
+    // The stack mark is at the top of the stack, where the function should
+    // be pushed, followed by the arguments.
     ystack* stack = yscope::scope->stack;
-    s = stack->stack.data() + stack->mark + 1;
+    s = stack->stack.data() + stack->mark;
     limit = stack->stack.data() + stack->stack.size();
 }
 
@@ -101,23 +101,25 @@ void yfunction::mark_function( yobject* object, yworklist* work, ycolour colour 
 
 
 
-void yinvoke( yfunction* function, yframe& frame )
+void yinvoke( yframe& frame )
 {
     ystack* stack = yscope::scope->stack;
 
     // Stack mark is the stack top, where yframe should have been built.
-    size_t fp = stack->mark;
-    yvalue* s = stack->stack.data() + fp;
-    s[ 0 ] = function;
+    assert( stack->stack.data() + stack->mark == frame.s );
 
     // Execute function.
-    yexec( stack->mark, (unsigned)( frame.s - s ), Y_MARK );
-    s = stack->stack.data() + fp;
+    size_t fp = stack->mark;
+    yexec( stack->mark, (unsigned)frame.count, Y_MARK );
     ysafepoint();
 
-    // On exit, frame points to the element one before the first result.
+    // On exit, results are in the stack frame, and mark has been set to one
+    // past the last result.
+    yvalue* s = stack->stack.data() + fp;
     yvalue* limit = stack->stack.data() + stack->stack.size();
-    frame = yframe( s - 1, limit, stack->mark - fp );
+    frame = yframe( s, limit, stack->mark - fp );
+    
+    // Set mark back to original position (ready for next invoke).
     stack->mark = fp;
 }
 

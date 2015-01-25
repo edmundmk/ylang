@@ -36,14 +36,16 @@ yarray::yarray( ymetatype* metatype, yclass* klass )
 
 static void yarray_length( yframe& frame )
 {
-    yarray* array = frame[ 0 ].as< yarray >();
+    yarray* array = frame[ 1 ].as< yarray >();
+    frame.reset();
     frame.push( (uint32_t)array->length() );
 }
 
 static void yarray_resize( yframe& frame )
 {
-    yarray* array = frame[ 0 ].as< yarray >();
-    array->resize( (size_t)frame[ 1 ].as_number() );
+    yarray* array = frame[ 1 ].as< yarray >();
+    array->resize( (size_t)frame[ 2 ].as_number() );
+    frame.reset();
 }
 
 

@@ -22,49 +22,53 @@
 void y_atoi( yframe& frame )
 {
     double n = 0;
-    if ( frame.size() >= 2 )
-        n = frame[ 1 ].as_number();
-    if ( ! frame[ 0 ].is_null() )
+    if ( frame.size() >= 3 )
+        n = frame[ 2 ].as_number();
+    if ( ! frame[ 1 ].is_null() )
     {
-        const char* a = frame[ 0 ].c_str();
+        const char* a = frame[ 1 ].c_str();
         char* endp = nullptr;
         long i = strtol( a, &endp, 10 );
         if ( endp[ 0 ] == '\0' )
             n = i;
     }
+    frame.reset();
     frame.push( n );
 }
 
 void y_printf( yframe& frame )
 {
-    const char* format = frame[ 0 ].c_str();
-    if ( frame.size() == 1 )
+    const char* format = frame[ 1 ].c_str();
+    if ( frame.size() == 2 )
     {
         printf( "%s", format );
     }
-    else if ( frame.size() == 2 )
-    {
-        double n = frame[ 1 ].as_number();
-        printf( format, n );
-    }
     else if ( frame.size() == 3 )
     {
-        double n = frame[ 1 ].as_number();
-        double m = frame[ 2 ].as_number();
+        double n = frame[ 2 ].as_number();
+        printf( format, n );
+    }
+    else if ( frame.size() == 4 )
+    {
+        double n = frame[ 2 ].as_number();
+        double m = frame[ 3 ].as_number();
         printf( format, n, m );
     }
+    frame.reset();
 }
 
 void y_sqrt( yframe& frame )
 {
-    double n = frame[ 0 ].as_number();
+    double n = frame[ 1 ].as_number();
+    frame.reset();
     frame.push( sqrt( n ) );
 }
 
 void y_max( yframe& frame )
 {
-    double a = frame[ 0 ].as_number();
-    double b = frame[ 1 ].as_number();
+    double a = frame[ 1 ].as_number();
+    double b = frame[ 2 ].as_number();
+    frame.reset();
     frame.push( std::max( a, b ) );
 }
 
@@ -125,11 +129,12 @@ int main( int argc, char* argv[] )
 
 
     yframe frame;
+    frame.push( f );
     for ( int argi = 1; argi < argc; ++argi )
     {
         frame.push( argv[ argi ] );
     }
-    yinvoke( f, frame );
+    yinvoke( frame );
     yvalue result = frame[ 0 ];
 
     

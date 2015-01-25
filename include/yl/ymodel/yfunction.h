@@ -31,9 +31,10 @@ class yfunction;
     Example:
  
         yframe frame;
+        frame.push( function )
         frame.push( parameter )
         frame.push( parameter )
-        yinvoke( function, frame );
+        yinvoke( frame );
         yvalue result = frame[ 0 ];
         
  
@@ -41,9 +42,10 @@ class yfunction;
     
         void ythunk( yframe& frame )
         {
-            ystring* string = frame[ 0 ].as_string();
-            double number = frame[ 1 ].as_number();
+            ystring* string = frame[ 1 ].as_string();
+            double number = frame[ 2 ].as_number();
             double result = number * number;
+            frame.reset();
             frame.push( result );
         }
  
@@ -59,6 +61,7 @@ public:
     size_t size() const;
     yvalue operator [] ( size_t index ) const;
 
+    void reset();
     template < typename ... arguments_t >
     void push( yvalue val, arguments_t ... vals );
     void push( yvalue val );
@@ -67,7 +70,7 @@ public:
 
 private:
 
-    friend void yinvoke( yfunction* function, yframe& frame );
+    friend void yinvoke( yframe& frame );
     friend void yexec( size_t, unsigned, unsigned );
 
     yframe( yvalue* s, yvalue* limit, size_t count );
@@ -182,7 +185,7 @@ typedef void (*ythunk)( yframe& );
 template < typename ... arguments_t >
 yvalue yinvoke( yfunction* function, arguments_t ... args );
 yvalue yinvoke( yfunction* function );
-void yinvoke( yfunction* function, yframe& frame );
+void yinvoke( yframe& frame );
 
 
 
@@ -213,7 +216,7 @@ inline size_t yframe::size() const
 inline yvalue yframe::operator [] ( size_t index ) const
 {
     if ( index < count )
-        return s[ 1 + index ];
+        return s[ index ];
     else
         return nullptr;
 }
@@ -225,14 +228,19 @@ inline void yframe::push( yvalue val, arguments_t ... vals )
     push( vals ... );
 }
 
+inline void yframe::reset()
+{
+    count = 0;
+}
+
 inline void yframe::push( yvalue val )
 {
-    if ( s >= limit )
+    if ( s + count >= limit )
     {
         grow_stack();
     }
-    *s++ = val;
-    count = 0;
+    s[ count ] = val;
+    count += 1;
 }
 
 
@@ -290,15 +298,17 @@ template < typename ... arguments_t >
 yvalue yinvoke( yfunction* function, arguments_t ... args )
 {
     yframe frame;
+    frame.push( function );
     frame.push( args ... );
-    yinvoke( function, frame );
+    yinvoke( frame );
     return frame[ 0 ];
 }
 
 inline yvalue yinvoke( yfunction* function )
 {
     yframe frame;
-    yinvoke( function, frame );
+    frame.push( function );
+    yinvoke( frame );
     return frame[ 0 ];
 }
 

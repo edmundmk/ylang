@@ -256,7 +256,7 @@ private:
     friend void ysafepoint();
     friend void ycollect();
 
-    friend void yinvoke( yfunction*, yframe& );
+    friend void yinvoke( yframe& );
     friend void yexec( size_t, unsigned, unsigned );
 
     static __thread yscope* scope;
