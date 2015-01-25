@@ -43,6 +43,7 @@ private:
 
     friend class ymodel;
     friend class yslots;
+    friend class yiterator;
     template < typename value_t > friend class ywb;
     template < typename value_t > friend struct ymarktraits;
 

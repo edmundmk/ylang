@@ -287,6 +287,34 @@ void yiterator::next_table( yvalue* a, yvalue* b )
 }
 
 
+void yiterator::mark_obj( yworklist* work, ycolour unmarked, ycolour marked )
+{
+    switch ( kind )
+    {
+    case KEYS:
+    {
+        object->mark_obj( work, unmarked, marked );
+        klass->mark_obj( work, unmarked, marked );
+        break;
+    }
+    
+    case ARRAY_INDEX:
+    {
+        array->mark_obj( work, unmarked, marked );
+        values->mark_obj( work, unmarked, marked );
+        break;
+    }
+    
+    case TABLE_INDEX:
+    {
+        table->mark_obj( work, unmarked, marked );
+        keyvals->mark_obj( work, unmarked, marked );
+        break;
+    }
+    }
+}
+
+
 
 
 
@@ -920,6 +948,11 @@ void yexec( size_t sp, unsigned incount, unsigned outcount )
         {
             stack->mark = sp + valcount;
         }
+        
+        // Reset upvals.
+        stack->up = origup;
+        
+        // Actually return.
         return;
     }
     

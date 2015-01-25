@@ -90,6 +90,8 @@ public:
     void        next_array( yvalue* a );
     void        next_table( yvalue* a, yvalue* b );
 
+    void        mark_obj( yworklist* work, ycolour unmarked, ycolour marked );
+
 
 private:
 

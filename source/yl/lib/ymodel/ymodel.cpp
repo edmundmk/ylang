@@ -700,6 +700,7 @@ void ymodel::handshake( std::unique_lock< std::mutex >& lock, yscope* scope )
     // Mark locals on stack (can happen in parallel with other thread's marks).
     yworklist worklist;
     ystack* stack = scope->stack;
+    
     for ( size_t i = 0; i < stack->mark; ++i )
     {
         yvalue value = stack->stack.at( i );
@@ -707,6 +708,21 @@ void ymodel::handshake( std::unique_lock< std::mutex >& lock, yscope* scope )
         {
             value.as_object()->mark_obj( &worklist, unmarked, marked );
         }
+    }
+    
+    for ( size_t i = 0; i < stack->up; ++i )
+    {
+        yupval* upval = stack->upvals.at( i );
+        if ( upval )
+        {
+            upval->mark_obj( &worklist, unmarked, marked );
+        }
+    }
+    
+    for ( size_t i = 0; i < stack->iterators.size(); ++i )
+    {
+        yiterator& iter = stack->iterators.at( i );
+        iter.mark_obj( &worklist, unmarked, marked );
     }
     
     
