@@ -453,12 +453,11 @@ void yl_parser::statement( yl_ast_node* stmt )
         case statements are only allowed inside a switch block.
     */
     
-    if ( stmt->kind == YL_STMT_CASE )
+    if ( stmt->kind == YL_STMT_CASE
+            && scope->kind != YL_SCOPE_SWITCH
+            && scope->kind != YL_SCOPE_IMPLICIT )
     {
-        if ( scope->kind != YL_SCOPE_SWITCH && scope->kind != YL_SCOPE_IMPLICIT )
-        {
-            root->script->error( stmt->sloc, "case outside switch" );
-        }
+        root->script->error( stmt->sloc, "case outside switch" );
     }
 
     
