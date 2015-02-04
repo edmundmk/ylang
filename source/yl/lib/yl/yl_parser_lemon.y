@@ -1138,7 +1138,7 @@ stmt_common(x)  ::= stmt_if(stmt) LPN condition(expr) RPN stmt(block)
                     x = stmt;
                 }
 stmt_common(x)  ::= stmt_switch(stmt) LPN condition(expr) RPN
-                                stmt_reblock(block) stmt_list RPN .
+                                stmt_reblock(block) stmt_list RBR .
                 {
                     stmt->value     = expr;
                     stmt->body      = block;
@@ -1256,7 +1256,7 @@ stmt_if(x)      ::= IF(token) .
 stmt_switch(x)  ::= SWITCH(token) .
                 {
                     x = p->alloc< yl_stmt_switch >( token->sloc );
-                    x->scope = p->block_scope( x );
+                    x->scope = p->switch_scope( x );
                     p->destroy( token );
                 }
 

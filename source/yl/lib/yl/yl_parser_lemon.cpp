@@ -343,7 +343,7 @@ static const YYACTIONTYPE yy_action[] = {
  /*  1260 */   133,  635,  635,  377,  358,  130,  337,  139,  316,  122,
  /*  1270 */   314,   44,   63,  210,  211,  212,   36,   62,  313,  315,
  /*  1280 */   318,  312,  344,   13,  635,  635,  181,   34,  264,  635,
- /*  1290 */   380,  186,  240,  635,  101,  182,  402,  263,  103,  635,
+ /*  1290 */   380,  186,  240,  263,  101,  182,  402,  635,  103,  635,
  /*  1300 */   153,   37,  635,  110,  349,  348,  346,  345,  339,   79,
  /*  1310 */    80,   85,   86,   77,   78,  351,  635,  635,  635,  635,
  /*  1320 */   635,  133,  635,  635,  377,  358,  130,  337,  139,  316,
@@ -355,9 +355,9 @@ static const YYACTIONTYPE yy_action[] = {
  /*  1380 */   635,  153,   37,  635,  110,  349,  348,  346,  345,  339,
  /*  1390 */    79,   80,   85,   86,   77,   78,  351,  635,  635,  156,
  /*  1400 */    34,  264,  133,  635,  635,  377,  358,  130,  337,  139,
- /*  1410 */   316,  126,  146,  153,  635,  351,  110,  635,  635,  183,
- /*  1420 */   635,  133,  635,  635,  377,  358,  130,  337,  139,  316,
- /*  1430 */   126,  137,  314,   44,   63,  210,  211,  212,   36,   62,
+ /*  1410 */   316,  126,  146,  153,  351,  635,  110,  635,  635,  183,
+ /*  1420 */   133,  635,  635,  377,  358,  130,  337,  139,  316,  126,
+ /*  1430 */   137,  635,  314,   44,   63,  210,  211,  212,   36,   62,
  /*  1440 */   313,  315,  318,  312,  344,   13,  635,  635,  181,   34,
  /*  1450 */   264,  635,  380,  186,  260,  635,  635,  182,  635,  635,
  /*  1460 */   635,  635,  153,   37,  635,  110,  349,  348,  346,  345,
@@ -731,7 +731,7 @@ static const YYCODETYPE yy_lookahead[] = {
  /*  1260 */   126,  159,  159,  129,  130,  131,  132,  133,  134,  135,
  /*  1270 */    71,   72,   73,   74,   75,   76,   77,   78,   79,   80,
  /*  1280 */    81,    1,   83,    3,  159,  159,    6,    7,    8,  159,
- /*  1290 */    10,   11,   12,  159,   14,   15,   16,   17,   18,  159,
+ /*  1290 */    10,   11,   12,   13,   14,   15,   16,  159,   18,  159,
  /*  1300 */    20,   21,  159,   23,   24,   25,   26,   27,   28,   29,
  /*  1310 */    30,   31,   32,   33,   34,  120,  159,  159,  159,  159,
  /*  1320 */   159,  126,  159,  159,  129,  130,  131,  132,  133,  134,
@@ -743,9 +743,9 @@ static const YYCODETYPE yy_lookahead[] = {
  /*  1380 */   159,   20,   21,  159,   23,   24,   25,   26,   27,   28,
  /*  1390 */    29,   30,   31,   32,   33,   34,  120,  159,  159,    6,
  /*  1400 */     7,    8,  126,  159,  159,  129,  130,  131,  132,  133,
- /*  1410 */   134,  135,  136,   20,  159,  120,   23,  159,  159,   58,
- /*  1420 */   159,  126,  159,  159,  129,  130,  131,  132,  133,  134,
- /*  1430 */   135,  136,   71,   72,   73,   74,   75,   76,   77,   78,
+ /*  1410 */   134,  135,  136,   20,  120,  159,   23,  159,  159,   58,
+ /*  1420 */   126,  159,  159,  129,  130,  131,  132,  133,  134,  135,
+ /*  1430 */   136,  159,   71,   72,   73,   74,   75,   76,   77,   78,
  /*  1440 */    79,   80,   81,    1,   83,    3,  159,  159,    6,    7,
  /*  1450 */     8,  159,   10,   11,   12,  159,  159,   15,  159,  159,
  /*  1460 */   159,  159,   20,   21,  159,   23,   24,   25,   26,   27,
@@ -1027,7 +1027,7 @@ static const short yy_reduce_ofst[] = {
  /*    40 */  2387, 2481, 2360, 2449, 2421, 2539, 2690, 3072, 2951, 2690,
  /*    50 */  2628, 2569, 2511, 3279, 3245, 3306, 2539, 2601, 2660, 2718,
  /*    60 */  2985, 2864, 3012, 3218, 1578, 1668,  787,  868,  949, 1030,
- /*    70 */  1114, 1195, 1295, 1276, 1214, 1134, 1050,  970,  144, 1359,
+ /*    70 */  1114, 1195, 1294, 1276, 1214, 1134, 1050,  970,  144, 1359,
  /*    80 */  1488, 1758, 1851, 1941, 2033, 2123, 2215, 2847, 2847,  212,
  /*    90 */   -56,  -30,   36,   76,   56,  123,  -14,   20,  -72,  233,
  /*   100 */    75,  255,  291,  143,  149,  -34,  -34,  -16,   -3,   -3,
@@ -1393,7 +1393,7 @@ static const char *const yyRuleName[] = {
  /* 174 */ "stmt_common ::= sexpr_assign SEMICOLON",
  /* 175 */ "stmt_common ::= stmt_if LPN condition RPN stmt",
  /* 176 */ "stmt_common ::= stmt_if LPN condition RPN stmt ELSE stmt",
- /* 177 */ "stmt_common ::= stmt_switch LPN condition RPN stmt_reblock stmt_list RPN",
+ /* 177 */ "stmt_common ::= stmt_switch LPN condition RPN stmt_reblock stmt_list RBR",
  /* 178 */ "stmt_common ::= stmt_while LPN condition RPN stmt_reuse",
  /* 179 */ "stmt_common ::= stmt_doblock WHILE LPN expr_assign RPN SEMICOLON",
  /* 180 */ "stmt_common ::= stmt_foreach stmt_reuse",
@@ -3445,7 +3445,7 @@ static void yy_reduce(
 }
 #line 3447 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
-      case 177: /* stmt_common ::= stmt_switch LPN condition RPN stmt_reblock stmt_list RPN */
+      case 177: /* stmt_common ::= stmt_switch LPN condition RPN stmt_reblock stmt_list RBR */
 #line 1142 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yymsp[-6].minor.yy48->value     = yymsp[-4].minor.yy10;
@@ -3455,7 +3455,7 @@ static void yy_reduce(
                   yy_destructor(yypParser,7,&yymsp[-5].minor);
   yy_destructor(yypParser,17,&yymsp[-3].minor);
   yy_destructor(yypParser,115,&yymsp[-1].minor);
-  yy_destructor(yypParser,17,&yymsp[0].minor);
+  yy_destructor(yypParser,13,&yymsp[0].minor);
 }
 #line 3461 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"
         break;
@@ -3625,7 +3625,7 @@ static void yy_reduce(
 #line 1257 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.y"
 {
                     yygotominor.yy48 = p->alloc< yl_stmt_switch >( yymsp[0].minor.yy0->sloc );
-                    yygotominor.yy48->scope = p->block_scope( yygotominor.yy48 );
+                    yygotominor.yy48->scope = p->switch_scope( yygotominor.yy48 );
                     p->destroy( yymsp[0].minor.yy0 );
                 }
 #line 3632 "../../toolbox/source/yl/lib/parser/yl_parser_lemon.cpp"

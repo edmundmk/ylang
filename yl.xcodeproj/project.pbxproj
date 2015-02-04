@@ -66,6 +66,7 @@
 		4B0068381A1FE5080005ABC2 /* test.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.yl; sourceTree = "<group>"; };
 		4B13958E1A1779170042A804 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		4B13958F1A177ACD0042A804 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		4BCED4931A7526AA0091CA6C /* switch.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = switch.yl; sourceTree = "<group>"; };
 		4BF7E9A81A177709001AC127 /* yl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = yl; sourceTree = BUILT_PRODUCTS_DIR; };
 		4BF7E9B41A17775C001AC127 /* delegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = delegate.h; sourceTree = "<group>"; };
 		4BF7E9B51A17775C001AC127 /* event.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = event.h; sourceTree = "<group>"; };
@@ -171,6 +172,7 @@
 				4B0068361A1FE5080005ABC2 /* n-body.py */,
 				4B0068371A1FE5080005ABC2 /* n-body.yl */,
 				4B0068381A1FE5080005ABC2 /* test.yl */,
+				4BCED4931A7526AA0091CA6C /* switch.yl */,
 			);
 			path = tests;
 			sourceTree = "<group>";

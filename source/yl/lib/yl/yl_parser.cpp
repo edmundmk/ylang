@@ -145,25 +145,41 @@ yl_ast_scope* yl_parser::block_scope( yl_ast_node* node )
     return scope;
 }
 
-
 void yl_parser::close_scope( yl_ast_scope* scope )
 {
     assert( scope == get_scope() );
     scopes.pop_back();
 }
 
-void yl_parser::close_switch( yl_ast_scope* scope )
+
+yl_ast_scope* yl_parser::switch_scope( yl_ast_node* node )
 {
+    yl_ast_scope* outer = get_scope();
+    yl_ast_scope* scope = alloc< yl_ast_scope >(
+                    YL_SCOPE_SWITCH, outer, node, outer->func );
+    scopes.push_back( scope );
+    return scope;
+}
+
+void yl_parser::close_switch( yl_ast_scope* switch_scope )
+{
+    assert( switch_scope->kind == YL_SCOPE_SWITCH );
+
+    yl_ast_scope* scope = get_scope();
     if ( scope->kind == YL_SCOPE_IMPLICIT )
     {
         // Fallen through to the end of the switch.
-        root->script->error( scope->node->sloc, "missing break" );
+        root->script->error( switch_scope->node->sloc, "missing break" );
+        yl_stmt_block* block = scope->block;
         close_scope( scope );
         scope = get_scope();
+        scope->block->stmts.push_back( block );
     }
     
+    assert( scope == switch_scope );
     close_scope( scope );
 }
+
 
 void yl_parser::dowhile( yl_ast_scope* scope )
 {
@@ -437,9 +453,12 @@ void yl_parser::statement( yl_ast_node* stmt )
         case statements are only allowed inside a switch block.
     */
     
-    if ( stmt->kind == YL_STMT_CASE && scope->kind != YL_SCOPE_SWITCH )
+    if ( stmt->kind == YL_STMT_CASE )
     {
-        root->script->error( stmt->sloc, "case outside switch" );
+        if ( scope->kind != YL_SCOPE_SWITCH && scope->kind != YL_SCOPE_IMPLICIT )
+        {
+            root->script->error( stmt->sloc, "case outside switch" );
+        }
     }
 
     
@@ -464,18 +483,23 @@ void yl_parser::statement( yl_ast_node* stmt )
         }
         else
         {
-            // It's not a case - make sure there's been at least one case.
-            assert( scope->node->kind == YL_STMT_SWITCH );
-            yl_stmt_switch* swstmt = (yl_stmt_switch*)scope->node;
-            if ( swstmt->body->stmts.empty() )
+            // It's not a case - make sure there has been at least one
+            // case since the last block statement.
+            if ( scope->block->stmts.empty()
+                    || scope->block->stmts.back()->kind != YL_STMT_CASE )
             {
                 root->script->error( stmt->sloc, "expected case" );
+                if ( stmt->kind == YL_STMT_BREAK )
+                {
+                    return;
+                }
             }
 
             // Open implicit block.
             yl_stmt_block* block = alloc< yl_stmt_block >( stmt->sloc );
             block->scope = alloc< yl_ast_scope >(
                     YL_SCOPE_IMPLICIT, scope, block, scope->func );
+            block->scope->block = block;
             scopes.push_back( block->scope );
             scope = block->scope;
             
@@ -489,24 +513,36 @@ void yl_parser::statement( yl_ast_node* stmt )
             In an implicit block inside a switch statement.
         */
     
+        assert( scope->outer->kind == YL_SCOPE_SWITCH );
+    
         if ( stmt->kind == YL_STMT_CASE )
         {
             // Close the implicit block (with no break, it will fall-through).
+            yl_stmt_block* block = scope->block;
             close_scope( scope );
             scope = get_scope();
 
-            // Add the case to the switch scope.
+            // Add the implicit block to the switch.
             assert( scope->kind == YL_SCOPE_SWITCH );
+            scope->block->stmts.push_back( block );
+
+            // Add the case to the switch scope.
             scope->block->stmts.push_back( stmt );
         }
         else if ( stmt->kind == YL_STMT_BREAK )
         {
             // Add the break to the implicit block.
-            assert( ( (yl_stmt_break*)stmt )->target == scope );
+            assert( ( (yl_stmt_break*)stmt )->target == scope->outer );
             scope->block->stmts.push_back( stmt );
             
             // Close the block.
+            yl_stmt_block* block = scope->block;
             close_scope( scope );
+            scope = get_scope();
+
+            // Add the implicit block to the switch.
+            assert( scope->kind == YL_SCOPE_SWITCH );
+            scope->block->stmts.push_back( block );
         }
         else
         {

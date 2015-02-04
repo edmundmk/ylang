@@ -119,7 +119,7 @@ State 1:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -352,7 +352,7 @@ State 2:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -585,7 +585,7 @@ State 3:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -818,7 +818,7 @@ State 4:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -1050,8 +1050,8 @@ State 5:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
-          stmt_common ::= stmt_switch LPN condition RPN stmt_reblock stmt_list * RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
+          stmt_common ::= stmt_switch LPN condition RPN stmt_reblock stmt_list * RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -1096,10 +1096,10 @@ State 5:
                       ELLIPSIS shift  380
                         PERIOD shift  186
                            LBR shift  240
+                           RBR shift  263
                            DEF shift  101
                          COLON shift  182
                      SEMICOLON shift  402
-                           RPN shift  263
                            VAR shift  103
                        SUPEROF shift  153
                            LSQ shift  37
@@ -1284,7 +1284,7 @@ State 6:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -1503,7 +1503,7 @@ State 7:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -1714,7 +1714,7 @@ State 8:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -1925,7 +1925,7 @@ State 9:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -2136,7 +2136,7 @@ State 10:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -2347,7 +2347,7 @@ State 11:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -2558,7 +2558,7 @@ State 12:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -2769,7 +2769,7 @@ State 13:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -2980,7 +2980,7 @@ State 14:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -3191,7 +3191,7 @@ State 15:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -3403,7 +3403,7 @@ State 16:
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
           stmt_common ::= stmt_if LPN condition RPN stmt ELSE * stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -3613,7 +3613,7 @@ State 17:
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= stmt_while LPN condition RPN * stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
@@ -3826,7 +3826,7 @@ State 18:
           stmt_common ::= stmt_if LPN condition RPN * stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
           stmt_common ::= stmt_if LPN condition RPN * stmt ELSE stmt
-          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= * stmt_switch LPN condition RPN stmt_reblock stmt_list RBR
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
@@ -4484,7 +4484,7 @@ State 22:
           expr_assign ::= * expr_lbody assign_op expr_assign
           condition ::= * expr_assign
           condition ::= * VAR name_list ASSIGN expr_list
-          stmt_common ::= stmt_switch LPN * condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= stmt_switch LPN * condition RPN stmt_reblock stmt_list RBR
 
                          YIELD shift  156
                            LPN shift  34
@@ -12352,7 +12352,7 @@ State 113:
 
 State 114:
           stmt_reblock ::= * LBR
-          stmt_common ::= stmt_switch LPN condition RPN * stmt_reblock stmt_list RPN
+          stmt_common ::= stmt_switch LPN condition RPN * stmt_reblock stmt_list RBR
 
                            LBR shift  260
                   stmt_reblock shift  118
@@ -12400,7 +12400,7 @@ State 118:
           stmt_list ::= * stmt_list decl_object
           stmt_list ::= * stmt_list decl_func
           stmt_list ::= * stmt_list decl_var
-          stmt_common ::= stmt_switch LPN condition RPN stmt_reblock * stmt_list RPN
+          stmt_common ::= stmt_switch LPN condition RPN stmt_reblock * stmt_list RBR
 
                      stmt_list shift  5
                      {default} reduce 162
@@ -13018,12 +13018,12 @@ State 198:
                      {default} reduce 175
 
 State 199:
-          stmt_common ::= stmt_switch * LPN condition RPN stmt_reblock stmt_list RPN
+          stmt_common ::= stmt_switch * LPN condition RPN stmt_reblock stmt_list RBR
 
                            LPN shift  22
 
 State 200:
-          stmt_common ::= stmt_switch LPN condition * RPN stmt_reblock stmt_list RPN
+          stmt_common ::= stmt_switch LPN condition * RPN stmt_reblock stmt_list RBR
 
                            RPN shift  114
 
@@ -13363,7 +13363,7 @@ State 262:
                      {default} reduce 14
 
 State 263:
-    (177) stmt_common ::= stmt_switch LPN condition RPN stmt_reblock stmt_list RPN *
+    (177) stmt_common ::= stmt_switch LPN condition RPN stmt_reblock stmt_list RBR *
 
                      {default} reduce 177
 
