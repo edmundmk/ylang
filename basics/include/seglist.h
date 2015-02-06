@@ -19,14 +19,15 @@
 #include <assert.h>
 #include <iterator>
 #include <limits>
+#include <memory>
 #include <new>
 
 
-template < typename element_t, size_t segsize = 64 >
+template < typename element_t, size_t segsize = 64, typename allocator_t = std::allocator< element_t > >
 class seglist
 {
 private:
-
+    
     struct segment
     {
         segment*    next;
@@ -117,44 +118,44 @@ private:
 };
 
 
-template < typename element_t, size_t segsize >
-void swap( seglist< element_t, segsize >& a, seglist< element_t, segsize >& b );
+template < typename element_t, size_t segsize, typename allocator_t >
+void swap( seglist< element_t, segsize, allocator_t >& a, seglist< element_t, segsize, allocator_t >& b );
 
 
 
 
 
 
-template < typename element_t, size_t segsize >
+template < typename element_t, size_t segsize, typename allocator_t >
 template < typename result_t >
-seglist< element_t, segsize >::basic_iterator< result_t >::basic_iterator(
+seglist< element_t, segsize, allocator_t >::basic_iterator< result_t >::basic_iterator(
                 segment* current, size_t index )
     :   current( current )
     ,   index( index )
 {
 }
 
-template < typename element_t, size_t segsize >
+template < typename element_t, size_t segsize, typename allocator_t >
 template < typename result_t >
-seglist< element_t, segsize >::basic_iterator< result_t >::basic_iterator(
+seglist< element_t, segsize, allocator_t >::basic_iterator< result_t >::basic_iterator(
                 const basic_iterator< const element_t >& iterator )
     :   current( iterator.current )
     ,   index( iterator.index )
 {
 }
 
-template < typename element_t, size_t segsize >
+template < typename element_t, size_t segsize, typename allocator_t >
 template < typename result_t >
-bool seglist< element_t, segsize >::basic_iterator< result_t >::operator != (
+bool seglist< element_t, segsize, allocator_t >::basic_iterator< result_t >::operator != (
                 const basic_iterator& b ) const
 {
     return current != b.current || index != b.index;
 }
 
-template < typename element_t, size_t segsize >
+template < typename element_t, size_t segsize, typename allocator_t >
 template < typename result_t >
-seglist< element_t, segsize >::basic_iterator< result_t >&
-        seglist< element_t, segsize >::basic_iterator< result_t >::operator ++ ()
+seglist< element_t, segsize, allocator_t >::basic_iterator< result_t >&
+        seglist< element_t, segsize, allocator_t >::basic_iterator< result_t >::operator ++ ()
 {
     index += 1;
     if ( index >= segsize )
@@ -165,34 +166,34 @@ seglist< element_t, segsize >::basic_iterator< result_t >&
     return *this;
 }
 
-template < typename element_t, size_t segsize >
+template < typename element_t, size_t segsize, typename allocator_t >
 template < typename result_t >
-seglist< element_t, segsize >::basic_iterator< result_t >
-        seglist< element_t, segsize >::basic_iterator< result_t >::operator ++ ( int )
+seglist< element_t, segsize, allocator_t >::basic_iterator< result_t >
+        seglist< element_t, segsize, allocator_t >::basic_iterator< result_t >::operator ++ ( int )
 {
     basic_iterator result( *this );
     operator ++ ();
     return result;
 }
 
-template < typename element_t, size_t segsize >
+template < typename element_t, size_t segsize, typename allocator_t >
 template < typename result_t >
-result_t& seglist< element_t, segsize >::basic_iterator< result_t >::operator * () const
+result_t& seglist< element_t, segsize, allocator_t >::basic_iterator< result_t >::operator * () const
 {
     return current->elements[ index ];
 }
 
-template < typename element_t, size_t segsize >
+template < typename element_t, size_t segsize, typename allocator_t >
 template < typename result_t >
-result_t* seglist< element_t, segsize >::basic_iterator< result_t >::operator -> () const
+result_t* seglist< element_t, segsize, allocator_t >::basic_iterator< result_t >::operator -> () const
 {
     return current->elements + index;
 }
 
 
 
-template < typename element_t, size_t segsize >
-seglist< element_t, segsize >::seglist()
+template < typename element_t, size_t segsize, typename allocator_t >
+seglist< element_t, segsize, allocator_t >::seglist()
     :   first( nullptr )
     ,   last( nullptr )
     ,   index( 0 )
@@ -200,27 +201,27 @@ seglist< element_t, segsize >::seglist()
     first = last = new_segment();
 }
 
-template < typename element_t, size_t segsize >
-seglist< element_t, segsize >::seglist( seglist&& s ) : seglist()
+template < typename element_t, size_t segsize, typename allocator_t >
+seglist< element_t, segsize, allocator_t >::seglist( seglist&& s ) : seglist()
 {
     swap( s );
 }
 
-template < typename element_t, size_t segsize >
-seglist< element_t, segsize >::seglist( const seglist& s ) : seglist()
+template < typename element_t, size_t segsize, typename allocator_t >
+seglist< element_t, segsize, allocator_t >::seglist( const seglist& s ) : seglist()
 {
     operator = ( s );
 }
 
-template < typename element_t, size_t segsize >
-seglist< element_t, segsize >& seglist< element_t, segsize >::operator = ( seglist&& s )
+template < typename element_t, size_t segsize, typename allocator_t >
+seglist< element_t, segsize, allocator_t >& seglist< element_t, segsize, allocator_t >::operator = ( seglist&& s )
 {
     swap( s );
     return *this;
 }
 
-template < typename element_t, size_t segsize >
-seglist< element_t, segsize >& seglist< element_t, segsize >::operator = ( const seglist& s )
+template < typename element_t, size_t segsize, typename allocator_t >
+seglist< element_t, segsize, allocator_t >& seglist< element_t, segsize, allocator_t >::operator = ( const seglist& s )
 {
     clear();
     for ( auto i = s.begin(); i != s.end(); ++i )
@@ -230,20 +231,24 @@ seglist< element_t, segsize >& seglist< element_t, segsize >::operator = ( const
     return *this;
 }
 
-template < typename element_t, size_t segsize >
-seglist< element_t, segsize >::~seglist()
+template < typename element_t, size_t segsize, typename allocator_t >
+seglist< element_t, segsize, allocator_t >::~seglist()
 {
     clear();
     for ( segment* s = first; s != nullptr; )
     {
         segment* seg = s;
         s = s->next;
-        free( seg );
+        
+        typedef typename std::allocator_traits< allocator_t >::template rebind_alloc< segment > alloc_type;
+        typedef typename std::allocator_traits< allocator_t >::template rebind_traits< segment > traits_type;
+        alloc_type alloc;
+        traits_type::deallocate( alloc, seg, 1 );
     }
 }
 
-template < typename element_t, size_t segsize >
-bool seglist< element_t, segsize >::operator == ( const seglist& b ) const
+template < typename element_t, size_t segsize, typename allocator_t >
+bool seglist< element_t, segsize, allocator_t >::operator == ( const seglist& b ) const
 {
     for ( auto i = begin(), j = b.begin(); ; ++i, ++j )
     {
@@ -256,14 +261,14 @@ bool seglist< element_t, segsize >::operator == ( const seglist& b ) const
     }
 }
 
-template < typename element_t, size_t segsize >
-bool seglist< element_t, segsize >::operator != ( const seglist& b ) const
+template < typename element_t, size_t segsize, typename allocator_t >
+bool seglist< element_t, segsize, allocator_t >::operator != ( const seglist& b ) const
 {
     return ! operator == ( b );
 }
 
-template < typename element_t, size_t segsize >
-typename seglist< element_t, segsize >::size_type seglist< element_t, segsize >::size() const
+template < typename element_t, size_t segsize, typename allocator_t >
+typename seglist< element_t, segsize, allocator_t >::size_type seglist< element_t, segsize, allocator_t >::size() const
 {
     size_t size = 0;
     for ( segment* s = first; s != last; ++s )
@@ -274,49 +279,49 @@ typename seglist< element_t, segsize >::size_type seglist< element_t, segsize >:
     return size;
 }
 
-template < typename element_t, size_t segsize >
-typename seglist< element_t, segsize >::size_type seglist< element_t, segsize >::max_size() const
+template < typename element_t, size_t segsize, typename allocator_t >
+typename seglist< element_t, segsize, allocator_t >::size_type seglist< element_t, segsize, allocator_t >::max_size() const
 {
     return std::numeric_limits< size_type >::max();
 }
 
-template < typename element_t, size_t segsize >
-bool seglist< element_t, segsize >::empty() const
+template < typename element_t, size_t segsize, typename allocator_t >
+bool seglist< element_t, segsize, allocator_t >::empty() const
 {
     return first == last && index == 0;
 }
 
-template < typename element_t, size_t segsize >
-typename seglist< element_t, segsize >::const_iterator
-                seglist< element_t, segsize >::cbegin() const
+template < typename element_t, size_t segsize, typename allocator_t >
+typename seglist< element_t, segsize, allocator_t >::const_iterator
+                seglist< element_t, segsize, allocator_t >::cbegin() const
 {
     return const_iterator( first, 0 );
 }
 
-template < typename element_t, size_t segsize >
-typename seglist< element_t, segsize >::const_iterator
-                seglist< element_t, segsize >::begin() const
+template < typename element_t, size_t segsize, typename allocator_t >
+typename seglist< element_t, segsize, allocator_t >::const_iterator
+                seglist< element_t, segsize, allocator_t >::begin() const
 {
     return cbegin();
 }
 
-template < typename element_t, size_t segsize >
-typename seglist< element_t, segsize >::const_iterator
-                seglist< element_t, segsize >::cend() const
+template < typename element_t, size_t segsize, typename allocator_t >
+typename seglist< element_t, segsize, allocator_t >::const_iterator
+                seglist< element_t, segsize, allocator_t >::cend() const
 {
     return const_iterator( last, index );
 }
 
-template < typename element_t, size_t segsize >
-typename seglist< element_t, segsize >::const_iterator
-                seglist< element_t, segsize >::end() const
+template < typename element_t, size_t segsize, typename allocator_t >
+typename seglist< element_t, segsize, allocator_t >::const_iterator
+                seglist< element_t, segsize, allocator_t >::end() const
 {
     return cend();
 }
 
-template < typename element_t, size_t segsize >
-typename seglist< element_t, segsize >::const_reference
-                seglist< element_t, segsize >::back() const
+template < typename element_t, size_t segsize, typename allocator_t >
+typename seglist< element_t, segsize, allocator_t >::const_reference
+                seglist< element_t, segsize, allocator_t >::back() const
 {
     assert( ! empty() );
     if ( index > 0 )
@@ -325,20 +330,20 @@ typename seglist< element_t, segsize >::const_reference
         return last->prev->elements[ segsize - 1 ];
 }
 
-template < typename element_t, size_t segsize >
-typename seglist< element_t, segsize >::iterator seglist< element_t, segsize >::begin()
+template < typename element_t, size_t segsize, typename allocator_t >
+typename seglist< element_t, segsize, allocator_t >::iterator seglist< element_t, segsize, allocator_t >::begin()
 {
     return iterator( first, 0 );
 }
 
-template < typename element_t, size_t segsize >
-typename seglist< element_t, segsize >::iterator seglist< element_t, segsize >::end()
+template < typename element_t, size_t segsize, typename allocator_t >
+typename seglist< element_t, segsize, allocator_t >::iterator seglist< element_t, segsize, allocator_t >::end()
 {
     return iterator( last, index );
 }
 
-template < typename element_t, size_t segsize >
-typename seglist< element_t, segsize >::reference seglist< element_t, segsize >::back()
+template < typename element_t, size_t segsize, typename allocator_t >
+typename seglist< element_t, segsize, allocator_t >::reference seglist< element_t, segsize, allocator_t >::back()
 {
     assert( ! empty() );
     if ( index > 0 )
@@ -347,31 +352,34 @@ typename seglist< element_t, segsize >::reference seglist< element_t, segsize >:
         return last->prev->elements[ segsize - 1 ];
 }
 
-template < typename element_t, size_t segsize >
-void seglist< element_t, segsize >::push_back( element_t&& element )
+template < typename element_t, size_t segsize, typename allocator_t >
+void seglist< element_t, segsize, allocator_t >::push_back( element_t&& element )
 {
-    new ( last->elements + index ) element_t( std::move( element ) );
+    allocator_t alloc;
+    std::allocator_traits< allocator_t >::construct( last->elements + index, std::move( element ) );
     pushed_back();
 }
 
-template < typename element_t, size_t segsize >
-void seglist< element_t, segsize >::push_back( const element_t& element )
+template < typename element_t, size_t segsize, typename allocator_t >
+void seglist< element_t, segsize, allocator_t >::push_back( const element_t& element )
 {
-    new ( last->elements + index ) element_t( element );
+    allocator_t alloc;
+    std::allocator_traits< allocator_t >::construct( last->elements + index, element );
     pushed_back();
 }
 
-template < typename element_t, size_t segsize >
+template < typename element_t, size_t segsize, typename allocator_t >
 template < typename ... arguments_t >
-void seglist< element_t, segsize >::emplace_back( arguments_t ... arguments )
+void seglist< element_t, segsize, allocator_t >::emplace_back( arguments_t ... arguments )
 {
-    new ( last->elements + index ) element_t(
+    allocator_t alloc;
+    std::allocator_traits< allocator_t >::construct( last->elements + index,
                     std::forward< arguments_t ... >( arguments ... ) );
     pushed_back();
 }
 
-template < typename element_t, size_t segsize >
-void seglist< element_t, segsize >::pop_back()
+template < typename element_t, size_t segsize, typename allocator_t >
+void seglist< element_t, segsize, allocator_t >::pop_back()
 {
     assert( ! empty() );
 
@@ -382,19 +390,24 @@ void seglist< element_t, segsize >::pop_back()
     }
     
     index -= 1;
-    last->elements[ index ].~element_t();
+    
+    allocator_t alloc;
+    std::allocator_traits< allocator_t >::destroy( alloc, last->elements + index );
 }
 
-template < typename element_t, size_t segsize >
-void seglist< element_t, segsize >::clear()
+template < typename element_t, size_t segsize, typename allocator_t >
+void seglist< element_t, segsize, allocator_t >::clear()
 {
+    allocator_t alloc;
+    typedef std::allocator_traits< allocator_t > traits;
+
     if ( ! std::is_trivially_destructible< element_t >::value )
     {
         for ( segment* s = first; s != last; s = s->next )
         {
             for ( size_t i = 0; i < segsize; ++i )
             {
-                s->elements[ i ].~element_t();
+                traits::destroy( alloc, s->elements + i );
             }
         }
         
@@ -402,7 +415,7 @@ void seglist< element_t, segsize >::clear()
         {
             for ( size_t i = 0; i < index; ++i )
             {
-                last->elements[ i ].~element_t();
+                traits::destroy( alloc, last->elements + i );
             }
         }
     }
@@ -411,25 +424,28 @@ void seglist< element_t, segsize >::clear()
     index = 0;
 }
 
-template < typename element_t, size_t segsize >
-void seglist< element_t, segsize >::swap( seglist& s )
+template < typename element_t, size_t segsize, typename allocator_t >
+void seglist< element_t, segsize, allocator_t >::swap( seglist& s )
 {
     std::swap( first, s.first );
     std::swap( last, s.last );
     std::swap( index, s.index );
 }
 
-template < typename element_t, size_t segsize >
-typename seglist< element_t, segsize >::segment* seglist< element_t, segsize >::new_segment()
+template < typename element_t, size_t segsize, typename allocator_t >
+typename seglist< element_t, segsize, allocator_t >::segment* seglist< element_t, segsize, allocator_t >::new_segment()
 {
-    segment* s = (segment*)malloc( sizeof( segment ) );
+    typedef typename std::allocator_traits< allocator_t >::template rebind_alloc< segment > alloc_type;
+    typedef typename std::allocator_traits< allocator_t >::template rebind_traits< segment > traits_type;
+    alloc_type alloc;
+    segment* s = traits_type::allocate( alloc, 1 );
     s->next = nullptr;
     s->prev = nullptr;
     return s;
 }
 
-template < typename element_t, size_t segsize >
-void seglist< element_t, segsize >::pushed_back()
+template < typename element_t, size_t segsize, typename allocator_t >
+void seglist< element_t, segsize, allocator_t >::pushed_back()
 {
     if ( index >= segsize )
     {
