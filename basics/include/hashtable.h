@@ -219,7 +219,7 @@ template < typename key_t, typename value_t >
 hashtable< key_t, value_t >::hashtable()
     :   capacity( 0 )
     ,   occupancy( 0 )
-    ,   buckets( NULL )
+    ,   buckets( nullptr )
 {
 }
 

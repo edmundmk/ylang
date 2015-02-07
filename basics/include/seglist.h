@@ -356,8 +356,8 @@ template < typename element_t, size_t segsize, typename allocator_t >
 void seglist< element_t, segsize, allocator_t >::push_back( element_t&& element )
 {
     allocator_t alloc;
-    typedef std::allocator_traits< allocator_t > traits;
-    traits::construct( last->elements + index, std::move( element ) );
+    typedef std::allocator_traits< allocator_t > traits_type;
+    traits_type::construct( last->elements + index, std::move( element ) );
     pushed_back();
 }
 
@@ -365,8 +365,8 @@ template < typename element_t, size_t segsize, typename allocator_t >
 void seglist< element_t, segsize, allocator_t >::push_back( const element_t& element )
 {
     allocator_t alloc;
-    typedef std::allocator_traits< allocator_t > traits;
-    traits::construct( last->elements + index, element );
+    typedef std::allocator_traits< allocator_t > traits_type;
+    traits_type::construct( last->elements + index, element );
     pushed_back();
 }
 
@@ -375,8 +375,8 @@ template < typename ... arguments_t >
 void seglist< element_t, segsize, allocator_t >::emplace_back( arguments_t ... arguments )
 {
     allocator_t alloc;
-    typedef std::allocator_traits< allocator_t > traits;
-    traits::construct( last->elements + index,
+    typedef std::allocator_traits< allocator_t > traits_type;
+    traits_type::construct( last->elements + index,
                     std::forward< arguments_t ... >( arguments ... ) );
     pushed_back();
 }
@@ -395,15 +395,15 @@ void seglist< element_t, segsize, allocator_t >::pop_back()
     index -= 1;
     
     allocator_t alloc;
-    typedef std::allocator_traits< allocator_t > traits;
-    traits::destroy( alloc, last->elements + index );
+    typedef std::allocator_traits< allocator_t > traits_type;
+    traits_type::destroy( alloc, last->elements + index );
 }
 
 template < typename element_t, size_t segsize, typename allocator_t >
 void seglist< element_t, segsize, allocator_t >::clear()
 {
     allocator_t alloc;
-    typedef std::allocator_traits< allocator_t > traits;
+    typedef std::allocator_traits< allocator_t > traits_type;
 
     if ( ! std::is_trivially_destructible< element_t >::value )
     {
@@ -411,7 +411,7 @@ void seglist< element_t, segsize, allocator_t >::clear()
         {
             for ( size_t i = 0; i < segsize; ++i )
             {
-                traits::destroy( alloc, s->elements + i );
+                traits_type::destroy( alloc, s->elements + i );
             }
         }
         
@@ -419,7 +419,7 @@ void seglist< element_t, segsize, allocator_t >::clear()
         {
             for ( size_t i = 0; i < index; ++i )
             {
-                traits::destroy( alloc, last->elements + i );
+                traits_type::destroy( alloc, last->elements + i );
             }
         }
     }

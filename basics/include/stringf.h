@@ -67,7 +67,7 @@ inline std::string vstringf( const char* format, va_list arguments )
     va_list vlist;
  
     va_copy( vlist, arguments );
-    int bufsize = vsnprintf( NULL, 0, format, vlist );
+    int bufsize = vsnprintf( nullptr, 0, format, vlist );
     va_end( vlist );
     
     std::vector< char > buffer;

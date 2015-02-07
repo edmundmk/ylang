@@ -1,0 +1,337 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		4BCF3D7F1A85852400B9AB3A /* yl_ast_visitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BCF3D7B1A85852400B9AB3A /* yl_ast_visitor.h */; };
+		4BCF3D801A85852400B9AB3A /* yl_ast.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BCF3D7C1A85852400B9AB3A /* yl_ast.h */; };
+		4BCF3D811A85852400B9AB3A /* yl_diagnostics.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BCF3D7D1A85852400B9AB3A /* yl_diagnostics.h */; };
+		4BCF3D831A8585B900B9AB3A /* yl_ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D5C1A857DD100B9AB3A /* yl_ast.cpp */; };
+		4BCF3D841A8585B900B9AB3A /* yl_ast_print.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D5B1A857DD100B9AB3A /* yl_ast_print.cpp */; };
+		4BCF3D851A8585B900B9AB3A /* yl_parser_lemon.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BCF3D5E1A857DD100B9AB3A /* yl_parser_lemon.h */; };
+		4BCF3D861A8585B900B9AB3A /* yl_parser_lemon.ly in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D601A857DD100B9AB3A /* yl_parser_lemon.ly */; };
+		4BCF3D871A8585B900B9AB3A /* yl_parser_ragel.rl in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D621A857DD100B9AB3A /* yl_parser_ragel.rl */; };
+		4BCF3D881A8585B900B9AB3A /* yl_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D631A857DD100B9AB3A /* yl_parser.cpp */; };
+		4BCF3D891A8585B900B9AB3A /* yl_parser.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BCF3D641A857DD100B9AB3A /* yl_parser.h */; };
+		4BCF3D8A1A8585B900B9AB3A /* yl_diagnostics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D651A857DD100B9AB3A /* yl_diagnostics.cpp */; };
+		4BCF3D8B1A8585B900B9AB3A /* yl_token.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D671A857DD100B9AB3A /* yl_token.cpp */; };
+		4BCF3D8C1A8585B900B9AB3A /* yl_token.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BCF3D681A857DD100B9AB3A /* yl_token.h */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXBuildRule section */
+		4BCF3D761A857E4100B9AB3A /* PBXBuildRule */ = {
+			isa = PBXBuildRule;
+			compilerSpec = com.apple.compilers.proxy.script;
+			filePatterns = "*.rl";
+			fileType = pattern.proxy;
+			isEditable = 1;
+			outputFiles = (
+				"$(DERIVED_FILES_DIR)/$(INPUT_FILE_BASE).rl.cpp",
+			);
+			script = "/usr/local/bin/ragel -G1 -o \"$DERIVED_FILES_DIR/$INPUT_FILE_BASE.rl.cpp\" \"$INPUT_FILE_PATH\"";
+		};
+		4BCF3D7A1A85815D00B9AB3A /* PBXBuildRule */ = {
+			isa = PBXBuildRule;
+			compilerSpec = com.apple.compilers.proxy.script;
+			filePatterns = "*.ly";
+			fileType = pattern.proxy;
+			isEditable = 1;
+			outputFiles = (
+				"$(DERIVED_FILE_DIR)/$(INPUT_FILE_BASE).ly.cpp",
+			);
+			script = "/usr/local/bin/lemon \"$INPUT_FILE_PATH\"\nmv \"$INPUT_FILE_DIR/$INPUT_FILE_BASE.c\" \"$DERIVED_FILES_DIR/$INPUT_FILE_BASE.ly.cpp\"";
+		};
+/* End PBXBuildRule section */
+
+/* Begin PBXFileReference section */
+		4BCF3D521A856FF500B9AB3A /* libylang.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libylang.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		4BCF3D5B1A857DD100B9AB3A /* yl_ast_print.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_ast_print.cpp; sourceTree = "<group>"; };
+		4BCF3D5C1A857DD100B9AB3A /* yl_ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_ast.cpp; sourceTree = "<group>"; };
+		4BCF3D5E1A857DD100B9AB3A /* yl_parser_lemon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_parser_lemon.h; sourceTree = "<group>"; };
+		4BCF3D5F1A857DD100B9AB3A /* yl_parser_lemon.out */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yl_parser_lemon.out; sourceTree = "<group>"; };
+		4BCF3D601A857DD100B9AB3A /* yl_parser_lemon.ly */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; path = yl_parser_lemon.ly; sourceTree = "<group>"; };
+		4BCF3D621A857DD100B9AB3A /* yl_parser_ragel.rl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yl_parser_ragel.rl; sourceTree = "<group>"; };
+		4BCF3D631A857DD100B9AB3A /* yl_parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_parser.cpp; sourceTree = "<group>"; };
+		4BCF3D641A857DD100B9AB3A /* yl_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_parser.h; sourceTree = "<group>"; };
+		4BCF3D651A857DD100B9AB3A /* yl_diagnostics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_diagnostics.cpp; sourceTree = "<group>"; };
+		4BCF3D671A857DD100B9AB3A /* yl_token.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_token.cpp; sourceTree = "<group>"; };
+		4BCF3D681A857DD100B9AB3A /* yl_token.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_token.h; sourceTree = "<group>"; };
+		4BCF3D7B1A85852400B9AB3A /* yl_ast_visitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_ast_visitor.h; sourceTree = "<group>"; };
+		4BCF3D7C1A85852400B9AB3A /* yl_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_ast.h; sourceTree = "<group>"; };
+		4BCF3D7D1A85852400B9AB3A /* yl_diagnostics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_diagnostics.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4BCF3D4F1A856FF500B9AB3A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4BCF3D491A856FF500B9AB3A = {
+			isa = PBXGroup;
+			children = (
+				4BCF3D591A85709800B9AB3A /* include */,
+				4BCF3D5A1A85709800B9AB3A /* source */,
+				4BCF3D531A856FF500B9AB3A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4BCF3D531A856FF500B9AB3A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4BCF3D521A856FF500B9AB3A /* libylang.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		4BCF3D591A85709800B9AB3A /* include */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
+		4BCF3D5A1A85709800B9AB3A /* source */ = {
+			isa = PBXGroup;
+			children = (
+				4BCF3D7B1A85852400B9AB3A /* yl_ast_visitor.h */,
+				4BCF3D5C1A857DD100B9AB3A /* yl_ast.cpp */,
+				4BCF3D7C1A85852400B9AB3A /* yl_ast.h */,
+				4BCF3D5B1A857DD100B9AB3A /* yl_ast_print.cpp */,
+				4BCF3D651A857DD100B9AB3A /* yl_diagnostics.cpp */,
+				4BCF3D7D1A85852400B9AB3A /* yl_diagnostics.h */,
+				4BCF3D5E1A857DD100B9AB3A /* yl_parser_lemon.h */,
+				4BCF3D5F1A857DD100B9AB3A /* yl_parser_lemon.out */,
+				4BCF3D601A857DD100B9AB3A /* yl_parser_lemon.ly */,
+				4BCF3D621A857DD100B9AB3A /* yl_parser_ragel.rl */,
+				4BCF3D631A857DD100B9AB3A /* yl_parser.cpp */,
+				4BCF3D641A857DD100B9AB3A /* yl_parser.h */,
+				4BCF3D671A857DD100B9AB3A /* yl_token.cpp */,
+				4BCF3D681A857DD100B9AB3A /* yl_token.h */,
+			);
+			path = source;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		4BCF3D501A856FF500B9AB3A /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4BCF3D801A85852400B9AB3A /* yl_ast.h in Headers */,
+				4BCF3D891A8585B900B9AB3A /* yl_parser.h in Headers */,
+				4BCF3D7F1A85852400B9AB3A /* yl_ast_visitor.h in Headers */,
+				4BCF3D8C1A8585B900B9AB3A /* yl_token.h in Headers */,
+				4BCF3D851A8585B900B9AB3A /* yl_parser_lemon.h in Headers */,
+				4BCF3D811A85852400B9AB3A /* yl_diagnostics.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		4BCF3D511A856FF500B9AB3A /* ylang */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4BCF3D561A856FF500B9AB3A /* Build configuration list for PBXNativeTarget "ylang" */;
+			buildPhases = (
+				4BCF3D4E1A856FF500B9AB3A /* Sources */,
+				4BCF3D4F1A856FF500B9AB3A /* Frameworks */,
+				4BCF3D501A856FF500B9AB3A /* Headers */,
+			);
+			buildRules = (
+				4BCF3D7A1A85815D00B9AB3A /* PBXBuildRule */,
+				4BCF3D761A857E4100B9AB3A /* PBXBuildRule */,
+			);
+			dependencies = (
+			);
+			name = ylang;
+			productName = ylang;
+			productReference = 4BCF3D521A856FF500B9AB3A /* libylang.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4BCF3D4A1A856FF500B9AB3A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0610;
+				ORGANIZATIONNAME = birotanker;
+				TargetAttributes = {
+					4BCF3D511A856FF500B9AB3A = {
+						CreatedOnToolsVersion = 6.1.1;
+					};
+				};
+			};
+			buildConfigurationList = 4BCF3D4D1A856FF500B9AB3A /* Build configuration list for PBXProject "ylang" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 4BCF3D491A856FF500B9AB3A;
+			productRefGroup = 4BCF3D531A856FF500B9AB3A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4BCF3D511A856FF500B9AB3A /* ylang */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4BCF3D4E1A856FF500B9AB3A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4BCF3D861A8585B900B9AB3A /* yl_parser_lemon.ly in Sources */,
+				4BCF3D871A8585B900B9AB3A /* yl_parser_ragel.rl in Sources */,
+				4BCF3D881A8585B900B9AB3A /* yl_parser.cpp in Sources */,
+				4BCF3D8A1A8585B900B9AB3A /* yl_diagnostics.cpp in Sources */,
+				4BCF3D831A8585B900B9AB3A /* yl_ast.cpp in Sources */,
+				4BCF3D8B1A8585B900B9AB3A /* yl_token.cpp in Sources */,
+				4BCF3D841A8585B900B9AB3A /* yl_ast_print.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		4BCF3D541A856FF500B9AB3A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					../basics/include,
+					../basics/ycore,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		4BCF3D551A856FF500B9AB3A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					../basics/include,
+					../basics/ycore,
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		4BCF3D571A856FF500B9AB3A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		4BCF3D581A856FF500B9AB3A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4BCF3D4D1A856FF500B9AB3A /* Build configuration list for PBXProject "ylang" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4BCF3D541A856FF500B9AB3A /* Debug */,
+				4BCF3D551A856FF500B9AB3A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4BCF3D561A856FF500B9AB3A /* Build configuration list for PBXNativeTarget "ylang" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4BCF3D571A856FF500B9AB3A /* Debug */,
+				4BCF3D581A856FF500B9AB3A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 4BCF3D4A1A856FF500B9AB3A /* Project object */;
+}

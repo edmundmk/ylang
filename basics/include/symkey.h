@@ -53,8 +53,8 @@ private:
 
 inline symkey::symkey()
     :   shash( 0 )
-    ,   sname( NULL )
-    ,   ssize( NULL )
+    ,   sname( nullptr )
+    ,   ssize( 0 )
 {
 }
 
@@ -82,7 +82,7 @@ inline symkey::symkey( hash32_t hash, const char* s, size_t size )
 
 inline symkey::operator bool () const
 {
-    return sname != NULL;
+    return sname != nullptr;
 }
 
 inline symkey::operator std::string () const

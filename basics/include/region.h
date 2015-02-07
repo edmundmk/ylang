@@ -172,11 +172,11 @@ inline void* region::realloc( void* p, size_t old_size, size_t new_size )
     old_size = align( old_size, ALIGNMENT );
     new_size = align( new_size, ALIGNMENT );
 
-    if ( p == NULL )
+    if ( p == nullptr )
         return malloc( new_size );
 
     if ( new_size == 0 )
-        return free( p, old_size ), (void*)NULL;
+        return free( p, old_size ), (void*)nullptr;
 
     if ( old_size < next
             && (char*)p == block + next - old_size
@@ -203,7 +203,7 @@ inline const char* region::strdup( const char* string )
 
 inline void region::free( void* p, size_t old_size )
 {
-    if ( p == NULL )
+    if ( p == nullptr )
         return;
 
     old_size = align( old_size, ALIGNMENT );

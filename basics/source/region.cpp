@@ -12,12 +12,12 @@
 
 
 
-__thread region* region_current = NULL;
+__thread region* region_current = nullptr;
 
 
 
 region::region()
-    :   block( NULL )
+    :   block( nullptr )
     ,   next( BLOCK_SIZE )
 {
 }
@@ -97,7 +97,7 @@ void region::_free( void* p, size_t old_size )
 
 region_buffer::region_buffer( class region& region )
     :   region( &region )
-    ,   buffer( NULL )
+    ,   buffer( nullptr )
     ,   capacity( 0 )
     ,   index( 0 )
 {
@@ -125,7 +125,7 @@ void* region_buffer::tearoff()
 
     // Return the memory.
     void* p = buffer;
-    buffer      = NULL;
+    buffer      = nullptr;
     capacity    = 0;
     index       = 0;
     return p;
