@@ -10,7 +10,7 @@
 #define YL_AST_H
 
 
-#include <deque>
+#include <vector>
 #include <unordered_map>
 #include <region.h>
 #include <symkey.h>
@@ -189,17 +189,15 @@ enum yl_ast_upval_kind
 
 
 
-// TODO: replace std::deque with a container with a smaller chunk size
-
-typedef std::deque< yl_ast_node*,
+typedef std::vector< yl_ast_node*,
     region_allocator< yl_ast_node* > > yl_ast_node_list;
-typedef std::deque< yl_ast_name*,
+typedef std::vector< yl_ast_name*,
     region_allocator< yl_ast_name* > > yl_ast_name_list;
-typedef std::deque< yl_name_name*,
+typedef std::vector< yl_name_name*,
     region_allocator< yl_name_name* > > yl_name_name_list;
-typedef std::deque< yl_ast_opkind,
+typedef std::vector< yl_ast_opkind,
     region_allocator< yl_ast_opkind > > yl_opkind_list;
-typedef std::deque< yl_key_value,
+typedef std::vector< yl_key_value,
     region_allocator< yl_key_value > > yl_key_value_list;
 typedef std::unordered_map
         <
@@ -219,7 +217,7 @@ typedef std::unordered_map
             region_allocator< std::pair< const symkey, yl_ast_scope* > >
         >
         yl_ast_imply_map;
-typedef std::deque< yl_ast_upval,
+typedef std::vector< yl_ast_upval,
     region_allocator< yl_ast_upval > > yl_ast_upval_list;
 
 
@@ -236,7 +234,7 @@ struct yl_ast
 
     region             alloc;
     yl_ast_func*       function;
-    std::deque< yl_ast_func* > functions;
+    std::vector< yl_ast_func* > functions;
 
 };
 

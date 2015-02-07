@@ -53,7 +53,7 @@
 		4BCF3D5C1A857DD100B9AB3A /* yl_ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_ast.cpp; sourceTree = "<group>"; };
 		4BCF3D5E1A857DD100B9AB3A /* yl_parser_lemon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_parser_lemon.h; sourceTree = "<group>"; };
 		4BCF3D5F1A857DD100B9AB3A /* yl_parser_lemon.out */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yl_parser_lemon.out; sourceTree = "<group>"; };
-		4BCF3D601A857DD100B9AB3A /* yl_parser_lemon.ly */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; path = yl_parser_lemon.ly; sourceTree = "<group>"; };
+		4BCF3D601A857DD100B9AB3A /* yl_parser_lemon.ly */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yl_parser_lemon.ly; sourceTree = "<group>"; };
 		4BCF3D621A857DD100B9AB3A /* yl_parser_ragel.rl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yl_parser_ragel.rl; sourceTree = "<group>"; };
 		4BCF3D631A857DD100B9AB3A /* yl_parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_parser.cpp; sourceTree = "<group>"; };
 		4BCF3D641A857DD100B9AB3A /* yl_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_parser.h; sourceTree = "<group>"; };

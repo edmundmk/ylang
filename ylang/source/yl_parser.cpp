@@ -146,7 +146,10 @@ std::unique_ptr< yl_ast > yl_parser::get_ast()
 
 
 
-
+yl_diagnostics* yl_parser::get_diagnostics()
+{
+    return diagnostics;
+}
 
 double yl_parser::parse_number( yl_token* token )
 {
