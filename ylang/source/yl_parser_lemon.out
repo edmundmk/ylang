@@ -91,10 +91,10 @@ State 1:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -183,7 +183,7 @@ State 1:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -325,10 +325,10 @@ State 2:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -416,7 +416,7 @@ State 2:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -558,10 +558,10 @@ State 3:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -649,7 +649,7 @@ State 3:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -790,10 +790,10 @@ State 4:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -882,7 +882,7 @@ State 4:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -1023,10 +1023,10 @@ State 5:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -1115,7 +1115,7 @@ State 5:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -1257,10 +1257,10 @@ State 6:
           expr_nolbr ::= newf_scope LBR stmt_list * RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -1348,7 +1348,7 @@ State 6:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -1481,10 +1481,10 @@ State 7:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -1564,7 +1564,7 @@ State 7:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -1692,10 +1692,10 @@ State 8:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -1775,7 +1775,7 @@ State 8:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -1903,10 +1903,10 @@ State 9:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -1986,7 +1986,7 @@ State 9:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -2114,10 +2114,10 @@ State 10:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -2197,7 +2197,7 @@ State 10:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -2325,10 +2325,10 @@ State 11:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -2408,7 +2408,7 @@ State 11:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -2536,10 +2536,10 @@ State 12:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -2619,7 +2619,7 @@ State 12:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -2747,10 +2747,10 @@ State 13:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -2830,7 +2830,7 @@ State 13:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -2958,10 +2958,10 @@ State 14:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -3041,7 +3041,7 @@ State 14:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -3169,10 +3169,10 @@ State 15:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -3252,7 +3252,7 @@ State 15:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -3380,10 +3380,10 @@ State 16:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -3463,7 +3463,7 @@ State 16:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -3591,10 +3591,10 @@ State 17:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -3674,7 +3674,7 @@ State 17:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -3802,10 +3802,10 @@ State 18:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_final ::= * ELLIPSIS
           expr_final ::= * expr_index ELLIPSIS
           expr_final ::= * expr_index LSQ RSQ ELLIPSIS
@@ -3886,7 +3886,7 @@ State 18:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                          WHILE shift  314
                         DELETE shift  44
                           CASE shift  63
@@ -4014,10 +4014,10 @@ State 19:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -4065,7 +4065,7 @@ State 19:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -4169,10 +4169,10 @@ State 20:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -4214,7 +4214,7 @@ State 20:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -4316,10 +4316,10 @@ State 21:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -4361,7 +4361,7 @@ State 21:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -4463,10 +4463,10 @@ State 22:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -4508,7 +4508,7 @@ State 22:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -4610,10 +4610,10 @@ State 23:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -4656,7 +4656,7 @@ State 23:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -4758,10 +4758,10 @@ State 24:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -4802,7 +4802,7 @@ State 24:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -4905,10 +4905,10 @@ State 25:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -4949,7 +4949,7 @@ State 25:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -5054,10 +5054,10 @@ State 26:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -5095,7 +5095,7 @@ State 26:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                       arg_list shift  233
                   newobj_scope shift  174
                     newf_scope shift  180
@@ -5197,10 +5197,10 @@ State 27:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -5239,7 +5239,7 @@ State 27:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -5341,10 +5341,10 @@ State 28:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -5382,7 +5382,7 @@ State 28:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -5483,10 +5483,10 @@ State 29:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -5525,7 +5525,7 @@ State 29:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -5627,10 +5627,10 @@ State 30:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -5668,7 +5668,7 @@ State 30:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                       arg_list shift  157
                   newobj_scope shift  174
                     newf_scope shift  180
@@ -5770,10 +5770,10 @@ State 31:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -5812,7 +5812,7 @@ State 31:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -5915,10 +5915,10 @@ State 32:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -5956,7 +5956,7 @@ State 32:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                       arg_list shift  229
                   newobj_scope shift  174
                     newf_scope shift  180
@@ -6059,10 +6059,10 @@ State 33:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -6100,7 +6100,7 @@ State 33:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                       arg_list shift  158
                   newobj_scope shift  174
                     newf_scope shift  180
@@ -6203,10 +6203,10 @@ State 34:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -6244,7 +6244,7 @@ State 34:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -6345,10 +6345,10 @@ State 35:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -6387,7 +6387,7 @@ State 35:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -6487,10 +6487,10 @@ State 36:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -6529,7 +6529,7 @@ State 36:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -6631,10 +6631,10 @@ State 37:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -6673,7 +6673,7 @@ State 37:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    value_lbody shift  227
@@ -6774,10 +6774,10 @@ State 38:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -6813,7 +6813,7 @@ State 38:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -6913,10 +6913,10 @@ State 39:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -6953,7 +6953,7 @@ State 39:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -7053,10 +7053,10 @@ State 40:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= LBR * RBR
@@ -7088,7 +7088,7 @@ State 40:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                   keyval_lbody shift  192
@@ -7187,10 +7187,10 @@ State 41:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -7223,7 +7223,7 @@ State 41:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -7321,10 +7321,10 @@ State 42:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -7358,7 +7358,7 @@ State 42:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -7457,10 +7457,10 @@ State 43:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -7493,7 +7493,7 @@ State 43:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -7591,10 +7591,10 @@ State 44:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -7622,7 +7622,7 @@ State 44:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -7721,10 +7721,10 @@ State 45:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -7751,7 +7751,7 @@ State 45:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -7849,10 +7849,10 @@ State 46:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -7879,7 +7879,7 @@ State 46:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -7976,10 +7976,10 @@ State 47:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -8010,7 +8010,7 @@ State 47:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -8108,10 +8108,10 @@ State 48:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -8136,7 +8136,7 @@ State 48:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -8234,10 +8234,10 @@ State 49:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -8262,7 +8262,7 @@ State 49:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -8360,10 +8360,10 @@ State 50:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -8388,7 +8388,7 @@ State 50:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -8486,10 +8486,10 @@ State 51:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -8514,7 +8514,7 @@ State 51:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -8611,10 +8611,10 @@ State 52:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -8640,7 +8640,7 @@ State 52:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -8737,10 +8737,10 @@ State 53:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -8767,7 +8767,7 @@ State 53:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -8865,10 +8865,10 @@ State 54:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -8894,7 +8894,7 @@ State 54:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -8992,10 +8992,10 @@ State 55:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -9020,7 +9020,7 @@ State 55:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -9118,10 +9118,10 @@ State 56:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -9146,7 +9146,7 @@ State 56:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -9243,10 +9243,10 @@ State 57:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -9272,7 +9272,7 @@ State 57:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -9369,10 +9369,10 @@ State 58:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -9398,7 +9398,7 @@ State 58:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -9495,10 +9495,10 @@ State 59:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -9524,7 +9524,7 @@ State 59:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -9621,10 +9621,10 @@ State 60:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -9650,7 +9650,7 @@ State 60:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -9747,10 +9747,10 @@ State 61:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -9776,7 +9776,7 @@ State 61:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -9873,10 +9873,10 @@ State 62:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -9902,7 +9902,7 @@ State 62:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -9999,10 +9999,10 @@ State 63:
           expr_nolbr ::= * newf_scope LBR stmt_list RBR
           newobj_scope ::= * COLON
           newobj_scope ::= * COLON COLON expr_simple
-          newf_scope ::= * QMARK LPN param_list RPN
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN
-          newf_scope ::= * QMARK LPN param_list RPN YIELD
-          newf_scope ::= * PERIOD QMARK LPN param_list RPN YIELD
+          newf_scope ::= * CARET LPN param_list RPN
+          newf_scope ::= * PERIOD CARET LPN param_list RPN
+          newf_scope ::= * CARET LPN param_list RPN YIELD
+          newf_scope ::= * PERIOD CARET LPN param_list RPN YIELD
           expr_value ::= * expr_nolbr
           expr_value ::= * LBR RBR
           expr_value ::= * LBR keyval_list RBR
@@ -10028,7 +10028,7 @@ State 63:
                          MINUS shift  86
                          XMARK shift  77
                          TILDE shift  78
-                         QMARK shift  183
+                         CARET shift  183
                   newobj_scope shift  174
                     newf_scope shift  180
                    expr_simple shift  351
@@ -12025,8 +12025,8 @@ State 96:
           param_list ::= * name_list
           param_list ::= * ELLIPSIS
           param_list ::= * name_list COMMA ELLIPSIS
-          newf_scope ::= QMARK LPN * param_list RPN
-          newf_scope ::= QMARK LPN * param_list RPN YIELD
+          newf_scope ::= CARET LPN * param_list RPN
+          newf_scope ::= CARET LPN * param_list RPN YIELD
 
                     IDENTIFIER shift  359
                       ELLIPSIS shift  244
@@ -12043,8 +12043,8 @@ State 97:
           param_list ::= * name_list
           param_list ::= * ELLIPSIS
           param_list ::= * name_list COMMA ELLIPSIS
-          newf_scope ::= PERIOD QMARK LPN * param_list RPN
-          newf_scope ::= PERIOD QMARK LPN * param_list RPN YIELD
+          newf_scope ::= PERIOD CARET LPN * param_list RPN
+          newf_scope ::= PERIOD CARET LPN * param_list RPN YIELD
 
                     IDENTIFIER shift  359
                       ELLIPSIS shift  244
@@ -12919,45 +12919,45 @@ State 182:
                      {default} reduce 106
 
 State 183:
-          newf_scope ::= QMARK * LPN param_list RPN
-          newf_scope ::= QMARK * LPN param_list RPN YIELD
+          newf_scope ::= CARET * LPN param_list RPN
+          newf_scope ::= CARET * LPN param_list RPN YIELD
 
                            LPN shift  96
 
 State 184:
-          newf_scope ::= QMARK LPN param_list * RPN
-          newf_scope ::= QMARK LPN param_list * RPN YIELD
+          newf_scope ::= CARET LPN param_list * RPN
+          newf_scope ::= CARET LPN param_list * RPN YIELD
 
                            RPN shift  185
 
 State 185:
-    (108) newf_scope ::= QMARK LPN param_list RPN *
-          newf_scope ::= QMARK LPN param_list RPN * YIELD
+    (108) newf_scope ::= CARET LPN param_list RPN *
+          newf_scope ::= CARET LPN param_list RPN * YIELD
 
                          YIELD shift  385
                      {default} reduce 108
 
 State 186:
-          newf_scope ::= PERIOD * QMARK LPN param_list RPN
-          newf_scope ::= PERIOD * QMARK LPN param_list RPN YIELD
+          newf_scope ::= PERIOD * CARET LPN param_list RPN
+          newf_scope ::= PERIOD * CARET LPN param_list RPN YIELD
 
-                         QMARK shift  187
+                         CARET shift  187
 
 State 187:
-          newf_scope ::= PERIOD QMARK * LPN param_list RPN
-          newf_scope ::= PERIOD QMARK * LPN param_list RPN YIELD
+          newf_scope ::= PERIOD CARET * LPN param_list RPN
+          newf_scope ::= PERIOD CARET * LPN param_list RPN YIELD
 
                            LPN shift  97
 
 State 188:
-          newf_scope ::= PERIOD QMARK LPN param_list * RPN
-          newf_scope ::= PERIOD QMARK LPN param_list * RPN YIELD
+          newf_scope ::= PERIOD CARET LPN param_list * RPN
+          newf_scope ::= PERIOD CARET LPN param_list * RPN YIELD
 
                            RPN shift  189
 
 State 189:
-    (109) newf_scope ::= PERIOD QMARK LPN param_list RPN *
-          newf_scope ::= PERIOD QMARK LPN param_list RPN * YIELD
+    (109) newf_scope ::= PERIOD CARET LPN param_list RPN *
+          newf_scope ::= PERIOD CARET LPN param_list RPN * YIELD
 
                          YIELD shift  383
                      {default} reduce 109
@@ -13963,7 +13963,7 @@ State 382:
                      {default} reduce 21
 
 State 383:
-    (111) newf_scope ::= PERIOD QMARK LPN param_list RPN YIELD *
+    (111) newf_scope ::= PERIOD CARET LPN param_list RPN YIELD *
 
                      {default} reduce 111
 
@@ -13973,7 +13973,7 @@ State 384:
                      {default} reduce 218
 
 State 385:
-    (110) newf_scope ::= QMARK LPN param_list RPN YIELD *
+    (110) newf_scope ::= CARET LPN param_list RPN YIELD *
 
                      {default} reduce 110
 
@@ -14186,17 +14186,17 @@ Symbols:
    84: error:
    85: name: IDENTIFIER
    86: param_list: <lambda> IDENTIFIER ELLIPSIS
-   87: arg_list: <lambda> YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
+   87: arg_list: <lambda> YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
    88: object_scope: DEF
    89: newobj_scope: COLON
    90: func_scope: DEF
-   91: newf_scope: PERIOD QMARK
+   91: newf_scope: PERIOD CARET
    92: compare_op: EQUAL NOTEQUAL LESS GREATER LESSEQUAL GREATEREQUAL IN NOTIN IS NOTIS
    93: assign_op: ASSIGN MULASSIGN DIVASSIGN MODASSIGN INTDIVASSIGN ADDASSIGN SUBASSIGN LSHIFTASSIGN LRSHIFTASSIGN ARSHIFTASSIGN BITANDASSIGN BITXORASSIGN BITORASSIGN
-   94: value_lbody: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
-   95: value_list: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
-   96: keyval_lbody: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
-   97: keyval_list: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
+   94: value_lbody: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+   95: value_list: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+   96: keyval_lbody: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+   97: keyval_list: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
    98: stmt_block: LBR
    99: stmt_reblock: LBR
   100: stmt_if: IF
@@ -14213,8 +14213,8 @@ Symbols:
   111: scope_catch: CATCH
   112: stmt_catch: CATCH
   113: token_yield: YIELD
-  114: script: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR DEF COLON SEMICOLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
-  115: stmt_list: <lambda> IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR DEF COLON SEMICOLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
+  114: script: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR DEF COLON SEMICOLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
+  115: stmt_list: <lambda> IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR DEF COLON SEMICOLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
   116: name_list: IDENTIFIER
   117: qual_name: IDENTIFIER
   118: decl_object: DEF
@@ -14224,10 +14224,10 @@ Symbols:
   122: decl_proto: DEF
   123: decl_func: DEF
   124: decl_var: VAR
-  125: expr_list: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
+  125: expr_list: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
   126: expr_index: LPN IDENTIFIER SUPEROF
-  127: expr_assign: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
-  128: expr_value: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
+  127: expr_assign: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  128: expr_value: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
   129: expr_yield: YIELD
   130: expr_new: NEW
   131: expr_postfix: YIELD LPN IDENTIFIER SUPEROF NEW
@@ -14245,16 +14245,16 @@ Symbols:
   143: expr_and: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
   144: expr_xor: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
   145: expr_or: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
-  146: expr_nolbr: YIELD LPN IDENTIFIER PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
-  147: expr_lbody: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
+  146: expr_nolbr: YIELD LPN IDENTIFIER PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  147: expr_lbody: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
   148: expr_final: YIELD LPN IDENTIFIER ELLIPSIS SUPEROF NEW
-  149: sexpr_lbody: YIELD LPN IDENTIFIER PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
-  150: sexpr_list: YIELD LPN IDENTIFIER ELLIPSIS PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
-  151: sexpr_assign: YIELD LPN IDENTIFIER ELLIPSIS PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
-  152: condition: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
-  153: stmt: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
-  154: stmt_common: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
-  155: stmt_reuse: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
+  149: sexpr_lbody: YIELD LPN IDENTIFIER PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  150: sexpr_list: YIELD LPN IDENTIFIER ELLIPSIS PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  151: sexpr_assign: YIELD LPN IDENTIFIER ELLIPSIS PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  152: condition: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  153: stmt: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
+  154: stmt_common: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
+  155: stmt_reuse: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
   156: stmt_try: TRY
-  157: for_cond: <lambda> YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
-  158: for_expr: <lambda> YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE QMARK
+  157: for_cond: <lambda> YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  158: for_expr: <lambda> YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
