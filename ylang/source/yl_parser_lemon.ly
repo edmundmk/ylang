@@ -782,7 +782,7 @@ newf_scope(x)   ::= CARET(token) LPN param_list(params) RPN YIELD .
                                     nullptr, params, true, false );
                     p->destroy( token );
                 }
-newf_scope(x)   ::= PERIOD(token) CARETgit  LPN param_list(params) RPN YIELD .
+newf_scope(x)   ::= PERIOD(token) CARET LPN param_list(params) RPN YIELD .
                 {
                     x = p->function( token->sloc,
                                     nullptr, params, true, true );

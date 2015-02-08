@@ -20,6 +20,8 @@
 		4BCF3D8A1A8585B900B9AB3A /* yl_diagnostics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D651A857DD100B9AB3A /* yl_diagnostics.cpp */; };
 		4BCF3D8B1A8585B900B9AB3A /* yl_token.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D671A857DD100B9AB3A /* yl_token.cpp */; };
 		4BCF3D8C1A8585B900B9AB3A /* yl_token.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BCF3D681A857DD100B9AB3A /* yl_token.h */; };
+		4BCF3D8F1A85B32500B9AB3A /* yl_expr_visitor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D8D1A85B32500B9AB3A /* yl_expr_visitor.cpp */; };
+		4BCF3D901A85B32500B9AB3A /* yl_expr_visitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BCF3D8E1A85B32500B9AB3A /* yl_expr_visitor.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -63,6 +65,8 @@
 		4BCF3D7B1A85852400B9AB3A /* yl_ast_visitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_ast_visitor.h; sourceTree = "<group>"; };
 		4BCF3D7C1A85852400B9AB3A /* yl_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_ast.h; sourceTree = "<group>"; };
 		4BCF3D7D1A85852400B9AB3A /* yl_diagnostics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_diagnostics.h; sourceTree = "<group>"; };
+		4BCF3D8D1A85B32500B9AB3A /* yl_expr_visitor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_expr_visitor.cpp; sourceTree = "<group>"; };
+		4BCF3D8E1A85B32500B9AB3A /* yl_expr_visitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_expr_visitor.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +113,8 @@
 				4BCF3D5B1A857DD100B9AB3A /* yl_ast_print.cpp */,
 				4BCF3D651A857DD100B9AB3A /* yl_diagnostics.cpp */,
 				4BCF3D7D1A85852400B9AB3A /* yl_diagnostics.h */,
+				4BCF3D8D1A85B32500B9AB3A /* yl_expr_visitor.cpp */,
+				4BCF3D8E1A85B32500B9AB3A /* yl_expr_visitor.h */,
 				4BCF3D5E1A857DD100B9AB3A /* yl_parser_lemon.h */,
 				4BCF3D5F1A857DD100B9AB3A /* yl_parser_lemon.out */,
 				4BCF3D601A857DD100B9AB3A /* yl_parser_lemon.ly */,
@@ -131,6 +137,7 @@
 				4BCF3D801A85852400B9AB3A /* yl_ast.h in Headers */,
 				4BCF3D891A8585B900B9AB3A /* yl_parser.h in Headers */,
 				4BCF3D7F1A85852400B9AB3A /* yl_ast_visitor.h in Headers */,
+				4BCF3D901A85B32500B9AB3A /* yl_expr_visitor.h in Headers */,
 				4BCF3D8C1A8585B900B9AB3A /* yl_token.h in Headers */,
 				4BCF3D851A8585B900B9AB3A /* yl_parser_lemon.h in Headers */,
 				4BCF3D811A85852400B9AB3A /* yl_diagnostics.h in Headers */,
@@ -201,6 +208,7 @@
 				4BCF3D8A1A8585B900B9AB3A /* yl_diagnostics.cpp in Sources */,
 				4BCF3D831A8585B900B9AB3A /* yl_ast.cpp in Sources */,
 				4BCF3D8B1A8585B900B9AB3A /* yl_token.cpp in Sources */,
+				4BCF3D8F1A85B32500B9AB3A /* yl_expr_visitor.cpp in Sources */,
 				4BCF3D841A8585B900B9AB3A /* yl_ast_print.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -245,7 +253,7 @@
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					../basics/include,
-					../basics/ycore,
+					../ycore/include,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = YES;
@@ -286,7 +294,7 @@
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					../basics/include,
-					../basics/ycore,
+					../ycore/include,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = NO;
