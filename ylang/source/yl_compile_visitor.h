@@ -1,13 +1,13 @@
 //
-//  yl_expr_visitor.h
+//  yl_compile_visitor.h
 //
 //  Created by Edmund Kapusniak on 07/02/2015.
 //  Copyright (c) 2015 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef YL_EXPR_VISITOR
-#define YL_EXPR_VISITOR
+#ifndef YL_COMPILE_VISITOR_H
+#define YL_COMPILE_VISITOR_H
 
 
 #include "yl_ast_visitor.h"
@@ -27,20 +27,21 @@
     in a stack-like manner - all values up to the stack top are live.
     
     This simplifies exception handling, garbage collection, and debug info.
- 
+*/
+
+
+
+/*
+    The compiler's first pass visits the nodes of the AST and produces dumb
+    bytecode, as if directly translating the operations of a stack machine.
+    This initial bytecode undergoes several optimization passes before it is
+    ready to use.
 */
 
 
 
 
-class yl_compile_statement;
-class yl_compile_expression;
-class yl_compile_script;
-
-
-
-
-struct yl_build_script
+struct yl_compile_script
 {
     yl_ast_func*                    func;
     std::vector< yl_ast_node* >     constants;
@@ -51,109 +52,17 @@ struct yl_build_script
 
 
 
-
-
-
-/*
-    Visits statement AST nodes and compiles them.
- 
-*/
-
-class yl_compile_statement
-    :   public yl_ast_visitor< yl_compile_statement, void >
+class yl_compile_visitor
+    :   private yl_ast_visitor< yl_compile_script, void >
 {
 public:
 
-
-    yl_compile_statement( yl_compile_script* c );
-
-    using yl_ast_visitor< yl_compile_statement, void >::visit;
-
-    void fallback( yl_ast_node* node );
-    
-    void visit( yl_stmt_block* node );
-    void visit( yl_stmt_if* node );
-    void visit( yl_stmt_switch* node );
-    void visit( yl_stmt_while* node );
-    void visit( yl_stmt_do* node );
-    void visit( yl_stmt_foreach* node );
-    void visit( yl_stmt_for* node );
-    void visit( yl_stmt_using* node );
-    void visit( yl_stmt_try* node );
-    void visit( yl_stmt_catch* node );
-    void visit( yl_stmt_delete* node );
-    void visit( yl_stmt_case* node );
-    void visit( yl_stmt_continue* node );
-    void visit( yl_stmt_break* node );
-    void visit( yl_stmt_return* node );
-    void visit( yl_stmt_throw* node );
+    yl_compile_visitor();
+    std::unique_ptr< yl_compile_script > compile( yl_ast_func* func );
 
 
 private:
 
-    yl_compile_script* c;
-
-
-};
-
-
-
-
-
-
-/*
-    Visits expression AST nodes and compiles them.
-*/
-
-class yl_compile_expression
-{
-public:
-
-    yl_compile_expression( yl_compile_script* c );
-
-
-private:
-
-
-    yl_compile_script* c;
-
-};
-
-
-
-
-
-/*
-    Compile an AST representation of a function into a y_script.
-    
-    The compiler's first pass walks the AST and produces dumb bytecode.  Then
-    we run several optimization passes.  We do the optimizations in separate
-    passes to simplify the code.
-    
-        -   Copy propagation, which eliminates unecessary moves and removes
-            unused stack slots.  This is the most important optimization pass
-            as without it the VM is just an inefficient stack machine.
-        
-        -   Control flow optimizations, which collapse chains of jumps
-            together and can remove unecessary not instructions.
-            
-        -   Dead code elimination.
-
-*/
-
-class yl_compile_script
-{
-public:
-
-    yl_compile_script( yl_build_script* s );
-    void compile();
-
-
-private:
-
-    friend class yl_compile_statement;
-    friend class yl_compile_expression;
-    
     
     struct listval
     {
@@ -182,6 +91,61 @@ private:
     };
     
     
+
+    using yl_ast_visitor< yl_compile_script, void >::visit;
+
+    void        fallback( yl_ast_node* node );
+    
+    void        visit( yl_stmt_block* node );
+    void        visit( yl_stmt_if* node );
+    void        visit( yl_stmt_switch* node );
+    void        visit( yl_stmt_while* node );
+    void        visit( yl_stmt_do* node );
+    void        visit( yl_stmt_foreach* node );
+    void        visit( yl_stmt_for* node );
+    void        visit( yl_stmt_using* node );
+    void        visit( yl_stmt_try* node );
+    void        visit( yl_stmt_catch* node );
+    void        visit( yl_stmt_delete* node );
+    void        visit( yl_stmt_case* node );
+    void        visit( yl_stmt_continue* node );
+    void        visit( yl_stmt_break* node );
+    void        visit( yl_stmt_return* node );
+    void        visit( yl_stmt_throw* node );
+
+    void        visit( yl_ast_func* node );
+    void        visit( yl_expr_null* node );
+    void        visit( yl_expr_bool* node );
+    void        visit( yl_expr_number* node );
+    void        visit( yl_expr_string* node );
+    void        visit( yl_expr_local* node );
+    void        visit( yl_expr_global* node );
+    void        visit( yl_expr_upref* node );
+    void        visit( yl_expr_objref* node );
+    void        visit( yl_expr_superof* node );
+    void        visit( yl_expr_key* node );
+    void        visit( yl_expr_inkey* node );
+    void        visit( yl_expr_index* node );
+    void        visit( yl_expr_preop* node );
+    void        visit( yl_expr_postop* node );
+    void        visit( yl_expr_unary* node );
+    void        visit( yl_expr_binary* node );
+    void        visit( yl_expr_compare* node );
+    void        visit( yl_expr_logical* node );
+    void        visit( yl_expr_qmark* node );
+    void        visit( yl_new_new* node );
+    void        visit( yl_new_object* node );
+    void        visit( yl_new_array* node );
+    void        visit( yl_new_table* node );
+    void        visit( yl_expr_mono* node );
+    void        visit( yl_expr_call* node );
+    void        visit( yl_expr_yield* node );
+    void        visit( yl_expr_vararg* node );
+    void        visit( yl_expr_unpack* node );
+    void        visit( yl_expr_list* node );
+    void        visit( yl_expr_assign* node );
+    void        visit( yl_expr_assign_list* node );
+    
     void        op( y_opcode op, unsigned r, unsigned a, unsigned b );
     void        op( y_opcode op, unsigned r, unsigned c );
     void        op( y_opcode op, unsigned r, signed j );
@@ -199,6 +163,8 @@ private:
     
     unsigned    constant( yl_ast_node* node );
     unsigned    key( yl_ast_node* node );
+    
+    void        execute( yl_ast_node* statement_or_expression );
     
     unsigned    push();
     unsigned    push( yl_ast_node* expression );
@@ -219,14 +185,11 @@ private:
     void        undeclare( yl_ast_scope* scope );
 
 
-    yl_compile_statement        compile_statement;
-    yl_compile_expression       compile_expression;
-
     std::vector< branch >       break_stack;
     std::vector< branch >       continue_stack;
     int                         iterator_stack;
 
-    yl_build_script*            s;
+    yl_compile_script*          s;
 
 };
 

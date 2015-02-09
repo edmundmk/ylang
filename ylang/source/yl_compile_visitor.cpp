@@ -1,12 +1,12 @@
 //
-//  yl_expr_visitor.cpp
+//  yl_compile_visitor.cpp
 //
 //  Created by Edmund Kapusniak on 07/02/2015.
 //  Copyright (c) 2015 Edmund Kapusniak. All rights reserved.
 //
 
 
-#include "yl_expr_visitor.h"
+#include "yl_compile_visitor.h"
 #include <assert.h>
 #include <unordered_map>
 
@@ -52,32 +52,26 @@ y_opcode yl_astop_to_opcode( yl_ast_opkind op )
 
 
 
-yl_compile_statement::yl_compile_statement( yl_compile_script* c )
-    :   c( c )
+void yl_compile_visitor::fallback( yl_ast_node* node )
 {
+    assert( ! "unknown AST node" );
 }
 
 
-void yl_compile_statement::fallback( yl_ast_node* node )
-{
-    c->pop( c->push( node ) );
-}
-
-
-void yl_compile_statement::visit( yl_stmt_block* node )
+void yl_compile_visitor::visit( yl_stmt_block* node )
 {
     for ( size_t i = 0; i < node->stmts.size(); ++i )
     {
-        visit( node->stmts.at( i ) );
+        execute( node->stmts.at( i ) );
     }
     
     if ( node->scope )
     {
-        c->undeclare( node->scope );
+        undeclare( node->scope );
     }
 }
 
-void yl_compile_statement::visit( yl_stmt_if* node )
+void yl_compile_visitor::visit( yl_stmt_if* node )
 {
     /*
             test condition
@@ -89,30 +83,30 @@ void yl_compile_statement::visit( yl_stmt_if* node )
         endif:
     */
 
-    unsigned v = c->push( node->condition );
-    c->pop( v );
-    int test_jump = c->jump( Y_JMPF, v );
+    unsigned v = push( node->condition );
+    pop( v );
+    int test_jump = jump( Y_JMPF, v );
     
     if ( node->iftrue )
     {
-        visit( node->iftrue );
+        execute( node->iftrue );
     }
     if ( node->iffalse )
     {
-        int endif_jump = c->jump( Y_JMP, 0 );
-        c->patch( test_jump, c->label() );
-        visit( node->iffalse );
-        c->patch( endif_jump, c->label() );
+        int endif_jump = jump( Y_JMP, 0 );
+        patch( test_jump, label() );
+        execute( node->iffalse );
+        patch( endif_jump, label() );
     }
     else
     {
-        c->patch( test_jump, c->label() );
+        patch( test_jump, label() );
     }
     
-    c->undeclare( node->scope );
+    undeclare( node->scope );
 }
 
-void yl_compile_statement::visit( yl_stmt_switch* node )
+void yl_compile_visitor::visit( yl_stmt_switch* node )
 {
     /*
         It's possible that a case expression could clobber the comparison
@@ -120,7 +114,7 @@ void yl_compile_statement::visit( yl_stmt_switch* node )
         value on the stack during the case sequence.
     */
     
-    unsigned u = c->push( node->value );
+    unsigned u = push( node->value );
     
     /*
             push value
@@ -138,7 +132,7 @@ void yl_compile_statement::visit( yl_stmt_switch* node )
         break:
     */
     
-    c->open_break( node->scope );
+    open_break( node->scope );
 
     std::unordered_map< yl_stmt_case*, int > case_jumps;
     for ( size_t i = 0; i < node->body->stmts.size(); ++i )
@@ -151,17 +145,17 @@ void yl_compile_statement::visit( yl_stmt_switch* node )
         if ( ! cstmt->value )
             continue;
         
-        unsigned v = c->push( cstmt->value );
-        c->pop( v );
-        unsigned w = c->push();
-        c->op( Y_EQ, w, u, v );
-        c->pop( w );
-        case_jumps.emplace( cstmt, c->jump( Y_JMPT, w ) );
+        unsigned v = push( cstmt->value );
+        pop( v );
+        unsigned w = push();
+        op( Y_EQ, w, u, v );
+        pop( w );
+        case_jumps.emplace( cstmt, jump( Y_JMPT, w ) );
     }
     
-    c->pop( u );
+    pop( u );
     
-    int default_jump = c->jump( Y_JMP, 0 );
+    int default_jump = jump( Y_JMP, 0 );
     bool has_default = false;
     
     for ( size_t i = 0; i < node->body->stmts.size(); ++i )
@@ -172,37 +166,37 @@ void yl_compile_statement::visit( yl_stmt_switch* node )
             yl_stmt_case* cstmt = (yl_stmt_case*)stmt;
             if ( cstmt->value )
             {
-                c->patch( case_jumps.at( cstmt ), c->label() );
+                patch( case_jumps.at( cstmt ), label() );
             }
             else
             {
-                c->patch( default_jump, c->label() );
+                patch( default_jump, label() );
                 has_default = true;
             }
         }
         else
         {
-            visit( stmt );
+            execute( stmt );
         }
     }
     
-    int break_label = c->label();
+    int break_label = label();
     
     if ( ! has_default )
     {
-        c->patch( default_jump, break_label );
+        patch( default_jump, break_label );
     }
     
-    c->close_break( node->scope, break_label );
+    close_break( node->scope, break_label );
     
     if ( node->body->scope )
     {
-        c->undeclare( node->body->scope );
+        undeclare( node->body->scope );
     }
-    c->undeclare( node->scope );
+    undeclare( node->scope );
 }
 
-void yl_compile_statement::visit( yl_stmt_while* node )
+void yl_compile_visitor::visit( yl_stmt_while* node )
 {
     /*
         continue:
@@ -213,27 +207,27 @@ void yl_compile_statement::visit( yl_stmt_while* node )
         break:
     */
     
-    int continue_label = c->label();
-    c->open_break( node->scope );
-    c->open_continue( node->scope );
+    int continue_label = label();
+    open_break( node->scope );
+    open_continue( node->scope );
 
-    unsigned v = c->push( node->condition );
-    c->pop( v );
-    int test_jump = c->jump( Y_JMPF, v );
+    unsigned v = push( node->condition );
+    pop( v );
+    int test_jump = jump( Y_JMPF, v );
     
-    visit( node->body );
+    execute( node->body );
     
-    c->close_continue( node->scope, continue_label );
-    c->patch( c->jump( Y_JMP, 0 ), continue_label );
+    close_continue( node->scope, continue_label );
+    patch( jump( Y_JMP, 0 ), continue_label );
     
-    int break_label = c->label();
-    c->close_break( node->scope, break_label );
-    c->patch( test_jump, break_label );
+    int break_label = label();
+    close_break( node->scope, break_label );
+    patch( test_jump, break_label );
     
-    c->undeclare( node->scope );
+    undeclare( node->scope );
 }
 
-void yl_compile_statement::visit( yl_stmt_do* node )
+void yl_compile_visitor::visit( yl_stmt_do* node )
 {
     /*
         top:
@@ -244,26 +238,26 @@ void yl_compile_statement::visit( yl_stmt_do* node )
         break:
     */
 
-    int top_label = c->label();
-    c->open_break( node->scope );
-    c->open_continue( node->scope );
+    int top_label = label();
+    open_break( node->scope );
+    open_continue( node->scope );
     
-    visit( node->body );
+    execute( node->body );
     
-    int continue_label = c->label();
-    c->close_continue( node->scope, continue_label );
+    int continue_label = label();
+    close_continue( node->scope, continue_label );
     
-    unsigned v = c->push( node->condition );
-    c->pop( v );
-    c->patch( c->jump( Y_JMPT, v ), top_label );
+    unsigned v = push( node->condition );
+    pop( v );
+    patch( jump( Y_JMPT, v ), top_label );
     
-    int break_label = c->label();
-    c->close_break( node->scope, break_label );
+    int break_label = label();
+    close_break( node->scope, break_label );
     
-    c->undeclare( node->scope );
+    undeclare( node->scope );
 }
 
-void yl_compile_statement::visit( yl_stmt_foreach* node )
+void yl_compile_visitor::visit( yl_stmt_foreach* node )
 {
     /*
             iter/iterkey list
@@ -277,69 +271,69 @@ void yl_compile_statement::visit( yl_stmt_foreach* node )
      
     */
     
-    unsigned l = c->push( node->list );
-    c->pop( l );
-    unsigned i = c->push_iterator();
-    c->op( node->eachkey ? Y_ITERKEY : Y_ITER, i, l, 0 );
+    unsigned l = push( node->list );
+    pop( l );
+    unsigned i = push_iterator();
+    op( node->eachkey ? Y_ITERKEY : Y_ITER, i, l, 0 );
     
-    int entry_jump = c->jump( Y_JMP, 0 );
+    int entry_jump = jump( Y_JMP, 0 );
     
-    int continue_label = c->label();
-    c->open_break( node->scope );
-    c->open_continue( node->scope );
+    int continue_label = label();
+    open_break( node->scope );
+    open_continue( node->scope );
     
     if ( node->declare )
     {
-        auto rv = c->push_list( (int)node->lvalues.size() );
+        auto rv = push_list( (int)node->lvalues.size() );
         assert( rv.count == (int)node->lvalues.size() );
 
         for ( size_t i = 0; i < node->lvalues.size(); ++i )
         {
             assert( node->lvalues.at( i )->kind == YL_EXPR_LOCAL );
             yl_expr_local* local = (yl_expr_local*)node->lvalues.at( i );
-            c->declare( rv.r + (int)i, local->name );
+            declare( rv.r + (int)i, local->name );
         }
     }
     else
     {
-        std::vector< yl_compile_script::lvalue > lv;
+        std::vector< yl_compile_visitor::lvalue > lv;
         lv.reserve( node->lvalues.size() );
         
         for ( size_t i = 0; i < node->lvalues.size(); ++i )
         {
-            lv.push_back( c->push_lvalue( node->lvalues.at( i ) ) );
+            lv.push_back( push_lvalue( node->lvalues.at( i ) ) );
         }
         
-        auto rv = c->push_list( (int)node->lvalues.size() );
+        auto rv = push_list( (int)node->lvalues.size() );
         assert( rv.count == (int)node->lvalues.size() );
      
         for ( size_t i = 0; i < node->lvalues.size(); ++i )
         {
-            c->assign( lv.at( i ), rv.r + (int)i );
+            assign( lv.at( i ), rv.r + (int)i );
         }
         
-        c->pop_list( rv );
+        pop_list( rv );
         for ( auto i = lv.rbegin(); i != lv.rend(); ++i )
         {
-            c->pop_lvalue( *i );
+            pop_lvalue( *i );
         }
     }
     
-    visit( node->body );
+    execute( node->body );
     
-    int entry_label = c->label();
-    c->patch( entry_jump, entry_label );
+    int entry_label = label();
+    patch( entry_jump, entry_label );
     
-    c->patch( c->jump( Y_JMPITER, i ), continue_label );
-    c->close_continue( node->scope, continue_label );
+    patch( jump( Y_JMPITER, i ), continue_label );
+    close_continue( node->scope, continue_label );
     
-    int break_label = c->label();
-    c->close_break( node->scope, break_label );
+    int break_label = label();
+    close_break( node->scope, break_label );
 
-    c->undeclare( node->scope );
+    undeclare( node->scope );
 }
 
-void yl_compile_statement::visit( yl_stmt_for* node )
+void yl_compile_visitor::visit( yl_stmt_for* node )
 {
     /*
             init
@@ -356,57 +350,57 @@ void yl_compile_statement::visit( yl_stmt_for* node )
 
     if ( node->init )
     {
-        c->pop( c->push( node->init ) );
+        pop( push( node->init ) );
     }
     
-    int top_label = c->label();
-    c->open_break( node->scope );
-    c->open_continue( node->scope );
+    int top_label = label();
+    open_break( node->scope );
+    open_continue( node->scope );
     
     int test_jump = -1;
     if ( node->condition )
     {
-        int v = c->push( node->condition );
-        c->pop( v );
-        test_jump = c->jump( Y_JMPF, v );
+        int v = push( node->condition );
+        pop( v );
+        test_jump = jump( Y_JMPF, v );
     }
     
-    visit( node->body );
+    execute( node->body );
     
-    int continue_label = c->label();
-    c->close_continue( node->scope, continue_label );
+    int continue_label = label();
+    close_continue( node->scope, continue_label );
 
     if ( node->update )
     {
-        c->pop( c->push( node->update ) );
+        pop( push( node->update ) );
     }
     
-    c->patch( c->jump( Y_JMP, 0 ), top_label );
+    patch( jump( Y_JMP, 0 ), top_label );
     
-    int break_label = c->label();
+    int break_label = label();
     if ( test_jump != -1 )
     {
-        c->patch( test_jump, break_label );
+        patch( test_jump, break_label );
     }
-    c->close_break( node->scope, break_label );
+    close_break( node->scope, break_label );
     
-    c->undeclare( node->scope );
+    undeclare( node->scope );
 }
 
-void yl_compile_statement::visit( yl_stmt_using* node )
+void yl_compile_visitor::visit( yl_stmt_using* node )
 {
 }
 
-void yl_compile_statement::visit( yl_stmt_try* node )
+void yl_compile_visitor::visit( yl_stmt_try* node )
 {
 }
 
-void yl_compile_statement::visit( yl_stmt_catch* node )
+void yl_compile_visitor::visit( yl_stmt_catch* node )
 {
     assert( ! "catch outside try" );
 }
 
-void yl_compile_statement::visit( yl_stmt_delete* node )
+void yl_compile_visitor::visit( yl_stmt_delete* node )
 {
     for ( size_t i = 0; i < node->delvals.size(); ++i )
     {
@@ -414,100 +408,95 @@ void yl_compile_statement::visit( yl_stmt_delete* node )
         if ( delval->kind == YL_EXPR_KEY )
         {
             yl_expr_key* expr = (yl_expr_key*)node;
-            int v = c->push( expr->object );
-            c->pop( v );
-            c->op( Y_DELKEY, 0, v, c->key( expr ) );
+            int v = push( expr->object );
+            pop( v );
+            op( Y_DELKEY, 0, v, key( expr ) );
         }
         else if ( delval->kind == YL_EXPR_INKEY )
         {
             yl_expr_inkey* expr = (yl_expr_inkey*)node;
-            int v = c->push( expr->object );
-            int u = c->push( expr->key );
-            c->pop( u );
-            c->pop( v );
-            c->op( Y_DELINKEY, 0, v, u );
+            int v = push( expr->object );
+            int u = push( expr->key );
+            pop( u );
+            pop( v );
+            op( Y_DELINKEY, 0, v, u );
         }
     }
 }
 
-void yl_compile_statement::visit( yl_stmt_case* node )
+void yl_compile_visitor::visit( yl_stmt_case* node )
 {
     assert( ! "case outside switch" );
 }
 
-void yl_compile_statement::visit( yl_stmt_continue* node )
+void yl_compile_visitor::visit( yl_stmt_continue* node )
 {
-    c->add_continue( node->target );
+    add_continue( node->target );
 }
 
-void yl_compile_statement::visit( yl_stmt_break* node )
+void yl_compile_visitor::visit( yl_stmt_break* node )
 {
-    c->add_break( node->target );
+    add_break( node->target );
 }
 
-void yl_compile_statement::visit( yl_stmt_return* node )
+void yl_compile_visitor::visit( yl_stmt_return* node )
 {
-    auto lv = c->push_list( node->values, -1 );
-    c->pop_list( lv );
-    c->op( Y_RETURN, 0, lv.r, lv.count );
+    auto lv = push_list( node->values, -1 );
+    pop_list( lv );
+    op( Y_RETURN, 0, lv.r, lv.count );
 }
 
-void yl_compile_statement::visit( yl_stmt_throw* node )
+void yl_compile_visitor::visit( yl_stmt_throw* node )
 {
-    int v = c->push( node->value );
-    c->pop( v );
-    c->op( Y_THROW, 0, v, 0 );
-}
-
-
-
-
-
-
-
-
-
-
-
-yl_compile_script::yl_compile_script( yl_build_script* s )
-    :   compile_statement( this )
-    ,   compile_expression( this )
-    ,   s( s )
-{
+    int v = push( node->value );
+    pop( v );
+    op( Y_THROW, 0, v, 0 );
 }
 
 
 
 
-void yl_compile_script::op( y_opcode op, unsigned r, unsigned a, unsigned b )
+
+
+
+
+
+
+
+
+
+
+
+
+void yl_compile_visitor::op( y_opcode op, unsigned r, unsigned a, unsigned b )
 {
     s->code.emplace_back( op, r, a, b );
 }
 
-void yl_compile_script::op( y_opcode op, unsigned r, unsigned c )
+void yl_compile_visitor::op( y_opcode op, unsigned r, unsigned c )
 {
     s->code.emplace_back( op, r, c );
 }
 
-void yl_compile_script::op( y_opcode op, unsigned r, signed j )
+void yl_compile_visitor::op( y_opcode op, unsigned r, signed j )
 {
     s->code.emplace_back( op, r, j );
 }
 
 
 
-int yl_compile_script::label()
+int yl_compile_visitor::label()
 {
     return (int)s->code.size();
 }
 
-int yl_compile_script::jump( y_opcode opcode, unsigned r )
+int yl_compile_visitor::jump( y_opcode opcode, unsigned r )
 {
     s->code.emplace_back( opcode, r, (signed)0 );
     return (int)s->code.size();
 }
 
-void yl_compile_script::patch( int jump, int label )
+void yl_compile_visitor::patch( int jump, int label )
 {
     y_opinst& j = s->code.at( jump - 1 );
     j = y_opinst( j.opcode(), j.r(), (signed)( label - jump ) );
@@ -517,19 +506,19 @@ void yl_compile_script::patch( int jump, int label )
 
 
 
-void yl_compile_script::open_break( yl_ast_scope* target )
+void yl_compile_visitor::open_break( yl_ast_scope* target )
 {
     break_stack.emplace_back( target );
 }
 
-void yl_compile_script::add_break( yl_ast_scope* target )
+void yl_compile_visitor::add_break( yl_ast_scope* target )
 {
     branch& branch_break = break_stack.back();
     assert( branch_break.target == target );
     branch_break.jumps.push_back( jump( Y_JMP, 0 ) );
 }
 
-void yl_compile_script::close_break( yl_ast_scope* target, int label )
+void yl_compile_visitor::close_break( yl_ast_scope* target, int label )
 {
     branch& branch_break = break_stack.back();
     assert( branch_break.target == target );
@@ -540,19 +529,19 @@ void yl_compile_script::close_break( yl_ast_scope* target, int label )
     break_stack.pop_back();
 }
 
-void yl_compile_script::open_continue( yl_ast_scope* target )
+void yl_compile_visitor::open_continue( yl_ast_scope* target )
 {
     continue_stack.emplace_back( target );
 }
 
-void yl_compile_script::add_continue( yl_ast_scope* target )
+void yl_compile_visitor::add_continue( yl_ast_scope* target )
 {
     branch& branch_continue = continue_stack.back();
     assert( branch_continue.target == target );
     branch_continue.jumps.push_back( jump( Y_JMP, 0 ) );
 }
 
-void yl_compile_script::close_continue( yl_ast_scope* target, int label )
+void yl_compile_visitor::close_continue( yl_ast_scope* target, int label )
 {
     branch& branch_continue = continue_stack.back();
     assert( branch_continue.target == target );
