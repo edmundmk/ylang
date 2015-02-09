@@ -14,58 +14,6 @@
 #include <y_script.h>
 
 
-/*
-    yl bytecode is register-based, and owes a great deal to the Lua VM.
-    
-    Originally I wrote a compiler based on an SSA-form, which performed
-    register allocation and attempted to minimize the number of move
-    instructions.  I had good success, but a compiler which can assign
-    different instances of the same variable to different locations faces
-    a difficult job supporting debug information and in generating
-    phi-functions on entry to exception handlers.
-    
-    This compiler is much simpler.
-    
-    It treats registers like a stack - in two ways.  Local variables are
-    allocated spaces on the stack as they are declared (and popped when they
-    go out of scope).  And expression evaluation is performed as if on a stack
-    machine, except that pushes of values which are already accessible or
-    which will be immediately assigned to locals can be elided.
-    
-    The possibility of assignments during expressions means that not all
-    pushes of local variables can be elided - some will be clobbered by an
-    assignment that occurs inbetween the push and the use of the pushed
-    value.  This includes any escaped upval which may be clobbered by a
-    function call.
-    
-    First we transform an expression AST into postfix form (which could be
-    executed directly on a stack machine).  During this step assignments
-    or functions calls mark previously pushed local or upval references
-    that will be clobbered.  To support shortcut evaluation and the ?:
-    operator, we need to support branching in this intermediate form.
-    
-    Once we know which local/upval references can be elided, we convert the
-    stack instructions to register form.
- 
- 
- 
-    To compile, do the simplest thing that could possibly work.
-    Analyze all local references to see which are clobbered.
- 
- 
- 
- 
-    The other option is to go back to SSA form and:
-        -   at every possible GC site, build a bitmap of live registers.
-                with a maximum of 256 registers, this is 4 64-bit values or
-                32 bytes.
-        -   link blocks from exit of exception handlers to next block.
-        -   at every possible exception site, work out where all variables
-                live on entry to the exception handler are and build
-                instructions to remap them.
- 
-*/
-
 
 
 /*
@@ -88,6 +36,20 @@
 class yl_compile_statement;
 class yl_compile_expression;
 class yl_compile_script;
+
+
+
+
+struct yl_build_script
+{
+    yl_ast_func*                    func;
+    std::vector< yl_ast_node* >     constants;
+    std::vector< yl_expr_key* >     keys;
+    std::vector< y_opinst >         code;
+    std::vector< y_xframe >         xframes;
+};
+
+
 
 
 
@@ -147,9 +109,13 @@ class yl_compile_expression
 {
 public:
 
+    yl_compile_expression( yl_compile_script* c );
+
 
 private:
 
+
+    yl_compile_script* c;
 
 };
 
@@ -161,15 +127,12 @@ private:
     Compile an AST representation of a function into a y_script.
     
     The compiler's first pass walks the AST and produces dumb bytecode.  Then
-    we run several optimization passes, each of which takes in a bytecode
-    program and writes out a more efficient one.  We do the optimizations in
-    separate passes to simplify the code.
+    we run several optimization passes.  We do the optimizations in separate
+    passes to simplify the code.
     
-        -   Copy propagation, which eliminates unecessary moves.  Writes to
-            locals are preserved.  After this pass unused stack slots (which
-            contain the targets of eliminated moves) can be removed.  This
-            is the most important optimization pass as without it the VM is
-            just a stack machine with long instructions.
+        -   Copy propagation, which eliminates unecessary moves and removes
+            unused stack slots.  This is the most important optimization pass
+            as without it the VM is just an inefficient stack machine.
         
         -   Control flow optimizations, which collapse chains of jumps
             together and can remove unecessary not instructions.
@@ -182,6 +145,8 @@ class yl_compile_script
 {
 public:
 
+    yl_compile_script( yl_build_script* s );
+    void compile();
 
 
 private:
@@ -189,26 +154,25 @@ private:
     friend class yl_compile_statement;
     friend class yl_compile_expression;
     
-
-    int                         jump( y_opcode opcode, unsigned r );
-    int                         label();
-    void                        patch( int jump, int label );
     
-    void                        open_break( yl_ast_scope* target );
-    void                        add_break( yl_ast_scope* target );
-    void                        close_break( yl_ast_scope* target, int label );
-    void                        open_continue( yl_ast_scope* target );
-    void                        add_continue( yl_ast_scope* target );
-    void                        close_continue( yl_ast_scope* target, int label );
+    struct listval
+    {
+        listval( unsigned r, int count ) : r( r ), count( count ) {}
     
-    int                         push();
-    int                         push( yl_ast_node* expression );
-    void                        pop( int r );
+        unsigned    r;
+        int         count;
+    };
     
-    void                        close_scope( yl_ast_scope* scope );
-
-
-
+    struct lvalue
+    {
+        lvalue( yl_ast_node_kind kind, unsigned o, unsigned k )
+            :   kind( kind ), o( o ), k( k ) {}
+    
+        yl_ast_node_kind kind;
+        unsigned    o;
+        unsigned    k;
+    };
+    
     struct branch
     {
         branch( yl_ast_scope* target ) : target( target ) {}
@@ -217,287 +181,54 @@ private:
         std::vector< int >  jumps;
     };
     
+    
+    void        op( y_opcode op, unsigned r, unsigned a, unsigned b );
+    void        op( y_opcode op, unsigned r, unsigned c );
+    void        op( y_opcode op, unsigned r, signed j );
+
+    int         jump( y_opcode opcode, unsigned r );
+    int         label();
+    void        patch( int jump, int label );
+    
+    void        open_break( yl_ast_scope* target );
+    void        add_break( yl_ast_scope* target );
+    void        close_break( yl_ast_scope* target, int label );
+    void        open_continue( yl_ast_scope* target );
+    void        add_continue( yl_ast_scope* target );
+    void        close_continue( yl_ast_scope* target, int label );
+    
+    unsigned    constant( yl_ast_node* node );
+    unsigned    key( yl_ast_node* node );
+    
+    unsigned    push();
+    unsigned    push( yl_ast_node* expression );
+    void        pop( unsigned r );
+    
+    listval     push_list( int count );
+    listval     push_list( yl_ast_node* expression, int count );
+    void        pop_list( listval lv );
+    
+    lvalue      push_lvalue( yl_ast_node* lvexpr );
+    void        assign( lvalue lv, unsigned v );
+    void        pop_lvalue( lvalue lv );
+    
+    unsigned    push_iterator();
+    void        pop_iterator( unsigned i );
+    
+    void        declare( unsigned r, yl_ast_name* name );
+    void        undeclare( yl_ast_scope* scope );
+
 
     yl_compile_statement        compile_statement;
     yl_compile_expression       compile_expression;
 
-    std::vector< yl_ast_name* > locals;
     std::vector< branch >       break_stack;
     std::vector< branch >       continue_stack;
+    int                         iterator_stack;
 
-    std::vector< y_opinst >     code;
-
-
-};
-
-
-
-
-
-
-
-
-#if 0
-
-
-
-
-
-class yl_clobber_analysis
-    :   private yl_ast_visitor< yl_clobber_analysis, void >
-{
-public:
-
-
-    void analyse( yl_ast_func* func, yl_ast_node* expr );
-    bool is_clobbered( yl_ast_node* load );
-    
-
-private:
-
-    using yl_ast_visitor< yl_clobber_analysis, void >::visit;
-
-    void fallback( yl_ast_node* node );
-    
-    void visit( yl_ast_func* node );
-    void visit( yl_expr_null* node );
-    void visit( yl_expr_bool* node );
-    void visit( yl_expr_number* node );
-    void visit( yl_expr_string* node );
-    void visit( yl_expr_local* node );
-    void visit( yl_expr_global* node );
-    void visit( yl_expr_upref* node );
-    void visit( yl_expr_objref* node );
-    void visit( yl_expr_superof* node );
-    void visit( yl_expr_key* node );
-    void visit( yl_expr_inkey* node );
-    void visit( yl_expr_index* node );
-    void visit( yl_expr_preop* node );
-    void visit( yl_expr_postop* node );
-    void visit( yl_expr_unary* node );
-    void visit( yl_expr_binary* node );
-    void visit( yl_expr_compare* node );
-    void visit( yl_expr_logical* node );
-    void visit( yl_expr_qmark* node );
-    void visit( yl_new_new* node );
-    void visit( yl_new_object* node );
-    void visit( yl_new_array* node );
-    void visit( yl_new_table* node );
-    void visit( yl_expr_mono* node );
-    void visit( yl_expr_call* node );
-    void visit( yl_expr_yield* node );
-    void visit( yl_expr_vararg* node );
-    void visit( yl_expr_unpack* node );
-    void visit( yl_expr_list* node );
-    void visit( yl_expr_assign* node );
-    void visit( yl_expr_assign_list* node );
-
-
-
-
-
-
-
-
-    int  open();
-    void push( yl_ast_node* node );
-    void close( int fp );
-
-
-
-
-    void repush();
-    void pop( int count );
-    void pop_swap();
-
-    int unpack( yl_ast_node* node );
-
-    void lvalue( yl_ast_node* node );
-    void lveval( yl_ast_node* node );
-    void assign( yl_ast_node* node );
-    void assign_swap( yl_ast_node* node );
-    
-    void function_call( int argcount );
-
-
-    yl_ast_func*                        func;
-    std::vector< yl_ast_node* >         stack;
-    std::unordered_set< yl_ast_node* >  clobbered;
+    yl_build_script*            s;
 
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-class yl_builder
-{
-public:
-
-
-    /*
-        Stack management.
-    */
-
-    void    repush();                               // ..., o -> ..., o, o
-    void    swap();                                 // ..., a, b, -> ..., b, a
-
-
-    /*
-        Lvalues.
-    */
-    
-    void    lvalue_open( yl_ast_node* node );       // ... -> ..., ??
-    void    lvalue_evaluate( yl_ast_node* node );   // ..., ?? -> ..., ??, o
-    void    lvalue_assign( yl_ast_node* node );     // ..., ??, o -> ...
-
-
-    /*
-        Operations that perform calculations.
-    */
-
-    void    op_value_null();                        // ... -> ..., null
-    void    op_value_one();                         // ... -> ..., 1
-    void    op_value( yl_ast_node* node );          // ... -> ..., o
-    void    op_unary( y_opcode op );                // ..., v -> ..., o
-    void    op_binary( y_opcode op );               // ..., l, r -> ..., o
-    void    op_lookup( const char* key );           // ..., o -> ..., m
-    void    op_not();                               // ..., v -> ..., o
-
-
-    /*
-        Call-like operations that push and pop variable numbers of values.
-    */
-
-    void    op( y_opcode op, int pop, int push );
-
-    
-    /*
-        Chained comparisons have mildly complicated behaviour.
-        
-            ..., l, r
-                if ( comparison == result ) :
-                    ..., r
-                else :
-                    ..., false
-    */
-
-    void    if_chain_compare( y_opcode op, bool result );
-
-
-    /*
-        Branching inside an expression (?: or shortcut evaluation).  Note
-        that the initial value is _only_ popped if the body of the if block
-        or else block is entered - if there is no else and the condition
-        fails, the initial value remains on the stack.
-        
-            ..., v
-                if ( v )
-                    ..., 
-                else
-                    ...,
-                end
-                
-            ..., v
-                if ( v )
-                    ...,
-                end
-                    ..., v
-    */
-
-    void    if_true();
-    void    if_false();
-    void    if_else();
-    void    if_end();
-    
-    
-    /*
-        When in an object literal the object under construction may be
-        accessible as an upval.  This marks the top stack slot.
-    */
-    
-    void    open_object( yl_new_object* object );
-    void    close_object( yl_new_object* object );
-    
-};
-
-
-
-y_opcode yl_astop_to_opcode( yl_ast_opkind op );
-
-
-
-
-class yl_expr_visitor
-    :   public yl_ast_visitor< yl_expr_visitor, void >
-{
-public:
-
-    explicit yl_expr_visitor( yl_builder* b );
-
-    using yl_ast_visitor< yl_expr_visitor, void >::visit;
-
-    void fallback( yl_ast_node* node );
-    
-    void visit( yl_ast_func* node );
-    void visit( yl_expr_null* node );
-    void visit( yl_expr_bool* node );
-    void visit( yl_expr_number* node );
-    void visit( yl_expr_string* node );
-    void visit( yl_expr_local* node );
-    void visit( yl_expr_global* node );
-    void visit( yl_expr_upref* node );
-    void visit( yl_expr_objref* node );
-    void visit( yl_expr_superof* node );
-    void visit( yl_expr_key* node );
-    void visit( yl_expr_inkey* node );
-    void visit( yl_expr_index* node );
-    void visit( yl_expr_preop* node );
-    void visit( yl_expr_postop* node );
-    void visit( yl_expr_unary* node );
-    void visit( yl_expr_binary* node );
-    void visit( yl_expr_compare* node );
-    void visit( yl_expr_logical* node );
-    void visit( yl_expr_qmark* node );
-    void visit( yl_new_new* node );
-    void visit( yl_new_object* node );
-    void visit( yl_new_array* node );
-    void visit( yl_new_table* node );
-    void visit( yl_expr_mono* node );
-    void visit( yl_expr_call* node );
-    void visit( yl_expr_yield* node );
-    void visit( yl_expr_vararg* node );
-    void visit( yl_expr_unpack* node );
-    void visit( yl_expr_list* node );
-    void visit( yl_expr_assign* node );
-    void visit( yl_expr_assign_list* node );
-
-
-private:
-
-    int unpack( yl_ast_node* node, int count );
-
-    yl_builder* b;
-
-};
-
-
-
-
-
-
-#endif
-
-
-
 
 
 
