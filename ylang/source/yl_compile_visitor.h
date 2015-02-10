@@ -34,8 +34,8 @@
 /*
     The compiler's first pass visits the nodes of the AST and produces dumb
     bytecode, as if directly translating the operations of a stack machine.
-    This initial bytecode undergoes several optimization passes before it is
-    ready to use.
+    This initial bytecode is correct, but slow, containing many redundant
+    move instructions.
 */
 
 
@@ -53,7 +53,7 @@ struct yl_compile_script
 
 
 class yl_compile_visitor
-    :   private yl_ast_visitor< yl_compile_script, void >
+    :   private yl_ast_visitor< yl_compile_script, int, int >
 {
 public:
 
@@ -92,60 +92,62 @@ private:
     
     
 
-    using yl_ast_visitor< yl_compile_script, void >::visit;
+    using yl_ast_visitor< yl_compile_script, int, int >::visit;
 
-    void        fallback( yl_ast_node* node );
+    int         fallback( yl_ast_node* node, int count );
     
-    void        visit( yl_stmt_block* node );
-    void        visit( yl_stmt_if* node );
-    void        visit( yl_stmt_switch* node );
-    void        visit( yl_stmt_while* node );
-    void        visit( yl_stmt_do* node );
-    void        visit( yl_stmt_foreach* node );
-    void        visit( yl_stmt_for* node );
-    void        visit( yl_stmt_using* node );
-    void        visit( yl_stmt_try* node );
-    void        visit( yl_stmt_catch* node );
-    void        visit( yl_stmt_delete* node );
-    void        visit( yl_stmt_case* node );
-    void        visit( yl_stmt_continue* node );
-    void        visit( yl_stmt_break* node );
-    void        visit( yl_stmt_return* node );
-    void        visit( yl_stmt_throw* node );
+    int         visit( yl_stmt_block* node, int count );
+    int         visit( yl_stmt_if* node, int count );
+    int         visit( yl_stmt_switch* node, int count );
+    int         visit( yl_stmt_while* node, int count );
+    int         visit( yl_stmt_do* node, int count );
+    int         visit( yl_stmt_foreach* node, int count );
+    int         visit( yl_stmt_for* node, int count );
+    int         visit( yl_stmt_using* node, int count );
+    int         visit( yl_stmt_try* node, int count );
+    int         visit( yl_stmt_catch* node, int count );
+    int         visit( yl_stmt_delete* node, int count );
+    int         visit( yl_stmt_case* node, int count );
+    int         visit( yl_stmt_continue* node, int count );
+    int         visit( yl_stmt_break* node, int count );
+    int         visit( yl_stmt_return* node, int count );
+    int         visit( yl_stmt_throw* node, int count );
 
-    void        visit( yl_ast_func* node );
-    void        visit( yl_expr_null* node );
-    void        visit( yl_expr_bool* node );
-    void        visit( yl_expr_number* node );
-    void        visit( yl_expr_string* node );
-    void        visit( yl_expr_local* node );
-    void        visit( yl_expr_global* node );
-    void        visit( yl_expr_upref* node );
-    void        visit( yl_expr_objref* node );
-    void        visit( yl_expr_superof* node );
-    void        visit( yl_expr_key* node );
-    void        visit( yl_expr_inkey* node );
-    void        visit( yl_expr_index* node );
-    void        visit( yl_expr_preop* node );
-    void        visit( yl_expr_postop* node );
-    void        visit( yl_expr_unary* node );
-    void        visit( yl_expr_binary* node );
-    void        visit( yl_expr_compare* node );
-    void        visit( yl_expr_logical* node );
-    void        visit( yl_expr_qmark* node );
-    void        visit( yl_new_new* node );
-    void        visit( yl_new_object* node );
-    void        visit( yl_new_array* node );
-    void        visit( yl_new_table* node );
-    void        visit( yl_expr_mono* node );
-    void        visit( yl_expr_call* node );
-    void        visit( yl_expr_yield* node );
-    void        visit( yl_expr_vararg* node );
-    void        visit( yl_expr_unpack* node );
-    void        visit( yl_expr_list* node );
-    void        visit( yl_expr_assign* node );
-    void        visit( yl_expr_assign_list* node );
+    int         visit( yl_ast_func* node, int count );
+    int         visit( yl_expr_null* node, int count );
+    int         visit( yl_expr_bool* node, int count );
+    int         visit( yl_expr_number* node, int count );
+    int         visit( yl_expr_string* node, int count );
+    int         visit( yl_expr_local* node, int count );
+    int         visit( yl_expr_global* node, int count );
+    int         visit( yl_expr_upref* node, int count );
+    int         visit( yl_expr_objref* node, int count );
+    int         visit( yl_expr_superof* node, int count );
+    int         visit( yl_expr_key* node, int count );
+    int         visit( yl_expr_inkey* node, int count );
+    int         visit( yl_expr_index* node, int count );
+    int         visit( yl_expr_preop* node, int count );
+    int         visit( yl_expr_postop* node, int count );
+    int         visit( yl_expr_unary* node, int count );
+    int         visit( yl_expr_binary* node, int count );
+    int         visit( yl_expr_compare* node, int count );
+    int         visit( yl_expr_logical* node, int count );
+    int         visit( yl_expr_qmark* node, int count );
+    int         visit( yl_new_new* node, int count );
+    int         visit( yl_new_object* node, int count );
+    int         visit( yl_new_array* node, int count );
+    int         visit( yl_new_table* node, int count );
+    int         visit( yl_expr_mono* node, int count );
+    int         visit( yl_expr_call* node, int count );
+    int         visit( yl_expr_yield* node, int count );
+    int         visit( yl_expr_vararg* node, int count );
+    int         visit( yl_expr_unpack* node, int count );
+    int         visit( yl_expr_list* node, int count );
+    int         visit( yl_expr_assign* node, int count );
+    int         visit( yl_expr_assign_list* node, int count );
     
+    void        compare_op( yl_ast_opkind opkind, unsigned r, unsigned a, unsigned b );
+
     void        op( y_opcode op, unsigned r, unsigned a, unsigned b );
     void        op( y_opcode op, unsigned r, unsigned c );
     void        op( y_opcode op, unsigned r, signed j );
@@ -162,7 +164,7 @@ private:
     void        close_continue( yl_ast_scope* target, int label );
     
     unsigned    constant( yl_ast_node* node );
-    unsigned    key( yl_ast_node* node );
+    unsigned    key( const char* key );
     
     void        execute( yl_ast_node* statement_or_expression );
     
@@ -175,19 +177,25 @@ private:
     void        pop_list( listval lv );
     
     lvalue      push_lvalue( yl_ast_node* lvexpr );
+    unsigned    push_evaluate_lvalue( lvalue );
     void        assign( lvalue lv, unsigned v );
     void        pop_lvalue( lvalue lv );
     
     unsigned    push_iterator();
     void        pop_iterator( unsigned i );
-    
+
     void        declare( unsigned r, yl_ast_name* name );
+    unsigned    local( yl_ast_name* name );
     void        undeclare( yl_ast_scope* scope );
 
+    void        declare_object( unsigned r, yl_new_object* object );
+    unsigned    objref( yl_new_object* object );
+    void        undeclare_object( yl_new_object* object );
 
+
+    yl_ast_func*                func;
     std::vector< branch >       break_stack;
     std::vector< branch >       continue_stack;
-    int                         iterator_stack;
 
     yl_compile_script*          s;
 

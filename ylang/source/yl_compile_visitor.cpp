@@ -13,52 +13,15 @@
 
 
 
-y_opcode yl_astop_to_opcode( yl_ast_opkind op )
-{
-    switch ( op )
-    {
-    case YL_ASTOP_NEGATIVE:         return Y_NEG;
-    case YL_ASTOP_BITNOT:           return Y_BITNOT;
-    
-    case YL_ASTOP_MULTIPLY:         return Y_MUL;
-    case YL_ASTOP_DIVIDE:           return Y_DIV;
-    case YL_ASTOP_MODULUS:          return Y_MOD;
-    case YL_ASTOP_INTDIV:           return Y_INTDIV;
-    case YL_ASTOP_ADD:              return Y_ADD;
-    case YL_ASTOP_SUBTRACT:         return Y_SUB;
-    case YL_ASTOP_LSHIFT:           return Y_LSL;
-    case YL_ASTOP_LRSHIFT:          return Y_LSR;
-    case YL_ASTOP_ARSHIFT:          return Y_ASR;
-    case YL_ASTOP_BITAND:           return Y_BITAND;
-    case YL_ASTOP_BITXOR:           return Y_BITXOR;
-    case YL_ASTOP_BITOR:            return Y_BITOR;
-    case YL_ASTOP_CONCATENATE:      return Y_CONCAT;
-    
-    case YL_ASTOP_EQUAL:            return Y_EQ;
-    case YL_ASTOP_NOTEQUAL:         return Y_NE;
-    case YL_ASTOP_LESS:             return Y_LT;
-    case YL_ASTOP_GREATER:          return Y_GT;
-    case YL_ASTOP_LESSEQUAL:        return Y_LE;
-    case YL_ASTOP_GREATEREQUAL:     return Y_GE;
-    
-    case YL_ASTOP_IN:               return Y_IN;
-    case YL_ASTOP_IS:               return Y_IS;
-    
-    default:
-        assert( ! "unexpected operator" );
-    }
-}
 
-
-
-
-void yl_compile_visitor::fallback( yl_ast_node* node )
+int yl_compile_visitor::fallback( yl_ast_node* node, int count )
 {
     assert( ! "unknown AST node" );
+    return 0;
 }
 
 
-void yl_compile_visitor::visit( yl_stmt_block* node )
+int yl_compile_visitor::visit( yl_stmt_block* node, int count )
 {
     for ( size_t i = 0; i < node->stmts.size(); ++i )
     {
@@ -69,9 +32,11 @@ void yl_compile_visitor::visit( yl_stmt_block* node )
     {
         undeclare( node->scope );
     }
+    
+    return 0;
 }
 
-void yl_compile_visitor::visit( yl_stmt_if* node )
+int yl_compile_visitor::visit( yl_stmt_if* node, int count )
 {
     /*
             test condition
@@ -104,9 +69,11 @@ void yl_compile_visitor::visit( yl_stmt_if* node )
     }
     
     undeclare( node->scope );
+    
+    return 0;
 }
 
-void yl_compile_visitor::visit( yl_stmt_switch* node )
+int yl_compile_visitor::visit( yl_stmt_switch* node, int count )
 {
     /*
         It's possible that a case expression could clobber the comparison
@@ -194,9 +161,11 @@ void yl_compile_visitor::visit( yl_stmt_switch* node )
         undeclare( node->body->scope );
     }
     undeclare( node->scope );
+    
+    return 0;
 }
 
-void yl_compile_visitor::visit( yl_stmt_while* node )
+int yl_compile_visitor::visit( yl_stmt_while* node, int count )
 {
     /*
         continue:
@@ -225,9 +194,11 @@ void yl_compile_visitor::visit( yl_stmt_while* node )
     patch( test_jump, break_label );
     
     undeclare( node->scope );
+    
+    return 0;
 }
 
-void yl_compile_visitor::visit( yl_stmt_do* node )
+int yl_compile_visitor::visit( yl_stmt_do* node, int count )
 {
     /*
         top:
@@ -255,9 +226,11 @@ void yl_compile_visitor::visit( yl_stmt_do* node )
     close_break( node->scope, break_label );
     
     undeclare( node->scope );
+    
+    return 0;
 }
 
-void yl_compile_visitor::visit( yl_stmt_foreach* node )
+int yl_compile_visitor::visit( yl_stmt_foreach* node, int count )
 {
     /*
             iter/iterkey list
@@ -331,9 +304,11 @@ void yl_compile_visitor::visit( yl_stmt_foreach* node )
     close_break( node->scope, break_label );
 
     undeclare( node->scope );
+    
+    return 0;
 }
 
-void yl_compile_visitor::visit( yl_stmt_for* node )
+int yl_compile_visitor::visit( yl_stmt_for* node, int count )
 {
     /*
             init
@@ -360,7 +335,7 @@ void yl_compile_visitor::visit( yl_stmt_for* node )
     int test_jump = -1;
     if ( node->condition )
     {
-        int v = push( node->condition );
+        unsigned v = push( node->condition );
         pop( v );
         test_jump = jump( Y_JMPF, v );
     }
@@ -385,22 +360,29 @@ void yl_compile_visitor::visit( yl_stmt_for* node )
     close_break( node->scope, break_label );
     
     undeclare( node->scope );
+    
+    return 0;
 }
 
-void yl_compile_visitor::visit( yl_stmt_using* node )
+int yl_compile_visitor::visit( yl_stmt_using* node, int count )
 {
+    // ...
+    return 0;
 }
 
-void yl_compile_visitor::visit( yl_stmt_try* node )
+int yl_compile_visitor::visit( yl_stmt_try* node, int count )
 {
+    // ...
+    return 0;
 }
 
-void yl_compile_visitor::visit( yl_stmt_catch* node )
+int yl_compile_visitor::visit( yl_stmt_catch* node, int count )
 {
     assert( ! "catch outside try" );
+    return 0;
 }
 
-void yl_compile_visitor::visit( yl_stmt_delete* node )
+int yl_compile_visitor::visit( yl_stmt_delete* node, int count )
 {
     for ( size_t i = 0; i < node->delvals.size(); ++i )
     {
@@ -408,49 +390,516 @@ void yl_compile_visitor::visit( yl_stmt_delete* node )
         if ( delval->kind == YL_EXPR_KEY )
         {
             yl_expr_key* expr = (yl_expr_key*)node;
-            int v = push( expr->object );
+            unsigned v = push( expr->object );
             pop( v );
-            op( Y_DELKEY, 0, v, key( expr ) );
+            op( Y_DELKEY, 0, v, key( expr->key ) );
         }
         else if ( delval->kind == YL_EXPR_INKEY )
         {
             yl_expr_inkey* expr = (yl_expr_inkey*)node;
-            int v = push( expr->object );
-            int u = push( expr->key );
+            unsigned v = push( expr->object );
+            unsigned u = push( expr->key );
             pop( u );
             pop( v );
             op( Y_DELINKEY, 0, v, u );
         }
     }
+    
+    return 0;
 }
 
-void yl_compile_visitor::visit( yl_stmt_case* node )
+int yl_compile_visitor::visit( yl_stmt_case* node, int count )
 {
     assert( ! "case outside switch" );
+    return 0;
 }
 
-void yl_compile_visitor::visit( yl_stmt_continue* node )
+int yl_compile_visitor::visit( yl_stmt_continue* node, int count )
 {
     add_continue( node->target );
+    return 0;
 }
 
-void yl_compile_visitor::visit( yl_stmt_break* node )
+int yl_compile_visitor::visit( yl_stmt_break* node, int count )
 {
     add_break( node->target );
+    return 0;
 }
 
-void yl_compile_visitor::visit( yl_stmt_return* node )
+int yl_compile_visitor::visit( yl_stmt_return* node, int count )
 {
     auto lv = push_list( node->values, -1 );
     pop_list( lv );
     op( Y_RETURN, 0, lv.r, lv.count );
+    return 0;
 }
 
-void yl_compile_visitor::visit( yl_stmt_throw* node )
+int yl_compile_visitor::visit( yl_stmt_throw* node, int count )
 {
-    int v = push( node->value );
+    unsigned v = push( node->value );
     pop( v );
     op( Y_THROW, 0, v, 0 );
+    return 0;
+}
+
+
+
+int yl_compile_visitor::visit( yl_ast_func* node, int count )
+{
+    // hmmm ...
+    return 0;
+}
+
+int yl_compile_visitor::visit( yl_expr_null* node, int count )
+{
+    unsigned r = push();
+    op( Y_NULL, r, 1 );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_bool* node, int count )
+{
+    unsigned r = push();
+    op( Y_BOOL, r, node->value ? 1 : 0 );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_number* node, int count )
+{
+    unsigned r = push();
+    op( Y_CONST, r, constant( node ) );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_string* node, int count )
+{
+    unsigned r = push();
+    op( Y_CONST, r, constant( node ) );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_local* node, int count )
+{
+    unsigned r = push();
+    op( Y_MOV, r, local( node->name ) );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_global* node, int count )
+{
+    unsigned r = push();
+    op( Y_GLOBAL, r, 0, key( node->name ) );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_upref* node, int count )
+{
+    unsigned r = push();
+    op( Y_GETUP, r, (unsigned)node->index );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_objref* node, int count )
+{
+    unsigned r = push();
+    op( Y_MOV, r, objref( node->object ), 0 );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_superof* node, int count )
+{
+    unsigned o = push( node->expr );
+    pop( o );
+    unsigned r = push();
+    op( Y_SUPER, r, o, 0 );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_key* node, int count )
+{
+    unsigned o = push( node->object );
+    pop( o );
+    unsigned r = push();
+    op( Y_KEY, r, o, key( node->key ) );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_inkey* node, int count )
+{
+    unsigned o = push( node->object );
+    unsigned k = push( node->key );
+    pop( k );
+    pop( o );
+    unsigned r = push();
+    op( Y_INKEY, r, o, k );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_index* node, int count )
+{
+    unsigned o = push( node->object );
+    unsigned i = push( node->index );
+    pop( i );
+    pop( o );
+    unsigned r = push();
+    op( Y_INDEX, r, o, i );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_preop* node, int count )
+{
+    lvalue lv = push_lvalue( node->lvalue );    // lv
+    unsigned v = push_evaluate_lvalue( lv );    // lv, v
+    unsigned n = push();                        // lv, v, 1
+    op( Y_CONST, n, constant( node ) );
+    pop( n );
+    pop( v );
+    unsigned w = push();                        // lv, w
+    op( node->opkind == YL_ASTOP_PREINC ? Y_ADD : Y_SUB, w, v, n );
+    assign( lv, w );                            // *lv = w
+    pop( w );
+    pop_lvalue( lv );
+    unsigned r = push();
+    op( Y_MOV, r, w );                          // w
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_postop* node, int count )
+{
+    lvalue lv = push_lvalue( node->lvalue );    // lv
+    unsigned v = push_evaluate_lvalue( lv );    // lv, v
+    unsigned u = push();                        // lv, v, u
+    op( Y_MOV, u, v, 0 );
+    unsigned n = push();                        // lv, v, u, 1
+    op( Y_CONST, n, constant( node ) );
+    pop( n );
+    pop( u );
+    unsigned w = push();                        // lv, v, w
+    op( node->opkind == YL_ASTOP_POSTINC ? Y_ADD : Y_SUB, w, u, n );
+    assign( lv, w );                            // *lv = w
+    pop( w );
+    pop( v );
+    pop_lvalue( lv );
+    unsigned r = push();
+    op( Y_MOV, r, v );                          // v
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_unary* node, int count )
+{
+    unsigned v = push( node->operand );
+    pop( v );
+    unsigned r = push();
+    switch ( node->opkind )
+    {
+    case YL_ASTOP_POSITIVE:
+        op( Y_NEG, r, v, 0 );
+        op( Y_NEG, r, r, 0 );
+        break;
+        
+    case YL_ASTOP_NEGATIVE:
+        op( Y_NEG, r, v, 0 );
+        break;
+    
+    case YL_ASTOP_LOGICNOT:
+        op( Y_LNOT, r, v, 0 );
+        break;
+
+    case YL_ASTOP_BITNOT:
+        op( Y_BITNOT, r, v, 0 );
+        break;
+        
+    default:
+        assert( ! "invalid unary operator" );
+        break;
+    }
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_binary* node, int count )
+{
+    unsigned a = push( node->lhs );
+    unsigned b = push( node->rhs );
+    pop( b );
+    pop( a );
+    unsigned r = push();
+    switch ( node->opkind )
+    {
+    case YL_ASTOP_MULTIPLY:
+        op( Y_MUL, r, a, b );
+        break;
+        
+    case YL_ASTOP_DIVIDE:
+        op( Y_DIV, r, a, b );
+        break;
+        
+    case YL_ASTOP_MODULUS:
+        op( Y_MOD, r, a, b );
+        break;
+        
+    case YL_ASTOP_INTDIV:
+        op( Y_INTDIV, r, a, b );
+        break;
+        
+    case YL_ASTOP_ADD:
+        op( Y_ADD, r, a, b );
+        break;
+        
+    case YL_ASTOP_SUBTRACT:
+        op( Y_SUB, r, a, b );
+        break;
+        
+    case YL_ASTOP_LSHIFT:
+        op( Y_LSL, r, a, b );
+        break;
+        
+    case YL_ASTOP_LRSHIFT:
+        op( Y_LSR, r, a, b );
+        break;
+        
+    case YL_ASTOP_ARSHIFT:
+        op( Y_ASR, r, a, b );
+        break;
+        
+    case YL_ASTOP_BITAND:
+        op( Y_BITAND, r, a, b );
+        break;
+        
+    case YL_ASTOP_BITXOR:
+        op( Y_BITXOR, r, a, b );
+        break;
+        
+    case YL_ASTOP_BITOR:
+        op( Y_BITOR, r, a, b );
+        break;
+        
+    case YL_ASTOP_CONCATENATE:
+        op( Y_CONCAT, r, a, b );
+        break;
+        
+    default:
+        assert( ! "invalid binary operator" );
+        break;
+    }
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_compare* node, int count )
+{
+    unsigned a = push( node->first );           // a
+    
+    std::vector< int > shortcut_jumps;
+    size_t last = node->opkinds.size() - 1;
+    for ( size_t i = 0; i < last; ++i )
+    {
+        yl_ast_node* term = node->terms.at( i );
+        
+        unsigned b = push( term );              // a, b
+        pop( b );
+        pop( a );
+        unsigned r = push();                    // r, [b]
+        compare_op( node->opkinds.at( i ), r, a, b );
+        pop( r );
+        shortcut_jumps.push_back( jump( Y_JMPF, r ) );
+        unsigned a = push();                    // a
+        op( Y_MOV, a, b, 0 );
+    }
+    
+    unsigned b = push( node->terms.at( last ) );
+    pop( b );
+    pop( a );
+    unsigned r = push();
+    compare_op( node->opkinds.at( last ), r, a, b );
+
+    int shortcut_label = label();
+    for ( size_t i = 0; i < shortcut_jumps.size(); ++i )
+    {
+        patch( shortcut_jumps.at( i ), shortcut_label );
+    }
+    
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_logical* node, int count )
+{
+    switch ( node->opkind )
+    {
+    case YL_ASTOP_LOGICAND:
+    {
+        unsigned a = push( node->lhs );         // a
+        int shortcut_jump = jump( Y_JMPF, a );
+        unsigned b = push( node->rhs );         // a, b
+        pop( b );
+        pop( a );
+        unsigned r = push();                    // r, [b]
+        op( Y_MOV, r, b, 0 );
+        patch( shortcut_jump, label() );
+        break;
+    }
+    
+    case YL_ASTOP_LOGICXOR:
+    {
+        unsigned a = push( node->lhs );
+        unsigned b = push( node->rhs );
+        pop( b );
+        pop( a );
+        unsigned r = push();
+        op( Y_LXOR, r, a, b );
+        break;
+    }
+    
+    case YL_ASTOP_LOGICOR:
+    {
+        unsigned a = push( node->lhs );         // a
+        int shortcut_jump = jump( Y_JMPT, a );
+        unsigned b = push( node->rhs );         // a, b
+        pop( b );
+        pop( a );
+        unsigned r = push();                    // r, [b]
+        op( Y_MOV, r, b, 0 );
+        patch( shortcut_jump, label() );
+        break;
+    }
+    
+    default:
+        assert( ! "invalid logical operator" );
+        break;
+    }
+
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_qmark* node, int count )
+{
+    unsigned v = push( node->condition );
+    pop( v );
+    int test_jump = jump( Y_JMPF, v );
+    unsigned y = push( node->iftrue );
+    int endif_jump = jump( Y_JMP, 0 );
+    pop( y );
+    patch( test_jump, label() );
+    push( node->iffalse );
+    patch( endif_jump, label() );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_new_new* node, int count )
+{
+    unsigned p = push( node->proto );           // p
+    pop( p );
+    unsigned o = push();                        // o
+    op( Y_OBJECT, o, p, 0 );
+    unsigned m = push();                        // o, m
+    op( Y_KEY, m, o, key( "this" ) );
+    unsigned t = push();                        // o, m, o
+    op( Y_MOV, t, o, 0 );
+    listval l = push_list( node->arguments, -1 ); // o, m, o, ...
+    op( Y_CALL, m, l.count != -1 ? l.count + 2 : -1, 0 );
+    pop_list( l );
+    pop( t );
+    pop( m );                                   // o
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_new_object* node, int count )
+{
+    unsigned p = push( node->proto );
+    pop( p );
+    unsigned o = push();
+    op( Y_OBJECT, o, p, 0 );
+    declare_object( o, node );
+    
+    for ( size_t i = 0; i < node->members.size(); ++i )
+    {
+        execute( node->members.at( i ) );
+    }
+    
+    undeclare( node->scope );
+    undeclare_object( node );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_new_array* node, int count )
+{
+    unsigned r = push();
+    op( Y_ARRAY, r, (unsigned)node->values.size() );
+    
+    for ( size_t i = 0; i < node->values.size(); ++i )
+    {
+        unsigned v = push( node->values.at( i ) );
+        pop( v );
+        op( Y_APPEND, r, v, 0 );
+    }
+    
+    if ( node->final )
+    {
+        listval l = push_list( node->final, -1 );
+        pop_list( l );
+        op( Y_EXTEND, r, l.count != -1 ? l.count : -1, 0 );
+    }
+    
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_new_table* node, int count )
+{
+    unsigned r = push();
+    op( Y_TABLE, r, (unsigned)node->elements.size() );
+    
+    for ( size_t i = 0; i < node->elements.size(); ++i )
+    {
+        const yl_key_value& kv = node->elements.at( i );
+        unsigned k = push( kv.key );
+        unsigned v = push( kv.value );
+        pop( v );
+        pop( k );
+        op( Y_SETINDEX, r, k, v );
+    }
+    
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_mono* node, int count )
+{
+    push( node->expr );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_call* node, int count )
+{
+}
+
+int yl_compile_visitor::visit( yl_expr_yield* node, int count )
+{
+}
+
+int yl_compile_visitor::visit( yl_expr_vararg* node, int count )
+{
+}
+
+int yl_compile_visitor::visit( yl_expr_unpack* node, int count )
+{
+}
+
+int yl_compile_visitor::visit( yl_expr_list* node, int count )
+{
+}
+
+int yl_compile_visitor::visit( yl_expr_assign* node, int count )
+{
+    lvalue lv = push_lvalue( node->lvalue );    // lv
+    unsigned v = push( node->rvalue );          // lv, v
+    assign( lv, v );                            // *lv = v
+    pop( v );
+    pop_lvalue( lv );
+    unsigned r = push();
+    op( Y_MOV, r, v );
+    return 1;
+}
+
+int yl_compile_visitor::visit( yl_expr_assign_list* node, int count )
+{
+    
 }
 
 
@@ -460,11 +909,58 @@ void yl_compile_visitor::visit( yl_stmt_throw* node )
 
 
 
-
-
-
-
-
+void yl_compile_visitor::compare_op(
+                yl_ast_opkind opkind, unsigned r, unsigned a, unsigned b )
+{
+    switch ( opkind )
+    {
+    case YL_ASTOP_EQUAL:
+        op( Y_EQ, r, a, b );
+        break;
+        
+    case YL_ASTOP_NOTEQUAL:
+        op( Y_NE, r, a, b );
+        break;
+        
+    case YL_ASTOP_LESS:
+        op( Y_LT, r, a, b );
+        break;
+        
+    case YL_ASTOP_GREATER:
+        op( Y_GT, r, a, b );
+        break;
+        
+    case YL_ASTOP_LESSEQUAL:
+        op( Y_LE, r, a, b );
+        break;
+        
+    case YL_ASTOP_GREATEREQUAL:
+        op( Y_GE, r, a, b );
+        break;
+    
+    case YL_ASTOP_IN:
+        op( Y_IN, r, a, b );
+        break;
+        
+    case YL_ASTOP_NOTIN:
+        op( Y_IN, r, a, b );
+        op( Y_LNOT, r, r, 0 );
+        break;
+    
+    case YL_ASTOP_IS:
+        op( Y_IS, r, a, b );
+        break;
+        
+    case YL_ASTOP_NOTIS:
+        op( Y_IS, r, a, b );
+        op( Y_LNOT, r, r, 0 );
+        break;
+    
+    default:
+        assert( ! "unexpected comparison operator" );
+        break;
+    }
+}
 
 
 
