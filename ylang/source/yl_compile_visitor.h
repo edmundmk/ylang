@@ -43,11 +43,14 @@
 
 struct yl_compile_script
 {
-    yl_ast_func*                    func;
-    std::vector< yl_ast_node* >     constants;
-    std::vector< yl_expr_key* >     keys;
-    std::vector< y_opinst >         code;
-    std::vector< y_xframe >         xframes;
+    yl_ast_func*                func;
+    std::vector< double >       numbers;
+    std::vector< std::string >  strings;
+    std::vector< std::string >  keys;
+    std::vector< y_opinst >     code;
+    std::vector< y_xframe >     xframes;
+    std::vector< int >          slocs;
+    std::vector< y_diname >     dnames;
 };
 
 
@@ -159,21 +162,22 @@ private:
         implement control flow.
     */
     
-    void        compare_op( yl_ast_opkind opkind, unsigned r, unsigned a, unsigned b );
+    void        compare_op( int sloc,
+                    yl_ast_opkind opkind, unsigned r, unsigned a, unsigned b );
 
-    void        op( y_opcode op, unsigned r, unsigned a, unsigned b );
-    void        op( y_opcode op, unsigned r, unsigned c );
-    void        op( y_opcode op, unsigned r, signed j );
+    void        op( int sloc, y_opcode op, unsigned r, unsigned a, unsigned b );
+    void        op( int sloc, y_opcode op, unsigned r, unsigned c );
+    void        op( int sloc, y_opcode op, unsigned r, signed j );
 
-    int         jump( y_opcode opcode, unsigned r );
+    int         jump( int sloc, y_opcode opcode, unsigned r );
     int         label();
     void        patch( int jump, int label );
     
     void        open_break( yl_ast_scope* target );
-    void        add_break( yl_ast_scope* target );
+    void        add_break( int sloc, yl_ast_scope* target );
     void        close_break( yl_ast_scope* target, int label );
     void        open_continue( yl_ast_scope* target );
-    void        add_continue( yl_ast_scope* target );
+    void        add_continue( int sloc, yl_ast_scope* target );
     void        close_continue( yl_ast_scope* target, int label );
     
     unsigned    string( const char* string, size_t length );
@@ -200,6 +204,7 @@ private:
 
     void        declare( unsigned r, yl_ast_name* name );
     unsigned    local( yl_ast_name* name );
+    unsigned    upval_index( yl_ast_name* name );
     void        undeclare( yl_ast_scope* scope );
 
     void        declare_object( unsigned r, yl_new_object* object );

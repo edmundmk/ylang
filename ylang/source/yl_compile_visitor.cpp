@@ -50,7 +50,7 @@ int yl_compile_visitor::visit( yl_stmt_if* node, int count )
 
     unsigned v = push( node->condition );
     pop( v );
-    int test_jump = jump( Y_JMPF, v );
+    int test_jump = jump( node->sloc, Y_JMPF, v );
     
     if ( node->iftrue )
     {
@@ -58,7 +58,7 @@ int yl_compile_visitor::visit( yl_stmt_if* node, int count )
     }
     if ( node->iffalse )
     {
-        int endif_jump = jump( Y_JMP, 0 );
+        int endif_jump = jump( node->sloc, Y_JMP, 0 );
         patch( test_jump, label() );
         execute( node->iffalse );
         patch( endif_jump, label() );
@@ -115,14 +115,14 @@ int yl_compile_visitor::visit( yl_stmt_switch* node, int count )
         unsigned v = push( cstmt->value );
         pop( v );
         unsigned w = push();
-        op( Y_EQ, w, u, v );
+        op( node->sloc, Y_EQ, w, u, v );
         pop( w );
-        case_jumps.emplace( cstmt, jump( Y_JMPT, w ) );
+        case_jumps.emplace( cstmt, jump( node->sloc, Y_JMPT, w ) );
     }
     
     pop( u );
     
-    int default_jump = jump( Y_JMP, 0 );
+    int default_jump = jump( node->sloc, Y_JMP, 0 );
     bool has_default = false;
     
     for ( size_t i = 0; i < node->body->stmts.size(); ++i )
@@ -182,12 +182,12 @@ int yl_compile_visitor::visit( yl_stmt_while* node, int count )
 
     unsigned v = push( node->condition );
     pop( v );
-    int test_jump = jump( Y_JMPF, v );
+    int test_jump = jump( node->sloc, Y_JMPF, v );
     
     execute( node->body );
     
     close_continue( node->scope, continue_label );
-    patch( jump( Y_JMP, 0 ), continue_label );
+    patch( jump( node->sloc, Y_JMP, 0 ), continue_label );
     
     int break_label = label();
     close_break( node->scope, break_label );
@@ -220,7 +220,7 @@ int yl_compile_visitor::visit( yl_stmt_do* node, int count )
     
     unsigned v = push( node->condition );
     pop( v );
-    patch( jump( Y_JMPT, v ), top_label );
+    patch( jump( node->sloc, Y_JMPT, v ), top_label );
     
     int break_label = label();
     close_break( node->scope, break_label );
@@ -247,9 +247,9 @@ int yl_compile_visitor::visit( yl_stmt_foreach* node, int count )
     unsigned l = push( node->list );
     pop( l );
     unsigned i = push_iterator();
-    op( node->eachkey ? Y_ITERKEY : Y_ITER, i, l, 0 );
+    op( node->sloc, node->eachkey ? Y_ITERKEY : Y_ITER, i, l, 0 );
     
-    int entry_jump = jump( Y_JMP, 0 );
+    int entry_jump = jump( node->sloc, Y_JMP, 0 );
     
     int continue_label = label();
     open_break( node->scope );
@@ -263,15 +263,15 @@ int yl_compile_visitor::visit( yl_stmt_foreach* node, int count )
         switch ( rv.count )
         {
         case 1:
-            op( Y_NEXT1, rv.r, 0, 0 );
+            op( node->sloc, Y_NEXT1, rv.r, 0, 0 );
             break;
             
         case 2:
-            op( Y_NEXT2, rv.r, rv.r + 1, 0 );
+            op( node->sloc, Y_NEXT2, rv.r, rv.r + 1, 0 );
             break;
             
         default:
-            op( Y_NEXT, rv.r, rv.count, 0 );
+            op( node->sloc, Y_NEXT, rv.r, rv.count, 0 );
             break;
         }
 
@@ -298,15 +298,15 @@ int yl_compile_visitor::visit( yl_stmt_foreach* node, int count )
         switch ( rv.count )
         {
         case 1:
-            op( Y_NEXT1, rv.r, 0, 0 );
+            op( node->sloc, Y_NEXT1, rv.r, 0, 0 );
             break;
             
         case 2:
-            op( Y_NEXT2, rv.r, rv.r + 1, 0 );
+            op( node->sloc, Y_NEXT2, rv.r, rv.r + 1, 0 );
             break;
             
         default:
-            op( Y_NEXT, rv.r, rv.count, 0 );
+            op( node->sloc, Y_NEXT, rv.r, rv.count, 0 );
             break;
         }
 
@@ -327,7 +327,7 @@ int yl_compile_visitor::visit( yl_stmt_foreach* node, int count )
     int entry_label = label();
     patch( entry_jump, entry_label );
     
-    patch( jump( Y_JMPITER, i ), continue_label );
+    patch( jump( node->sloc, Y_JMPITER, i ), continue_label );
     close_continue( node->scope, continue_label );
     
     int break_label = label();
@@ -367,7 +367,7 @@ int yl_compile_visitor::visit( yl_stmt_for* node, int count )
     {
         unsigned v = push( node->condition );
         pop( v );
-        test_jump = jump( Y_JMPF, v );
+        test_jump = jump( node->sloc, Y_JMPF, v );
     }
     
     execute( node->body );
@@ -380,7 +380,7 @@ int yl_compile_visitor::visit( yl_stmt_for* node, int count )
         pop( push( node->update ) );
     }
     
-    patch( jump( Y_JMP, 0 ), top_label );
+    patch( jump( node->sloc, Y_JMP, 0 ), top_label );
     
     int break_label = label();
     if ( test_jump != -1 )
@@ -422,7 +422,7 @@ int yl_compile_visitor::visit( yl_stmt_delete* node, int count )
             yl_expr_key* expr = (yl_expr_key*)node;
             unsigned v = push( expr->object );
             pop( v );
-            op( Y_DELKEY, 0, v, key( expr->key ) );
+            op( node->sloc, Y_DELKEY, 0, v, key( expr->key ) );
         }
         else if ( delval->kind == YL_EXPR_INKEY )
         {
@@ -431,7 +431,7 @@ int yl_compile_visitor::visit( yl_stmt_delete* node, int count )
             unsigned u = push( expr->key );
             pop( u );
             pop( v );
-            op( Y_DELINKEY, 0, v, u );
+            op( node->sloc, Y_DELINKEY, 0, v, u );
         }
     }
     
@@ -446,13 +446,13 @@ int yl_compile_visitor::visit( yl_stmt_case* node, int count )
 
 int yl_compile_visitor::visit( yl_stmt_continue* node, int count )
 {
-    add_continue( node->target );
+    add_continue( node->sloc, node->target );
     return 0;
 }
 
 int yl_compile_visitor::visit( yl_stmt_break* node, int count )
 {
-    add_break( node->target );
+    add_break( node->sloc, node->target );
     return 0;
 }
 
@@ -460,7 +460,7 @@ int yl_compile_visitor::visit( yl_stmt_return* node, int count )
 {
     auto lv = push_list( node->values, -1 );
     pop_list( lv );
-    op( Y_RETURN, 0, lv.r, lv.count );
+    op( node->sloc, Y_RETURN, 0, lv.r, lv.count );
     return 0;
 }
 
@@ -468,7 +468,7 @@ int yl_compile_visitor::visit( yl_stmt_throw* node, int count )
 {
     unsigned v = push( node->value );
     pop( v );
-    op( Y_THROW, 0, v, 0 );
+    op( node->sloc, Y_THROW, 0, v, 0 );
     return 0;
 }
 
@@ -483,56 +483,56 @@ int yl_compile_visitor::visit( yl_ast_func* node, int count )
 int yl_compile_visitor::visit( yl_expr_null* node, int count )
 {
     unsigned r = push();
-    op( Y_NULL, r, 1 );
+    op( node->sloc, Y_NULL, r, 1 );
     return 1;
 }
 
 int yl_compile_visitor::visit( yl_expr_bool* node, int count )
 {
     unsigned r = push();
-    op( Y_BOOL, r, node->value ? 1 : 0 );
+    op( node->sloc, Y_BOOL, r, node->value ? 1 : 0 );
     return 1;
 }
 
 int yl_compile_visitor::visit( yl_expr_number* node, int count )
 {
     unsigned r = push();
-    op( Y_NUMBER, r, number( node->value ) );
+    op( node->sloc, Y_NUMBER, r, number( node->value ) );
     return 1;
 }
 
 int yl_compile_visitor::visit( yl_expr_string* node, int count )
 {
     unsigned r = push();
-    op( Y_STRING, r, string( node->string, node->length ) );
+    op( node->sloc, Y_STRING, r, string( node->string, node->length ) );
     return 1;
 }
 
 int yl_compile_visitor::visit( yl_expr_local* node, int count )
 {
     unsigned r = push();
-    op( Y_MOV, r, local( node->name ) );
+    op( node->sloc, Y_MOV, r, local( node->name ) );
     return 1;
 }
 
 int yl_compile_visitor::visit( yl_expr_global* node, int count )
 {
     unsigned r = push();
-    op( Y_GLOBAL, r, 0, key( node->name ) );
+    op( node->sloc, Y_GLOBAL, r, 0, key( node->name ) );
     return 1;
 }
 
 int yl_compile_visitor::visit( yl_expr_upref* node, int count )
 {
     unsigned r = push();
-    op( Y_GETUP, r, (unsigned)node->index );
+    op( node->sloc, Y_GETUP, r, (unsigned)node->index );
     return 1;
 }
 
 int yl_compile_visitor::visit( yl_expr_objref* node, int count )
 {
     unsigned r = push();
-    op( Y_MOV, r, objref( node->object ), 0 );
+    op( node->sloc, Y_MOV, r, objref( node->object ), 0 );
     return 1;
 }
 
@@ -541,7 +541,7 @@ int yl_compile_visitor::visit( yl_expr_superof* node, int count )
     unsigned o = push( node->expr );
     pop( o );
     unsigned r = push();
-    op( Y_SUPER, r, o, 0 );
+    op( node->sloc, Y_SUPER, r, o, 0 );
     return 1;
 }
 
@@ -550,7 +550,7 @@ int yl_compile_visitor::visit( yl_expr_key* node, int count )
     unsigned o = push( node->object );
     pop( o );
     unsigned r = push();
-    op( Y_KEY, r, o, key( node->key ) );
+    op( node->sloc, Y_KEY, r, o, key( node->key ) );
     return 1;
 }
 
@@ -561,7 +561,7 @@ int yl_compile_visitor::visit( yl_expr_inkey* node, int count )
     pop( k );
     pop( o );
     unsigned r = push();
-    op( Y_INKEY, r, o, k );
+    op( node->sloc, Y_INKEY, r, o, k );
     return 1;
 }
 
@@ -572,7 +572,7 @@ int yl_compile_visitor::visit( yl_expr_index* node, int count )
     pop( i );
     pop( o );
     unsigned r = push();
-    op( Y_INDEX, r, o, i );
+    op( node->sloc, Y_INDEX, r, o, i );
     return 1;
 }
 
@@ -581,16 +581,16 @@ int yl_compile_visitor::visit( yl_expr_preop* node, int count )
     lvalue lv = push_lvalue( node->lvalue );    // lv
     unsigned v = push_evaluate_lvalue( lv );    // lv, v
     unsigned n = push();                        // lv, v, 1
-    op( Y_NUMBER, n, number( 1.0 ) );
+    op( node->sloc, Y_NUMBER, n, number( 1.0 ) );
     pop( n );
     pop( v );
     unsigned w = push();                        // lv, w
-    op( node->opkind == YL_ASTOP_PREINC ? Y_ADD : Y_SUB, w, v, n );
+    op( node->sloc, node->opkind == YL_ASTOP_PREINC ? Y_ADD : Y_SUB, w, v, n );
     assign( lv, w );                            // *lv = w
     pop( w );
     pop_lvalue( lv );
     unsigned r = push();
-    op( Y_MOV, r, w );                          // w
+    op( node->sloc, Y_MOV, r, w );                          // w
     return 1;
 }
 
@@ -599,19 +599,19 @@ int yl_compile_visitor::visit( yl_expr_postop* node, int count )
     lvalue lv = push_lvalue( node->lvalue );    // lv
     unsigned v = push_evaluate_lvalue( lv );    // lv, v
     unsigned u = push();                        // lv, v, u
-    op( Y_MOV, u, v, 0 );
+    op( node->sloc, Y_MOV, u, v, 0 );
     unsigned n = push();                        // lv, v, u, 1
-    op( Y_NUMBER, n, number( 1.0 ) );
+    op( node->sloc, Y_NUMBER, n, number( 1.0 ) );
     pop( n );
     pop( u );
     unsigned w = push();                        // lv, v, w
-    op( node->opkind == YL_ASTOP_POSTINC ? Y_ADD : Y_SUB, w, u, n );
+    op( node->sloc, node->opkind == YL_ASTOP_POSTINC ? Y_ADD : Y_SUB, w, u, n );
     assign( lv, w );                            // *lv = w
     pop( w );
     pop( v );
     pop_lvalue( lv );
     unsigned r = push();
-    op( Y_MOV, r, v );                          // v
+    op( node->sloc, Y_MOV, r, v );                          // v
     return 1;
 }
 
@@ -623,20 +623,20 @@ int yl_compile_visitor::visit( yl_expr_unary* node, int count )
     switch ( node->opkind )
     {
     case YL_ASTOP_POSITIVE:
-        op( Y_NEG, r, v, 0 );
-        op( Y_NEG, r, r, 0 );
+        op( node->sloc, Y_NEG, r, v, 0 );
+        op( node->sloc, Y_NEG, r, r, 0 );
         break;
         
     case YL_ASTOP_NEGATIVE:
-        op( Y_NEG, r, v, 0 );
+        op( node->sloc, Y_NEG, r, v, 0 );
         break;
     
     case YL_ASTOP_LOGICNOT:
-        op( Y_LNOT, r, v, 0 );
+        op( node->sloc, Y_LNOT, r, v, 0 );
         break;
 
     case YL_ASTOP_BITNOT:
-        op( Y_BITNOT, r, v, 0 );
+        op( node->sloc, Y_BITNOT, r, v, 0 );
         break;
         
     default:
@@ -656,55 +656,55 @@ int yl_compile_visitor::visit( yl_expr_binary* node, int count )
     switch ( node->opkind )
     {
     case YL_ASTOP_MULTIPLY:
-        op( Y_MUL, r, a, b );
+        op( node->sloc, Y_MUL, r, a, b );
         break;
         
     case YL_ASTOP_DIVIDE:
-        op( Y_DIV, r, a, b );
+        op( node->sloc, Y_DIV, r, a, b );
         break;
         
     case YL_ASTOP_MODULUS:
-        op( Y_MOD, r, a, b );
+        op( node->sloc, Y_MOD, r, a, b );
         break;
         
     case YL_ASTOP_INTDIV:
-        op( Y_INTDIV, r, a, b );
+        op( node->sloc, Y_INTDIV, r, a, b );
         break;
         
     case YL_ASTOP_ADD:
-        op( Y_ADD, r, a, b );
+        op( node->sloc, Y_ADD, r, a, b );
         break;
         
     case YL_ASTOP_SUBTRACT:
-        op( Y_SUB, r, a, b );
+        op( node->sloc, Y_SUB, r, a, b );
         break;
         
     case YL_ASTOP_LSHIFT:
-        op( Y_LSL, r, a, b );
+        op( node->sloc, Y_LSL, r, a, b );
         break;
         
     case YL_ASTOP_LRSHIFT:
-        op( Y_LSR, r, a, b );
+        op( node->sloc, Y_LSR, r, a, b );
         break;
         
     case YL_ASTOP_ARSHIFT:
-        op( Y_ASR, r, a, b );
+        op( node->sloc, Y_ASR, r, a, b );
         break;
         
     case YL_ASTOP_BITAND:
-        op( Y_BITAND, r, a, b );
+        op( node->sloc, Y_BITAND, r, a, b );
         break;
         
     case YL_ASTOP_BITXOR:
-        op( Y_BITXOR, r, a, b );
+        op( node->sloc, Y_BITXOR, r, a, b );
         break;
         
     case YL_ASTOP_BITOR:
-        op( Y_BITOR, r, a, b );
+        op( node->sloc, Y_BITOR, r, a, b );
         break;
         
     case YL_ASTOP_CONCATENATE:
-        op( Y_CONCAT, r, a, b );
+        op( node->sloc, Y_CONCAT, r, a, b );
         break;
         
     default:
@@ -730,18 +730,18 @@ int yl_compile_visitor::visit( yl_expr_compare* node, int count )
         pop( b );
         pop( a );
         unsigned r = push();                    // r, [b]
-        compare_op( node->opkinds.at( i ), r, a, b );
+        compare_op( node->sloc, node->opkinds.at( i ), r, a, b );
         pop( r );
-        shortcut_jumps.push_back( jump( Y_JMPF, r ) );
+        shortcut_jumps.push_back( jump( node->sloc, Y_JMPF, r ) );
         unsigned a = push();                    // a
-        op( Y_MOV, a, b, 0 );
+        op( node->sloc, Y_MOV, a, b, 0 );
     }
     
     unsigned b = push( node->terms.at( last ) );
     pop( b );
     pop( a );
     unsigned r = push();
-    compare_op( node->opkinds.at( last ), r, a, b );
+    compare_op( node->sloc, node->opkinds.at( last ), r, a, b );
 
     int shortcut_label = label();
     for ( size_t i = 0; i < shortcut_jumps.size(); ++i )
@@ -759,12 +759,12 @@ int yl_compile_visitor::visit( yl_expr_logical* node, int count )
     case YL_ASTOP_LOGICAND:
     {
         unsigned a = push( node->lhs );         // a
-        int shortcut_jump = jump( Y_JMPF, a );
+        int shortcut_jump = jump( node->sloc, Y_JMPF, a );
         unsigned b = push( node->rhs );         // a, b
         pop( b );
         pop( a );
         unsigned r = push();                    // r, [b]
-        op( Y_MOV, r, b, 0 );
+        op( node->sloc, Y_MOV, r, b, 0 );
         patch( shortcut_jump, label() );
         break;
     }
@@ -776,19 +776,19 @@ int yl_compile_visitor::visit( yl_expr_logical* node, int count )
         pop( b );
         pop( a );
         unsigned r = push();
-        op( Y_LXOR, r, a, b );
+        op( node->sloc, Y_LXOR, r, a, b );
         break;
     }
     
     case YL_ASTOP_LOGICOR:
     {
         unsigned a = push( node->lhs );         // a
-        int shortcut_jump = jump( Y_JMPT, a );
+        int shortcut_jump = jump( node->sloc, Y_JMPT, a );
         unsigned b = push( node->rhs );         // a, b
         pop( b );
         pop( a );
         unsigned r = push();                    // r, [b]
-        op( Y_MOV, r, b, 0 );
+        op( node->sloc, Y_MOV, r, b, 0 );
         patch( shortcut_jump, label() );
         break;
     }
@@ -805,9 +805,9 @@ int yl_compile_visitor::visit( yl_expr_qmark* node, int count )
 {
     unsigned v = push( node->condition );
     pop( v );
-    int test_jump = jump( Y_JMPF, v );
+    int test_jump = jump( node->sloc, Y_JMPF, v );
     unsigned y = push( node->iftrue );
-    int endif_jump = jump( Y_JMP, 0 );
+    int endif_jump = jump( node->sloc, Y_JMP, 0 );
     pop( y );
     patch( test_jump, label() );
     push( node->iffalse );
@@ -820,13 +820,13 @@ int yl_compile_visitor::visit( yl_new_new* node, int count )
     unsigned p = push( node->proto );           // p
     pop( p );
     unsigned o = push();                        // o
-    op( Y_OBJECT, o, p, 0 );
+    op( node->sloc, Y_OBJECT, o, p, 0 );
     unsigned m = push();                        // o, m
-    op( Y_KEY, m, o, key( "this" ) );
+    op( node->sloc, Y_KEY, m, o, key( "this" ) );
     unsigned t = push();                        // o, m, o
-    op( Y_MOV, t, o, 0 );
+    op( node->sloc, Y_MOV, t, o, 0 );
     listval l = push_list( node->arguments, -1 ); // o, m, o, ...
-    op( Y_CALL, m, l.count != -1 ? l.count + 2 : -1, 0 );
+    op( node->sloc, Y_CALL, m, l.count != -1 ? l.count + 2 : -1, 0 );
     pop_list( l );
     pop( t );
     pop( m );                                   // o
@@ -838,7 +838,7 @@ int yl_compile_visitor::visit( yl_new_object* node, int count )
     unsigned p = push( node->proto );
     pop( p );
     unsigned o = push();
-    op( Y_OBJECT, o, p, 0 );
+    op( node->sloc, Y_OBJECT, o, p, 0 );
     declare_object( o, node );
     
     for ( size_t i = 0; i < node->members.size(); ++i )
@@ -854,20 +854,20 @@ int yl_compile_visitor::visit( yl_new_object* node, int count )
 int yl_compile_visitor::visit( yl_new_array* node, int count )
 {
     unsigned r = push();
-    op( Y_ARRAY, r, (unsigned)node->values.size() );
+    op( node->sloc, Y_ARRAY, r, (unsigned)node->values.size() );
     
     for ( size_t i = 0; i < node->values.size(); ++i )
     {
         unsigned v = push( node->values.at( i ) );
         pop( v );
-        op( Y_APPEND, r, v, 0 );
+        op( node->sloc, Y_APPEND, r, v, 0 );
     }
     
     if ( node->final )
     {
         listval l = push_list( node->final, -1 );
         pop_list( l );
-        op( Y_EXTEND, r, l.count != -1 ? l.count : -1, 0 );
+        op( node->sloc, Y_EXTEND, r, l.count != -1 ? l.count : -1, 0 );
     }
     
     return 1;
@@ -876,7 +876,7 @@ int yl_compile_visitor::visit( yl_new_array* node, int count )
 int yl_compile_visitor::visit( yl_new_table* node, int count )
 {
     unsigned r = push();
-    op( Y_TABLE, r, (unsigned)node->elements.size() );
+    op( node->sloc, Y_TABLE, r, (unsigned)node->elements.size() );
     
     for ( size_t i = 0; i < node->elements.size(); ++i )
     {
@@ -885,7 +885,7 @@ int yl_compile_visitor::visit( yl_new_table* node, int count )
         unsigned v = push( kv.value );
         pop( v );
         pop( k );
-        op( Y_SETINDEX, r, k, v );
+        op( node->sloc, Y_SETINDEX, r, k, v );
     }
     
     return 1;
@@ -915,7 +915,7 @@ int yl_compile_visitor::visit( yl_expr_call* node, int count )
         pop( o );
         f = push();
         t = push();
-        op( Y_METHOD, f, o, key( kexpr->key ) ); // m, o
+        op( node->sloc, Y_METHOD, f, o, key( kexpr->key ) ); // m, o
         break;
     }
     
@@ -928,8 +928,8 @@ int yl_compile_visitor::visit( yl_expr_call* node, int count )
         pop( o );
         f = push();
         t = push();
-        op( Y_INKEY, t, o, k );                 // o, m
-        op( Y_SWP, f, t, 0 );                   // m, o
+        op( node->sloc, Y_INKEY, t, o, k );     // o, m
+        op( node->sloc, Y_SWP, f, t, 0 );       // m, o
         break;
     }
     
@@ -951,7 +951,7 @@ int yl_compile_visitor::visit( yl_expr_call* node, int count )
     
     unsigned argcount = l.count != -1 ? ( l.count + ( t != -1 ? 1 : 0 ) ) : -1;
     y_opcode opcode = node->yieldcall ? Y_YCALL : Y_CALL;
-    op( opcode, l.r, argcount, count );
+    op( node->sloc, opcode, l.r, argcount, count );
 
     return count;
 }
@@ -968,7 +968,7 @@ int yl_compile_visitor::visit( yl_expr_yield* node, int count )
     listval r = push_list( count );
     assert( l.r == r.r );
 
-    op( Y_YIELD, l.r, l.count != -1 ? l.count : -1, (unsigned)count );
+    op( node->sloc, Y_YIELD, l.r, l.count != -1 ? l.count : -1, (unsigned)count );
 
     return count;
 }
@@ -978,7 +978,7 @@ int yl_compile_visitor::visit( yl_expr_vararg* node, int count )
     if ( count != 0 )
     {
         listval r = push_list( count );
-        op( Y_VARARG, r.r, r.count, 0 );
+        op( node->sloc, Y_VARARG, r.r, r.count, 0 );
     }
     return count;
 }
@@ -990,7 +990,7 @@ int yl_compile_visitor::visit( yl_expr_unpack* node, int count )
         unsigned v = push( node->array );
         pop( v );
         listval r = push_list( count );
-        op( Y_UNPACK, v, r.r, r.count );
+        op( node->sloc, Y_UNPACK, v, r.r, r.count );
     }
     return count;
 }
@@ -1042,7 +1042,7 @@ int yl_compile_visitor::visit( yl_expr_assign* node, int count )
     pop( v );
     pop_lvalue( lv );
     unsigned r = push();
-    op( Y_MOV, r, v, 0 );
+    op( node->sloc, Y_MOV, r, v, 0 );
     return 1;
 }
 
@@ -1084,7 +1084,7 @@ int yl_compile_visitor::visit( yl_expr_assign_list* node, int count )
     auto r = push_list( count );
     for ( size_t i = 0; i < node->lvalues.size(); ++i )
     {
-        op( Y_MOV, r.r + (unsigned)i, rv.r + (unsigned)i, 0 );
+        op( node->sloc, Y_MOV, r.r + (unsigned)i, rv.r + (unsigned)i, 0 );
     }
     
     return count;
@@ -1098,50 +1098,50 @@ int yl_compile_visitor::visit( yl_expr_assign_list* node, int count )
 
 
 void yl_compile_visitor::compare_op(
-                yl_ast_opkind opkind, unsigned r, unsigned a, unsigned b )
+        int sloc, yl_ast_opkind opkind, unsigned r, unsigned a, unsigned b )
 {
     switch ( opkind )
     {
     case YL_ASTOP_EQUAL:
-        op( Y_EQ, r, a, b );
+        op( sloc, Y_EQ, r, a, b );
         break;
         
     case YL_ASTOP_NOTEQUAL:
-        op( Y_NE, r, a, b );
+        op( sloc, Y_NE, r, a, b );
         break;
         
     case YL_ASTOP_LESS:
-        op( Y_LT, r, a, b );
+        op( sloc, Y_LT, r, a, b );
         break;
         
     case YL_ASTOP_GREATER:
-        op( Y_GT, r, a, b );
+        op( sloc, Y_GT, r, a, b );
         break;
         
     case YL_ASTOP_LESSEQUAL:
-        op( Y_LE, r, a, b );
+        op( sloc, Y_LE, r, a, b );
         break;
         
     case YL_ASTOP_GREATEREQUAL:
-        op( Y_GE, r, a, b );
+        op( sloc, Y_GE, r, a, b );
         break;
     
     case YL_ASTOP_IN:
-        op( Y_IN, r, a, b );
+        op( sloc, Y_IN, r, a, b );
         break;
         
     case YL_ASTOP_NOTIN:
-        op( Y_IN, r, a, b );
-        op( Y_LNOT, r, r, 0 );
+        op( sloc, Y_IN, r, a, b );
+        op( sloc, Y_LNOT, r, r, 0 );
         break;
     
     case YL_ASTOP_IS:
-        op( Y_IS, r, a, b );
+        op( sloc, Y_IS, r, a, b );
         break;
         
     case YL_ASTOP_NOTIS:
-        op( Y_IS, r, a, b );
-        op( Y_LNOT, r, r, 0 );
+        op( sloc, Y_IS, r, a, b );
+        op( sloc, Y_LNOT, r, r, 0 );
         break;
     
     default:
@@ -1152,19 +1152,25 @@ void yl_compile_visitor::compare_op(
 
 
 
-void yl_compile_visitor::op( y_opcode op, unsigned r, unsigned a, unsigned b )
+void yl_compile_visitor::op(
+                int sloc, y_opcode op, unsigned r, unsigned a, unsigned b )
 {
     s->code.emplace_back( op, r, a, b );
+    s->slocs.push_back( sloc );
 }
 
-void yl_compile_visitor::op( y_opcode op, unsigned r, unsigned c )
+void yl_compile_visitor::op(
+                int sloc, y_opcode op, unsigned r, unsigned c )
 {
     s->code.emplace_back( op, r, c );
+    s->slocs.push_back( sloc );
 }
 
-void yl_compile_visitor::op( y_opcode op, unsigned r, signed j )
+void yl_compile_visitor::op(
+                int sloc, y_opcode op, unsigned r, signed j )
 {
     s->code.emplace_back( op, r, j );
+    s->slocs.push_back( sloc );
 }
 
 
@@ -1174,9 +1180,10 @@ int yl_compile_visitor::label()
     return (int)s->code.size();
 }
 
-int yl_compile_visitor::jump( y_opcode opcode, unsigned r )
+int yl_compile_visitor::jump( int sloc, y_opcode opcode, unsigned r )
 {
     s->code.emplace_back( opcode, r, (signed)0 );
+    s->slocs.push_back( sloc );
     return (int)s->code.size();
 }
 
@@ -1195,11 +1202,11 @@ void yl_compile_visitor::open_break( yl_ast_scope* target )
     break_stack.emplace_back( target );
 }
 
-void yl_compile_visitor::add_break( yl_ast_scope* target )
+void yl_compile_visitor::add_break( int sloc, yl_ast_scope* target )
 {
     branch& branch_break = break_stack.back();
     assert( branch_break.target == target );
-    branch_break.jumps.push_back( jump( Y_JMP, 0 ) );
+    branch_break.jumps.push_back( jump( sloc, Y_JMP, 0 ) );
 }
 
 void yl_compile_visitor::close_break( yl_ast_scope* target, int label )
@@ -1218,11 +1225,11 @@ void yl_compile_visitor::open_continue( yl_ast_scope* target )
     continue_stack.emplace_back( target );
 }
 
-void yl_compile_visitor::add_continue( yl_ast_scope* target )
+void yl_compile_visitor::add_continue( int sloc, yl_ast_scope* target )
 {
     branch& branch_continue = continue_stack.back();
     assert( branch_continue.target == target );
-    branch_continue.jumps.push_back( jump( Y_JMP, 0 ) );
+    branch_continue.jumps.push_back( jump( sloc, Y_JMP, 0 ) );
 }
 
 void yl_compile_visitor::close_continue( yl_ast_scope* target, int label )
