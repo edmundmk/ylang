@@ -951,12 +951,9 @@ int yl_compile_visitor::visit( yl_expr_logical* node, int count )
     case YL_ASTOP_LOGICAND:
     {
         unsigned a = push( node->lhs );         // a
-        int shortcut_jump = jump( node->sloc, Y_JMPF, a );
-        unsigned b = push( node->rhs );         // a, b
-        pop( b );
         pop( a );
-        unsigned r = push();                    // r, [b]
-        op( node->sloc, Y_MOV, r, b, 0 );
+        int shortcut_jump = jump( node->sloc, Y_JMPF, a );
+        push( node->rhs );                      // b
         patch( shortcut_jump, label() );
         break;
     }
@@ -975,12 +972,9 @@ int yl_compile_visitor::visit( yl_expr_logical* node, int count )
     case YL_ASTOP_LOGICOR:
     {
         unsigned a = push( node->lhs );         // a
-        int shortcut_jump = jump( node->sloc, Y_JMPT, a );
-        unsigned b = push( node->rhs );         // a, b
-        pop( b );
         pop( a );
-        unsigned r = push();                    // r, [b]
-        op( node->sloc, Y_MOV, r, b, 0 );
+        int shortcut_jump = jump( node->sloc, Y_JMPT, a );
+        push( node->rhs );                      // b
         patch( shortcut_jump, label() );
         break;
     }
