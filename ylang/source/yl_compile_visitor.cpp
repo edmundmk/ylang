@@ -304,15 +304,15 @@ int yl_compile_visitor::visit( yl_stmt_foreach* node, int count )
         switch ( rv.count )
         {
         case 1:
-            op( node->sloc, Y_NEXT1, rv.r, 0, 0 );
+            op( node->sloc, Y_NEXT1, rv.r, 0, i );
             break;
             
         case 2:
-            op( node->sloc, Y_NEXT2, rv.r, rv.r + 1, 0 );
+            op( node->sloc, Y_NEXT2, rv.r, rv.r + 1, i );
             break;
             
         default:
-            op( node->sloc, Y_NEXT, rv.r, rv.count, 0 );
+            op( node->sloc, Y_NEXT, rv.r, rv.count, i );
             break;
         }
 
@@ -619,7 +619,7 @@ int yl_compile_visitor::visit( yl_stmt_return* node, int count )
 {
     auto lv = push_list( node->values, -1 );
     pop_list( lv );
-    op( node->sloc, Y_RETURN, 0, lv.r, lv.count );
+    op( node->sloc, Y_RETURN, lv.r, lv.count, 0 );
     return 0;
 }
 
@@ -637,7 +637,7 @@ int yl_compile_visitor::visit( yl_ast_func* node, int count )
 {
     unsigned r = push();
     unsigned f = function( func );
-    op( node->sloc, Y_CLOSURE, r, f, (unsigned)func->upvals.size() );
+    op( node->sloc, Y_CLOSURE, r, f );
     
     for ( size_t i = 0; i < func->upvals.size(); ++i )
     {
@@ -675,7 +675,7 @@ int yl_compile_visitor::visit( yl_ast_func* node, int count )
 int yl_compile_visitor::visit( yl_expr_null* node, int count )
 {
     unsigned r = push();
-    op( node->sloc, Y_NULL, r, 1 );
+    op( node->sloc, Y_NULL, r, 1, 0 );
     return 1;
 }
 
@@ -703,7 +703,7 @@ int yl_compile_visitor::visit( yl_expr_string* node, int count )
 int yl_compile_visitor::visit( yl_expr_local* node, int count )
 {
     unsigned r = push();
-    op( node->sloc, Y_MOV, r, local_index( node->name ) );
+    op( node->sloc, Y_MOV, r, local_index( node->name ), 0 );
     return 1;
 }
 
@@ -717,7 +717,7 @@ int yl_compile_visitor::visit( yl_expr_global* node, int count )
 int yl_compile_visitor::visit( yl_expr_upref* node, int count )
 {
     unsigned r = push();
-    op( node->sloc, Y_GETUP, r, (unsigned)node->index );
+    op( node->sloc, Y_GETUP, r, (unsigned)node->index, 0 );
     return 1;
 }
 
@@ -782,7 +782,7 @@ int yl_compile_visitor::visit( yl_expr_preop* node, int count )
     pop( w );
     pop_lvalue( lv );
     unsigned r = push();
-    op( node->sloc, Y_MOV, r, w );              // w
+    op( node->sloc, Y_MOV, r, w, 0 );           // w
     return 1;
 }
 
@@ -803,7 +803,7 @@ int yl_compile_visitor::visit( yl_expr_postop* node, int count )
     pop( v );
     pop_lvalue( lv );
     unsigned r = push();
-    op( node->sloc, Y_MOV, r, v );                          // v
+    op( node->sloc, Y_MOV, r, v, 0 );           // v
     return 1;
 }
 
@@ -1058,7 +1058,7 @@ int yl_compile_visitor::visit( yl_new_array* node, int count )
     {
         listval l = push_list( node->final, -1 );
         pop_list( l );
-        op( node->sloc, Y_EXTEND, r, l.count != -1 ? l.count : -1, 0 );
+        op( node->sloc, Y_EXTEND, r, l.r, l.count != -1 ? l.count : -1 );
     }
     
     return 1;
