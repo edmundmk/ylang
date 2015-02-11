@@ -91,6 +91,13 @@ private:
     };
     
     
+    /*
+        Each visit method takes the number of values we want to push
+        onto the stack, and returns the number actually pushed (which
+        is always the same number or fewer).  -1 as a request means
+        'all available values', and as a return value means 'a
+        variable number of values determined at runtime'.
+    */
 
     using yl_ast_visitor< yl_compile_script, int, int >::visit;
 
@@ -146,6 +153,12 @@ private:
     int         visit( yl_expr_assign* node, int count );
     int         visit( yl_expr_assign_list* node, int count );
     
+    
+    /*
+        Helper functions, which emit opcodes, track the stack state, and
+        implement control flow.
+    */
+    
     void        compare_op( yl_ast_opkind opkind, unsigned r, unsigned a, unsigned b );
 
     void        op( y_opcode op, unsigned r, unsigned a, unsigned b );
@@ -163,7 +176,8 @@ private:
     void        add_continue( yl_ast_scope* target );
     void        close_continue( yl_ast_scope* target, int label );
     
-    unsigned    constant( yl_ast_node* node );
+    unsigned    string( const char* string, size_t length );
+    unsigned    number( double number );
     unsigned    key( const char* key );
     
     void        execute( yl_ast_node* statement_or_expression );

@@ -497,14 +497,14 @@ int yl_compile_visitor::visit( yl_expr_bool* node, int count )
 int yl_compile_visitor::visit( yl_expr_number* node, int count )
 {
     unsigned r = push();
-    op( Y_CONST, r, constant( node ) );
+    op( Y_NUMBER, r, number( node->value ) );
     return 1;
 }
 
 int yl_compile_visitor::visit( yl_expr_string* node, int count )
 {
     unsigned r = push();
-    op( Y_CONST, r, constant( node ) );
+    op( Y_STRING, r, string( node->string, node->length ) );
     return 1;
 }
 
@@ -581,7 +581,7 @@ int yl_compile_visitor::visit( yl_expr_preop* node, int count )
     lvalue lv = push_lvalue( node->lvalue );    // lv
     unsigned v = push_evaluate_lvalue( lv );    // lv, v
     unsigned n = push();                        // lv, v, 1
-    op( Y_CONST, n, constant( node ) );
+    op( Y_NUMBER, n, number( 1.0 ) );
     pop( n );
     pop( v );
     unsigned w = push();                        // lv, w
@@ -601,7 +601,7 @@ int yl_compile_visitor::visit( yl_expr_postop* node, int count )
     unsigned u = push();                        // lv, v, u
     op( Y_MOV, u, v, 0 );
     unsigned n = push();                        // lv, v, u, 1
-    op( Y_CONST, n, constant( node ) );
+    op( Y_NUMBER, n, number( 1.0 ) );
     pop( n );
     pop( u );
     unsigned w = push();                        // lv, v, w
