@@ -44,6 +44,7 @@
 struct yl_compile_script
 {
     yl_ast_func*                func;
+    std::vector< yl_ast_func* > functions;
     std::vector< double >       numbers;
     std::vector< std::string >  strings;
     std::vector< std::string >  keys;
@@ -180,11 +181,12 @@ private:
     void        add_continue( int sloc, yl_ast_scope* target );
     void        close_continue( yl_ast_scope* target, int label );
     
+    unsigned    function( yl_ast_func* func );
     unsigned    string( const char* string, size_t length );
     unsigned    number( double number );
     unsigned    key( const char* key );
     
-    void        execute( yl_ast_node* statement_or_expression );
+    void        execute( yl_ast_node* statement );
     
     unsigned    push();
     unsigned    push( yl_ast_node* expression );
@@ -202,19 +204,21 @@ private:
     unsigned    push_iterator();
     void        pop_iterator( unsigned i );
 
-    void        declare( unsigned r, yl_ast_name* name );
-    unsigned    local( yl_ast_name* name );
-    unsigned    upval_index( yl_ast_name* name );
+    void        declare( unsigned r, bool upval, void* p, const char* name );
+    unsigned    local_index( void* p );
+    unsigned    upval_index( void* p );
+    void        undeclare( void* p );
     void        undeclare( yl_ast_scope* scope );
 
-    void        declare_object( unsigned r, yl_new_object* object );
-    unsigned    objref( yl_new_object* object );
-    void        undeclare_object( yl_new_object* object );
+    void        open_xframe();
+    int         close_xframe();
+    void        xframe_handler( int xframe, int label );
 
 
     yl_ast_func*                func;
     std::vector< branch >       break_stack;
     std::vector< branch >       continue_stack;
+    std::vector< y_xframe >     xframe_stack;
 
     yl_compile_script*          s;
 

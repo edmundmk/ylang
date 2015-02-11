@@ -279,7 +279,13 @@ int yl_compile_visitor::visit( yl_stmt_foreach* node, int count )
         {
             assert( node->lvalues.at( i )->kind == YL_EXPR_LOCAL );
             yl_expr_local* local = (yl_expr_local*)node->lvalues.at( i );
-            declare( rv.r + (int)i, local->name );
+            declare
+            (
+                rv.r + (unsigned)i,
+                local->name->upval,
+                local->name,
+                local->name->name
+            );
         }
     }
     else
@@ -396,13 +402,164 @@ int yl_compile_visitor::visit( yl_stmt_for* node, int count )
 
 int yl_compile_visitor::visit( yl_stmt_using* node, int count )
 {
-    // ...
+    /*
+            o.acquire();
+        [
+            using block
+        ]
+        using:
+            o.release();
+            unwind
+    */
+
+    unsigned o = push( node->uvalue );          // o
+    declare( o, false, node, "[using]" );
+    unsigned m = push();                        // o, m
+    unsigned t = push();                        // o, m, t
+    op( node->sloc, Y_METHOD, m, o, key( "acquire" ) );
+    pop( t );
+    pop( m );                                   // o
+    op( node->sloc, Y_CALL, m, 2, 0 );
+    
+    open_xframe();
+    execute( node->body );
+    int using_xframe = close_xframe();
+    int using_label = label();
+    xframe_handler( using_xframe, using_label );
+    
+    undeclare( node );                          // [o]
+    m = push();
+    t = push();
+    op( node->sloc, Y_METHOD, m, o, key( "release" ) );
+    pop( t );
+    pop( m );
+    op( node->sloc, Y_CALL, m, 2, 0 );
+    
     return 0;
 }
 
 int yl_compile_visitor::visit( yl_stmt_try* node, int count )
 {
-    // ...
+    /*
+        [
+        [
+            tstmt
+            goto finally
+        ]
+        catch:
+            filter
+            if ( failed ) goto next_catch
+            catch
+            goto finally
+        next_catch:
+            filter
+            if ( failed ) goto finally
+            catch
+            goto finally
+        ]
+        finally:
+            finally statement
+            unwind
+     
+    */
+
+
+    if ( node->fstmt )
+    {
+        open_xframe();
+    }
+    
+    if ( node->clist.size() )
+    {
+        open_xframe();
+    }
+    
+    execute( node->tstmt );
+    
+    std::vector< int > finally_jumps;
+    if ( node->clist.size() )
+    {
+        finally_jumps.push_back( jump( node->sloc, Y_JMP, 0 ) );
+        int catch_xframe = close_xframe();
+        int catch_label = label();
+        xframe_handler( catch_xframe, catch_label );
+        
+        int catch_jump = -1;
+        for ( size_t i = 0; i < node->clist.size(); ++i )
+        {
+            assert( node->clist.at( i )->kind == YL_STMT_CATCH );
+            yl_stmt_catch* cstmt = (yl_stmt_catch*)node->clist.at( i );
+        
+            if ( catch_jump != -1 )
+            {
+                patch( catch_jump, label() );
+            }
+            
+            // Test catch filter.
+            if ( cstmt->proto )
+            {
+                unsigned e = push();
+                op( cstmt->sloc, Y_EXCEPT, e, 0, 0 );
+                unsigned p = push( cstmt->proto );
+                pop( p );
+                pop( e );
+                unsigned r = push();
+                op( cstmt->sloc, Y_IS, r, e, p );
+                pop( r );
+                catch_jump = jump( cstmt->sloc, Y_JMPF, r );
+            }
+            
+            // Make exception assignment.
+            if ( cstmt->lvalue && cstmt->declare )
+            {
+                lvalue lv = push_lvalue( cstmt->lvalue );
+                unsigned e = push();
+                op( cstmt->sloc, Y_EXCEPT, e, 0, 0 );
+                assign( lv, e );
+                pop( e );
+                pop_lvalue( lv );
+            }
+            else if ( cstmt->lvalue )
+            {
+                assert( cstmt->lvalue->kind == YL_EXPR_LOCAL );
+                yl_expr_local* local = (yl_expr_local*)cstmt->lvalue;
+                unsigned e = push();
+                op( cstmt->sloc, Y_EXCEPT, e, 0, 0 );
+                declare
+                (
+                    e,
+                    local->name->upval,
+                    local->name,
+                    local->name->name
+                );
+            }
+            
+            execute( cstmt->body );
+            
+            finally_jumps.push_back( jump( node->sloc, Y_JMP, 0 ) );
+        }
+        
+        if ( catch_jump != -1 )
+        {
+            finally_jumps.push_back( catch_jump );
+        }
+        
+    }
+    
+    int finally_xframe = close_xframe();
+    int finally_label = label();
+    for ( size_t i = 0; i < finally_jumps.size(); ++i )
+    {
+        patch( finally_jumps.at( i ), finally_label );
+    }
+    
+    if ( node->fstmt )
+    {
+        xframe_handler( finally_xframe, finally_label );
+        execute( node->fstmt );
+        op( node->sloc, Y_UNWIND, 0, 0, 0 );
+    }
+    
     return 0;
 }
 
@@ -476,8 +633,41 @@ int yl_compile_visitor::visit( yl_stmt_throw* node, int count )
 
 int yl_compile_visitor::visit( yl_ast_func* node, int count )
 {
-    // hmmm ...
-    return 0;
+    unsigned r = push();
+    unsigned f = function( func );
+    op( node->sloc, Y_CLOSURE, r, f, (unsigned)func->upvals.size() );
+    
+    for ( size_t i = 0; i < func->upvals.size(); ++i )
+    {
+        const yl_ast_upval& uv = func->upvals.at( i );
+        
+        switch ( uv.kind )
+        {
+        case YL_UPVAL_LOCAL:
+        {
+            unsigned ui = upval_index( uv.local );
+            unsigned li = local_index( uv.local );
+            op( node->sloc, Y_UPLOCAL, (unsigned)i, ui, li );
+            break;
+        }
+        
+        case YL_UPVAL_OBJECT:
+        {
+            unsigned ui = upval_index( uv.object );
+            unsigned li = local_index( uv.object );
+            op( node->sloc, Y_UPLOCAL, (unsigned)i, ui, li );
+            break;
+        }
+        
+        case YL_UPVAL_UPVAL:
+        {
+            op( node->sloc, Y_UPUPVAL, (unsigned)i, uv.upval, 0 );
+            break;
+        }
+        }
+    }
+    
+    return 1;
 }
 
 int yl_compile_visitor::visit( yl_expr_null* node, int count )
@@ -511,7 +701,7 @@ int yl_compile_visitor::visit( yl_expr_string* node, int count )
 int yl_compile_visitor::visit( yl_expr_local* node, int count )
 {
     unsigned r = push();
-    op( node->sloc, Y_MOV, r, local( node->name ) );
+    op( node->sloc, Y_MOV, r, local_index( node->name ) );
     return 1;
 }
 
@@ -532,7 +722,7 @@ int yl_compile_visitor::visit( yl_expr_upref* node, int count )
 int yl_compile_visitor::visit( yl_expr_objref* node, int count )
 {
     unsigned r = push();
-    op( node->sloc, Y_MOV, r, objref( node->object ), 0 );
+    op( node->sloc, Y_MOV, r, local_index( node->object ), 0 );
     return 1;
 }
 
@@ -590,7 +780,7 @@ int yl_compile_visitor::visit( yl_expr_preop* node, int count )
     pop( w );
     pop_lvalue( lv );
     unsigned r = push();
-    op( node->sloc, Y_MOV, r, w );                          // w
+    op( node->sloc, Y_MOV, r, w );              // w
     return 1;
 }
 
@@ -822,14 +1012,13 @@ int yl_compile_visitor::visit( yl_new_new* node, int count )
     unsigned o = push();                        // o
     op( node->sloc, Y_OBJECT, o, p, 0 );
     unsigned m = push();                        // o, m
-    op( node->sloc, Y_KEY, m, o, key( "this" ) );
     unsigned t = push();                        // o, m, o
-    op( node->sloc, Y_MOV, t, o, 0 );
+    op( node->sloc, Y_METHOD, m, o, key( "this" ) );
     listval l = push_list( node->arguments, -1 ); // o, m, o, ...
-    op( node->sloc, Y_CALL, m, l.count != -1 ? l.count + 2 : -1, 0 );
     pop_list( l );
     pop( t );
     pop( m );                                   // o
+    op( node->sloc, Y_CALL, m, l.count != -1 ? l.count + 2 : -1, 0 );
     return 1;
 }
 
@@ -839,7 +1028,7 @@ int yl_compile_visitor::visit( yl_new_object* node, int count )
     pop( p );
     unsigned o = push();
     op( node->sloc, Y_OBJECT, o, p, 0 );
-    declare_object( o, node );
+    declare( o, node->upval, node, "[object]" );
     
     for ( size_t i = 0; i < node->members.size(); ++i )
     {
@@ -847,7 +1036,7 @@ int yl_compile_visitor::visit( yl_new_object* node, int count )
     }
     
     undeclare( node->scope );
-    undeclare_object( node );
+    undeclare( node );
     return 1;
 }
 
@@ -968,7 +1157,8 @@ int yl_compile_visitor::visit( yl_expr_yield* node, int count )
     listval r = push_list( count );
     assert( l.r == r.r );
 
-    op( node->sloc, Y_YIELD, l.r, l.count != -1 ? l.count : -1, (unsigned)count );
+    unsigned lcount = l.count != -1 ? l.count : -1;
+    op( node->sloc, Y_YIELD, l.r, lcount, (unsigned)count );
 
     return count;
 }
@@ -1036,6 +1226,8 @@ int yl_compile_visitor::visit( yl_expr_list* node, int count )
 
 int yl_compile_visitor::visit( yl_expr_assign* node, int count )
 {
+    // TODO: deal with assignment operators.
+
     lvalue lv = push_lvalue( node->lvalue );    // lv
     unsigned v = push( node->rvalue );          // lv, v
     assign( lv, v );                            // *lv = v
@@ -1048,6 +1240,8 @@ int yl_compile_visitor::visit( yl_expr_assign* node, int count )
 
 int yl_compile_visitor::visit( yl_expr_assign_list* node, int count )
 {
+    // TODO: deal with assignment operators.
+
     if ( count != -1 )
     {
         count = std::min( count, (int)node->lvalues.size() );

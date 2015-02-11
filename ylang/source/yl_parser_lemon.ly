@@ -1433,7 +1433,12 @@ stmt_catch(x)   ::= scope_catch(cscope) LPN VAR name(name) RPN .
                             cscope.scope, name, nullptr, true );
                     p->destroy( cscope.token );
                 }
-
+stmt_catch(x)   ::= scope_catch(cscope) LPN COLON RPN .
+                {
+                    x = p->catchstmt( cscope.token->sloc,
+                            cscope.scope, nullptr, nullptr, false );
+                    p->destroy( cscope.token );
+                }
 
 
 
