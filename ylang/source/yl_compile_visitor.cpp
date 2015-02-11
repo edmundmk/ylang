@@ -434,6 +434,8 @@ int yl_compile_visitor::visit( yl_stmt_using* node, int count )
     pop( t );
     pop( m );
     op( node->sloc, Y_CALL, m, 2, 0 );
+   
+    op( node->sloc, Y_UNWIND, 0, 0, 0 );
     
     return 0;
 }
