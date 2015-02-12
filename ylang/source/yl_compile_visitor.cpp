@@ -224,12 +224,12 @@ int yl_compile_visitor::visit( yl_stmt_do* node, int count )
     execute( node->body );
     
     int continue_label = label();
-    close_continue( node->scope, continue_label );
     
     unsigned v = push( node->condition );
     pop( v );
  
     close_scope( node->scope );
+    close_continue( node->scope, continue_label );
     
     patch( jump( node->sloc, Y_JMPT, v ), top_label );
     
