@@ -70,6 +70,7 @@ private:
     
     struct listval
     {
+        listval() : r( -1 ), count( 0 ) {}
         listval( unsigned r, int count ) : r( r ), count( count ) {}
     
         unsigned    r;
@@ -165,6 +166,8 @@ private:
     
     void        compare_op( int sloc,
                     yl_ast_opkind opkind, unsigned r, unsigned a, unsigned b );
+    void        assign_op( int sloc,
+                    yl_ast_opkind opkind, unsigned r, unsigned a, unsigned b );
 
     void        op( int sloc, y_opcode op, unsigned r, unsigned a, unsigned b );
     void        op( int sloc, y_opcode op, unsigned r, unsigned c );
@@ -197,7 +200,7 @@ private:
     void        pop_list( listval lv );
     
     lvalue      push_lvalue( yl_ast_node* lvexpr );
-    unsigned    push_evaluate_lvalue( lvalue );
+    unsigned    push_evaluate_lvalue( lvalue lv );
     void        assign( lvalue lv, unsigned v );
     void        pop_lvalue( lvalue lv );
     

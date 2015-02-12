@@ -627,7 +627,7 @@ int yl_compile_visitor::visit( yl_stmt_throw* node, int count )
 {
     unsigned v = push( node->value );
     pop( v );
-    op( node->sloc, Y_THROW, 0, v, 0 );
+    op( node->sloc, Y_THROW, v, 0, 0 );
     return 0;
 }
 
@@ -1183,18 +1183,18 @@ int yl_compile_visitor::visit( yl_expr_unpack* node, int count )
 
 int yl_compile_visitor::visit( yl_expr_list* node, int count )
 {
-    int n = (int)node->values.size();
+    int rcount = (int)node->values.size();
     if ( count != -1 )
     {
-        n = std::min( n, count );
+        rcount = std::min( rcount, count );
     }
     
-    for ( size_t i = 0; i < n; ++i )
+    for ( size_t i = 0; i < rcount; ++i )
     {
         push( node->values.at( i ) );
     }
     
-    for ( size_t i = n; i < node->values.size(); ++i )
+    for ( size_t i = rcount; i < node->values.size(); ++i )
     {
         execute( node->values.at( i ) );
     }
@@ -1205,9 +1205,9 @@ int yl_compile_visitor::visit( yl_expr_list* node, int count )
         {
             push_list( node->final, -1 );
         }
-        else if ( count > n )
+        else if ( count > rcount )
         {
-            push_list( node->final, count - n );
+            push_list( node->final, count - rcount );
         }
         else
         {
@@ -1217,67 +1217,203 @@ int yl_compile_visitor::visit( yl_expr_list* node, int count )
         return count;
     }
     
-    return n;
+    return rcount;
 }
 
 int yl_compile_visitor::visit( yl_expr_assign* node, int count )
 {
-    // TODO: deal with assignment operators.
-
-    lvalue lv = push_lvalue( node->lvalue );    // lv
-    unsigned v = push( node->rvalue );          // lv, v
-    assign( lv, v );                            // *lv = v
-    pop( v );
-    pop_lvalue( lv );
-    unsigned r = push();
-    op( node->sloc, Y_MOV, r, v, 0 );
-    return 1;
+    if ( node->assignop == YL_ASTOP_DECLARE )
+    {
+        assert( node->lvalue->kind == YL_EXPR_LOCAL );
+        yl_expr_local* local = (yl_expr_local*)node->lvalue;
+        unsigned v = -1;
+        if ( node->rvalue )
+        {
+            v = push( node->rvalue );
+        }
+        else
+        {
+            v = push();
+            op( node->sloc, Y_NULL, v, 1, 0 );
+        }
+        declare( v, local->name->upval, local->name, local->name->name );
+        unsigned r = push();
+        op( node->sloc, Y_MOV, r, v, 0 );
+        return 1;
+    }
+    else if ( node->assignop == YL_ASTOP_ASSIGN )
+    {
+        lvalue lv = push_lvalue( node->lvalue );    // lv
+        unsigned v = push( node->rvalue );          // lv, v
+        assign( lv, v );                            // *lv = v
+        pop( v );
+        pop_lvalue( lv );
+        unsigned r = push();
+        op( node->sloc, Y_MOV, r, v, 0 );
+        return 1;
+    }
+    else
+    {
+        lvalue lv = push_lvalue( node->lvalue );    // lv
+        unsigned v = push_evaluate_lvalue( lv );    // lv, v
+        unsigned u = push( node->rvalue );          // lv, v, u
+        pop( u );
+        pop( v );
+        unsigned w = push();                        // lv, w
+        assign_op( node->sloc, node->assignop, w, v, u );
+        assign( lv, w );
+        pop( w );
+        pop_lvalue( lv );
+        unsigned r = push();
+        op( node->sloc, Y_MOV, r, w, 0 );           // w
+        return 1;
+    }
 }
 
 int yl_compile_visitor::visit( yl_expr_assign_list* node, int count )
 {
-    // TODO: deal with assignment operators.
-
+    int rcount = (int)node->lvalues.size();
     if ( count != -1 )
     {
-        count = std::min( count, (int)node->lvalues.size() );
+        rcount = std::min( rcount, count );
+    }
+    
+    if ( node->assignop == YL_ASTOP_DECLARE )
+    {
+    
+        listval rv;
+        if ( node->rvalues )
+        {
+            rv = push_list( node->rvalues, (int)node->lvalues.size() );
+        }
+        else
+        {
+            rv = push_list( (int)node->lvalues.size() );
+            op( node->sloc, Y_NULL, rv.r, rv.count, 0 );
+        }
+        
+        assert( rv.count == (int)node->lvalues.size() );
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            assert( node->lvalues.at( i )->kind == YL_EXPR_LOCAL );
+            yl_expr_local* local = (yl_expr_local*)node->lvalues.at( i );
+            declare
+            (
+                rv.r + (int)i,
+                local->name->upval,
+                local->name,
+                local->name->name
+            );
+        }
+        
+        listval r = push_list( rcount );
+        for ( size_t i = 0; i < rcount; ++i )
+        {
+            op( node->sloc, Y_MOV, r.r + (unsigned)i, rv.r + (unsigned)i, 0 );
+        }
+        
+        return rcount;
+    }
+    else if ( node->assignop == YL_ASTOP_ASSIGN )
+    {
+
+        std::vector< lvalue > lv;
+        lv.reserve( node->lvalues.size() );
+        
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            lv.push_back( push_lvalue( node->lvalues.at( i ) ) );
+        }
+                                    // lv, lv, lv
+        
+        listval rv = push_list( node->rvalues, (int)node->lvalues.size() );
+        assert( rv.count == (int)node->lvalues.size() );
+                                    // lv, lv, lv, rv, rv, rv
+     
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            assign( lv.at( i ), rv.r + (int)i );
+        }
+        
+        pop_list( rv );
+        for ( auto i = lv.rbegin(); i != lv.rend(); ++i )
+        {
+            pop_lvalue( *i );
+        }
+        
+        listval r = push_list( rcount );
+        for ( size_t i = 0; i < rcount; ++i )
+        {
+            op( node->sloc, Y_MOV, r.r + (unsigned)i, rv.r + (unsigned)i, 0 );
+        }
+        
+        return rcount;
     }
     else
     {
-        count = (int)node->lvalues.size();
-    }
 
-    std::vector< lvalue > lv;
-    lv.reserve( node->lvalues.size() );
-    
-    for ( size_t i = 0; i < node->lvalues.size(); ++i )
-    {
-        lv.push_back( push_lvalue( node->lvalues.at( i ) ) );
+        std::vector< lvalue > lv;
+        lv.reserve( node->lvalues.size() );
+        
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            lv.push_back( push_lvalue( node->lvalues.at( i ) ) );
+        }
+                                    // lv, lv, lv
+        
+        std::vector< unsigned > v;
+        v.reserve( node->lvalues.size() );
+        
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            v.push_back( push_evaluate_lvalue( lv.at( i ) ) );
+        }
+                                    // lv, lv, lv, v, v, v
+        
+        listval rv = push_list( node->rvalues, (int)node->lvalues.size() );
+        assert( rv.count == (int)node->lvalues.size() );
+                                    // lv, lv, lv, v, v, v, rv, rv, rv
+     
+        // Bit naughtly here - we should really pop all of the values and
+        // repush, but it ends up the same anyway...
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            assign_op
+            (
+                node->sloc,
+                node->assignop,
+                v.at( i ),
+                v.at( i ),
+                rv.r + (int)i
+            );
+        }
+
+        pop_list( rv );
+                                    // lv, lv, lv, w, w, w
+        
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            assign( lv.at( i ), v.at( i ) );
+        }
+        
+        for ( auto i = v.rbegin(); i != v.rend(); ++i )
+        {
+            pop( *i );
+        }
+        
+        for ( auto i = lv.rbegin(); i != lv.rend(); ++i )
+        {
+            pop_lvalue( *i );
+        }
+        
+        listval r = push_list( rcount );
+        for ( size_t i = 0; i < rcount; ++i )
+        {
+            op( node->sloc, Y_MOV, r.r + (unsigned)i, v.at( i ), 0 );
+        }
+        
+        return rcount;
     }
-                                                // lv, lv, lv
-    
-    auto rv = push_list( node->rvalues, (int)node->lvalues.size() );
-    assert( rv.count == (int)node->lvalues.size() );
-                                                // lv, lv, lv, v, v, v
- 
-    for ( size_t i = 0; i < node->lvalues.size(); ++i )
-    {
-        assign( lv.at( i ), rv.r + (int)i );
-    }
-    
-    pop_list( rv );
-    for ( auto i = lv.rbegin(); i != lv.rend(); ++i )
-    {
-        pop_lvalue( *i );
-    }
-    
-    auto r = push_list( count );
-    for ( size_t i = 0; i < node->lvalues.size(); ++i )
-    {
-        op( node->sloc, Y_MOV, r.r + (unsigned)i, rv.r + (unsigned)i, 0 );
-    }
-    
-    return count;
 }
 
 
