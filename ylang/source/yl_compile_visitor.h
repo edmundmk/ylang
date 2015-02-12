@@ -173,21 +173,17 @@ private:
     void        op( int sloc, y_opcode op, unsigned r, unsigned c );
     void        op( int sloc, y_opcode op, unsigned r, signed j );
 
+
     int         jump( int sloc, y_opcode opcode, unsigned r );
     int         label();
     void        patch( int jump, int label );
-    
-    void        open_break( yl_ast_scope* target );
-    void        add_break( int sloc, yl_ast_scope* target );
-    void        close_break( yl_ast_scope* target, int label );
-    void        open_continue( yl_ast_scope* target );
-    void        add_continue( int sloc, yl_ast_scope* target );
-    void        close_continue( yl_ast_scope* target, int label );
+
     
     unsigned    function( yl_ast_func* func );
     unsigned    string( const char* string, size_t length );
     unsigned    number( double number );
     unsigned    key( const char* key );
+
     
     void        execute( yl_ast_node* statement );
     
@@ -204,19 +200,29 @@ private:
     void        assign( lvalue lv, unsigned v );
     void        pop_lvalue( lvalue lv );
     
+    
+    void        open_scope( yl_ast_scope* scope );
+
+    void        open_break( yl_ast_scope* target );
+    void        add_break( int sloc, yl_ast_scope* target );
+    void        close_break( yl_ast_scope* target, int label );
+    void        open_continue( yl_ast_scope* target );
+    void        add_continue( int sloc, yl_ast_scope* target );
+    void        close_continue( yl_ast_scope* target, int label );
+    
     unsigned    push_iterator();
     void        pop_iterator( unsigned i );
 
     void        declare( unsigned r, bool upval, void* p, const char* name );
     unsigned    local_index( void* p );
     unsigned    upval_index( void* p );
-    void        undeclare( void* p );
-    void        undeclare( yl_ast_scope* scope );
 
     void        open_xframe();
     int         close_xframe();
     void        xframe_handler( int xframe, int label );
 
+    void        close_scope( yl_ast_scope* scope );
+    
 
     yl_ast_func*                func;
     std::vector< branch >       break_stack;

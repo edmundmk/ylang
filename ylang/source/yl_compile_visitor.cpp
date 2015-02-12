@@ -23,6 +23,11 @@ int yl_compile_visitor::fallback( yl_ast_node* node, int count )
 
 int yl_compile_visitor::visit( yl_stmt_block* node, int count )
 {
+    if ( node->scope )
+    {
+        open_scope( node->scope );
+    }
+
     for ( size_t i = 0; i < node->stmts.size(); ++i )
     {
         execute( node->stmts.at( i ) );
@@ -30,7 +35,7 @@ int yl_compile_visitor::visit( yl_stmt_block* node, int count )
     
     if ( node->scope )
     {
-        undeclare( node->scope );
+        close_scope( node->scope );
     }
     
     return 0;
@@ -47,6 +52,8 @@ int yl_compile_visitor::visit( yl_stmt_if* node, int count )
             statements
         endif:
     */
+
+    open_scope( node->scope );
 
     unsigned v = push( node->condition );
     pop( v );
@@ -67,22 +74,14 @@ int yl_compile_visitor::visit( yl_stmt_if* node, int count )
     {
         patch( test_jump, label() );
     }
-    
-    undeclare( node->scope );
+
+    close_scope( node->scope );
     
     return 0;
 }
 
 int yl_compile_visitor::visit( yl_stmt_switch* node, int count )
 {
-    /*
-        It's possible that a case expression could clobber the comparison
-        value.  Unless we can disprove this, we must keep a copy of the
-        value on the stack during the case sequence.
-    */
-    
-    unsigned u = push( node->value );
-    
     /*
             push value
             eval value
@@ -98,6 +97,16 @@ int yl_compile_visitor::visit( yl_stmt_switch* node, int count )
             statements
         break:
     */
+    
+    open_scope( node->scope );
+
+    /*
+        It's possible that a case expression could clobber the comparison
+        value.  Unless we can disprove this, we must keep a copy of the
+        value on the stack during the case sequence.
+    */
+    
+    unsigned u = push( node->value );
     
     open_break( node->scope );
 
@@ -155,12 +164,7 @@ int yl_compile_visitor::visit( yl_stmt_switch* node, int count )
     }
     
     close_break( node->scope, break_label );
-    
-    if ( node->body->scope )
-    {
-        undeclare( node->body->scope );
-    }
-    undeclare( node->scope );
+    close_scope( node->scope );
     
     return 0;
 }
@@ -180,11 +184,15 @@ int yl_compile_visitor::visit( yl_stmt_while* node, int count )
     open_break( node->scope );
     open_continue( node->scope );
 
+    open_scope( node->scope );
+
     unsigned v = push( node->condition );
     pop( v );
     int test_jump = jump( node->sloc, Y_JMPF, v );
     
     execute( node->body );
+    
+    close_scope( node->scope );
     
     close_continue( node->scope, continue_label );
     patch( jump( node->sloc, Y_JMP, 0 ), continue_label );
@@ -192,8 +200,6 @@ int yl_compile_visitor::visit( yl_stmt_while* node, int count )
     int break_label = label();
     close_break( node->scope, break_label );
     patch( test_jump, break_label );
-    
-    undeclare( node->scope );
     
     return 0;
 }
@@ -213,6 +219,8 @@ int yl_compile_visitor::visit( yl_stmt_do* node, int count )
     open_break( node->scope );
     open_continue( node->scope );
     
+    open_scope( node->scope );
+    
     execute( node->body );
     
     int continue_label = label();
@@ -220,12 +228,13 @@ int yl_compile_visitor::visit( yl_stmt_do* node, int count )
     
     unsigned v = push( node->condition );
     pop( v );
+ 
+    close_scope( node->scope );
+    
     patch( jump( node->sloc, Y_JMPT, v ), top_label );
     
     int break_label = label();
     close_break( node->scope, break_label );
-    
-    undeclare( node->scope );
     
     return 0;
 }
@@ -254,6 +263,8 @@ int yl_compile_visitor::visit( yl_stmt_foreach* node, int count )
     int continue_label = label();
     open_break( node->scope );
     open_continue( node->scope );
+    
+    open_scope( node->scope );
     
     if ( node->declare )
     {
@@ -333,13 +344,13 @@ int yl_compile_visitor::visit( yl_stmt_foreach* node, int count )
     int entry_label = label();
     patch( entry_jump, entry_label );
     
+    close_scope( node->scope );
+    
     patch( jump( node->sloc, Y_JMPITER, i ), continue_label );
     close_continue( node->scope, continue_label );
     
     int break_label = label();
     close_break( node->scope, break_label );
-
-    undeclare( node->scope );
     
     return 0;
 }
@@ -358,6 +369,8 @@ int yl_compile_visitor::visit( yl_stmt_for* node, int count )
         break:
     */
 
+
+    open_scope( node->scope );
 
     if ( node->init )
     {
@@ -395,7 +408,7 @@ int yl_compile_visitor::visit( yl_stmt_for* node, int count )
     }
     close_break( node->scope, break_label );
     
-    undeclare( node->scope );
+    close_scope( node->scope );
     
     return 0;
 }
@@ -412,6 +425,8 @@ int yl_compile_visitor::visit( yl_stmt_using* node, int count )
             unwind
     */
 
+    open_scope( node->scope );
+
     unsigned o = push( node->uvalue );          // o
     declare( o, false, node, "[using]" );
     unsigned m = push();                        // o, m
@@ -427,15 +442,15 @@ int yl_compile_visitor::visit( yl_stmt_using* node, int count )
     int using_label = label();
     xframe_handler( using_xframe, using_label );
     
-    undeclare( node );                          // [o]
-    m = push();
-    t = push();
-    op( node->sloc, Y_METHOD, m, o, key( "release" ) );
+    // This sequence overwrites o, even though it is still declared.
+    t = push();                                 // o, t
+    op( node->sloc, Y_METHOD, o, o, key( "release" ) );
     pop( t );
-    pop( m );
-    op( node->sloc, Y_CALL, m, 2, 0 );
+    op( node->sloc, Y_CALL, o, 2, 0 );
    
     op( node->sloc, Y_UNWIND, 0, 0, 0 );
+
+    close_scope( node->scope );
     
     return 0;
 }
@@ -511,6 +526,8 @@ int yl_compile_visitor::visit( yl_stmt_try* node, int count )
                 catch_jump = jump( cstmt->sloc, Y_JMPF, r );
             }
             
+            open_scope( cstmt->scope );
+            
             // Make exception assignment.
             if ( cstmt->lvalue && cstmt->declare )
             {
@@ -537,6 +554,8 @@ int yl_compile_visitor::visit( yl_stmt_try* node, int count )
             }
             
             execute( cstmt->body );
+            
+            close_scope( cstmt->scope );
             
             finally_jumps.push_back( jump( node->sloc, Y_JMP, 0 ) );
         }
@@ -1020,6 +1039,8 @@ int yl_compile_visitor::visit( yl_new_new* node, int count )
 
 int yl_compile_visitor::visit( yl_new_object* node, int count )
 {
+    open_scope( node->scope );
+
     unsigned p = push( node->proto );
     pop( p );
     unsigned o = push();
@@ -1031,8 +1052,8 @@ int yl_compile_visitor::visit( yl_new_object* node, int count )
         execute( node->members.at( i ) );
     }
     
-    undeclare( node->scope );
-    undeclare( node );
+    close_scope( node->scope );
+    
     return 1;
 }
 
