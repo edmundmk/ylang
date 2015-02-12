@@ -1500,6 +1500,66 @@ void yl_compile_visitor::compare_op(
 }
 
 
+void yl_compile_visitor::assign_op(
+        int sloc, yl_ast_opkind opkind, unsigned r, unsigned a, unsigned b )
+{
+    switch ( opkind )
+    {
+    case YL_ASTOP_MULASSIGN:
+        op( sloc, Y_MUL, r, a, b );
+        break;
+        
+    case YL_ASTOP_DIVASSIGN:
+        op( sloc, Y_DIV, r, a, b );
+        break;
+        
+    case YL_ASTOP_MODASSIGN:
+        op( sloc, Y_MOD, r, a, b );
+        break;
+        
+    case YL_ASTOP_INTDIVASSIGN:
+        op( sloc, Y_INTDIV, r, a, b );
+        break;
+        
+    case YL_ASTOP_ADDASSIGN:
+        op( sloc, Y_ADD, r, a, b );
+        break;
+        
+    case YL_ASTOP_SUBASSIGN:
+        op( sloc, Y_SUB, r, a, b );
+        break;
+        
+    case YL_ASTOP_LSHIFTASSIGN:
+        op( sloc, Y_LSL, r, a, b );
+        break;
+        
+    case YL_ASTOP_LRSHIFTASSIGN:
+        op( sloc, Y_LSR, r, a, b );
+        break;
+        
+    case YL_ASTOP_ARSHIFTASSIGN:
+        op( sloc, Y_ASR, r, a, b );
+        break;
+        
+    case YL_ASTOP_BITANDASSIGN:
+        op( sloc, Y_BITAND, r, a, b );
+        break;
+        
+    case YL_ASTOP_BITXORASSIGN:
+        op( sloc, Y_BITXOR, r, a, b );
+        break;
+        
+    case YL_ASTOP_BITORASSIGN:
+        op( sloc, Y_BITOR, r, a, b );
+        break;
+
+    default:
+        assert( ! "unexpected compound assignment operator" );
+        break;
+    }
+}
+
+
 
 void yl_compile_visitor::op(
                 int sloc, y_opcode op, unsigned r, unsigned a, unsigned b )
@@ -1524,15 +1584,15 @@ void yl_compile_visitor::op(
 
 
 
-int yl_compile_visitor::label()
-{
-    return (int)s->code.size();
-}
-
 int yl_compile_visitor::jump( int sloc, y_opcode opcode, unsigned r )
 {
     s->code.emplace_back( opcode, r, (signed)0 );
     s->slocs.push_back( sloc );
+    return (int)s->code.size();
+}
+
+int yl_compile_visitor::label()
+{
     return (int)s->code.size();
 }
 
