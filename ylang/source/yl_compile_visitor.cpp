@@ -352,6 +352,8 @@ int yl_compile_visitor::visit( yl_stmt_foreach* node, int count )
     int break_label = label();
     close_break( node->scope, break_label );
     
+    pop_iterator( i );
+    
     return 0;
 }
 
