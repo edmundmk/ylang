@@ -123,7 +123,7 @@ State 1:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -356,7 +356,7 @@ State 2:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -589,7 +589,7 @@ State 3:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -822,7 +822,7 @@ State 4:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -1055,7 +1055,7 @@ State 5:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -1288,7 +1288,7 @@ State 6:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -1508,7 +1508,7 @@ State 7:
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
           stmt_common ::= stmt_foreach * stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -1718,7 +1718,7 @@ State 8:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -1931,7 +1931,7 @@ State 9:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -2141,7 +2141,7 @@ State 10:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -2353,7 +2353,7 @@ State 11:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -2564,7 +2564,7 @@ State 12:
           stmt_common ::= stmt_while LPN condition RPN * stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -2764,9 +2764,9 @@ State 13:
           sexpr_list ::= * sexpr_lbody COMMA expr_final
           sexpr_assign ::= * sexpr_list
           sexpr_assign ::= * sexpr_lbody assign_op expr_assign
-          stmt_reuse ::= * stmt_reblock stmt_list RBR
-          stmt_reuse ::= * stmt_common
-          stmt_reblock ::= * LBR
+          stmt ::= * stmt_block stmt_list RBR
+          stmt ::= * stmt_common
+          stmt_block ::= * LBR
           stmt_common ::= * sexpr_assign SEMICOLON
           stmt_common ::= * stmt_if LPN condition RPN stmt
           stmt_common ::= * stmt_if LPN condition RPN stmt ELSE stmt
@@ -2774,8 +2774,8 @@ State 13:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
-          stmt_common ::= stmt_for * stmt_reuse
+          stmt_common ::= * stmt_for stmt
+          stmt_common ::= stmt_for * stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -2815,7 +2815,7 @@ State 13:
                     IDENTIFIER shift  266
                       ELLIPSIS shift  378
                         PERIOD shift  186
-                           LBR shift  260
+                           LBR shift  240
                          COLON shift  182
                        SUPEROF shift  153
                            LSQ shift  35
@@ -2846,7 +2846,7 @@ State 13:
                          USING shift  344
                   newobj_scope shift  174
                     newf_scope shift  180
-                  stmt_reblock shift  116
+                    stmt_block shift  121
                        stmt_if shift  194
                    stmt_switch shift  198
                     stmt_while shift  200
@@ -2883,8 +2883,8 @@ State 13:
                    sexpr_lbody shift  106
                     sexpr_list shift  402
                   sexpr_assign shift  193
-                   stmt_common shift  278
-                    stmt_reuse shift  281
+                          stmt shift  281
+                   stmt_common shift  410
                       stmt_try shift  287
 
 State 14:
@@ -2985,7 +2985,7 @@ State 14:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -3196,7 +3196,7 @@ State 15:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -3407,7 +3407,7 @@ State 16:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -3618,7 +3618,7 @@ State 17:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_try
           stmt_common ::= * DELETE expr_lbody SEMICOLON
@@ -3829,7 +3829,7 @@ State 18:
           stmt_common ::= * stmt_while LPN condition RPN stmt_reuse
           stmt_common ::= * stmt_doblock WHILE LPN expr_assign RPN SEMICOLON
           stmt_common ::= * stmt_foreach stmt_reuse
-          stmt_common ::= * stmt_for stmt_reuse
+          stmt_common ::= * stmt_for stmt
           stmt_common ::= * stmt_using LPN condition RPN stmt_reuse
           stmt_common ::= stmt_using LPN condition RPN * stmt_reuse
           stmt_common ::= * stmt_try
@@ -13459,7 +13459,7 @@ State 280:
                      {default} reduce 89
 
 State 281:
-    (181) stmt_common ::= stmt_for stmt_reuse *
+    (181) stmt_common ::= stmt_for stmt *
 
                      {default} reduce 181
 

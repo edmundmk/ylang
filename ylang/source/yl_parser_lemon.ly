@@ -1167,7 +1167,7 @@ stmt_common(x)  ::= stmt_foreach(stmt) stmt_reuse(block) .
                     p->close_scope( stmt->scope );
                     x = stmt;
                 }
-stmt_common(x)  ::= stmt_for(stmt) stmt_reuse(block) .
+stmt_common(x)  ::= stmt_for(stmt) stmt(block) .
                 {
                     stmt->body      = block;
                     p->close_scope( stmt->scope );
