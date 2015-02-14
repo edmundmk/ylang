@@ -203,6 +203,10 @@ private:
     
     void        open_scope( yl_ast_scope* scope );
 
+    void        declare( unsigned r, bool upval, void* p, const char* name );
+    unsigned    local_index( void* p );
+    unsigned    upval_index( void* p );
+
     void        open_break( yl_ast_scope* target );
     void        add_break( int sloc, yl_ast_scope* target );
     void        close_break( yl_ast_scope* target, int label );
@@ -212,10 +216,6 @@ private:
     
     unsigned    push_iterator();
     void        pop_iterator( unsigned i );
-
-    void        declare( unsigned r, bool upval, void* p, const char* name );
-    unsigned    local_index( void* p );
-    unsigned    upval_index( void* p );
 
     void        open_xframe();
     int         close_xframe();
