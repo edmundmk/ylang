@@ -82,6 +82,17 @@ inline std::string vstringf( const char* format, va_list arguments )
 }
 
 
+inline std::string strtime( time_t time_time )
+{
+    char time_string[ 32 ];
+    struct tm time_tmbuf;
+    if ( struct tm* time_tm = gmtime_r( &time_time, &time_tmbuf ) )
+        strftime( time_string, sizeof( time_string ), "%c", time_tm );
+    else
+        strcpy( time_string, "[unknown time]" );
+    return time_string;
+}
+
 
 #endif /* STRINGF_H */
 
