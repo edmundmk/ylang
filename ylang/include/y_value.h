@@ -2,7 +2,7 @@
 //  y_value.h
 //
 //  Created by Edmund Kapusniak on 13/02/2015.
-//  Copyright (c) 2015 birotanker. All rights reserved.
+//  Copyright (c) 2015 Edmund Kapusniak. All rights reserved.
 //
 
 
