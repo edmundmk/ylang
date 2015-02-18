@@ -53,6 +53,7 @@
 		4B0F170C1A8181E300104105 /* hash.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = hash.cpp; sourceTree = "<group>"; };
 		4B0F170D1A8181E300104105 /* region.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = region.cpp; sourceTree = "<group>"; };
 		4B0F170E1A8181E300104105 /* strpath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = strpath.cpp; sourceTree = "<group>"; };
+		4B9FFB4C1A93E15800DC4019 /* anyalias.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = anyalias.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -86,6 +87,7 @@
 		4B0F16F81A8181E300104105 /* include */ = {
 			isa = PBXGroup;
 			children = (
+				4B9FFB4C1A93E15800DC4019 /* anyalias.h */,
 				4B0F16F91A8181E300104105 /* bezier.h */,
 				4B0F16FA1A8181E300104105 /* delegate.h */,
 				4B0F16FB1A8181E300104105 /* divmod.h */,
