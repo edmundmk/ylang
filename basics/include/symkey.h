@@ -29,12 +29,12 @@ public:
     symkey();
     symkey( const char* s );
     symkey( const char* s, size_t size );
-    symkey( hash32_t hash, const char* s, size_t size );
+    symkey( hash_t hash, const char* s, size_t size );
 
     explicit operator bool () const;
     operator std::string () const;
     const char* c_str() const;
-    hash32_t hash() const;
+    hash_t hash() const;
     size_t size() const;
 
 
@@ -43,7 +43,7 @@ private:
     friend struct std::hash< symkey >;
     friend bool operator == ( const symkey& a, const symkey& b );
 
-    hash32_t    shash;
+    hash_t      shash;
     const char* sname;
     size_t      ssize;
     
@@ -59,20 +59,20 @@ inline symkey::symkey()
 }
 
 inline symkey::symkey( const char* s )
-    :   shash( hash32( s ) )
+    :   shash( ::hash( s ) )
     ,   sname( s )
     ,   ssize( strlen( s ) )
 {
 }
 
 inline symkey::symkey( const char* s, size_t size )
-    :   shash( hash32( s, size ) )
+    :   shash( ::hash( s, size ) )
     ,   sname( s )
     ,   ssize( size )
 {
 }
 
-inline symkey::symkey( hash32_t hash, const char* s, size_t size )
+inline symkey::symkey( hash_t hash, const char* s, size_t size )
     :   shash( hash )
     ,   sname( s )
     ,   ssize( size )
@@ -95,7 +95,7 @@ inline const char* symkey::c_str() const
     return sname;
 }
 
-inline hash32_t symkey::hash() const
+inline hash_t symkey::hash() const
 {
     return shash;
 }
