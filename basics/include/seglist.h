@@ -82,6 +82,12 @@ public:
 
     bool operator == ( const seglist& b ) const;
     bool operator != ( const seglist& b ) const;
+
+    const_reference operator [] ( size_t i ) const;
+    reference       operator [] ( size_t i );
+    
+    const_reference at( size_t i ) const;
+    reference       at( size_t i );
     
     size_type       size() const;
     size_type       max_size() const;
@@ -267,6 +273,58 @@ bool seglist< element_t, segsize, allocator_t >::operator != ( const seglist& b 
     return ! operator == ( b );
 }
 
+
+template < typename element_t, size_t segsize, typename allocator_t >
+typename seglist< element_t, segsize, allocator_t >::const_reference
+        seglist< element_t, segsize, allocator_t >::operator [] ( size_t i ) const
+{
+    return at( i );
+}
+
+template < typename element_t, size_t segsize, typename allocator_t >
+typename seglist< element_t, segsize, allocator_t >::reference
+        seglist< element_t, segsize, allocator_t >::operator [] ( size_t i )
+{
+    return at( i );
+}
+    
+template < typename element_t, size_t segsize, typename allocator_t >
+typename seglist< element_t, segsize, allocator_t >::const_reference
+        seglist< element_t, segsize, allocator_t >::at( size_t i ) const
+{
+    segment* s = first;
+    while ( s != last )
+    {
+        if ( i < segsize )
+        {
+            return s->elements[ i ];
+        }
+        i -= segsize;
+        s = s->next;
+    }
+    assert( i < index );
+    return last->elements[ i ];
+}
+
+template < typename element_t, size_t segsize, typename allocator_t >
+typename seglist< element_t, segsize, allocator_t >::reference
+        seglist< element_t, segsize, allocator_t >::at( size_t i )
+{
+    segment* s = first;
+    while ( s != last )
+    {
+        if ( i < segsize )
+        {
+            return s->elements[ i ];
+        }
+        i -= segsize;
+        s = s->next;
+    }
+    assert( i < index );
+    return last->elements[ i ];
+}
+
+
 template < typename element_t, size_t segsize, typename allocator_t >
 typename seglist< element_t, segsize, allocator_t >::size_type seglist< element_t, segsize, allocator_t >::size() const
 {
@@ -357,7 +415,7 @@ void seglist< element_t, segsize, allocator_t >::push_back( element_t&& element 
 {
     allocator_t alloc;
     typedef std::allocator_traits< allocator_t > traits_type;
-    traits_type::construct( last->elements + index, std::move( element ) );
+    traits_type::construct( alloc, last->elements + index, std::move( element ) );
     pushed_back();
 }
 
@@ -366,7 +424,7 @@ void seglist< element_t, segsize, allocator_t >::push_back( const element_t& ele
 {
     allocator_t alloc;
     typedef std::allocator_traits< allocator_t > traits_type;
-    traits_type::construct( last->elements + index, element );
+    traits_type::construct( alloc, last->elements + index, element );
     pushed_back();
 }
 
