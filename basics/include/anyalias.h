@@ -2,7 +2,7 @@
 //  anyalias.h
 //
 //  Created by Edmund Kapusniak on 17/02/2015.
-//  Copyright (c) 2015 birotanker. All rights reserved.
+//  Copyright (c) 2015 Edmund Kapusniak. All rights reserved.
 //
 
 
@@ -11,6 +11,11 @@
 
 
 #include <stdint.h>
+
+
+/*
+    Pointers that can be used to get around strict aliasing.
+*/
 
 
 typedef int8_t   __attribute__(( __may_alias__ )) anyint8_t;
