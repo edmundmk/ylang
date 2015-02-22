@@ -19,17 +19,17 @@ class event
 {
 public:
 
-    typedef ::delegate_t< void, arguments_t ... > delegate_t;
+    typedef delegate< void( arguments_t ... ) > delegate_type;
 
-    void subscribe( delegate_t delegate );
-    void unsubscribe( delegate_t delegate );
+    void subscribe( delegate_type delegate );
+    void unsubscribe( delegate_type delegate );
     
     void operator () ( arguments_t ... arguments ) const;
     
     
 private:
 
-    std::forward_list< delegate_t > subscribers;
+    std::forward_list< delegate_type > subscribers;
 
 };
 
@@ -37,14 +37,14 @@ private:
 
 
 template < typename ... arguments_t >
-void event< arguments_t ... >::subscribe( delegate_t delegate )
+void event< arguments_t ... >::subscribe( delegate_type delegate )
 {
     subscribers.push_front( delegate );
 }
 
 
 template < typename ... arguments_t >
-void event< arguments_t ... >::unsubscribe( delegate_t delegate )
+void event< arguments_t ... >::unsubscribe( delegate_type delegate )
 {
     for ( auto previous = subscribers.before_begin(), i = subscribers.begin();
                 i != subscribers.end(); previous = i++ )
@@ -64,7 +64,7 @@ inline void event< arguments_t ... >::
 {
     for ( auto i = subscribers.begin(); i != subscribers.end(); ++i )
     {
-        const delegate_t& subscriber = *i;
+        const delegate_type& subscriber = *i;
         subscriber( arguments ... );
     }
 }
