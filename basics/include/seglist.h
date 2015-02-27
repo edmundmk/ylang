@@ -329,7 +329,7 @@ template < typename element_t, size_t segsize, typename allocator_t >
 typename seglist< element_t, segsize, allocator_t >::size_type seglist< element_t, segsize, allocator_t >::size() const
 {
     size_t size = 0;
-    for ( segment* s = first; s != last; ++s )
+    for ( segment* s = first; s != last; s = s->next )
     {
         size += segsize;
     }
@@ -509,6 +509,7 @@ typename seglist< element_t, segsize, allocator_t >::segment* seglist< element_t
 template < typename element_t, size_t segsize, typename allocator_t >
 void seglist< element_t, segsize, allocator_t >::pushed_back()
 {
+    index += 1;
     if ( index >= segsize )
     {
         if ( last->next == nullptr )
