@@ -1158,7 +1158,7 @@ int yl_compile_visitor::visit( yl_expr_call* node, int count )
     assert( l.r == r.r );
     
     unsigned argcount = l.count != -1 ? ( l.count + ( t != -1 ? 1 : 0 ) ) : -1;
-    y_opcode opcode = node->yieldcall ? Y_YCALL : Y_CALL;
+    yl_opcode opcode = node->yieldcall ? Y_YCALL : Y_CALL;
     op( node->sloc, opcode, l.r, argcount, count );
 
     return count;
@@ -1562,21 +1562,21 @@ void yl_compile_visitor::assign_op(
 
 
 void yl_compile_visitor::op(
-                int sloc, y_opcode op, unsigned r, unsigned a, unsigned b )
+                int sloc, yl_opcode op, unsigned r, unsigned a, unsigned b )
 {
     s->code.emplace_back( op, r, a, b );
     s->slocs.push_back( sloc );
 }
 
 void yl_compile_visitor::op(
-                int sloc, y_opcode op, unsigned r, unsigned c )
+                int sloc, yl_opcode op, unsigned r, unsigned c )
 {
     s->code.emplace_back( op, r, c );
     s->slocs.push_back( sloc );
 }
 
 void yl_compile_visitor::op(
-                int sloc, y_opcode op, unsigned r, signed j )
+                int sloc, yl_opcode op, unsigned r, signed j )
 {
     s->code.emplace_back( op, r, j );
     s->slocs.push_back( sloc );
@@ -1584,7 +1584,7 @@ void yl_compile_visitor::op(
 
 
 
-int yl_compile_visitor::jump( int sloc, y_opcode opcode, unsigned r )
+int yl_compile_visitor::jump( int sloc, yl_opcode opcode, unsigned r )
 {
     s->code.emplace_back( opcode, r, (signed)0 );
     s->slocs.push_back( sloc );
@@ -1598,8 +1598,8 @@ int yl_compile_visitor::label()
 
 void yl_compile_visitor::patch( int jump, int label )
 {
-    y_opinst& j = s->code.at( jump - 1 );
-    j = y_opinst( j.opcode(), j.r(), (signed)( label - jump ) );
+    yl_opinst& j = s->code.at( jump - 1 );
+    j = yl_opinst( j.opcode(), j.r(), (signed)( label - jump ) );
 }
 
 

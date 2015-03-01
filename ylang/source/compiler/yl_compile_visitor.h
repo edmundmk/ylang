@@ -11,7 +11,7 @@
 
 
 #include "yl_ast_visitor.h"
-#include <y_script.h>
+#include "yl_code.h"
 
 
 
@@ -48,10 +48,10 @@ struct yl_compile_script
     std::vector< double >       numbers;
     std::vector< std::string >  strings;
     std::vector< std::string >  keys;
-    std::vector< y_opinst >     code;
-    std::vector< y_xframe >     xframes;
+    std::vector< yl_opinst >    code;
+    std::vector< yl_xframe >    xframes;
     std::vector< int >          slocs;
-    std::vector< y_diname >     dnames;
+    std::vector< yl_diname >    dnames;
 };
 
 
@@ -169,12 +169,12 @@ private:
     void        assign_op( int sloc,
                     yl_ast_opkind opkind, unsigned r, unsigned a, unsigned b );
 
-    void        op( int sloc, y_opcode op, unsigned r, unsigned a, unsigned b );
-    void        op( int sloc, y_opcode op, unsigned r, unsigned c );
-    void        op( int sloc, y_opcode op, unsigned r, signed j );
+    void        op( int sloc, yl_opcode op, unsigned r, unsigned a, unsigned b );
+    void        op( int sloc, yl_opcode op, unsigned r, unsigned c );
+    void        op( int sloc, yl_opcode op, unsigned r, signed j );
 
 
-    int         jump( int sloc, y_opcode opcode, unsigned r );
+    int         jump( int sloc, yl_opcode opcode, unsigned r );
     int         label();
     void        patch( int jump, int label );
 
@@ -227,7 +227,7 @@ private:
     yl_ast_func*                func;
     std::vector< branch >       break_stack;
     std::vector< branch >       continue_stack;
-    std::vector< y_xframe >     xframe_stack;
+    std::vector< yl_xframe >    xframe_stack;
 
     yl_compile_script*          s;
 

@@ -201,12 +201,12 @@ public:
     static const unsigned MARK  = 0xFF;
     static const unsigned NOVAL = 0xFF;
 
-    y_opinst();
-    y_opinst( y_opcode opcode, unsigned r, unsigned a, unsigned b );
-    y_opinst( y_opcode opcode, unsigned r, unsigned c );
-    y_opinst( y_opcode opcode, unsigned r, signed j );
+    yl_opinst();
+    yl_opinst( yl_opcode opcode, unsigned r, unsigned a, unsigned b );
+    yl_opinst( yl_opcode opcode, unsigned r, unsigned c );
+    yl_opinst( yl_opcode opcode, unsigned r, signed j );
     
-    y_opcode    opcode();
+    yl_opcode    opcode();
     unsigned    r();
     unsigned    a();
     unsigned    b();
@@ -251,7 +251,7 @@ enum yl_diname_kind
 struct yl_diname
 {
     int             instruction;
-    y_diname_kind   kind;
+    yl_diname_kind  kind;
     unsigned        r;
     std::string     name;
 };
