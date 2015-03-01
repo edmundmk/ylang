@@ -1,24 +1,21 @@
 //
-//  y_script.h
+//  yl_code.h
 //
 //  Created by Edmund Kapusniak on 07/02/2015.
 //  Copyright (c) 2015 Edmund Kapusniak. All rights reserved.
 //
 
 
-#ifndef Y_SCRIPT_H
-#define Y_SCRIPT_H
+#ifndef YL_CODE_H
+#define YL_CODE_H
 
-
-#include <string>
-#include "y_object.h"
 
 
 /*
     yl script bytecodes.  The yl bytecode interpreter owes a large debt to Lua.
 */
 
-enum y_opcode
+enum yl_opcode
 {
 
     /*
@@ -197,7 +194,7 @@ enum y_opcode
 
 */
 
-class y_opinst
+class yl_opinst
 {
 public:
 
@@ -229,7 +226,7 @@ private:
     An exception frame.
 */
 
-struct y_xframe
+struct yl_xframe
 {
     int start;              // First protected instruction.
     int end;                // After last protected instruction.
@@ -244,38 +241,19 @@ struct y_xframe
     Debug information linking a variable to a register.
 */
 
-enum y_diname_kind
+enum yl_diname_kind
 {
     Y_DINAME_UPVAL,
     Y_DINAME_LOCAL,
     Y_DINAME_CLOSE,
 };
 
-struct y_diname
+struct yl_diname
 {
     int             instruction;
     y_diname_kind   kind;
     unsigned        r;
     std::string     name;
-};
-
-
-
-
-/*
-    A script is the code for a single yl function.
-*/
-
-class y_script : public y_object
-{
-public:
-
-
-
-private:
-
-
-
 };
 
 

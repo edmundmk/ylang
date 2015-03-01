@@ -7,32 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4B78BED21A8EB65000918400 /* y_array.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B78BEC71A8EB65000918400 /* y_array.h */; };
-		4B78BED31A8EB65000918400 /* y_binary.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B78BEC81A8EB65000918400 /* y_binary.h */; };
-		4B78BED41A8EB65000918400 /* y_context.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B78BEC91A8EB65000918400 /* y_context.h */; };
-		4B78BED51A8EB65000918400 /* y_expand.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B78BECA1A8EB65000918400 /* y_expand.h */; };
-		4B78BED61A8EB65000918400 /* y_exparray.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B78BECB1A8EB65000918400 /* y_exparray.h */; };
-		4B78BED71A8EB65000918400 /* y_exptable.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B78BECC1A8EB65000918400 /* y_exptable.h */; };
-		4B78BED81A8EB65000918400 /* y_object.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B78BECD1A8EB65000918400 /* y_object.h */; };
-		4B78BED91A8EB65000918400 /* y_script.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B78BECE1A8EB65000918400 /* y_script.h */; };
-		4B78BEDA1A8EB65000918400 /* y_string.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B78BECF1A8EB65000918400 /* y_string.h */; };
-		4B78BEDB1A8EB65000918400 /* y_struct.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B78BED01A8EB65000918400 /* y_struct.h */; };
-		4B78BEDC1A8EB65000918400 /* y_vector.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B78BED11A8EB65000918400 /* y_vector.h */; };
-		4BCF3D7F1A85852400B9AB3A /* yl_ast_visitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BCF3D7B1A85852400B9AB3A /* yl_ast_visitor.h */; };
-		4BCF3D801A85852400B9AB3A /* yl_ast.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BCF3D7C1A85852400B9AB3A /* yl_ast.h */; };
-		4BCF3D811A85852400B9AB3A /* yl_diagnostics.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BCF3D7D1A85852400B9AB3A /* yl_diagnostics.h */; };
-		4BCF3D831A8585B900B9AB3A /* yl_ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D5C1A857DD100B9AB3A /* yl_ast.cpp */; };
-		4BCF3D841A8585B900B9AB3A /* yl_ast_print.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D5B1A857DD100B9AB3A /* yl_ast_print.cpp */; };
-		4BCF3D851A8585B900B9AB3A /* yl_parser_lemon.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BCF3D5E1A857DD100B9AB3A /* yl_parser_lemon.h */; };
-		4BCF3D861A8585B900B9AB3A /* yl_parser_lemon.ly in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D601A857DD100B9AB3A /* yl_parser_lemon.ly */; };
-		4BCF3D871A8585B900B9AB3A /* yl_parser_ragel.rl in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D621A857DD100B9AB3A /* yl_parser_ragel.rl */; };
-		4BCF3D881A8585B900B9AB3A /* yl_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D631A857DD100B9AB3A /* yl_parser.cpp */; };
-		4BCF3D891A8585B900B9AB3A /* yl_parser.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BCF3D641A857DD100B9AB3A /* yl_parser.h */; };
-		4BCF3D8A1A8585B900B9AB3A /* yl_diagnostics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D651A857DD100B9AB3A /* yl_diagnostics.cpp */; };
-		4BCF3D8B1A8585B900B9AB3A /* yl_token.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D671A857DD100B9AB3A /* yl_token.cpp */; };
-		4BCF3D8C1A8585B900B9AB3A /* yl_token.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BCF3D681A857DD100B9AB3A /* yl_token.h */; };
-		4BCF3D8F1A85B32500B9AB3A /* yl_compile_visitor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BCF3D8D1A85B32500B9AB3A /* yl_compile_visitor.cpp */; };
-		4BCF3D901A85B32500B9AB3A /* yl_compile_visitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 4BCF3D8E1A85B32500B9AB3A /* yl_compile_visitor.h */; };
+		4B4176E41AA3822B00C014EB /* yl_ast_print.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4176D41AA3822B00C014EB /* yl_ast_print.cpp */; };
+		4B4176E51AA3822B00C014EB /* yl_ast_visitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4176D51AA3822B00C014EB /* yl_ast_visitor.h */; };
+		4B4176E61AA3822B00C014EB /* yl_ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4176D61AA3822B00C014EB /* yl_ast.cpp */; };
+		4B4176E71AA3822B00C014EB /* yl_ast.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4176D71AA3822B00C014EB /* yl_ast.h */; };
+		4B4176E81AA3822B00C014EB /* yl_compile_visitor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4176D81AA3822B00C014EB /* yl_compile_visitor.cpp */; };
+		4B4176E91AA3822B00C014EB /* yl_compile_visitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4176D91AA3822B00C014EB /* yl_compile_visitor.h */; };
+		4B4176EA1AA3822B00C014EB /* yl_diagnostics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4176DA1AA3822B00C014EB /* yl_diagnostics.cpp */; };
+		4B4176EB1AA3822B00C014EB /* yl_diagnostics.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4176DB1AA3822B00C014EB /* yl_diagnostics.h */; };
+		4B4176EC1AA3822B00C014EB /* yl_parser_lemon.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4176DC1AA3822B00C014EB /* yl_parser_lemon.h */; };
+		4B4176ED1AA3822B00C014EB /* yl_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4176E01AA3822B00C014EB /* yl_parser.cpp */; };
+		4B4176EE1AA3822B00C014EB /* yl_parser.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4176E11AA3822B00C014EB /* yl_parser.h */; };
+		4B4176EF1AA3822B00C014EB /* yl_token.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4176E21AA3822B00C014EB /* yl_token.cpp */; };
+		4B4176F01AA3822B00C014EB /* yl_token.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4176E31AA3822B00C014EB /* yl_token.h */; };
+		4B4176F21AA3849C00C014EB /* yl_code.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4176F11AA3849C00C014EB /* yl_code.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -61,35 +49,28 @@
 /* End PBXBuildRule section */
 
 /* Begin PBXFileReference section */
-		4B78BEC41A8DF49400918400 /* y_value.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = y_value.h; sourceTree = "<group>"; };
-		4B78BEC71A8EB65000918400 /* y_array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = y_array.h; sourceTree = "<group>"; };
-		4B78BEC81A8EB65000918400 /* y_binary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = y_binary.h; sourceTree = "<group>"; };
-		4B78BEC91A8EB65000918400 /* y_context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = y_context.h; sourceTree = "<group>"; };
-		4B78BECA1A8EB65000918400 /* y_expand.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = y_expand.h; sourceTree = "<group>"; };
-		4B78BECB1A8EB65000918400 /* y_exparray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = y_exparray.h; sourceTree = "<group>"; };
-		4B78BECC1A8EB65000918400 /* y_exptable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = y_exptable.h; sourceTree = "<group>"; };
-		4B78BECD1A8EB65000918400 /* y_object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = y_object.h; sourceTree = "<group>"; };
-		4B78BECE1A8EB65000918400 /* y_script.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = y_script.h; sourceTree = "<group>"; };
-		4B78BECF1A8EB65000918400 /* y_string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = y_string.h; sourceTree = "<group>"; };
-		4B78BED01A8EB65000918400 /* y_struct.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = y_struct.h; sourceTree = "<group>"; };
-		4B78BED11A8EB65000918400 /* y_vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = y_vector.h; sourceTree = "<group>"; };
+		4B4176CE1AA24AEE00C014EB /* yl_context.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_context.h; sourceTree = "<group>"; };
+		4B4176CF1AA24B1500C014EB /* yl_expose.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_expose.h; sourceTree = "<group>"; };
+		4B4176D01AA24B3D00C014EB /* yl_invoke.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_invoke.h; sourceTree = "<group>"; };
+		4B4176D11AA24BF600C014EB /* yl_frame.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_frame.h; sourceTree = "<group>"; };
+		4B4176D41AA3822B00C014EB /* yl_ast_print.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_ast_print.cpp; sourceTree = "<group>"; };
+		4B4176D51AA3822B00C014EB /* yl_ast_visitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_ast_visitor.h; sourceTree = "<group>"; };
+		4B4176D61AA3822B00C014EB /* yl_ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_ast.cpp; sourceTree = "<group>"; };
+		4B4176D71AA3822B00C014EB /* yl_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_ast.h; sourceTree = "<group>"; };
+		4B4176D81AA3822B00C014EB /* yl_compile_visitor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_compile_visitor.cpp; sourceTree = "<group>"; };
+		4B4176D91AA3822B00C014EB /* yl_compile_visitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_compile_visitor.h; sourceTree = "<group>"; };
+		4B4176DA1AA3822B00C014EB /* yl_diagnostics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_diagnostics.cpp; sourceTree = "<group>"; };
+		4B4176DB1AA3822B00C014EB /* yl_diagnostics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_diagnostics.h; sourceTree = "<group>"; };
+		4B4176DC1AA3822B00C014EB /* yl_parser_lemon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_parser_lemon.h; sourceTree = "<group>"; };
+		4B4176DD1AA3822B00C014EB /* yl_parser_lemon.ly */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yl_parser_lemon.ly; sourceTree = "<group>"; };
+		4B4176DE1AA3822B00C014EB /* yl_parser_lemon.out */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yl_parser_lemon.out; sourceTree = "<group>"; };
+		4B4176DF1AA3822B00C014EB /* yl_parser_ragel.rl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yl_parser_ragel.rl; sourceTree = "<group>"; };
+		4B4176E01AA3822B00C014EB /* yl_parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_parser.cpp; sourceTree = "<group>"; };
+		4B4176E11AA3822B00C014EB /* yl_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_parser.h; sourceTree = "<group>"; };
+		4B4176E21AA3822B00C014EB /* yl_token.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_token.cpp; sourceTree = "<group>"; };
+		4B4176E31AA3822B00C014EB /* yl_token.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_token.h; sourceTree = "<group>"; };
+		4B4176F11AA3849C00C014EB /* yl_code.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_code.h; sourceTree = "<group>"; };
 		4BCF3D521A856FF500B9AB3A /* libylang.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libylang.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		4BCF3D5B1A857DD100B9AB3A /* yl_ast_print.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_ast_print.cpp; sourceTree = "<group>"; };
-		4BCF3D5C1A857DD100B9AB3A /* yl_ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_ast.cpp; sourceTree = "<group>"; };
-		4BCF3D5E1A857DD100B9AB3A /* yl_parser_lemon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_parser_lemon.h; sourceTree = "<group>"; };
-		4BCF3D5F1A857DD100B9AB3A /* yl_parser_lemon.out */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yl_parser_lemon.out; sourceTree = "<group>"; };
-		4BCF3D601A857DD100B9AB3A /* yl_parser_lemon.ly */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yl_parser_lemon.ly; sourceTree = "<group>"; };
-		4BCF3D621A857DD100B9AB3A /* yl_parser_ragel.rl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yl_parser_ragel.rl; sourceTree = "<group>"; };
-		4BCF3D631A857DD100B9AB3A /* yl_parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_parser.cpp; sourceTree = "<group>"; };
-		4BCF3D641A857DD100B9AB3A /* yl_parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_parser.h; sourceTree = "<group>"; };
-		4BCF3D651A857DD100B9AB3A /* yl_diagnostics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_diagnostics.cpp; sourceTree = "<group>"; };
-		4BCF3D671A857DD100B9AB3A /* yl_token.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_token.cpp; sourceTree = "<group>"; };
-		4BCF3D681A857DD100B9AB3A /* yl_token.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_token.h; sourceTree = "<group>"; };
-		4BCF3D7B1A85852400B9AB3A /* yl_ast_visitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_ast_visitor.h; sourceTree = "<group>"; };
-		4BCF3D7C1A85852400B9AB3A /* yl_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_ast.h; sourceTree = "<group>"; };
-		4BCF3D7D1A85852400B9AB3A /* yl_diagnostics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_diagnostics.h; sourceTree = "<group>"; };
-		4BCF3D8D1A85B32500B9AB3A /* yl_compile_visitor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_compile_visitor.cpp; sourceTree = "<group>"; };
-		4BCF3D8E1A85B32500B9AB3A /* yl_compile_visitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_compile_visitor.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,21 +84,44 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4B4176D21AA381A400C014EB /* compiler */ = {
+			isa = PBXGroup;
+			children = (
+				4B4176D41AA3822B00C014EB /* yl_ast_print.cpp */,
+				4B4176D51AA3822B00C014EB /* yl_ast_visitor.h */,
+				4B4176D61AA3822B00C014EB /* yl_ast.cpp */,
+				4B4176D71AA3822B00C014EB /* yl_ast.h */,
+				4B4176D81AA3822B00C014EB /* yl_compile_visitor.cpp */,
+				4B4176D91AA3822B00C014EB /* yl_compile_visitor.h */,
+				4B4176DA1AA3822B00C014EB /* yl_diagnostics.cpp */,
+				4B4176DB1AA3822B00C014EB /* yl_diagnostics.h */,
+				4B4176DC1AA3822B00C014EB /* yl_parser_lemon.h */,
+				4B4176DD1AA3822B00C014EB /* yl_parser_lemon.ly */,
+				4B4176DE1AA3822B00C014EB /* yl_parser_lemon.out */,
+				4B4176DF1AA3822B00C014EB /* yl_parser_ragel.rl */,
+				4B4176E01AA3822B00C014EB /* yl_parser.cpp */,
+				4B4176E11AA3822B00C014EB /* yl_parser.h */,
+				4B4176E21AA3822B00C014EB /* yl_token.cpp */,
+				4B4176E31AA3822B00C014EB /* yl_token.h */,
+			);
+			path = compiler;
+			sourceTree = "<group>";
+		};
+		4B4176D31AA3820600C014EB /* runtime */ = {
+			isa = PBXGroup;
+			children = (
+				4B4176F11AA3849C00C014EB /* yl_code.h */,
+			);
+			path = runtime;
+			sourceTree = "<group>";
+		};
 		4B78BEC31A8DF47000918400 /* include */ = {
 			isa = PBXGroup;
 			children = (
-				4B78BEC71A8EB65000918400 /* y_array.h */,
-				4B78BEC81A8EB65000918400 /* y_binary.h */,
-				4B78BEC91A8EB65000918400 /* y_context.h */,
-				4B78BECA1A8EB65000918400 /* y_expand.h */,
-				4B78BECB1A8EB65000918400 /* y_exparray.h */,
-				4B78BECC1A8EB65000918400 /* y_exptable.h */,
-				4B78BECD1A8EB65000918400 /* y_object.h */,
-				4B78BECE1A8EB65000918400 /* y_script.h */,
-				4B78BECF1A8EB65000918400 /* y_string.h */,
-				4B78BED01A8EB65000918400 /* y_struct.h */,
-				4B78BED11A8EB65000918400 /* y_vector.h */,
-				4B78BEC41A8DF49400918400 /* y_value.h */,
+				4B4176CE1AA24AEE00C014EB /* yl_context.h */,
+				4B4176CF1AA24B1500C014EB /* yl_expose.h */,
+				4B4176D11AA24BF600C014EB /* yl_frame.h */,
+				4B4176D01AA24B3D00C014EB /* yl_invoke.h */,
 			);
 			path = include;
 			sourceTree = "<group>";
@@ -142,22 +146,8 @@
 		4BCF3D5A1A85709800B9AB3A /* source */ = {
 			isa = PBXGroup;
 			children = (
-				4BCF3D7B1A85852400B9AB3A /* yl_ast_visitor.h */,
-				4BCF3D5C1A857DD100B9AB3A /* yl_ast.cpp */,
-				4BCF3D7C1A85852400B9AB3A /* yl_ast.h */,
-				4BCF3D5B1A857DD100B9AB3A /* yl_ast_print.cpp */,
-				4BCF3D8D1A85B32500B9AB3A /* yl_compile_visitor.cpp */,
-				4BCF3D8E1A85B32500B9AB3A /* yl_compile_visitor.h */,
-				4BCF3D651A857DD100B9AB3A /* yl_diagnostics.cpp */,
-				4BCF3D7D1A85852400B9AB3A /* yl_diagnostics.h */,
-				4BCF3D5E1A857DD100B9AB3A /* yl_parser_lemon.h */,
-				4BCF3D5F1A857DD100B9AB3A /* yl_parser_lemon.out */,
-				4BCF3D601A857DD100B9AB3A /* yl_parser_lemon.ly */,
-				4BCF3D621A857DD100B9AB3A /* yl_parser_ragel.rl */,
-				4BCF3D631A857DD100B9AB3A /* yl_parser.cpp */,
-				4BCF3D641A857DD100B9AB3A /* yl_parser.h */,
-				4BCF3D671A857DD100B9AB3A /* yl_token.cpp */,
-				4BCF3D681A857DD100B9AB3A /* yl_token.h */,
+				4B4176D21AA381A400C014EB /* compiler */,
+				4B4176D31AA3820600C014EB /* runtime */,
 			);
 			path = source;
 			sourceTree = "<group>";
@@ -169,24 +159,14 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4BCF3D801A85852400B9AB3A /* yl_ast.h in Headers */,
-				4B78BED31A8EB65000918400 /* y_binary.h in Headers */,
-				4B78BED41A8EB65000918400 /* y_context.h in Headers */,
-				4B78BEDB1A8EB65000918400 /* y_struct.h in Headers */,
-				4B78BED51A8EB65000918400 /* y_expand.h in Headers */,
-				4BCF3D891A8585B900B9AB3A /* yl_parser.h in Headers */,
-				4B78BED91A8EB65000918400 /* y_script.h in Headers */,
-				4BCF3D7F1A85852400B9AB3A /* yl_ast_visitor.h in Headers */,
-				4BCF3D901A85B32500B9AB3A /* yl_compile_visitor.h in Headers */,
-				4BCF3D8C1A8585B900B9AB3A /* yl_token.h in Headers */,
-				4B78BED71A8EB65000918400 /* y_exptable.h in Headers */,
-				4BCF3D851A8585B900B9AB3A /* yl_parser_lemon.h in Headers */,
-				4B78BED21A8EB65000918400 /* y_array.h in Headers */,
-				4B78BEDC1A8EB65000918400 /* y_vector.h in Headers */,
-				4B78BED81A8EB65000918400 /* y_object.h in Headers */,
-				4B78BED61A8EB65000918400 /* y_exparray.h in Headers */,
-				4BCF3D811A85852400B9AB3A /* yl_diagnostics.h in Headers */,
-				4B78BEDA1A8EB65000918400 /* y_string.h in Headers */,
+				4B4176E51AA3822B00C014EB /* yl_ast_visitor.h in Headers */,
+				4B4176EC1AA3822B00C014EB /* yl_parser_lemon.h in Headers */,
+				4B4176EE1AA3822B00C014EB /* yl_parser.h in Headers */,
+				4B4176EB1AA3822B00C014EB /* yl_diagnostics.h in Headers */,
+				4B4176F21AA3849C00C014EB /* yl_code.h in Headers */,
+				4B4176E71AA3822B00C014EB /* yl_ast.h in Headers */,
+				4B4176E91AA3822B00C014EB /* yl_compile_visitor.h in Headers */,
+				4B4176F01AA3822B00C014EB /* yl_token.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -219,7 +199,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0610;
-				ORGANIZATIONNAME = birotanker;
+				ORGANIZATIONNAME = "Edmund Kapusniak";
 				TargetAttributes = {
 					4BCF3D511A856FF500B9AB3A = {
 						CreatedOnToolsVersion = 6.1.1;
@@ -248,14 +228,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4BCF3D861A8585B900B9AB3A /* yl_parser_lemon.ly in Sources */,
-				4BCF3D871A8585B900B9AB3A /* yl_parser_ragel.rl in Sources */,
-				4BCF3D881A8585B900B9AB3A /* yl_parser.cpp in Sources */,
-				4BCF3D8A1A8585B900B9AB3A /* yl_diagnostics.cpp in Sources */,
-				4BCF3D831A8585B900B9AB3A /* yl_ast.cpp in Sources */,
-				4BCF3D8B1A8585B900B9AB3A /* yl_token.cpp in Sources */,
-				4BCF3D8F1A85B32500B9AB3A /* yl_compile_visitor.cpp in Sources */,
-				4BCF3D841A8585B900B9AB3A /* yl_ast_print.cpp in Sources */,
+				4B4176EF1AA3822B00C014EB /* yl_token.cpp in Sources */,
+				4B4176E41AA3822B00C014EB /* yl_ast_print.cpp in Sources */,
+				4B4176E81AA3822B00C014EB /* yl_compile_visitor.cpp in Sources */,
+				4B4176ED1AA3822B00C014EB /* yl_parser.cpp in Sources */,
+				4B4176E61AA3822B00C014EB /* yl_ast.cpp in Sources */,
+				4B4176EA1AA3822B00C014EB /* yl_diagnostics.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
