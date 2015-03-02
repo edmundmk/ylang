@@ -70,6 +70,9 @@
 		4B4176E21AA3822B00C014EB /* yl_token.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_token.cpp; sourceTree = "<group>"; };
 		4B4176E31AA3822B00C014EB /* yl_token.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_token.h; sourceTree = "<group>"; };
 		4B4176F11AA3849C00C014EB /* yl_code.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_code.h; sourceTree = "<group>"; };
+		4B4176F41AA5033100C014EB /* yl_value.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_value.h; sourceTree = "<group>"; };
+		4B4176F51AA503DD00C014EB /* yl_object.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_object.h; sourceTree = "<group>"; };
+		4B4176F61AA5040300C014EB /* yl_heap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_heap.h; sourceTree = "<group>"; };
 		4BCF3D521A856FF500B9AB3A /* libylang.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libylang.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -111,6 +114,9 @@
 			isa = PBXGroup;
 			children = (
 				4B4176F11AA3849C00C014EB /* yl_code.h */,
+				4B4176F51AA503DD00C014EB /* yl_object.h */,
+				4B4176F61AA5040300C014EB /* yl_heap.h */,
+				4B4176F41AA5033100C014EB /* yl_value.h */,
 			);
 			path = runtime;
 			sourceTree = "<group>";

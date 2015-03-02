@@ -206,7 +206,7 @@ public:
     yl_opinst( yl_opcode opcode, unsigned r, unsigned c );
     yl_opinst( yl_opcode opcode, unsigned r, signed j );
     
-    yl_opcode    opcode();
+    yl_opcode   opcode();
     unsigned    r();
     unsigned    a();
     unsigned    b();
