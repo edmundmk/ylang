@@ -243,9 +243,9 @@ struct yl_xframe
 
 enum yl_diname_kind
 {
-    Y_DINAME_UPVAL,
-    Y_DINAME_LOCAL,
-    Y_DINAME_CLOSE,
+    YL_DINAME_UPVAL,
+    YL_DINAME_LOCAL,
+    YL_DINAME_CLOSE,
 };
 
 struct yl_diname

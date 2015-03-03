@@ -15,8 +15,8 @@
 
 
 /*
-    A yl_object is the 'object' type supporting fast lookup of string keys
-    and delegation to a prototype.
+    A yl_object is the 'object' type supporting lookup of string keys and
+    delegation to a prototype.
     
     As in modern JavaScript engines, an object is not itself a hashtable but
     has a 'hidden class' or 'shape' describing the set of keys that have been
@@ -61,8 +61,9 @@ private:
 
     Each slot is a node in the class tree.  Lookup of properties can be
     accomplished by walking the tree.  For objects with many keys, property
-    locations are cached in a hash table.  This hash table can use unsafe
-    pointers, as the entire slot chain for the class is kept alive already.
+    locations may be cached in a hash table.  This hash table can use unsafe
+    pointers, as the class's entire slot chain is both immutable and kept
+    alive already.
  
 */
 
@@ -79,7 +80,7 @@ private:
     struct shortcut_hash
     {
         yl_object* proto;
-        std::unordered_map< symkey, size_t > hash;
+        std::unordered_map< symkey, size_t > lookup;
     };
 
 
