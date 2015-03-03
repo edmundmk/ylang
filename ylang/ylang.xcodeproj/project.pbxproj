@@ -12,8 +12,6 @@
 		4B6FDAAB1AA654AE001096B0 /* yl_ast.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B6FDA9B1AA654AE001096B0 /* yl_ast.h */; };
 		4B6FDAAC1AA654AE001096B0 /* yl_ast_print.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDA9C1AA654AE001096B0 /* yl_ast_print.cpp */; };
 		4B6FDAAD1AA654AE001096B0 /* yl_ast_visitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B6FDA9D1AA654AE001096B0 /* yl_ast_visitor.h */; };
-		4B6FDAAE1AA654AE001096B0 /* yl_compile_visitor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDA9E1AA654AE001096B0 /* yl_compile_visitor.cpp */; };
-		4B6FDAAF1AA654AE001096B0 /* yl_compile_visitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B6FDA9F1AA654AE001096B0 /* yl_compile_visitor.h */; };
 		4B6FDAB01AA654AE001096B0 /* yl_diagnostics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDAA01AA654AE001096B0 /* yl_diagnostics.cpp */; };
 		4B6FDAB11AA654AE001096B0 /* yl_diagnostics.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B6FDAA11AA654AE001096B0 /* yl_diagnostics.h */; };
 		4B6FDAB21AA654AE001096B0 /* yl_parser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDAA21AA654AE001096B0 /* yl_parser.cpp */; };
@@ -21,6 +19,8 @@
 		4B6FDAB41AA654AE001096B0 /* yl_parser_lemon.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B6FDAA41AA654AE001096B0 /* yl_parser_lemon.h */; };
 		4B6FDAB51AA654AE001096B0 /* yl_token.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDAA81AA654AE001096B0 /* yl_token.cpp */; };
 		4B6FDAB61AA654AE001096B0 /* yl_token.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B6FDAA91AA654AE001096B0 /* yl_token.h */; };
+		4B6FDABA1AA657A2001096B0 /* yl_compile_visitor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDAB81AA657A2001096B0 /* yl_compile_visitor.cpp */; };
+		4B6FDABB1AA657A2001096B0 /* yl_compile_visitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B6FDAB91AA657A2001096B0 /* yl_compile_visitor.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -62,8 +62,6 @@
 		4B6FDA9B1AA654AE001096B0 /* yl_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_ast.h; sourceTree = "<group>"; };
 		4B6FDA9C1AA654AE001096B0 /* yl_ast_print.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_ast_print.cpp; sourceTree = "<group>"; };
 		4B6FDA9D1AA654AE001096B0 /* yl_ast_visitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_ast_visitor.h; sourceTree = "<group>"; };
-		4B6FDA9E1AA654AE001096B0 /* yl_compile_visitor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_compile_visitor.cpp; sourceTree = "<group>"; };
-		4B6FDA9F1AA654AE001096B0 /* yl_compile_visitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_compile_visitor.h; sourceTree = "<group>"; };
 		4B6FDAA01AA654AE001096B0 /* yl_diagnostics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_diagnostics.cpp; sourceTree = "<group>"; };
 		4B6FDAA11AA654AE001096B0 /* yl_diagnostics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_diagnostics.h; sourceTree = "<group>"; };
 		4B6FDAA21AA654AE001096B0 /* yl_parser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_parser.cpp; sourceTree = "<group>"; };
@@ -74,6 +72,8 @@
 		4B6FDAA71AA654AE001096B0 /* yl_parser_ragel.rl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yl_parser_ragel.rl; sourceTree = "<group>"; };
 		4B6FDAA81AA654AE001096B0 /* yl_token.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_token.cpp; sourceTree = "<group>"; };
 		4B6FDAA91AA654AE001096B0 /* yl_token.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_token.h; sourceTree = "<group>"; };
+		4B6FDAB81AA657A2001096B0 /* yl_compile_visitor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_compile_visitor.cpp; sourceTree = "<group>"; };
+		4B6FDAB91AA657A2001096B0 /* yl_compile_visitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_compile_visitor.h; sourceTree = "<group>"; };
 		4BCF3D521A856FF500B9AB3A /* libylang.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libylang.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -107,8 +107,6 @@
 				4B6FDA9B1AA654AE001096B0 /* yl_ast.h */,
 				4B6FDA9C1AA654AE001096B0 /* yl_ast_print.cpp */,
 				4B6FDA9D1AA654AE001096B0 /* yl_ast_visitor.h */,
-				4B6FDA9E1AA654AE001096B0 /* yl_compile_visitor.cpp */,
-				4B6FDA9F1AA654AE001096B0 /* yl_compile_visitor.h */,
 				4B6FDAA01AA654AE001096B0 /* yl_diagnostics.cpp */,
 				4B6FDAA11AA654AE001096B0 /* yl_diagnostics.h */,
 				4B6FDAA21AA654AE001096B0 /* yl_parser.cpp */,
@@ -121,6 +119,15 @@
 				4B6FDAA91AA654AE001096B0 /* yl_token.h */,
 			);
 			path = parser;
+			sourceTree = "<group>";
+		};
+		4B6FDAB71AA657A2001096B0 /* compiler */ = {
+			isa = PBXGroup;
+			children = (
+				4B6FDAB81AA657A2001096B0 /* yl_compile_visitor.cpp */,
+				4B6FDAB91AA657A2001096B0 /* yl_compile_visitor.h */,
+			);
+			path = compiler;
 			sourceTree = "<group>";
 		};
 		4B78BEC31A8DF47000918400 /* include */ = {
@@ -154,6 +161,7 @@
 		4BCF3D5A1A85709800B9AB3A /* source */ = {
 			isa = PBXGroup;
 			children = (
+				4B6FDAB71AA657A2001096B0 /* compiler */,
 				4B6FDA991AA654AE001096B0 /* parser */,
 				4B4176D31AA3820600C014EB /* runtime */,
 			);
@@ -170,10 +178,10 @@
 				4B6FDAAB1AA654AE001096B0 /* yl_ast.h in Headers */,
 				4B6FDAAD1AA654AE001096B0 /* yl_ast_visitor.h in Headers */,
 				4B6FDAB31AA654AE001096B0 /* yl_parser.h in Headers */,
-				4B6FDAAF1AA654AE001096B0 /* yl_compile_visitor.h in Headers */,
 				4B6FDAB41AA654AE001096B0 /* yl_parser_lemon.h in Headers */,
 				4B6FDAB61AA654AE001096B0 /* yl_token.h in Headers */,
 				4B6FDAB11AA654AE001096B0 /* yl_diagnostics.h in Headers */,
+				4B6FDABB1AA657A2001096B0 /* yl_compile_visitor.h in Headers */,
 				4B4176F21AA3849C00C014EB /* yl_code.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -237,8 +245,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				4B6FDAB51AA654AE001096B0 /* yl_token.cpp in Sources */,
+				4B6FDABA1AA657A2001096B0 /* yl_compile_visitor.cpp in Sources */,
 				4B6FDAAA1AA654AE001096B0 /* yl_ast.cpp in Sources */,
-				4B6FDAAE1AA654AE001096B0 /* yl_compile_visitor.cpp in Sources */,
 				4B6FDAB21AA654AE001096B0 /* yl_parser.cpp in Sources */,
 				4B6FDAAC1AA654AE001096B0 /* yl_ast_print.cpp in Sources */,
 				4B6FDAB01AA654AE001096B0 /* yl_diagnostics.cpp in Sources */,
