@@ -41,8 +41,8 @@ public:
 
 private:
 
-    yl_heapref< yl_slot >       klass;      // start of slot chain
-    yl_heapref< yl_valarray >   slots;      // array of slot values
+    yl_heapref< yl_slot >       _klass;     // start of slot chain
+    yl_heapref< yl_valarray >   _slots;     // array of slot values
     
 };
 
@@ -84,14 +84,14 @@ private:
     };
 
 
-    yl_heapref< yl_heapobj >    parent;     // parent slot, or prototype
-    yl_heapref< yl_string >     symbol;     // symbol string
-    size_t                      index;      // index into slot value array
+    yl_heapref< yl_heapobj >    _parent;    // parent slot, or prototype
+    yl_heapref< yl_string >     _symbol;    // symbol string
+    size_t                      _index;     // index into slot value array
     
-    shortcut_hash*              hash;       // shortcut hash
+    shortcut_hash*              _hash;      // shortcut hash
     
-    /* weak */ yl_slot*         head;       // first child
-    /* weak */ yl_slot*         next;       // next sibling
+    /* weak */ yl_slot*         _head;      // first child
+    /* weak */ yl_slot*         _next;      // next sibling
     
 };
 

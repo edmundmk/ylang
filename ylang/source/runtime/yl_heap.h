@@ -11,6 +11,7 @@
 
 
 #include <stdint.h>
+#include <atomic>
 
 
 
@@ -82,8 +83,8 @@ protected:
 
 private:
 
-    yl_heapobj_kind                 kind;
-    std::atomic< yl_mark_colour >   colour;
+    yl_heapobj_kind                 _kind;
+    std::atomic< yl_mark_colour >   _colour;
 
 
 };
@@ -104,7 +105,7 @@ public:
 
 private:
 
-    std::atomic< object_t* > p;
+    std::atomic< object_t* > _p;
 
 };
 

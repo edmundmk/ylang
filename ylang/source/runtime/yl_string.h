@@ -10,6 +10,11 @@
 #define YL_STRING_H
 
 
+#include <hash.h>
+#include "yl_heap.h"
+
+
+
 /*
     Garbage-collected strings.
     
@@ -26,18 +31,52 @@ class yl_string : public yl_heapobj
 {
 public:
 
+    static yl_string*   alloc( const char* string );
 
-
+    hash32_t            hash() const;
+    size_t              size() const;
+    const char*         c_str() const;
+    
 
 private:
 
-    bool        has_hash;
-    bool        is_symbol;
-    hash32_t    hash;
-    uint32_t    size;
-    char        s[];
+    yl_string( size_t size );
+
+    bool                _is_symbol;
+    mutable bool        _has_hash;
+    mutable hash32_t    _hash;
+    uint32_t            _size;
+    char                _s[];
 
 };
+
+
+
+/*
+
+*/
+
+
+inline hash32_t yl_string::hash() const
+{
+    if ( ! _has_hash )
+    {
+        _hash = hash32( _s, _size );
+        _has_hash = true;
+    }
+    return _hash;
+}
+
+inline size_t yl_string::size() const
+{
+    return _size;
+}
+
+inline const char* yl_string::c_str() const
+{
+    return _s;
+}
+
 
 
 #endif

@@ -26,8 +26,8 @@ class yl_context
 {
 public:
 
-    yl_invoke compile( const char* path );
-
+    yl_context();
+    ~yl_context();
 
 
 private:
@@ -48,8 +48,8 @@ class yl_scope
 {
 public:
 
-    explicit yl_context( yl_context* context );
-    ~yl_context();
+    explicit yl_scope( yl_context* context );
+    ~yl_scope();
 
 };
 
