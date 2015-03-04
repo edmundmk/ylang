@@ -55,6 +55,9 @@
             variable means the original value will be clobbered.  A load must
             be inserted to preserve the original value of the variable
             (which can then be allocated normally, like other temporaries).
+     -  Each function call clobbers all live upvals, effectively redefining
+            them.  Any definition of an upval which spans a function call must
+            also be preserved with a load.
      -  Any variable that is referenced by an exception handler is live
             throughout the entire protected scope.  No definition can be
             eliminated - there is an implicit use of each definition by the
@@ -67,7 +70,6 @@
 
 
 */
-
 
 
 
