@@ -51,7 +51,7 @@ struct yl_compile_script
     std::vector< yl_opinst >    code;
     std::vector< yl_xframe >    xframes;
     std::vector< int >          slocs;
-    std::vector< yl_diname >    dnames;
+    std::vector< yl_varname >   varnames;
 };
 
 

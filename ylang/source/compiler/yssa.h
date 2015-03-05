@@ -46,18 +46,18 @@
      -  Debug information similarly will be much more complicated.
     
     
-    So this is yet another version of the compiler, which builds an SSA form
-    but which forces all definitions of the same source variable into the
+    So this is yet another version of the compiler, which builds an SSA-like
+    form which forces all definitions of the same source variable into the
     same register.  Each definition remembers which source variable it was
     constructed from.  With this form:
 
-     -  Any definition which is live after another definition of the same
-            variable means the original value will be clobbered.  A load must
-            be inserted to preserve the original value of the variable
-            (which can then be allocated normally, like other temporaries).
+     -  At each instruction, there is only one live definition of each
+            variable.  Values of variables clobbered by a new definition
+            before their use are preserved using a load (a MOV op).  This
+            load can be register-allocated like any other temporary value.
      -  Each function call clobbers all live upvals, effectively redefining
-            them.  Any definition of an upval which spans a function call must
-            also be preserved with a load.
+            them.  Any value of an upval the use of which spans a function
+            call must also be preserved with a load.
      -  Any variable that is referenced by an exception handler is live
             throughout the entire protected scope.  No definition can be
             eliminated - there is an implicit use of each definition by the
@@ -65,14 +65,22 @@
      -  Similarly, but less drastically, there is an implicit use of the
             latest definition of each upval by each function call, preventing
             elimination of (most) upval definitions.
-     -  phi-functions are present to allow use-def analysis, but do not
+     -  phi-functions are present to allow use-def analysis, but must not
+            merge definitions with overlapping live ranges,
             cause any moves in the final translation to VM code.
 
+    During construction, source variables do not share definitions.  Trivial
+    assignments such as y = x, which in a true SSA form would end up as a
+    no-op, produce a new definition for y using a MOV.  Such loads could
+    only be eliminated if we can prove that (this definition of) y is not
+    live during any later definition of x.
 
 */
 
 
 #include <stdint.h>
+#include <memory>
+#include <vector>
 #include <region.h>
 #include "yl_diagnostics.h"
 
@@ -85,6 +93,11 @@ struct yssa_function;
 struct yssa_block;
 
 
+typedef std::unique_ptr< yssa_module >      yssa_module_p;
+typedef std::unique_ptr< yssa_function >    yssa_function_p;
+typedef std::unique_ptr< yssa_block >       yssa_block_p;
+
+
 
 /*
     A source file is compiled to a module.
@@ -92,9 +105,8 @@ struct yssa_block;
 
 struct yssa_module
 {
-    region          region;
-    yl_diagnostics* diagnostics;
-    
+    region                          alloc;
+    std::vector< yssa_function_p >  functions;
 };
 
 
@@ -110,17 +122,19 @@ struct yssa_module
 
 enum yssa_opcode
 {
-    YSSA_SELECT         = 0x80,     // Select a single result from an op.
-    YSSA_IMPLICIT       = 0x81,     // Implicit reference to variable(s).
-    YSSA_CLOBBER        = 0x82,     // Potential store, redefining a variable.
-    YSSA_PHI            = 0x83,     // SSA phi-function.
-    YSSA_LOAD           = 0x84,     // Make temporary to avoid clobbering.
+    YSSA_PARAM          = 0x80,     // Select parameter (numbered from 0).
+    YSSA_SELECT         = 0x81,     // Select a single result from an op.
+    YSSA_PHI            = 0x82,     // SSA phi-function.
+    YSSA_IMPLICIT       = 0x83,     // Implicit reference to variable.
 };
 
 
 struct yssa_opinst
 {
     static const uint8_t MULTIVAL = 0xFF;
+    
+    yssa_opinst( int sloc, uint8_t opcode,
+                    uint8_t operand_count, uint8_t result_count );
 
     int sloc;
 
@@ -138,6 +152,7 @@ struct yssa_opinst
         yssa_string*    string;     // Constant string.
         yssa_function*  function;   // Function to instantiate.
         const char*     key;        // Key for lookups.
+        int             select;     // Which parameter or result to select.
         struct
         {
             uint8_t     a;          // ycode a operand.
@@ -172,12 +187,56 @@ struct yssa_string
 
 struct yssa_variable
 {
-    int                 sloc;
     const char*         name;
+    int                 sloc;
     bool                upval;  // Is this variable an upval?
-    bool                xcept;  // Referenced from an exception handler?
+    bool                xcref;  // Referenced from an exception handler?
+    uint8_t             r;
 };
 
+
+
+/*
+    A function in SSA form.
+*/
+
+struct yssa_function
+{
+    yssa_function( int sloc, const char* funcname );
+
+    const char*                 funcname;
+    int                         sloc;
+    std::vector< yssa_block_p > blocks;
+};
+
+
+
+/*
+    A block in the control flow graph.
+*/
+
+
+enum yssa_block_flags
+{
+    YSSA_LOOP                   = 0x0001,
+    YSSA_XCHANDLER              = 0x0002,
+    YSSA_UNSEALED               = 0x0004,
+};
+
+
+struct yssa_block
+{
+    explicit yssa_block( yssa_block* prev, unsigned flags = 0 );
+
+    unsigned                    flags;
+    yssa_block*                 prev;       // Previous block in CFG.
+    std::vector< yssa_opinst* > phi;        // phi-functions at head of block.
+    std::vector< yssa_opinst* > ops;        // Op list
+    yssa_opinst*                condition;  // Condition to test (if any).
+    yssa_block*                 next;       // Next block (if condition passes).
+    yssa_block*                 fail;       // Next block if condition fails.
+    yssa_block*                 xchandler;  // Exception handler block.
+};
 
 
 

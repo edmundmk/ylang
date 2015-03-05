@@ -22,6 +22,9 @@ class region_buffer;
 struct yl_token;
 
 
+typedef std::unique_ptr< yl_ast > yl_ast_p;
+
+
 
 /*
     The slightly messy guts of parsing xec script.
@@ -39,7 +42,7 @@ public:
     void                parameter( const char* param );
     void                varargs();
     bool                parse( const char* path );
-    std::unique_ptr< yl_ast > get_ast();
+    yl_ast_p            get_ast();
     
     
 // lemon private:
@@ -129,7 +132,7 @@ private:
     
 
     yl_diagnostics*                 diagnostics;
-    std::unique_ptr< yl_ast >       root;
+    yl_ast_p                        root;
     std::deque< void* >             recycle_tokens;
     std::unordered_set< symkey >    identifiers;
     std::deque< yl_ast_scope* >     scopes;

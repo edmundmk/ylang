@@ -241,19 +241,14 @@ struct yl_xframe
     Debug information linking a variable to a register.
 */
 
-enum yl_diname_kind
+struct yl_varname
 {
-    YL_DINAME_UPVAL,
-    YL_DINAME_LOCAL,
-    YL_DINAME_CLOSE,
-};
+    static const unsigned UPVAL = 0x8000;
 
-struct yl_diname
-{
-    int             instruction;
-    yl_diname_kind  kind;
-    unsigned        r;
-    std::string     name;
+    int         start;      // Instruction declaring the variable.
+    int         end;        // After last instruction where variable is live.
+    unsigned    r;          // Register or upval index.
+    std::string name;       // Name of variable.
 };
 
 

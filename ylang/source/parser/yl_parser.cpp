@@ -137,7 +137,7 @@ void yl_parser::varargs()
     root->function->varargs = true;
 }
 
-std::unique_ptr< yl_ast > yl_parser::get_ast()
+yl_ast_p yl_parser::get_ast()
 {
     return std::move( root );
 }
