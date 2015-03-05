@@ -22,153 +22,153 @@ enum yl_opcode
         Basics.
     */
     
-    Y_NOP,          // do nothing
-    Y_MOV,          // r = a
-    Y_SWP,          // swap r and a
+    YL_NOP,          // do nothing
+    YL_MOV,          // r = a
+    YL_SWP,          // swap r and a
 
 
     /*
         Constants.
     */
     
-    Y_NULL,         // r:a = null
-    Y_BOOL,         // r = a ? true : false
-    Y_NUMBER,       // r = numbers[ c ]
-    Y_STRING,       // r = strings[ c ]
+    YL_NULL,         // r:a = null
+    YL_BOOL,         // r = a ? true : false
+    YL_NUMBER,       // r = numbers[ c ]
+    YL_STRING,       // r = strings[ c ]
 
 
     /*
         Globals
     */
     
-    Y_GLOBAL,       // r = global with key b, where b is a key index
-    Y_SETGLOBAL,    // global with key b, where b is a key index = r
+    YL_GLOBAL,       // r = global with key b, where b is a key index
+    YL_SETGLOBAL,    // global with key b, where b is a key index = r
 
 
     /*
         Arithmetic and logical instructions.
     */
 
-    Y_NEG,          // r = -a
-    Y_BITNOT,       // r = ~a
+    YL_NEG,          // r = -a
+    YL_BITNOT,       // r = ~a
 
-    Y_MUL,          // r = a * b
-    Y_DIV,          // r = a / b
-    Y_MOD,          // r = a % b
-    Y_INTDIV,       // r = a ~ b
-    Y_ADD,          // r = a + b
-    Y_SUB,          // r = a - b
-    Y_LSL,          // r = a << b
-    Y_LSR,          // r = a >> b
-    Y_ASR,          // r = a ~>> b
-    Y_BITAND,       // r = a & b
-    Y_BITXOR,       // r = a ^ b
-    Y_BITOR,        // r = a | b
-    Y_CONCAT,       // r = a .. b
+    YL_MUL,          // r = a * b
+    YL_DIV,          // r = a / b
+    YL_MOD,          // r = a % b
+    YL_INTDIV,       // r = a ~ b
+    YL_ADD,          // r = a + b
+    YL_SUB,          // r = a - b
+    YL_LSL,          // r = a << b
+    YL_LSR,          // r = a >> b
+    YL_ASR,          // r = a ~>> b
+    YL_BITAND,       // r = a & b
+    YL_BITXOR,       // r = a ^ b
+    YL_BITOR,        // r = a | b
+    YL_CONCAT,       // r = a .. b
     
-    Y_EQ,           // r = ( a == b )
-    Y_NE,           // r = ( a != b )
-    Y_LT,           // r = ( a < b )
-    Y_GT,           // r = ( a > b )
-    Y_LE,           // r = ( a <= b )
-    Y_GE,           // r = ( a >= b )
+    YL_EQ,           // r = ( a == b )
+    YL_NE,           // r = ( a != b )
+    YL_LT,           // r = ( a < b )
+    YL_GT,           // r = ( a > b )
+    YL_LE,           // r = ( a <= b )
+    YL_GE,           // r = ( a >= b )
     
-    Y_LNOT,         // r = not a
-    Y_LXOR,         // r = a xor b
+    YL_LNOT,         // r = not a
+    YL_LXOR,         // r = a xor b
 
 
     /*
         Tests and branches.
     */
     
-    Y_JMP,          // jump
-    Y_JMPT,         // jump if r is true
-    Y_JMPF,         // jump if r is false
+    YL_JMP,          // jump
+    YL_JMPT,         // jump if r is true
+    YL_JMPF,         // jump if r is false
     
     
     /*
         Calls.
     */
     
-    Y_VARARG,       // r:a = ...
-    Y_CLOSURE,      // r = close over functions[ c ], upval instructions follow
-    Y_CALL,         // r:b = call r:a
-    Y_YCALL,        // r:b = yield call r:a
-    Y_YIELD,        // r:b = yield r:a
-    Y_RETURN,       // return r:a, closes all upvals and iterators
+    YL_VARARG,       // r:a = ...
+    YL_CLOSURE,      // r = close over functions[ c ], upval instructions follow
+    YL_CALL,         // r:b = call r:a
+    YL_YCALL,        // r:b = yield call r:a
+    YL_YIELD,        // r:b = yield r:a
+    YL_RETURN,       // return r:a, closes all upvals and iterators
     
     
     /*
         Iterators.
     */
     
-    Y_ITER,         // iterators[ r ] = iterator over elements of a
-    Y_ITERKEY,      // iterators[ r ] = iterator over keys/values of a
-    Y_JMPITER,      // jump if iterators[ r ] is done
-    Y_NEXT1,        // r = next from iterators[ b ]
-    Y_NEXT2,        // r, a = next from iterators[ b ]
-    Y_NEXT,         // r:a = next from iterators[ b ]
+    YL_ITER,         // iterators[ r ] = iterator over elements of a
+    YL_ITERKEY,      // iterators[ r ] = iterator over keys/values of a
+    YL_JMPITER,      // jump if iterators[ r ] is done
+    YL_NEXT1,        // r = next from iterators[ b ]
+    YL_NEXT2,        // r, a = next from iterators[ b ]
+    YL_NEXT,         // r:a = next from iterators[ b ]
 
 
     /*
         Upvals.
     */
     
-    Y_GETUP,        // r = value of upvals[ a ]
-    Y_SETUP,        // value of upvals[ a ] = r
+    YL_GETUP,        // r = value of upvals[ a ]
+    YL_SETUP,        // value of upvals[ a ] = r
 
 
     /*
         Close upvals and iterators.
     */
     
-    Y_CLOSE,        // close all upvals up to a, all iterators up to b
+    YL_CLOSE,        // close all upvals up to a, all iterators up to b
 
 
     /*
         Object model instructions.
     */
     
-    Y_OBJECT,       // r = object with prototype a
-    Y_ARRAY,        // r = new array, c is element count hint
-    Y_TABLE,        // r = new table, c is element count hint
+    YL_OBJECT,       // r = object with prototype a
+    YL_ARRAY,        // r = new array, c is element count hint
+    YL_TABLE,        // r = new table, c is element count hint
     
-    Y_SUPER,        // r = superof( a )
+    YL_SUPER,        // r = superof( a )
     
-    Y_KEY,          // r = a.b, where b is a key index
-    Y_METHOD,       // r = a.b (similarly), next register after r = a
-    Y_INKEY,        // r = a.[ b ]
-    Y_INDEX,        // r = a[ b ]
-    Y_SETKEY,       // r.b = a,
-    Y_SETINKEY,     // r.[ a ] = b
-    Y_SETINDEX,     // r[ a ] = b
-    Y_DELKEY,       // delete a.b, where b is a key index
-    Y_DELINKEY,     // delete a.[ b ]
+    YL_KEY,          // r = a.b, where b is a key index
+    YL_METHOD,       // r = a.b (similarly), next register after r = a
+    YL_INKEY,        // r = a.[ b ]
+    YL_INDEX,        // r = a[ b ]
+    YL_SETKEY,       // r.b = a,
+    YL_SETINKEY,     // r.[ a ] = b
+    YL_SETINDEX,     // r[ a ] = b
+    YL_DELKEY,       // delete a.b, where b is a key index
+    YL_DELINKEY,     // delete a.[ b ]
     
-    Y_IN,           // r = ( a in b )
-    Y_IS,           // r = ( a is b )
+    YL_IN,           // r = ( a in b )
+    YL_IS,           // r = ( a is b )
 
-    Y_APPEND,       // append a to (array)r
-    Y_EXTEND,       // append value list a:b to (array)r
-    Y_UNPACK,       // a:b = unpack values from (array)r
+    YL_APPEND,       // append a to (array)r
+    YL_EXTEND,       // append value list a:b to (array)r
+    YL_UNPACK,       // a:b = unpack values from (array)r
     
     
     /*
         Exception handling.
     */
     
-    Y_THROW,        // throw r
-    Y_EXCEPT,       // r = current exception
-    Y_UNWIND,       // continue exception unwinding (if unwinding)
+    YL_THROW,        // throw r
+    YL_EXCEPT,       // r = current exception
+    YL_UNWIND,       // continue exception unwinding (if unwinding)
 
 
     /*
         Initializing closure upvals.  These are special instructions which
-        are only present after a Y_CLOSURE opcode.
+        are only present after a YL_CLOSURE opcode.
     */
     
-    Y_UPLOCAL,      // closure.upvals[ r ] = upvals[ a ] (using register b)
-    Y_UPUPVAL,      // closure.upvals[ r ] = upvals[ a ]
+    YL_UPLOCAL,      // closure.upvals[ r ] = upvals[ a ] (using register b)
+    YL_UPUPVAL,      // closure.upvals[ r ] = upvals[ a ]
 
 
 };

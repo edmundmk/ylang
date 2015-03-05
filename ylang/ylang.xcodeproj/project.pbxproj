@@ -26,6 +26,7 @@
 		4B6FDE801AA7A0B7001096B0 /* yl_compile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDE7F1AA7A0B7001096B0 /* yl_compile.cpp */; };
 		4B6FDE811AA7B4D8001096B0 /* yl_parser_lemon.ly in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDAA51AA654AE001096B0 /* yl_parser_lemon.ly */; };
 		4B6FDE821AA7B4D8001096B0 /* yl_parser_ragel.rl in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDAA71AA654AE001096B0 /* yl_parser_ragel.rl */; };
+		4B6FDE851AA855C0001096B0 /* yssa.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDE841AA855C0001096B0 /* yssa.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -84,6 +85,7 @@
 		4B6FDADA1AA66B65001096B0 /* yl_compile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_compile.h; sourceTree = "<group>"; };
 		4B6FDE7F1AA7A0B7001096B0 /* yl_compile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_compile.cpp; sourceTree = "<group>"; };
 		4B6FDE831AA7B621001096B0 /* yssa.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yssa.h; sourceTree = "<group>"; };
+		4B6FDE841AA855C0001096B0 /* yssa.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yssa.cpp; sourceTree = "<group>"; };
 		4BCF3D521A856FF500B9AB3A /* libylang.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libylang.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -140,6 +142,7 @@
 				4B6FDAB91AA657A2001096B0 /* yl_compile_visitor.h */,
 				4B6FDE7F1AA7A0B7001096B0 /* yl_compile.cpp */,
 				4B6FDE831AA7B621001096B0 /* yssa.h */,
+				4B6FDE841AA855C0001096B0 /* yssa.cpp */,
 			);
 			path = compiler;
 			sourceTree = "<group>";
@@ -264,6 +267,7 @@
 				4B6FDAD21AA66ABF001096B0 /* yl_context.cpp in Sources */,
 				4B6FDABD1AA65C6C001096B0 /* yl_string.cpp in Sources */,
 				4B6FDAB51AA654AE001096B0 /* yl_token.cpp in Sources */,
+				4B6FDE851AA855C0001096B0 /* yssa.cpp in Sources */,
 				4B6FDABA1AA657A2001096B0 /* yl_compile_visitor.cpp in Sources */,
 				4B6FDAAA1AA654AE001096B0 /* yl_ast.cpp in Sources */,
 				4B6FDAB21AA654AE001096B0 /* yl_parser.cpp in Sources */,

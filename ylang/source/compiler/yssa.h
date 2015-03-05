@@ -48,7 +48,7 @@
     
     So this is yet another version of the compiler, which builds an SSA form
     but which forces all definitions of the same source variable into the
-    same register.  Each definition remembers which variable it was
+    same register.  Each definition remembers which source variable it was
     constructed from.  With this form:
 
      -  Any definition which is live after another definition of the same
@@ -70,6 +70,115 @@
 
 
 */
+
+
+#include <stdint.h>
+#include <region.h>
+#include "yl_diagnostics.h"
+
+
+struct yssa_module;
+struct yssa_opinst;
+struct yssa_string;
+struct yssa_variable;
+struct yssa_function;
+struct yssa_block;
+
+
+
+/*
+    A source file is compiled to a module.
+*/
+
+struct yssa_module
+{
+    region          region;
+    yl_diagnostics* diagnostics;
+    
+};
+
+
+
+
+
+/*
+    SSA instructions are identical to ycode instructions, except most operands
+    are pointers to other instructions, and there are additional instructions
+    to support SSA features.
+*/
+
+
+enum yssa_opcode
+{
+    YSSA_SELECT         = 0x80,     // Select a single result from an op.
+    YSSA_IMPLICIT       = 0x81,     // Implicit reference to variable(s).
+    YSSA_CLOBBER        = 0x82,     // Potential store, redefining a variable.
+    YSSA_PHI            = 0x83,     // SSA phi-function.
+    YSSA_LOAD           = 0x84,     // Make temporary to avoid clobbering.
+};
+
+
+struct yssa_opinst
+{
+    static const uint8_t MULTIVAL = 0xFF;
+
+    int sloc;
+
+    uint8_t opcode;
+    uint8_t operand_count;          // Length of operand array.
+    uint8_t result_count;           // Number of results, or MULTIVAL.
+    uint8_t r;
+    
+    yssa_variable*      variable;   // Variable this op defines.
+    
+    union
+    {
+        double          number;     // Constant number.
+        bool            boolean;    // Constant bool.
+        yssa_string*    string;     // Constant string.
+        yssa_function*  function;   // Function to instantiate.
+        const char*     key;        // Key for lookups.
+        struct
+        {
+            uint8_t     a;          // ycode a operand.
+            uint8_t     b;          // ycode b operand.
+        };
+        uint16_t        c;          // ycode c operand.
+        yssa_opinst*    multival;   // Multival operand (after normal ones).
+        yssa_opinst*    associated; // Op this op is associated with.
+    };
+    
+    yssa_opinst*        operand[];  // Operand list.
+
+};
+
+
+struct yssa_string
+{
+    const char*         string;
+    size_t              length;
+};
+
+
+
+
+/*
+    A variable from the source code (or a temporary that survives its
+    block). All definitions that might be merged by a phi-function must
+    reference the same variable.  Clobber analysis inserts loads to ensure
+    that no definition of a variable interferes with any other, and the
+    register allocator will allocate a variable to a single register.
+*/
+
+struct yssa_variable
+{
+    int                 sloc;
+    const char*         name;
+    bool                upval;  // Is this variable an upval?
+    bool                xcept;  // Referenced from an exception handler?
+};
+
+
 
 
 
