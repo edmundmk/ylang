@@ -53,7 +53,7 @@
 
      -  At each instruction, there is only one live definition of each
             variable.  Values of variables clobbered by a new definition
-            before their use are preserved using a load (a MOV op).  This
+            before the use are preserved using a load (a MOV op).  This
             load can be register-allocated like any other temporary value.
      -  Each function call clobbers all live upvals, effectively redefining
             them.  Any value of an upval the use of which spans a function
@@ -66,8 +66,8 @@
             latest definition of each upval by each function call, preventing
             elimination of (most) upval definitions.
      -  phi-functions are present to allow use-def analysis, but must not
-            merge definitions with overlapping live ranges,
-            cause any moves in the final translation to VM code.
+            merge definitions with overlapping live ranges, and consequently
+            do not cause any moves in the final translation to VM code.
 
     During construction, source variables do not share definitions.  Trivial
     assignments such as y = x, which in a true SSA form would end up as a
@@ -170,6 +170,8 @@ struct yssa_opinst
 
 struct yssa_string
 {
+    yssa_string( const char* string, size_t length );
+
     const char*         string;
     size_t              length;
 };
@@ -226,13 +228,13 @@ enum yssa_block_flags
 
 struct yssa_block
 {
-    explicit yssa_block( yssa_block* prev, unsigned flags = 0 );
+    explicit yssa_block( unsigned flags = 0 );
 
     unsigned                    flags;
-    yssa_block*                 prev;       // Previous block in CFG.
+    std::vector< yssa_block* >  prev;       // Previous blocks in CFG.
     std::vector< yssa_opinst* > phi;        // phi-functions at head of block.
     std::vector< yssa_opinst* > ops;        // Op list
-    yssa_opinst*                condition;  // Condition to test (if any).
+    yssa_opinst*                test;       // Condition to test (if any).
     yssa_block*                 next;       // Next block (if condition passes).
     yssa_block*                 fail;       // Next block if condition fails.
     yssa_block*                 xchandler;  // Exception handler block.

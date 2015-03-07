@@ -30,6 +30,14 @@ yssa_opinst::yssa_opinst(
 
 
 
+yssa_string::yssa_string( const char* string, size_t length )
+    :   string( string )
+    ,   length( length )
+{
+}
+
+
+
 
 yssa_function::yssa_function( int sloc, const char* funcname )
     :   sloc( sloc )
@@ -41,10 +49,9 @@ yssa_function::yssa_function( int sloc, const char* funcname )
 
 
 
-yssa_block::yssa_block( yssa_block* prev, unsigned flags )
+yssa_block::yssa_block( unsigned flags )
     :   flags( flags )
-    ,   prev( prev )
-    ,   condition( nullptr )
+    ,   test( nullptr )
     ,   next( nullptr )
     ,   fail( nullptr )
     ,   xchandler( nullptr )

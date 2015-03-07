@@ -126,10 +126,36 @@ private:
     int visit( yl_expr_assign_list* node, int count );
 
 
-    yssa_variable*  variable( yl_ast_name* name );
-    yssa_opinst*    op( int sloc, uint8_t opcode,
-                            uint8_t operand_count, uint8_t result_count );
+    // Conversion from AST ops to yl opcodes.
+    size_t compare_op( int sloc, yl_ast_opkind opkind, size_t operands );
     
+
+    // Control flow.
+    yssa_block* next_block( unsigned flags = 0 );
+
+
+    // Emitting instructions.
+    yssa_opinst* op( int sloc, uint8_t opcode, uint8_t ocount, uint8_t rcount );
+
+
+    // Definitions and lookups.
+    yssa_variable* variable( yl_ast_name* name );
+    yssa_variable* varobj( yl_new_object* object );
+    yssa_variable* temporary();
+    
+    void assign( yssa_variable* variable, yssa_opinst* op );
+    yssa_opinst* lookup( yssa_variable* variable );
+
+
+    // Virtual stack.
+    size_t  push( yl_ast_node* expression, int count );
+    size_t  push( yssa_opinst* op );
+    void    pop( size_t index, int count, yssa_opinst** ops );
+    
+    size_t  push_lvalue( yl_ast_node* lvalue );
+    size_t  push_evalue( yl_ast_node* lvalue, size_t index );
+    void    assign_lvalue( yl_ast_node* lvalue, size_t index, yssa_opinst* v );
+    void    pop_lvalue( yl_ast_node* lvalue, size_t index );
 
 
     yl_diagnostics*     diagnostics;
@@ -137,7 +163,7 @@ private:
     std::unordered_map< yl_ast_func*, yssa_function* > funcmap;
     yssa_function*      function;
     yssa_block*         block;
-
+    std::vector< stack_entry > stack;
 
 };
 
