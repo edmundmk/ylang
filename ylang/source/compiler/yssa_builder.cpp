@@ -198,7 +198,7 @@ int yssa_builder::visit( yl_expr_preop* node, int count )
 
     // perform operation.
     yl_opcode opcode = ( node->opkind == YL_ASTOP_PREINC ) ? YL_ADD : YL_SUB;
-    yssa_opinst* o = op( node->sloc, opcode, 0, 1 );
+    yssa_opinst* o = op( node->sloc, opcode, 2, 1 );
     pop( evalue, 1, o->operand );
     o->operand[ 1 ] = op( node->sloc, YL_NUMBER, 0, 1 );
     o->operand[ 1 ]->number = 1.0;;
@@ -220,7 +220,7 @@ int yssa_builder::visit( yl_expr_postop* node, int count )
     
     // perform operation
     yl_opcode opcode = ( node->opkind == YL_ASTOP_POSTINC ) ? YL_ADD : YL_SUB;
-    yssa_opinst* o = op( node->sloc, opcode, 0, 1 );
+    yssa_opinst* o = op( node->sloc, opcode, 2, 1 );
     pop( evalue, 1, o->operand );
     o->operand[ 1 ] = op( node->sloc, YL_NUMBER, 0, 1 );
     o->operand[ 1 ]->number = 1.0;;
@@ -339,7 +339,7 @@ int yssa_builder::visit( yl_expr_binary* node, int count )
     
     default:
         assert( ! "invalid binary operator" );
-        
+        break;
     }
 
     yssa_opinst* o = op( node->sloc, YL_MUL, 2, 1 );
@@ -351,7 +351,6 @@ int yssa_builder::visit( yl_expr_binary* node, int count )
 int yssa_builder::visit( yl_expr_compare* node, int count )
 {
     /*
-        block:
             operand a
             operand b
             result = comparison
@@ -373,7 +372,7 @@ int yssa_builder::visit( yl_expr_compare* node, int count )
     
     // With shortcut evaluation, the result could be any of the intermediate
     // comparison results.  This requires a temporary.
-    yssa_variable* result = temporary();
+    yssa_variable* result = node->opkinds.size() > 1 ? temporary() : nullptr;
     
     // Evaluate first term.
     size_t operands = push( node->first, 1 );               // a
@@ -387,12 +386,74 @@ int yssa_builder::visit( yl_expr_compare* node, int count )
         
         // Perform comparison.
         yl_ast_opkind opkind = node->opkinds.at( i );
-        size_t index = compare_op( node->sloc, opkind, operands );
+        yl_opcode opcode = YL_NOP;
+        switch ( opkind )
+        {
+        case YL_ASTOP_EQUAL:
+            opcode = YL_EQ;
+            break;
+            
+        case YL_ASTOP_NOTEQUAL:
+            opcode = YL_NE;
+            break;
+            
+        case YL_ASTOP_LESS:
+            opcode = YL_LT;
+            break;
+            
+        case YL_ASTOP_GREATER:
+            opcode = YL_GT;
+            break;
+            
+        case YL_ASTOP_LESSEQUAL:
+            opcode = YL_LE;
+            break;
+            
+        case YL_ASTOP_GREATEREQUAL:
+            opcode = YL_GE;
+            break;
+            
+        case YL_ASTOP_IN:
+            opcode = YL_IN;
+            break;
+            
+        case YL_ASTOP_NOTIN:
+            opcode = YL_IN;
+            break;
+            
+        case YL_ASTOP_IS:
+            opcode = YL_IS;
+            break;
+            
+        case YL_ASTOP_NOTIS:
+            opcode = YL_IS;
+            break;
+            
+        default:
+            assert( ! "unexpected comparison operator" );
+            break;
+        }
         
+        yssa_opinst* o = op( node->sloc, opcode, 2, 1 );
+        pop( operands, 2, o->operand );
+        size_t index = push( o );
+        
+        yssa_opinst* b = o->operand[ 1 ];
+        
+        if ( opkind == YL_ASTOP_NOTIN || opkind == YL_ASTOP_NOTIS )
+        {
+            o = op( node->sloc, YL_LNOT, 1, 1 );
+            pop( index, 1, o->operand );
+            index = push( o );
+        }
+
+
         // Assign to temporary.
-        yssa_opinst* value = nullptr;
-        pop( index, 1, &value );
-        assign( result, value );
+        if ( result )
+        {
+            pop( index, 1, &o );
+            assign( result, o );
+        }
         
         // No shortcut after last comparison in chain.
         if ( i >= last )
@@ -404,13 +465,13 @@ int yssa_builder::visit( yl_expr_compare* node, int count )
         if ( block )
         {
             assert( block->test == nullptr );
-            block->test = value;
+            block->test = o;
             blocks.push_back( block );
             block = next_block();
         }
 
         // Ensure that operand b is on the top of the virtual stack.
-        operands = push( value->operand[ 1 ] );
+        operands = push( b );
     }
     
     // Any failed comparison shortcuts to the end.
@@ -427,17 +488,209 @@ int yssa_builder::visit( yl_expr_compare* node, int count )
     }
 
     // Push lookup of temporary.
-    push( lookup( result ) );
+    if ( result )
+    {
+        push( lookup( result ) );
+    }
     return 1;
 }
 
 int yssa_builder::visit( yl_expr_logical* node, int count )
 {
+    switch ( node->opkind )
+    {
+    case YL_ASTOP_LOGICAND:
+    {
+        /*
+                result = lhs
+                    ? goto next : goto final
+        
+            next:
+                result = rhs
+                
+            final:
+        */
+        
+        yssa_variable* result = temporary();
+        
+        // Evaluate left hand side.
+        size_t operand = push( node->lhs, 1 );
+        yssa_opinst* value = nullptr;
+        pop( operand, 1, &value );
+        assign( result, value );
+        
+        // Only continue to next block if lhs is true.
+        yssa_block* lhs_block = block;
+        if ( block )
+        {
+            assert( block->test == nullptr );
+            block->test = value;
+            block = next_block();
+        }
+        
+        // Evaluate right hand side.
+        operand = push( node->rhs, 1 );
+        pop( operand, 1, &value );
+        assign( result, value );
+
+        // Link in the shortcut.
+        if ( block )
+        {
+            block = next_block();
+            if ( lhs_block )
+            {
+                assert( lhs_block->fail == nullptr );
+                lhs_block->fail = block;
+                block->prev.push_back( lhs_block );
+            }
+        }
+        
+        // Push lookup of temporary.
+        push( lookup( result ) );
+        return 1;
+    }
+    
+    case YL_ASTOP_LOGICXOR:
+    {
+        size_t operands = push( node->lhs, 1 );
+        push( node->rhs, 1 );
+        yssa_opinst* o = op( node->sloc, YL_LXOR, 2, 1 );
+        pop( operands, 2, o->operand );
+        push( o );
+        return 1;
+    }
+    
+    case YL_ASTOP_LOGICOR:
+    {
+        /*
+                result = lhs
+                    ? goto final : goto next
+        
+            next:
+                result = rhs
+                
+            final:
+        */
+    
+        yssa_variable* result = temporary();
+        
+        // Evaluate left hand side.
+        size_t operand = push( node->lhs, 1 );
+        yssa_opinst* value = nullptr;
+        pop( operand, 1, &value );
+        assign( result, value );
+        
+        // Only continue to next block if lhs is false.
+        yssa_block* lhs_block = block;
+        if ( block )
+        {
+            assert( block->test == nullptr );
+            block->test = value;
+            block = next_block();
+            lhs_block->fail = block;
+            lhs_block->next = nullptr;
+        }
+        
+        // Evaluate right hand side.
+        operand = push( node->rhs, 1 );
+        pop( operand, 1, &value );
+        assign( result, value );
+
+        // Link in the shortcut.
+        if ( block )
+        {
+            block = next_block();
+            if ( lhs_block )
+            {
+                assert( lhs_block->next == nullptr );
+                lhs_block->next = block;
+                block->prev.push_back( lhs_block );
+            }
+        }
+        
+        // Push lookup of temporary.
+        push( lookup( result ) );
+        return 1;
+    }
+    
+    default:
+        assert( ! "invalid logical operator" );
+        return 0;
+    }
 }
 
 int yssa_builder::visit( yl_expr_qmark* node, int count )
 {
+    /*
+            condition
+                ? goto iftrue : goto iffalse
 
+        iftrue:
+            result = trueexpr
+            goto final
+        
+        iffalse:
+            result = falseexpr
+            goto final
+            
+        final:
+    */
+    
+    // Evaluate condition.
+    size_t operand = push( node->condition, 1 );
+    yssa_opinst* value = nullptr;
+    pop( operand, 1, &value );
+    
+    // True block.
+    yssa_block* test_block = block;
+    if ( block )
+    {
+        assert( block->test = nullptr );
+        block->test = value;
+        block = next_block();
+    }
+    
+    // Result is a temporary since there is more than one definition.
+    yssa_variable* result = temporary();
+    
+    // Evaluate true branch.
+    operand = push( node->iftrue, 1 );
+    pop( operand, 1, &value );
+    assign( result, value );
+    
+    // False block.
+    yssa_block* true_block = block;
+    if ( block )
+    {
+        block = make_block();
+        if ( test_block )
+        {
+            assert( test_block->fail == nullptr );
+            test_block->fail = block;
+            block->prev.push_back( test_block );
+        }
+    }
+    
+    // Evaluate false branch.
+    operand = push( node->iffalse, 1 );
+    pop( operand, 1, &value );
+    assign( result, value );
+    
+    // Final block.
+    if ( block )
+    {
+        block = next_block();
+        if ( true_block )
+        {
+            assert( true_block->next == nullptr );
+            true_block->next = block;
+            block->prev.push_back( true_block );
+        }
+    }
+
+    // Push lookup of temporary.
+    push( lookup( result ) );
+    return 1;
 }
 
 int yssa_builder::visit( yl_new_new* node, int count )
@@ -458,6 +711,10 @@ int yssa_builder::visit( yl_new_table* node, int count )
 
 int yssa_builder::visit( yl_expr_mono* node, int count )
 {
+    // Even when used in a context that requests multiple values,
+    // push only a single value onto the virtual stack.
+    push( node->expr, 1 );
+    return 1;
 }
 
 int yssa_builder::visit( yl_expr_call* node, int count )
@@ -488,72 +745,6 @@ int yssa_builder::visit( yl_expr_assign_list* node, int count )
 {
 }
 
-
-
-size_t yssa_builder::compare_op(
-                int sloc, yl_ast_opkind opkind, size_t operands )
-{
-    yl_opcode opcode = YL_NOP;
-    switch ( opkind )
-    {
-    case YL_ASTOP_EQUAL:
-        opcode = YL_EQ;
-        break;
-        
-    case YL_ASTOP_NOTEQUAL:
-        opcode = YL_NE;
-        break;
-        
-    case YL_ASTOP_LESS:
-        opcode = YL_LT;
-        break;
-        
-    case YL_ASTOP_GREATER:
-        opcode = YL_GT;
-        break;
-        
-    case YL_ASTOP_LESSEQUAL:
-        opcode = YL_LE;
-        break;
-        
-    case YL_ASTOP_GREATEREQUAL:
-        opcode = YL_GE;
-        break;
-        
-    case YL_ASTOP_IN:
-        opcode = YL_IN;
-        break;
-        
-    case YL_ASTOP_NOTIN:
-        opcode = YL_IN;
-        break;
-        
-    case YL_ASTOP_IS:
-        opcode = YL_IS;
-        break;
-        
-    case YL_ASTOP_NOTIS:
-        opcode = YL_IS;
-        break;
-        
-    default:
-        assert( ! "unexpected comparison operator" );
-        break;
-    }
-    
-    yssa_opinst* o = op( sloc, opcode, 2, 1 );
-    pop( operands, 2, o->operand );
-    size_t index = push( o );
-    
-    if ( opkind == YL_ASTOP_NOTIN || opkind == YL_ASTOP_NOTIS )
-    {
-        o = op( sloc, YL_LNOT, 1, 1 );
-        pop( index, 1, o->operand );
-        index = push( o );
-    }
-
-    return index;
-}
 
 
 

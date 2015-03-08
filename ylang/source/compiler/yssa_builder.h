@@ -126,12 +126,9 @@ private:
     int visit( yl_expr_assign_list* node, int count );
 
 
-    // Conversion from AST ops to yl opcodes.
-    size_t compare_op( int sloc, yl_ast_opkind opkind, size_t operands );
-    
-
     // Control flow.
     yssa_block* next_block( unsigned flags = 0 );
+    yssa_block* make_block( unsigned flags = 0 );
 
 
     // Emitting instructions.
