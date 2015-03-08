@@ -136,7 +136,6 @@ enum yl_opcode
     YL_SUPER,        // r = superof( a )
     
     YL_KEY,          // r = a.b, where b is a key index
-    YL_METHOD,       // r = a.b (similarly), next register after r = a
     YL_INKEY,        // r = a.[ b ]
     YL_INDEX,        // r = a[ b ]
     YL_SETKEY,       // r.b = a,

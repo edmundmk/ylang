@@ -92,7 +92,7 @@ int yssa_builder::visit( yl_ast_func* node, int count )
 int yssa_builder::visit( yl_expr_null* node, int count )
 {
     yssa_opinst* o = op( node->sloc, YL_NULL, 0, 1 );
-    push( o );
+    push_op( o );
     return 1;
 }
 
@@ -100,7 +100,7 @@ int yssa_builder::visit( yl_expr_bool* node, int count )
 {
     yssa_opinst* o = op( node->sloc, YL_BOOL, 0, 1 );
     o->a = node->value ? 1 : 0;
-    push( o );
+    push_op( o );
     return 1;
 }
 
@@ -108,7 +108,7 @@ int yssa_builder::visit( yl_expr_number* node, int count )
 {
     yssa_opinst* o = op( node->sloc, YL_NUMBER, 0, 1 );
     o->number = node->value;
-    push( o );
+    push_op( o );
     return 1;
 }
 
@@ -122,7 +122,7 @@ int yssa_builder::visit( yl_expr_string* node, int count )
     // Push value.
     yssa_opinst* o = op( node->sloc, YL_STRING, 0, 1 );
     o->string = new ( module->alloc ) yssa_string( string, node->length );
-    push( o );
+    push_op( o );
     return 1;
 }
 
@@ -135,7 +135,7 @@ int yssa_builder::visit( yl_expr_global* node, int count )
 {
     yssa_opinst* o = op( node->sloc, YL_GLOBAL, 0, 1 );
     o->key = module->alloc.strdup( node->name );
-    push( o );
+    push_op( o );
     return 1;
 }
 
@@ -143,7 +143,7 @@ int yssa_builder::visit( yl_expr_upref* node, int count )
 {
     yssa_opinst* o = op( node->sloc, YL_GETUP, 0, 1 );
     o->a = (uint8_t)node->index;
-    push( o );
+    push_op( o );
     return 1;
 }
 
@@ -157,7 +157,7 @@ int yssa_builder::visit( yl_expr_superof* node, int count )
     size_t operand = push( node->expr, 1 );
     yssa_opinst* o = op( node->sloc, YL_SUPER, 1, 1 );
     pop( operand, 1, o->operand );
-    push( o );
+    push_op( o );
     return 1;
 }
 
@@ -167,7 +167,7 @@ int yssa_builder::visit( yl_expr_key* node, int count )
     yssa_opinst* o = op( node->sloc, YL_KEY, 1, 1 );
     pop( operand, 1, o->operand );
     o->key = module->alloc.strdup( node->key );
-    push( o );
+    push_op( o );
     return 1;
 }
 
@@ -177,7 +177,7 @@ int yssa_builder::visit( yl_expr_inkey* node, int count )
     push( node->key, 1 );
     yssa_opinst* o = op( node->sloc, YL_INKEY, 2, 1 );
     pop( operands, 2, o->operand );
-    push( o );
+    push_op( o );
     return 1;
 }
 
@@ -187,7 +187,7 @@ int yssa_builder::visit( yl_expr_index* node, int count )
     push( node->index, 1 );
     yssa_opinst* o = op( node->sloc, YL_INDEX, 2, 1 );
     pop( operands, 2, o->operand );
-    push( o );
+    push_op( o );
     return 1;
 }
 
@@ -208,7 +208,7 @@ int yssa_builder::visit( yl_expr_preop* node, int count )
     
     // push updated value onto stack.
     pop_lvalue( node->lvalue, lvalue );
-    push( o );
+    push_op( o );
 
     return 1;
 }
@@ -226,14 +226,14 @@ int yssa_builder::visit( yl_expr_postop* node, int count )
     o->operand[ 1 ]->number = 1.0;;
     
     // perform assignment (which might clobber the original value).
-    size_t ovalue = push( o->operand[ 0 ] );
+    size_t ovalue = push_op( o->operand[ 0 ] );
     assign_lvalue( node->lvalue, lvalue, o );
     
     // push original value onto stack.
     yssa_opinst* value = nullptr;
     pop( ovalue, 1, &value );
     pop_lvalue( node->lvalue, lvalue );
-    push( value );
+    push_op( value );
     return 1;
 }
 
@@ -249,7 +249,7 @@ int yssa_builder::visit( yl_expr_unary* node, int count )
         // Implemented as negative negative.
         yssa_opinst* o = op( node->sloc, YL_NEG, 1, 1 );
         pop( operand, 1, o->operand );
-        operand = push( o );
+        operand = push_op( o );
         opcode = YL_NEG;
         break;
     }
@@ -273,7 +273,7 @@ int yssa_builder::visit( yl_expr_unary* node, int count )
 
     yssa_opinst* o = op( node->sloc, opcode, 1, 1 );
     pop( operand, 1, o->operand );
-    push( o );
+    push_op( o );
     return 1;
 }
 
@@ -344,7 +344,7 @@ int yssa_builder::visit( yl_expr_binary* node, int count )
 
     yssa_opinst* o = op( node->sloc, YL_MUL, 2, 1 );
     pop( operands, 2, o->operand );
-    push( o );
+    push_op( o );
     return 1;
 }
 
@@ -436,7 +436,7 @@ int yssa_builder::visit( yl_expr_compare* node, int count )
         
         yssa_opinst* o = op( node->sloc, opcode, 2, 1 );
         pop( operands, 2, o->operand );
-        size_t index = push( o );
+        size_t index = push_op( o );
         
         yssa_opinst* b = o->operand[ 1 ];
         
@@ -444,7 +444,7 @@ int yssa_builder::visit( yl_expr_compare* node, int count )
         {
             o = op( node->sloc, YL_LNOT, 1, 1 );
             pop( index, 1, o->operand );
-            index = push( o );
+            index = push_op( o );
         }
 
 
@@ -471,7 +471,7 @@ int yssa_builder::visit( yl_expr_compare* node, int count )
         }
 
         // Ensure that operand b is on the top of the virtual stack.
-        operands = push( b );
+        operands = push_op( b );
     }
     
     // Any failed comparison shortcuts to the end.
@@ -490,7 +490,7 @@ int yssa_builder::visit( yl_expr_compare* node, int count )
     // Push lookup of temporary.
     if ( result )
     {
-        push( lookup( result ) );
+        push_op( lookup( result ) );
     }
     return 1;
 }
@@ -546,7 +546,7 @@ int yssa_builder::visit( yl_expr_logical* node, int count )
         }
         
         // Push lookup of temporary.
-        push( lookup( result ) );
+        push_op( lookup( result ) );
         return 1;
     }
     
@@ -556,7 +556,7 @@ int yssa_builder::visit( yl_expr_logical* node, int count )
         push( node->rhs, 1 );
         yssa_opinst* o = op( node->sloc, YL_LXOR, 2, 1 );
         pop( operands, 2, o->operand );
-        push( o );
+        push_op( o );
         return 1;
     }
     
@@ -609,7 +609,7 @@ int yssa_builder::visit( yl_expr_logical* node, int count )
         }
         
         // Push lookup of temporary.
-        push( lookup( result ) );
+        push_op( lookup( result ) );
         return 1;
     }
     
@@ -689,24 +689,121 @@ int yssa_builder::visit( yl_expr_qmark* node, int count )
     }
 
     // Push lookup of temporary.
-    push( lookup( result ) );
+    push_op( lookup( result ) );
     return 1;
 }
 
 int yssa_builder::visit( yl_new_new* node, int count )
 {
+    // Evaluate object prototype.
+    size_t operand = push( node->proto, 1 );
+    
+    // Create object using prototype.
+    yssa_opinst* o = op( node->sloc, YL_OBJECT, 1, 1 );
+    pop( operand, 1, o->operand );
+    operand = push_op( o );
+    
+    // Call 'this' method.
+    yssa_opinst* m = op( node->sloc, YL_KEY, 1, 1 );
+    m->operand[ 0 ] = o;
+    m->key = "this";
+    size_t method = push_op( m );
+    
+    // Repush the object (as this argument).
+    push_op( o );
+    
+    // Push arguments.
+    int argcount = 0;
+    push_all( node->arguments, &argcount );
+    
+    // Perform call.
+    yssa_opinst* c = op( node->sloc, YL_CALL, argcount + 2, 0 );
+    pop( method, argcount + 2, c->operand );
+    c->multival = multival;
+    multival = nullptr;
+    call( c );
+    
+    // Only thing on virtual stack should be the constructed object.
+    return 1;
 }
 
 int yssa_builder::visit( yl_new_object* node, int count )
 {
+    // Evaluate prototype.
+    size_t operand = push( node->proto, 1 );
+    
+    // Create object using prototype.
+    yssa_opinst* o = op( node->sloc, YL_OBJECT, 1, 1 );
+    pop( operand, 1, o->operand );
+    operand = push_op( o );
+    
+    // Declare object (as it can potentially be referenced as an upval).
+    yssa_variable* object = varobj( node );
+    assign( object, o );
+    
+    // Execute all member initializers.
+    for ( size_t i = 0; i < node->members.size(); ++i )
+    {
+        execute( node->members.at( i ) );
+    }
+
+    // TODO: close upval if any?
+    
+    // object should still be on the virtual stack.
+    return 1;
 }
 
 int yssa_builder::visit( yl_new_array* node, int count )
 {
+    // Construct new array.
+    yssa_opinst* o = op( node->sloc, YL_ARRAY, 0, 1 );
+    o->c = node->values.size();
+    push_op( o );
+    
+    // Append each element.
+    for ( size_t i = 0; i < node->values.size(); ++i )
+    {
+        size_t element = push( node->values.at( i ), 1 );
+        yssa_opinst* a = op( node->sloc, YL_APPEND, 2, 0 );
+        a->operand[ 0 ] = o;
+        pop( element, 1, &a->operand[ 1 ] );
+    }
+    
+    // Extend final elements.
+    if ( node->final )
+    {
+        int count = 0;
+        size_t extend = push_all( node->final, &count );
+        yssa_opinst* e = op( node->sloc, YL_EXTEND, count + 1, 0 );
+        e->operand[ 0 ] = o;
+        pop( extend, count, &e->operand[ 1 ] );
+        e->multival = multival;
+        multival = nullptr;
+    }
+    
+    // array should still be on virtual stack.
+    return 1;
 }
 
 int yssa_builder::visit( yl_new_table* node, int count )
 {
+    // Construct new table.
+    yssa_opinst* o = op( node->sloc, YL_TABLE, 0, 1 );
+    o->c = node->elements.size();
+    push_op( o );
+    
+    // Append each element.
+    for ( size_t i = 0; i < node->elements.size(); ++i )
+    {
+        const yl_key_value& kv = node->elements.at( i );
+        size_t operands = push( kv.key, 1 );
+        push( kv.value, 1 );
+        yssa_opinst* e = op( node->sloc, YL_SETINDEX, 2, 0 );
+        pop( operands, 2, e->operand );
+    }
+    
+    // table should still be on virtual stack
+    return 1;
 }
 
 int yssa_builder::visit( yl_expr_mono* node, int count )
@@ -719,10 +816,98 @@ int yssa_builder::visit( yl_expr_mono* node, int count )
 
 int yssa_builder::visit( yl_expr_call* node, int count )
 {
+    // Restrict call expressions without unpack ellipsis to a single result.
+    if ( ! node->unpack && count != 0 )
+    {
+        count = 1;
+    }
+    
+    // Check for method call.
+    size_t function = 0;
+    int funcount = 0;
+    switch ( node->function->kind )
+    {
+    case YL_EXPR_KEY:
+    {
+        yl_expr_key* knode = (yl_expr_key*)node->function;
+        
+        // Look up key for method.
+        size_t operand = push( knode->object, 1 );
+        yssa_opinst* o = op( knode->sloc, YL_KEY, 1, 1 );
+        pop( operand, 1, o->operand );
+        o->key = module->alloc.strdup( knode->key );
+        push_op( o );
+        
+        // Push the object onto the virtual stack as the 'this' parameter.
+        push_op( o->operand[ 0 ] );
+        funcount = 2;
+        break;
+    }
+    
+    case YL_EXPR_INKEY:
+    {
+        yl_expr_inkey* knode = (yl_expr_inkey*)node->function;
+        
+        // Look up index for method.
+        size_t operands = push( knode->object, 1 );
+        push( knode->key, 1 );
+        yssa_opinst* o = op( knode->sloc, YL_INKEY, 2, 1 );
+        pop( operands, 2, o->operand );
+        push_op( o );
+        
+        // Push the object onto virtual stack as the 'this' parameter.
+        push_op( o->operand[ 0 ] );
+        funcount = 2;
+        break;
+    }
+    
+    default:
+    {
+        function = push( node->function, 1 );
+        funcount = 1;
+        break;
+    }
+    }
+    
+    // Push arguments.
+    int argcount = 0;
+    push_all( node->arguments, &argcount );
+    
+    // Perform call.
+    yl_opcode opcode = node->yieldcall ? YL_YCALL : YL_CALL;
+    yssa_opinst* c = op( node->sloc, opcode, funcount + argcount, count );
+    pop( function, funcount + argcount, c->operand );
+    c->multival = multival;
+    multival = nullptr;
+    call( c );
+    
+    // Return results appropriately on the stack.
+    push_select( node->sloc, c, count );
+    return count;
 }
 
 int yssa_builder::visit( yl_expr_yield* node, int count )
 {
+    // Restrict expressions without unpack to a single result.
+    if ( ! node->unpack && count != 0 )
+    {
+        count = 1;
+    }
+    
+    // Push arguments.
+    int argcount = 0;
+    size_t arguments = push_all( node->arguments, &argcount );
+    
+    // Perform yield.
+    yssa_opinst* y = op( node->sloc, YL_YIELD, argcount, count );
+    pop( arguments, argcount, y->operand );
+    y->multival = multival;
+    multival = nullptr;
+    call( y );
+    
+    // Return results appropriately on the stack.
+    push_select( node->sloc, y, count );
+    return count;
 }
 
 int yssa_builder::visit( yl_expr_vararg* node, int count )
@@ -748,13 +933,6 @@ int yssa_builder::visit( yl_expr_assign_list* node, int count )
 
 
 
-yssa_variable* yssa_builder::variable( yl_ast_name* name )
-{
-    // TODO.
-    return nullptr;
-}
-
-
 yssa_opinst* yssa_builder::op(
         int sloc, uint8_t opcode, uint8_t operand_count, uint8_t result_count )
 {
@@ -768,6 +946,28 @@ yssa_opinst* yssa_builder::op(
     return op;
 }
 
+
+void yssa_builder::push_select( int sloc, yssa_opinst* selop, int count )
+{
+    if ( count == -1 )
+    {
+        multival = selop;
+    }
+    else if ( count == 1 )
+    {
+        push_op( selop );
+    }
+    else
+    {
+        for ( int i = 0; i < count; ++i )
+        {
+            yssa_opinst* o = op( sloc, YSSA_SELECT, 1, 1 );
+            o->operand[ 0 ] = selop;
+            o->select = i;
+            push_op( o );
+        }
+    }
+}
 
 
 

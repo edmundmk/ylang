@@ -37,24 +37,7 @@ private:
 
     friend class yl_ast_visitor< yssa_builder, int, int >;
     
-    
-    /*
-        We build using a virtual stack.  When an expression node is visited
-        its value(s) are pushed onto the stack.  When the node is used in
-        an operation, it is popped.  When variables are clobbered, the stack
-        is inspected to find clobbered values which must be replaced with
-        loads.
-    */
-    
-    struct stack_entry
-    {
-        yssa_block*     block;
-        size_t          index;
-        yssa_opinst*    value;
-    };
-    
-    
-    
+
     /*
         We build a function at a time.
     */
@@ -135,6 +118,16 @@ private:
     yssa_opinst* op( int sloc, uint8_t opcode, uint8_t ocount, uint8_t rcount );
 
 
+    
+    /*
+        We build using a virtual stack.  When an expression node is visited
+        its value(s) are pushed onto the stack.  When the node is used in
+        an operation, it is popped.  When variables are clobbered, the stack
+        is inspected to find clobbered values which must be replaced with
+        loads.
+    */
+
+
     // Definitions and lookups.
     yssa_variable* variable( yl_ast_name* name );
     yssa_variable* varobj( yl_new_object* object );
@@ -142,11 +135,15 @@ private:
     
     void assign( yssa_variable* variable, yssa_opinst* op );
     yssa_opinst* lookup( yssa_variable* variable );
+    void call( yssa_opinst* callop ); // implicit ref/clobber upvals
 
 
     // Virtual stack.
+    void    execute( yl_ast_node* statement );
+    size_t  push_all( yl_ast_node* expression, int* count );
     size_t  push( yl_ast_node* expression, int count );
-    size_t  push( yssa_opinst* op );
+    size_t  push_op( yssa_opinst* op );
+    void    push_select( int sloc, yssa_opinst* selop, int count );
     void    pop( size_t index, int count, yssa_opinst** ops );
     
     size_t  push_lvalue( yl_ast_node* lvalue );
@@ -155,12 +152,14 @@ private:
     void    pop_lvalue( yl_ast_node* lvalue, size_t index );
 
 
-    yl_diagnostics*     diagnostics;
-    yssa_module_p       module;
+
+    yl_diagnostics*             diagnostics;
+    yssa_module_p               module;
     std::unordered_map< yl_ast_func*, yssa_function* > funcmap;
-    yssa_function*      function;
-    yssa_block*         block;
-    std::vector< stack_entry > stack;
+    yssa_function*              function;
+    yssa_block*                 block;
+    std::vector< yssa_opinst* > stack;
+    yssa_opinst*                multival;
 
 };
 

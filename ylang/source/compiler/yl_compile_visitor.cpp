@@ -433,7 +433,7 @@ int yl_compile_visitor::visit( yl_stmt_using* node, int count )
     declare( o, false, node, "[using]" );
     unsigned m = push();                        // o, m
     unsigned t = push();                        // o, m, t
-    op( node->sloc, YL_METHOD, m, o, key( "acquire" ) );
+//    op( node->sloc, YL_METHOD, m, o, key( "acquire" ) );
     pop( t );
     pop( m );                                   // o
     op( node->sloc, YL_CALL, m, 2, 0 );
@@ -446,7 +446,7 @@ int yl_compile_visitor::visit( yl_stmt_using* node, int count )
     
     // This sequence overwrites o, even though it is still declared.
     t = push();                                 // o, t
-    op( node->sloc, YL_METHOD, o, o, key( "release" ) );
+//    op( node->sloc, YL_METHOD, o, o, key( "release" ) );
     pop( t );
     op( node->sloc, YL_CALL, o, 2, 0 );
    
@@ -1030,7 +1030,7 @@ int yl_compile_visitor::visit( yl_new_new* node, int count )
     op( node->sloc, YL_OBJECT, o, p, 0 );
     unsigned m = push();                        // o, m
     unsigned t = push();                        // o, m, o
-    op( node->sloc, YL_METHOD, m, o, key( "this" ) );
+//!!    op( node->sloc, YL_METHOD, m, o, key( "this" ) );
     listval l = push_list( node->arguments, -1 ); // o, m, o, ...
     pop_list( l );
     pop( t );
@@ -1123,7 +1123,7 @@ int yl_compile_visitor::visit( yl_expr_call* node, int count )
         pop( o );
         f = push();
         t = push();
-        op( node->sloc, YL_METHOD, f, o, key( kexpr->key ) ); // m, o
+//!!        op( node->sloc, YL_METHOD, f, o, key( kexpr->key ) ); // m, o
         break;
     }
     
