@@ -39,6 +39,23 @@ private:
     
 
     /*
+        We build using a virtual stack.  When an expression node is visited
+        its value(s) are pushed onto the stack.  When the node is used in
+        an operation, it is popped.  When variables are clobbered, the stack
+        is inspected to find clobbered values which must be replaced with
+        loads.
+    */
+    
+    struct stack_entry
+    {
+        yssa_block*     block;
+        size_t          index;
+        yssa_opinst*    value;
+    };
+    
+
+
+    /*
         We build a function at a time.
     */
 
@@ -116,16 +133,7 @@ private:
 
     // Emitting instructions.
     yssa_opinst* op( int sloc, uint8_t opcode, uint8_t ocount, uint8_t rcount );
-
-
     
-    /*
-        We build using a virtual stack.  When an expression node is visited
-        its value(s) are pushed onto the stack.  When the node is used in
-        an operation, it is popped.  When variables are clobbered, the stack
-        is inspected to find clobbered values which must be replaced with
-        loads.
-    */
 
 
     // Definitions and lookups.
@@ -142,7 +150,7 @@ private:
     void    execute( yl_ast_node* statement );
     size_t  push_all( yl_ast_node* expression, int* count );
     size_t  push( yl_ast_node* expression, int count );
-    size_t  push_op( yssa_opinst* op );
+    size_t  push_op( yssa_opinst* op ); // Cannot have pushed an expression or assigned or clobbered between creating an op and pushing it.
     void    push_select( int sloc, yssa_opinst* selop, int count );
     void    pop( size_t index, int count, yssa_opinst** ops );
     
@@ -158,7 +166,7 @@ private:
     std::unordered_map< yl_ast_func*, yssa_function* > funcmap;
     yssa_function*              function;
     yssa_block*                 block;
-    std::vector< yssa_opinst* > stack;
+    std::vector< stack_entry >  stack;
     yssa_opinst*                multival;
 
 };

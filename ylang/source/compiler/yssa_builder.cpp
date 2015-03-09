@@ -61,7 +61,7 @@ void yssa_builder::build( yl_ast_func* astf )
     function = funcmap.at( astf );
     
     // Create entry block.
-    yssa_block_p entry_block = std::make_unique< yssa_block >( nullptr );
+    yssa_block_p entry_block = std::make_unique< yssa_block >();
     block = entry_block.get();
     function->blocks.emplace_back( std::move( entry_block ) );
     
@@ -87,6 +87,34 @@ void yssa_builder::build( yl_ast_func* astf )
 
 int yssa_builder::visit( yl_ast_func* node, int count )
 {
+    // Function op.
+    yssa_function* function = funcmap.at( node );
+    yssa_opinst* o = op( node->sloc, YL_CLOSURE, 0, 1 );
+    o->function = function;
+    
+    // Upval initializers.
+    for ( size_t i = 0; i < node->upvals.size(); ++i )
+    {
+        const yl_ast_upval& uv = node->upvals.at( i );
+        switch ( uv.kind )
+        {
+        case YL_UPVAL_LOCAL:
+        {
+        }
+        
+        case YL_UPVAL_OBJECT:
+        {
+        }
+        
+        case YL_UPVAL_UPVAL:
+        {
+        }
+        }
+    }
+    
+    // Push onto virtual stack.
+    push_op( o );
+    return 1;
 }
 
 int yssa_builder::visit( yl_expr_null* node, int count )
@@ -129,6 +157,9 @@ int yssa_builder::visit( yl_expr_string* node, int count )
 int yssa_builder::visit( yl_expr_local* node, int count )
 {
     // Find definition of the variable which reaches this point.
+    yssa_variable* v = variable( node->name );
+    push_op( lookup( v ) );
+    return 1;
 }
 
 int yssa_builder::visit( yl_expr_global* node, int count )
@@ -150,6 +181,9 @@ int yssa_builder::visit( yl_expr_upref* node, int count )
 int yssa_builder::visit( yl_expr_objref* node, int count )
 {
     // Find definition of object.
+    yssa_variable* v = varobj( node->object );
+    push_op( lookup( v ) );
+    return 1;
 }
 
 int yssa_builder::visit( yl_expr_superof* node, int count )
@@ -912,14 +946,73 @@ int yssa_builder::visit( yl_expr_yield* node, int count )
 
 int yssa_builder::visit( yl_expr_vararg* node, int count )
 {
+    if ( count != 0 )
+    {
+        yssa_opinst* o = op( node->sloc, YL_VARARG, 0, count );
+        push_select( node->sloc, o, count );
+    }
+    return count;
 }
 
 int yssa_builder::visit( yl_expr_unpack* node, int count )
 {
+    size_t operand = push( node->array, 1 );
+    if ( count != 0 )
+    {
+        yssa_opinst* o = op( node->sloc, YL_UNPACK, 1, count );
+        pop( operand, 1, o->operand );
+        push_select( node->sloc, o, count );
+    }
+    else
+    {
+        yssa_opinst* value = nullptr;
+        pop( operand, 1, &value );
+    }
+    return count;
 }
 
 int yssa_builder::visit( yl_expr_list* node, int count )
 {
+    // Work out how many values we need to actually push.
+    int value_count = (int)node->values.size();
+    if ( count != -1 )
+    {
+        value_count = std::min( value_count, count );
+    }
+    
+    // Push value_count values.
+    for ( size_t i = 0; i < value_count; ++i )
+    {
+        push( node->values.at( i ), 1 );
+    }
+    
+    // Execute remaining values without leaving them on the stack.
+    for ( size_t i = value_count; i < node->values.size(); ++i )
+    {
+        execute( node->values.at( i ) );
+    }
+    
+    // If there's an unpack value at the end of the list, then unpack it.
+    if ( node->final )
+    {
+        if ( count == -1 )
+        {
+            int final_count = 0;
+            push_all( node->final, &final_count );
+            value_count += final_count;
+        }
+        else if ( count > value_count )
+        {
+            push( node->final, count - value_count );
+            value_count = count;
+        }
+        else
+        {
+            execute( node->final );
+        }
+    }
+    
+    return value_count;
 }
 
 int yssa_builder::visit( yl_expr_assign* node, int count )
@@ -936,12 +1029,17 @@ int yssa_builder::visit( yl_expr_assign_list* node, int count )
 yssa_opinst* yssa_builder::op(
         int sloc, uint8_t opcode, uint8_t operand_count, uint8_t result_count )
 {
+    // Allocate op from memory region.
     void* p = module->alloc.malloc(
             sizeof( yssa_opinst ) + sizeof( yssa_opinst* ) * operand_count );
     yssa_opinst* op = new ( p ) yssa_opinst(
             sloc, opcode, operand_count, result_count );
     
-    // TODO: add to current block.
+    // Add to current block.
+    if ( block )
+    {
+        block->ops.push_back( op );
+    }
     
     return op;
 }
