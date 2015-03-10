@@ -1037,10 +1037,75 @@ int yssa_builder::visit( yl_expr_list* node, int count )
 
 int yssa_builder::visit( yl_expr_assign* node, int count )
 {
+    if ( node->assignop == YL_ASTOP_DECLARE )
+    {
+        // Lvalue is a new variable.
+        assert( node->lvalue->kind == YL_EXPR_LOCAL );
+        yl_expr_local* local = (yl_expr_local*)node->lvalue;
+        yssa_variable* v = variable( local->name );
+        
+        // Evaluate rvalue.
+        yssa_opinst* value = nullptr;
+        if ( node->rvalue )
+        {
+            size_t rvalue = push( node->rvalue, 1 );
+            pop( rvalue, 1, &value );
+        }
+        else
+        {
+            value = op( node->sloc, YL_NULL, 0, 1 );
+        }
+        
+        // Assign.
+        assign( v, value );
+        
+        // Push value onto stack as result.
+        push_op( value );
+        return 1;
+    }
+    else if ( node->assignop == YL_ASTOP_ASSIGN )
+    {
+        // Assign rvalue to lvalue.
+        size_t lvalue = push_lvalue( node->lvalue );        // lv
+        size_t rvalue = push( node->rvalue, 1 );            // lv, rv
+        yssa_opinst* value = nullptr;
+        pop( rvalue, 1, &value );
+        assign_lvalue( node->lvalue, lvalue, value );
+        pop_lvalue( node->lvalue, lvalue );
+        
+        // Push result value onto stack as result.
+        push_op( value );
+        return 1;
+    }
+    else
+    {
+        // Evaluate lvalue and assign it with the assign op.
+        size_t lvalue = push_lvalue( node->lvalue );            // lv
+        size_t evalue = push_evalue( node->lvalue, lvalue );    // lv, ev
+        push( node->rvalue, 1 );                                // lv, ev, rv
+        yssa_opinst* o = assign_op( node->sloc, node->assignop, evalue );
+        assign_lvalue( node->lvalue, lvalue, o );
+        pop_lvalue( node->lvalue, lvalue );
+        
+        // Push result value onto stack as result.
+        push_op( o );
+        return 1;
+    }
 }
 
 int yssa_builder::visit( yl_expr_assign_list* node, int count )
 {
+    // This is the most complex thing ever.
+
+    if ( node->assignop == YL_ASTOP_DECLARE )
+    {
+    }
+    else if ( node->assignop == YL_ASTOP_ASSIGN )
+    {
+    }
+    else
+    {
+    }
 }
 
 
@@ -1062,6 +1127,36 @@ yssa_opinst* yssa_builder::op(
     }
     
     return op;
+}
+
+
+yssa_opinst* yssa_builder::assign_op(
+                int sloc, yl_ast_opkind opkind, size_t operands )
+{
+    uint8_t opcode = YL_NOP;
+    switch ( opkind )
+    {
+    case YL_ASTOP_MULASSIGN:        opcode = YL_MUL;        break;
+    case YL_ASTOP_DIVASSIGN:        opcode = YL_DIV;        break;
+    case YL_ASTOP_MODASSIGN:        opcode = YL_MOD;        break;
+    case YL_ASTOP_INTDIVASSIGN:     opcode = YL_INTDIV;     break;
+    case YL_ASTOP_ADDASSIGN:        opcode = YL_ADD;        break;
+    case YL_ASTOP_SUBASSIGN:        opcode = YL_SUB;        break;
+    case YL_ASTOP_LSHIFTASSIGN:     opcode = YL_LSL;        break;
+    case YL_ASTOP_LRSHIFTASSIGN:    opcode = YL_LSR;        break;
+    case YL_ASTOP_ARSHIFTASSIGN:    opcode = YL_ASR;        break;
+    case YL_ASTOP_BITANDASSIGN:     opcode = YL_BITAND;     break;
+    case YL_ASTOP_BITXORASSIGN:     opcode = YL_BITXOR;     break;
+    case YL_ASTOP_BITORASSIGN:      opcode = YL_BITOR;      break;
+
+    default:
+        assert( ! "unexpected compound assignment operator" );
+        break;
+    }
+    
+    yssa_opinst* o = op( sloc, opcode, 2, 1 );
+    pop( operands, 2, o->operand );
+    return o;
 }
 
 

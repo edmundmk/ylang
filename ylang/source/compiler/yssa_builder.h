@@ -133,7 +133,7 @@ private:
 
     // Emitting instructions.
     yssa_opinst* op( int sloc, uint8_t opcode, uint8_t ocount, uint8_t rcount );
-    
+    yssa_opinst* assign_op( int sloc, yl_ast_opkind opkind, size_t operands );
 
 
     // Definitions and lookups.
