@@ -143,7 +143,11 @@ struct yssa_opinst
     uint8_t result_count;           // Number of results, or MULTIVAL.
     uint8_t r;
     
-    yssa_variable*      variable;   // Variable this op defines.
+    union
+    {
+        yssa_variable*  variable;   // Variable this op defines.
+        yssa_opinst*    associated; // Op this op is associated with.
+    };
     
     union
     {
@@ -160,7 +164,6 @@ struct yssa_opinst
         };
         uint16_t        c;          // ycode c operand.
         yssa_opinst*    multival;   // Multival operand (after normal ones).
-        yssa_opinst*    associated; // Op this op is associated with.
     };
     
     yssa_opinst*        operand[];  // Operand list.

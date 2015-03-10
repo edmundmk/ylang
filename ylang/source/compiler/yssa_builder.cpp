@@ -100,14 +100,34 @@ int yssa_builder::visit( yl_ast_func* node, int count )
         {
         case YL_UPVAL_LOCAL:
         {
+            // Make an upval from a local variable.
+            yssa_variable* v = variable( uv.local );
+            yssa_opinst* u = op( node->sloc, YL_UPLOCAL, 1, 0 );
+            u->r = i;
+            u->associated = o;
+            u->operand[ 0 ] = lookup( v );
+            break;
         }
         
         case YL_UPVAL_OBJECT:
         {
+            // Make an upval from a local object under constrution.
+            yssa_variable* v = varobj( uv.object );
+            yssa_opinst* u = op( node->sloc, YL_UPLOCAL, 1, 0 );
+            u->r = i;
+            u->associated = o;
+            u->operand[ 0 ] = lookup( v );
+            break;
         }
         
         case YL_UPVAL_UPVAL:
         {
+            // Make an upval from an existing upval.
+            yssa_opinst* u = op( node->sloc, YL_UPUPVAL, 0, 0 );
+            u->r = i;
+            u->associated = o;
+            u->a = uv.upval;
+            break;
         }
         }
     }

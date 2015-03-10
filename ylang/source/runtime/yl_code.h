@@ -166,7 +166,7 @@ enum yl_opcode
         are only present after a YL_CLOSURE opcode.
     */
     
-    YL_UPLOCAL,      // closure.upvals[ r ] = upvals[ a ] (using register b)
+    YL_UPLOCAL,      // closure.upvals[ r ] = upval using register a
     YL_UPUPVAL,      // closure.upvals[ r ] = upvals[ a ]
 
 
