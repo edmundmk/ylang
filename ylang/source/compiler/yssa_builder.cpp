@@ -1097,14 +1097,158 @@ int yssa_builder::visit( yl_expr_assign_list* node, int count )
 {
     // This is the most complex thing ever.
 
+    // Work out how many values we actually need to push.  We only have
+    // as many values as there are lvalues on the left hand side.
+    int value_count = (int)node->lvalues.size();
+    if ( count != -1 )
+    {
+        value_count = std::min( value_count, count );
+    }
+
     if ( node->assignop == YL_ASTOP_DECLARE )
     {
+        // Evaluate rvalue list.
+        size_t rvalues = push( node->rvalues, (int)node->lvalues.size() );
+        
+        // Assign them all.
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            // Lvalue is a new variable.
+            yl_ast_node* lnode = node->lvalues.at( i );
+            assert( lnode->kind == YL_EXPR_LOCAL );
+            yl_expr_local* local = (yl_expr_local*)lnode;
+            yssa_variable* v = variable( local->name );
+            
+            // Rvalue is on stack.
+            assign( v, peek( rvalues, i ) );
+        }
+
+        // Pop values.
+        std::vector< yssa_opinst* > values;
+        values.resize( node->lvalues.size() );
+        pop( rvalues, (int)node->lvalues.size(), values.data() );
+        
+        // Push correct number of values back.
+        assert( value_count <= (int)node->lvalues.size() );
+        for ( int i = 0; i < value_count; ++i )
+        {
+            push_op( values.at( i ) );
+        }
+        return value_count;
     }
     else if ( node->assignop == YL_ASTOP_ASSIGN )
     {
+        /*
+            a, b = b, a;
+         
+            a = 4;
+            b = a, a = 3, a + 3;
+            assert( a == 7 );
+            assert( b == 3 ); // possibly!
+        */
+    
+        // Push each lvalue.
+        std::vector< size_t > lvalues;
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            size_t lvalue = push_lvalue( node->lvalues.at( i ) );
+            lvalues.push_back( lvalue );
+        }
+    
+        // Evaluate rvalue list.
+        size_t rvalues = push( node->rvalues, (int)node->lvalues.size() );
+        
+        // Assign them all.
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            assign_lvalue
+            (
+                node->lvalues.at( i ),
+                lvalues.at( i ),
+                peek( rvalues, i )
+            );
+        }
+
+        // Pop rvalues.
+        std::vector< yssa_opinst* > values;
+        values.resize( node->lvalues.size() );
+        pop( rvalues, (int)node->lvalues.size(), values.data() );
+        
+        // Pop lvalues.
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            pop_lvalue( node->lvalues.at( i ), lvalues.at( i ) );
+        }
+        
+        // Push correct number of values back.
+        assert( value_count <= (int)node->lvalues.size() );
+        for ( int i = 0; i < value_count; ++i )
+        {
+            push_op( values.at( i ) );
+        }
+        return value_count;
     }
     else
     {
+        // Push each lvalue.
+        std::vector< size_t > lvalues;
+        lvalues.reserve( node->lvalues.size() );
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            size_t lvalue = push_lvalue( node->lvalues.at( i ) );
+            lvalues.push_back( lvalue );
+        }
+        
+        // Evaluate each lvalue.
+        size_t evalues = stack.size();
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            size_t lvalue = lvalues.at( i );
+            push_evalue( node->lvalues.at( i ), lvalue );
+        }
+        assert( stack.size() == evalues + node->lvalues.size() );
+    
+        // Evaluate rvalue list.
+        size_t rvalues = push( node->rvalues, (int)node->lvalues.size() );
+     
+        // Perform assignment operations and assignments.
+        size_t ovalues = stack.size();
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            // Push operands.
+            size_t operands = push_op( peek( evalues, i ) );
+            push_op( peek( rvalues, i ) );
+            
+            // Perform assignment.
+            yssa_opinst* o = assign_op( node->sloc, node->assignop, operands );
+            assign_lvalue( node->lvalues.at( i ), lvalues.at( i ), o );
+            push_op( o );
+        }
+        assert( stack.size() == ovalues + node->lvalues.size() );
+        
+        // Pop values.
+        std::vector< yssa_opinst* > values;
+        values.resize( node->lvalues.size() );
+        pop( ovalues, (int)node->lvalues.size(), values.data() );
+        
+        // Pop rvalues.
+        std::vector< yssa_opinst* > poprv;
+        poprv.resize( node->lvalues.size() );
+        pop( rvalues, (int)node->lvalues.size(), poprv.data() );
+        
+        // Pop lvalues.
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            pop_lvalue( node->lvalues.at( i ), lvalues.at( i ) );
+        }
+        
+        // Push correct number of values back.
+        assert( value_count <= (int)node->lvalues.size() );
+        for ( int i = 0; i < value_count; ++i )
+        {
+            push_op( values.at( i ) );
+        }
+        return value_count;        
     }
 }
 

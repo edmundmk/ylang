@@ -147,18 +147,18 @@ private:
 
 
     // Virtual stack.
-    void    execute( yl_ast_node* statement );
-    size_t  push_all( yl_ast_node* expression, int* count );
-    size_t  push( yl_ast_node* expression, int count );
-    size_t  push_op( yssa_opinst* op ); // Cannot have pushed an expression or assigned or clobbered between creating an op and pushing it.
-    void    push_select( int sloc, yssa_opinst* selop, int count );
-    void    pop( size_t index, int count, yssa_opinst** ops );
+    void execute( yl_ast_node* statement );
+    size_t push_all( yl_ast_node* expression, int* count );
+    size_t push( yl_ast_node* expression, int count );
+    size_t push_op( yssa_opinst* op ); // Cannot have pushed an expression or assigned or clobbered between creating an op and pushing it.
+    void push_select( int sloc, yssa_opinst* selop, int count );
+    void pop( size_t index, int count, yssa_opinst** ops );
+    yssa_opinst* peek( size_t index, size_t i );
     
-    size_t  push_lvalue( yl_ast_node* lvalue );
-    size_t  push_evalue( yl_ast_node* lvalue, size_t index );
-    void    assign_lvalue( yl_ast_node* lvalue, size_t index, yssa_opinst* v );
-    void    pop_lvalue( yl_ast_node* lvalue, size_t index );
-
+    size_t push_lvalue( yl_ast_node* lvalue );
+    size_t push_evalue( yl_ast_node* lvalue, size_t index );
+    void assign_lvalue( yl_ast_node* lvalue, size_t index, yssa_opinst* v );
+    void pop_lvalue( yl_ast_node* lvalue, size_t index );
 
 
     yl_diagnostics*             diagnostics;
