@@ -105,6 +105,7 @@ int yssa_builder::visit( yl_ast_func* node, int count )
             yssa_opinst* u = op( node->sloc, YL_UPLOCAL, 1, 0 );
             u->r = i;
             u->associated = o;
+            u->a = v->upval;
             u->operand[ 0 ] = lookup( v );
             break;
         }
@@ -116,6 +117,7 @@ int yssa_builder::visit( yl_ast_func* node, int count )
             yssa_opinst* u = op( node->sloc, YL_UPLOCAL, 1, 0 );
             u->r = i;
             u->associated = o;
+            u->a = v->upval;
             u->operand[ 0 ] = lookup( v );
             break;
         }
@@ -1248,7 +1250,7 @@ int yssa_builder::visit( yl_expr_assign_list* node, int count )
         {
             push_op( values.at( i ) );
         }
-        return value_count;        
+        return value_count;
     }
 }
 

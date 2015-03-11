@@ -122,7 +122,7 @@ enum yl_opcode
         Close upvals and iterators.
     */
     
-    YL_CLOSE,        // close all upvals up to a, all iterators up to b
+    YL_CLOSE,        // close all localups down to a, all iterators down to b
 
 
     /*
@@ -166,7 +166,7 @@ enum yl_opcode
         are only present after a YL_CLOSURE opcode.
     */
     
-    YL_UPLOCAL,      // closure.upvals[ r ] = upval using register a
+    YL_UPLOCAL,      // closure.upvals[ r ] = localups[ a ] using register b
     YL_UPUPVAL,      // closure.upvals[ r ] = upvals[ a ]
 
 
