@@ -84,6 +84,167 @@ void yssa_builder::build( yl_ast_func* astf )
 
 
 
+int yssa_builder::fallback( yl_ast_node* node, int count )
+{
+    assert( ! "invalid AST node" );
+    return 0;
+}
+
+    
+int yssa_builder::visit( yl_stmt_block* node, int count )
+{
+    if ( node->scope )
+    {
+        open_scope( node->scope, nullptr, nullptr );
+    }
+    
+    for ( size_t i = 0; i < node->stmts.size(); ++i )
+    {
+        execute( node->stmts.at( i ) );
+    }
+    
+    if ( node->scope )
+    {
+        close_scope( node->scope );
+    }
+    
+    return 0;
+}
+
+int yssa_builder::visit( yl_stmt_if* node, int count )
+{
+    /*
+            condition
+                ? goto iftrue : goto iffalse
+     
+        iftrue:
+            ...
+            goto final
+            
+        iffalse:
+            ...
+            goto final
+            
+        final:
+    */
+
+    open_scope( node->scope, nullptr, nullptr );
+
+    // Check if condition.
+    size_t operand = push( node->condition, 1 );
+    yssa_opinst* value = nullptr;
+    pop( operand, 1, &value );
+
+    yssa_block* test_block = block;
+    if ( block )
+    {
+        assert( block->test == nullptr );
+        block->test = value;
+    }
+    
+    // True branch.
+    if ( node->iftrue )
+    {
+        if ( block )
+        {
+            block = next_block();
+        }
+        execute( node->iftrue );
+    }
+    
+    yssa_block* true_block = block;
+
+    // False branch.
+    if ( node->iffalse )
+    {
+        if ( test_block )
+        {
+            block = make_block();
+            assert( test_block->fail == nullptr );
+            test_block->fail = block;
+            block->prev.push_back( test_block );
+        }
+        execute( node->iffalse );
+    }
+    
+    // Final block.
+    if ( block )
+    {
+        block = next_block();
+        if ( true_block )
+        {
+            assert( true_block->next == nullptr );
+            true_block->next = block;
+            block->prev.push_back( true_block );
+        }
+    }
+    
+    close_scope( node->scope );
+
+    return 0;
+}
+
+int yssa_builder::visit( yl_stmt_switch* node, int count )
+{
+}
+
+int yssa_builder::visit( yl_stmt_while* node, int count )
+{
+}
+
+int yssa_builder::visit( yl_stmt_do* node, int count )
+{
+}
+
+int yssa_builder::visit( yl_stmt_foreach* node, int count )
+{
+}
+
+int yssa_builder::visit( yl_stmt_for* node, int count )
+{
+}
+
+int yssa_builder::visit( yl_stmt_using* node, int count )
+{
+}
+
+int yssa_builder::visit( yl_stmt_try* node, int count )
+{
+}
+
+int yssa_builder::visit( yl_stmt_catch* node, int count )
+{
+}
+
+int yssa_builder::visit( yl_stmt_delete* node, int count )
+{
+}
+
+int yssa_builder::visit( yl_stmt_case* node, int count )
+{
+}
+
+int yssa_builder::visit( yl_stmt_continue* node, int count )
+{
+}
+
+int yssa_builder::visit( yl_stmt_break* node, int count )
+{
+}
+
+int yssa_builder::visit( yl_stmt_return* node, int count )
+{
+}
+
+int yssa_builder::visit( yl_stmt_throw* node, int count )
+{
+}
+
+
+
+
+
+
 
 int yssa_builder::visit( yl_ast_func* node, int count )
 {
@@ -105,7 +266,7 @@ int yssa_builder::visit( yl_ast_func* node, int count )
             yssa_opinst* u = op( node->sloc, YL_UPLOCAL, 1, 0 );
             u->r = i;
             u->associated = o;
-            u->a = v->upval;
+            u->a = v->localup;
             u->operand[ 0 ] = lookup( v );
             break;
         }
@@ -117,7 +278,7 @@ int yssa_builder::visit( yl_ast_func* node, int count )
             yssa_opinst* u = op( node->sloc, YL_UPLOCAL, 1, 0 );
             u->r = i;
             u->associated = o;
-            u->a = v->upval;
+            u->a = v->localup;
             u->operand[ 0 ] = lookup( v );
             break;
         }
@@ -716,15 +877,12 @@ int yssa_builder::visit( yl_expr_qmark* node, int count )
     
     // False block.
     yssa_block* true_block = block;
-    if ( block )
+    if ( test_block )
     {
         block = make_block();
-        if ( test_block )
-        {
-            assert( test_block->fail == nullptr );
-            test_block->fail = block;
-            block->prev.push_back( test_block );
-        }
+        assert( test_block->fail == nullptr );
+        test_block->fail = block;
+        block->prev.push_back( test_block );
     }
     
     // Evaluate false branch.

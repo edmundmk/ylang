@@ -194,8 +194,8 @@ struct yssa_variable
 {
     const char*         name;
     int                 sloc;
-    bool                xcref;  // Referenced from an exception handler?
-    uint8_t             upval;  // Localup index.
+    bool                xcref;      // Referenced from an exception handler?
+    uint8_t             localup;    // Localup index.
     uint8_t             r;
 };
 

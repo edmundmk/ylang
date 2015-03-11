@@ -48,12 +48,30 @@ private:
     
     struct stack_entry
     {
-        yssa_block*     block;
-        size_t          index;
-        yssa_opinst*    value;
+        yssa_block*                 block;
+        size_t                      index;
+        yssa_opinst*                value;
     };
     
-
+    
+    /*
+        When you exit each scope, you might have to close upvals or
+        iterators declared and pushed in the scope.  Each scope has
+        information about how to continue/break it.  And each scope can
+        have an exception handler block.
+    */
+    
+    struct scope_entry
+    {
+        yl_ast_scope*               scope;
+        size_t                      itercount;
+        size_t                      localups;
+        yssa_block*                 loop;
+        std::vector< yssa_block* >  breaks;
+        yssa_block*                 xchandler;
+    };
+    
+    
 
     /*
         We build a function at a time.
@@ -161,13 +179,26 @@ private:
     void pop_lvalue( yl_ast_node* lvalue, size_t index );
 
 
-    yl_diagnostics*             diagnostics;
-    yssa_module_p               module;
+    // Scope stack.
+    void open_scope( yl_ast_scope* scope, yssa_block* loop, yssa_block* xch );
+    void break_scope( yl_ast_scope* break_scope );
+    void close_scope( yl_ast_scope* scope );
+
+
+
+    yl_diagnostics*                 diagnostics;
+    yssa_module_p                   module;
     std::unordered_map< yl_ast_func*, yssa_function* > funcmap;
-    yssa_function*              function;
-    yssa_block*                 block;
-    std::vector< stack_entry >  stack;
-    yssa_opinst*                multival;
+
+    yssa_function*                  function;
+    yssa_block*                     block;
+
+    std::vector< stack_entry >      stack;
+    yssa_opinst*                    multival;
+    
+    std::vector< yssa_variable* >   localups;
+    size_t                          itercount;
+    std::vector< scope_entry >      scopes;
 
 };
 
