@@ -93,9 +93,14 @@ int yssa_builder::fallback( yl_ast_node* node, int count )
     
 int yssa_builder::visit( yl_stmt_block* node, int count )
 {
+    /*
+            statements
+            close upvals
+    */
+
     if ( node->scope )
     {
-        open_scope( node->scope, nullptr, nullptr );
+        open_scope( node->scope );
     }
     
     for ( size_t i = 0; i < node->stmts.size(); ++i )
@@ -126,28 +131,34 @@ int yssa_builder::visit( yl_stmt_if* node, int count )
             goto final
             
         final:
+            close upvals
     */
 
-    open_scope( node->scope, nullptr, nullptr );
+    open_scope( node->scope );
 
     // Check if condition.
     size_t operand = push( node->condition, 1 );
     yssa_opinst* value = nullptr;
     pop( operand, 1, &value );
 
-    yssa_block* test_block = block;
     if ( block )
     {
         assert( block->test == nullptr );
         block->test = value;
     }
+
+    yssa_block* test_next = block;
+    yssa_block* test_fail = block;
+
     
     // True branch.
     if ( node->iftrue )
     {
-        if ( block )
+        if ( test_next )
         {
+            block = test_next;
             block = next_block();
+            test_next = nullptr;
         }
         execute( node->iftrue );
     }
@@ -157,25 +168,38 @@ int yssa_builder::visit( yl_stmt_if* node, int count )
     // False branch.
     if ( node->iffalse )
     {
-        if ( test_block )
+        if ( test_fail )
         {
-            block = make_block();
-            assert( test_block->fail == nullptr );
-            test_block->fail = block;
-            block->prev.push_back( test_block );
+            block = test_fail;
+            block = fail_block();
+            test_fail = nullptr;
         }
         execute( node->iffalse );
     }
     
+    yssa_block* false_block = block;
+    
     // Final block.
-    if ( block )
+    if ( test_next || test_fail || true_block || false_block )
     {
-        block = next_block();
+        block = label_block();
+        assert( block );
+        
+        if ( test_next )
+        {
+            link_block( test_next, NEXT, block );
+        }
+        if ( test_fail )
+        {
+            link_block( test_fail, FAIL, block );
+        }
         if ( true_block )
         {
-            assert( true_block->next == nullptr );
-            true_block->next = block;
-            block->prev.push_back( true_block );
+            link_block( true_block, NEXT, block );
+        }
+        if ( false_block )
+        {
+            link_block( false_block, NEXT, block );
         }
     }
     
@@ -186,22 +210,204 @@ int yssa_builder::visit( yl_stmt_if* node, int count )
 
 int yssa_builder::visit( yl_stmt_switch* node, int count )
 {
+    /*
+            eval value
+            eval case0value
+            if ( equal ) goto case0
+            eval case1value
+            if ( equal ) goto case1
+            goto default
+     
+        case0:
+            statements
+        case1:
+        default:
+            statements
+
+        break:
+            close upvals
+    */
+    
+    open_scope( node->scope );
+    
+    // Push the switch value.
+    size_t operands = push( node->value, 1 );
+    
+    // Construct the dispatch table.
+    std::unordered_map< yl_stmt_case*, yssa_block* > case_gotos;
+    for ( size_t i = 0; i < node->body->stmts.size(); ++i )
+    {
+        // Find case statements.
+        yl_ast_node* stmt = node->body->stmts.at( i );
+        if ( stmt->kind != YL_STMT_CASE )
+            continue;
+        
+        yl_stmt_case* cstmt = (yl_stmt_case*)stmt;
+        
+        // Ignore the default case.
+        if ( ! cstmt->value )
+            continue;
+        
+        // Open block.
+        if ( block && case_gotos.size() )
+        {
+            block = fail_block();
+        }
+        
+        // Push the case value.
+        push( cstmt->value, 1 );
+
+        // Perform comparison.
+        yssa_opinst* o = op( cstmt->sloc, YL_EQ, 2, 1 );
+        pop( operands, 2, o->operand );
+        
+        // Move to next comparison (if test fails).
+        if ( block )
+        {
+            assert( block->test == nullptr );
+            block->test = o;
+        }
+        case_gotos.emplace( cstmt, block );
+        
+        // Repush switch value.
+        operands = push_op( o->operand[ 0 ] );
+    }
+    
+    // Pop value.
+    yssa_opinst* value = nullptr;
+    pop( operands, 1, &value );
+    
+    // If execution gets here then all tests have failed.
+    yssa_block* default_goto = block;
+    block = nullptr;
+    
+    // Break to end of switch.
+    break_entry* sbreak = open_break( node->scope, BREAK );
+    
+    // Evaluate actual case blocks.
+    for ( size_t i = 0; i < node->body->stmts.size(); ++i )
+    {
+        yl_ast_node* stmt = node->body->stmts.at( i );
+        if ( stmt->kind == YL_STMT_CASE )
+        {
+            yl_stmt_case* cstmt = (yl_stmt_case*)stmt;
+
+            // Work out which block to link.
+            yssa_block* jump_block = nullptr;
+            link_kind jump_link = NEXT;
+            
+            if ( cstmt->value )
+            {
+                jump_block      = case_gotos.at( cstmt );
+                jump_link       = NEXT;
+            }
+            else
+            {
+                jump_block      = default_goto;
+                jump_link       = case_gotos.empty() ? NEXT : FAIL;
+                default_goto    = nullptr;
+            }
+            
+            if ( ! jump_block )
+            {
+                continue;
+            }
+            
+            // Make a block to link to.
+            block = label_block();
+            
+            // Link it.
+            assert( block );
+            link_block( jump_block, jump_link, block );
+        }
+        else
+        {
+            execute( stmt );
+        }
+    }
+    
+    if ( default_goto || sbreak->blocks.size() )
+    {
+        // Make break target.
+        block = label_block();
+        assert( block );
+        
+        // If there was no default case, the default gets here.
+        if ( default_goto )
+        {
+            link_block( default_goto, case_gotos.empty() ? NEXT : FAIL, block );
+        }
+        
+        // Link break.
+        close_break( sbreak, block );
+    }
+    
+    close_scope( node->scope );
+    
+    return 0;
 }
 
 int yssa_builder::visit( yl_stmt_while* node, int count )
 {
+    /*
+        continue:
+            test condition
+            if ( failed ) goto fail:
+            statements
+            close upvals
+            goto continue
+        fail:
+            close upvals
+        break:
+    */
+
+    
 }
 
 int yssa_builder::visit( yl_stmt_do* node, int count )
 {
+    /*
+        top:
+            statements
+        continue:
+            test
+            close upvals
+            if ( succeeded ) goto top
+        break:
+    */
 }
 
 int yssa_builder::visit( yl_stmt_foreach* node, int count )
 {
+    /*
+            iter/iterkey list
+            goto entry
+        continue:
+            assign/declare iterator values
+            statements
+            close upvals
+        entry:
+            if ( have values ) goto continue
+            close iterator
+        break:
+     
+    */
 }
 
 int yssa_builder::visit( yl_stmt_for* node, int count )
 {
+    /*
+            init
+        top:
+            condition
+            if ( failed ) goto break:
+            statements
+        continue:
+            update
+            goto top
+        break:
+            close upvals
+    */
 }
 
 int yssa_builder::visit( yl_stmt_using* node, int count )
@@ -694,13 +900,11 @@ int yssa_builder::visit( yl_expr_compare* node, int count )
     // Any failed comparison shortcuts to the end.
     if ( blocks.size() )
     {
-        block = next_block();
+        block = label_block();
         for ( size_t i = 0; i < blocks.size(); ++i )
         {
             yssa_block* shortcut = blocks.at( i );
-            assert( shortcut->fail == nullptr );
-            shortcut->fail = block;
-            block->prev.push_back( shortcut );
+            link_block( shortcut, FAIL, block );
         }
     }
 
@@ -751,15 +955,10 @@ int yssa_builder::visit( yl_expr_logical* node, int count )
         assign( result, value );
 
         // Link in the shortcut.
-        if ( block )
+        if ( lhs_block )
         {
-            block = next_block();
-            if ( lhs_block )
-            {
-                assert( lhs_block->fail == nullptr );
-                lhs_block->fail = block;
-                block->prev.push_back( lhs_block );
-            }
+            block = label_block();
+            link_block( lhs_block, FAIL, block );
         }
         
         // Push lookup of temporary.
@@ -803,9 +1002,7 @@ int yssa_builder::visit( yl_expr_logical* node, int count )
         {
             assert( block->test == nullptr );
             block->test = value;
-            block = next_block();
-            lhs_block->fail = block;
-            lhs_block->next = nullptr;
+            block = fail_block();
         }
         
         // Evaluate right hand side.
@@ -814,15 +1011,10 @@ int yssa_builder::visit( yl_expr_logical* node, int count )
         assign( result, value );
 
         // Link in the shortcut.
-        if ( block )
+        if ( lhs_block )
         {
-            block = next_block();
-            if ( lhs_block )
-            {
-                assert( lhs_block->next == nullptr );
-                lhs_block->next = block;
-                block->prev.push_back( lhs_block );
-            }
+            block = label_block();
+            link_block( lhs_block, NEXT, block );
         }
         
         // Push lookup of temporary.
@@ -875,14 +1067,13 @@ int yssa_builder::visit( yl_expr_qmark* node, int count )
     pop( operand, 1, &value );
     assign( result, value );
     
-    // False block.
     yssa_block* true_block = block;
-    if ( test_block )
+
+    // False block.
+    block = test_block;
+    if ( block )
     {
-        block = make_block();
-        assert( test_block->fail == nullptr );
-        test_block->fail = block;
-        block->prev.push_back( test_block );
+        block = fail_block();
     }
     
     // Evaluate false branch.
@@ -890,15 +1081,19 @@ int yssa_builder::visit( yl_expr_qmark* node, int count )
     pop( operand, 1, &value );
     assign( result, value );
     
+    yssa_block* false_block = block;
+    
     // Final block.
-    if ( block )
+    if ( true_block || false_block )
     {
-        block = next_block();
+        block = label_block();
         if ( true_block )
         {
-            assert( true_block->next == nullptr );
-            true_block->next = block;
-            block->prev.push_back( true_block );
+            link_block( true_block, NEXT, block );
+        }
+        if ( false_block )
+        {
+            link_block( false_block, NEXT, block );
         }
     }
 
@@ -1412,6 +1607,72 @@ int yssa_builder::visit( yl_expr_assign_list* node, int count )
     }
 }
 
+
+
+
+
+yssa_block* yssa_builder::next_block( unsigned flags )
+{
+    yssa_block* next = make_block( flags );
+    if ( block )
+    {
+        link_block( block, NEXT, next );
+    }
+    return next;
+}
+
+
+yssa_block* yssa_builder::fail_block( unsigned flags )
+{
+    yssa_block* fail = make_block( flags );
+    if ( block )
+    {
+        link_block( block, FAIL, fail );
+    }
+    return fail;
+}
+
+
+yssa_block* yssa_builder::label_block( unsigned flags )
+{
+    /*
+        Create the next block as the target of a jump.
+    */
+    
+    if ( block && block->ops.empty() )
+    {
+        // Current block is empty, so can link to it directly.
+        return block;
+    }
+    else
+    {
+        // Return next block.
+        return next_block( flags );
+    }
+}
+
+
+void yssa_builder::link_block( yssa_block* prev, link_kind kind, yssa_block* next )
+{
+    switch ( kind )
+    {
+    case NEXT:
+        assert( prev->next == nullptr );
+        prev->next = next;
+        next->prev.push_back( prev );
+        break;
+    
+    case FAIL:
+        assert( prev->fail == nullptr );
+        prev->fail = next;
+        next->prev.push_back( prev );
+        break;
+    
+    default:
+        assert( ! "unknown link kind" );
+        break;
+    }
+}
 
 
 

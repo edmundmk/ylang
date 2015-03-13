@@ -37,6 +37,19 @@ private:
 
     friend class yl_ast_visitor< yssa_builder, int, int >;
     
+    
+    /*
+        Each block passes control either to the next block, or if it has a
+        test and the test fails, to the fail block.
+    */
+
+    enum link_kind
+    {
+        NEXT,
+        FAIL,
+    };
+    
+
 
     /*
         We build using a virtual stack.  When an expression node is visited
@@ -56,19 +69,38 @@ private:
     
     /*
         When you exit each scope, you might have to close upvals or
-        iterators declared and pushed in the scope.  Each scope has
-        information about how to continue/break it.  And each scope can
+        iterators declared and pushed in the scope.  And each scope can
         have an exception handler block.
     */
     
     struct scope_entry
     {
         yl_ast_scope*               scope;
-        size_t                      itercount;
-        size_t                      localups;
-        yssa_block*                 loop;
-        std::vector< yssa_block* >  breaks;
+        uint8_t                     itercount;
+        uint8_t                     localups;
         yssa_block*                 xchandler;
+    };
+    
+    
+    /*
+        Break and continue into a scope requires closing upvals/iterators.
+    */
+    
+    enum break_kind
+    {
+        BREAK,
+        CONTINUE,
+    };
+    
+    typedef std::pair< yl_ast_scope*, break_kind > break_key;
+    
+    struct break_entry
+    {
+        yl_ast_scope*               scope;
+        break_kind                  iscontinue;
+        uint8_t                     itercount;
+        uint8_t                     localups;
+        std::vector< yssa_block* >  blocks;
     };
     
     
@@ -145,8 +177,11 @@ private:
 
 
     // Control flow.
-    yssa_block* next_block( unsigned flags = 0 );
     yssa_block* make_block( unsigned flags = 0 );
+    yssa_block* next_block( unsigned flags = 0 );
+    yssa_block* fail_block( unsigned flags = 0 );
+    yssa_block* label_block( unsigned flags = 0 );
+    void link_block( yssa_block* prev, link_kind kind, yssa_block* next );
 
 
     // Emitting instructions.
@@ -162,6 +197,8 @@ private:
     void assign( yssa_variable* variable, yssa_opinst* op );
     yssa_opinst* lookup( yssa_variable* variable );
     void call( yssa_opinst* callop ); // implicit ref/clobber upvals
+
+    void seal_block( yssa_block* block );
 
 
     // Virtual stack.
@@ -180,9 +217,11 @@ private:
 
 
     // Scope stack.
-    void open_scope( yl_ast_scope* scope, yssa_block* loop, yssa_block* xch );
-    void break_scope( yl_ast_scope* break_scope );
+    void open_scope( yl_ast_scope* scope, yssa_block* xchandler = nullptr );
     void close_scope( yl_ast_scope* scope );
+    
+    break_entry* open_break( yl_ast_scope* scope, break_kind kind );
+    void close_break( break_entry* b, yssa_block* target );
 
 
 
@@ -199,6 +238,7 @@ private:
     std::vector< yssa_variable* >   localups;
     size_t                          itercount;
     std::vector< scope_entry >      scopes;
+    std::unordered_map< break_key, std::unique_ptr< break_entry > > breaks;
 
 };
 
