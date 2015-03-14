@@ -401,11 +401,11 @@ int yssa_builder::visit( yl_stmt_while* node, int count )
     
     // Link back to top of loop.
     close_break( lcontinue, loop );
-    if ( block )
+    if ( block && loop )
     {
         link_block( block, NEXT, loop );
-        block = nullptr;
     }
+    block = nullptr;
     if ( loop )
     {
         seal_block( loop );
@@ -454,7 +454,49 @@ int yssa_builder::visit( yl_stmt_do* node, int count )
     
     // Enter loop.
     block = next_block( YSSA_LOOP | YSSA_UNSEALED );
+    yssa_block* loop = block;
     
+    // Enter scope.
+    open_scope( node->scope );
+    break_entry* lbreak = open_break( node->scope, BREAK );
+    break_entry* lcontinue = open_break( node->scope, CONTINUE );
+    
+    // Statements.
+    execute( node->body );
+    
+    // Link continue.
+    if ( lcontinue->blocks.size() )
+    {
+        block = label_block();
+    }
+    close_break( lcontinue, block );
+    
+    // Perform test.
+    size_t value = push( node->condition, 1 );
+    assert( block->test == nullptr );
+    pop( value, 1, &block->test );
+    
+    // Close scope.
+    close_scope( node->scope );
+    
+    // Link the success condition to the top of the loop.
+    if ( block && loop )
+    {
+        link_block( block, NEXT, loop );
+    }
+    if ( loop )
+    {
+        seal_block( loop );
+    }
+
+    // Failure exits the loop.
+    if ( block )
+    {
+        block = fail_block();
+    }
+    close_break( lbreak, block );
+
+    return 0;
 }
 
 int yssa_builder::visit( yl_stmt_foreach* node, int count )
@@ -470,7 +512,6 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
             if ( have values ) goto continue
             close iterator
         break:
-     
     */
 }
 
