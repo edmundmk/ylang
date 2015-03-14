@@ -372,9 +372,15 @@ int yssa_builder::visit( yl_stmt_while* node, int count )
     break_entry* lcontinue = open_break( node->scope, CONTINUE );
     
     // Test condition.
-    size_t value = push( node->condition, 1 );
-    assert( block->test == nullptr );
-    pop( value, 1, &block->test );
+    size_t test = push( node->condition, 1 );
+    yssa_opinst* value = nullptr;
+    pop( test, 1, &value );
+    
+    if ( block )
+    {
+        assert( block->test == nullptr );
+        block->test = value;
+    }
     
     yssa_block* test_fail = block;
     
@@ -472,9 +478,15 @@ int yssa_builder::visit( yl_stmt_do* node, int count )
     close_break( lcontinue, block );
     
     // Perform test.
-    size_t value = push( node->condition, 1 );
-    assert( block->test == nullptr );
-    pop( value, 1, &block->test );
+    size_t test = push( node->condition, 1 );
+    yssa_opinst* value = nullptr;
+    pop( test, 1, &value );
+    
+    if ( block )
+    {
+        assert( block->test == nullptr );
+        block->test = value;
+    }
     
     // Close scope.
     close_scope( node->scope );
@@ -513,6 +525,160 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
             close iterator
         break:
     */
+    
+    // Open scope that declares the iterator.  We break into a scope that
+    // does not contain the iterator.
+    open_scope( node->scope );
+    break_entry* lbreak = open_break( node->scope, BREAK );
+    
+    // Push iterator.
+    size_t operand = push( node->list, 1 );
+    yl_opcode opcode = node->eachkey ? YL_ITERKEY : YL_ITER;
+    yssa_opinst* o = op( node->sloc, opcode, 1, 0 );
+    pop( operand, 1, o->operand );
+    size_t iterindex = itercount;
+    itercount += 1;
+    
+    // Goto entry.
+    yssa_block* entry_block = block;
+    
+    // Declare body scope, for upvals contained in the body.  We continue
+    // into a scope that contains the iterator.
+    open_scope( node->scope );
+    break_entry* lcontinue = open_break( node->scope, CONTINUE );
+    
+    // Create (unsealed) continue block.  This block is not the loop
+    // header, as it is dominated by the entry block.
+    block = label_block( YSSA_UNSEALED );
+    yssa_block* body_block = block;
+    
+    // Work out which opcode to use to request values.
+    opcode = YL_NOP;
+    if ( node->lvalues.size() == 1 )
+        opcode = YL_NEXT1;
+    else if ( node->lvalues.size() == 2 )
+        opcode = YL_NEXT2;
+    else
+        opcode = YL_NEXT;
+
+    if ( node->declare )
+    {
+        // Request correct number of ops from iterator.
+        yssa_opinst* o = op( node->sloc, opcode, 0, node->lvalues.size() );
+        o->b = iterindex;
+        
+        // Declare each variable.
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            assert( node->lvalues.at( i )->kind == YL_EXPR_LOCAL );
+            yl_expr_local* local = (yl_expr_local*)node->lvalues.at( i );
+            yssa_variable* v = variable( local->name );
+        
+            if ( opcode == YL_NEXT )
+            {
+                assign( v, o );
+            }
+            else
+            {
+                yssa_opinst* select = op( node->sloc, YSSA_SELECT, 1, 1 );
+                select->operand[ 0 ] = o;
+                select->select = (int)i;
+                assign( v, select );
+            }
+        }
+    }
+    else
+    {
+        // Push each lvalue.
+        std::vector< size_t > lvalues;
+        lvalues.reserve( node->lvalues.size() );
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            size_t lvalue = push_lvalue( node->lvalues.at( i ) );
+            lvalues.push_back( lvalue );
+        }
+        
+        // Request correct number of ops from iterator.
+        yssa_opinst* o = op( node->sloc, opcode, 0, node->lvalues.size() );
+        o->b = iterindex;
+        
+        // Build select ops.
+        std::vector< yssa_opinst* > selects;
+        selects.reserve( node->lvalues.size() );
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            if ( opcode == YL_NEXT )
+            {
+                selects.push_back( o );
+            }
+            else
+            {
+                yssa_opinst* select = op( node->sloc, YSSA_SELECT, 1, 1 );
+                select->operand[ 0 ] = o;
+                select->select = (int)i;
+                selects.push_back( select );
+            }
+        }
+        
+        // Assign each variable.
+        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        {
+            yssa_opinst* o = selects.at( i );
+            assign_lvalue( node->lvalues.at( i ), lvalues.at( i ), o );
+        }
+        
+        // Pop lvalues.
+        for ( size_t i = node->lvalues.size(); i-- > 0; )
+        {
+            pop_lvalue( node->lvalues.at( i ), lvalues.at( i ) );
+        }
+    }
+    
+    // Perform statements.
+    execute( node->body );
+    
+    // Exit upval scope.
+    close_scope( node->scope );
+    
+    // Loop entry block.
+    if ( block || entry_block )
+    {
+        block = label_block( YSSA_LOOP );
+        assert( block );
+
+        if ( entry_block )
+        {
+            link_block( entry_block, NEXT, block );
+        }
+    }
+    
+    // Perform loop check.
+    o = op( node->sloc, YSSA_ITERDONE, 0, 0 );
+    
+    if ( block )
+    {
+        assert( block->test == nullptr );
+        block->test = o;
+    }
+
+    // Link continue.
+    close_break( lcontinue, body_block );
+    if ( body_block )
+    {
+        seal_block( body_block );
+    }
+    
+    // Exit iterator scope.
+    close_scope( node->scope );
+    
+    // Link break.
+    if ( lbreak->blocks.size() )
+    {
+        block = label_block();
+    }
+    close_break( lbreak, block );
+    
+    return 0;
 }
 
 int yssa_builder::visit( yl_stmt_for* node, int count )
@@ -529,6 +695,84 @@ int yssa_builder::visit( yl_stmt_for* node, int count )
         break:
             close upvals
     */
+    
+    // Scope of for init/condition/update covers all iterations of loop.
+    open_scope( node->scope );
+    break_entry* lbreak = open_break( node->scope, BREAK );
+    break_entry* lcontinue = open_break( node->scope, CONTINUE );
+    
+    // Init.
+    if ( node->init )
+    {
+        execute( node->init );
+    }
+    
+    // Loop.
+    block = next_block( YSSA_LOOP | YSSA_UNSEALED );
+    yssa_block* loop = block;
+    
+    // Condition.
+    yssa_block* test_fail = nullptr;
+    if ( node->condition )
+    {
+        size_t test = push( node->condition, 1 );
+        yssa_opinst* value = nullptr;
+        pop( test, 1, &value );
+        
+        if ( block )
+        {
+            assert( block->test == nullptr );
+            block->test = value;
+        }
+        
+        test_fail = block;
+        
+        if ( block )
+        {
+            block = next_block();
+        }
+    }
+    
+    // Body.  A for body should have its own scope to declare upvals in.
+    execute( node->body );
+    
+    // Continue location.
+    if ( lcontinue->blocks.size() )
+    {
+        block = label_block();
+    }
+    close_break( lcontinue, block );
+    
+    if ( node->update )
+    {
+        execute( node->update );
+    }
+    
+    if ( block && loop )
+    {
+        link_block( block, NEXT, loop );
+    }
+    if ( loop )
+    {
+        seal_block( loop );
+    }
+    block = nullptr;
+    
+    // Break location.
+    if ( test_fail || lbreak->blocks.size() )
+    {
+        block = label_block();
+        assert( block );
+        
+        if ( test_fail )
+        {
+            link_block( test_fail, FAIL, block );
+        }
+    }
+    close_break( lbreak, block );
+
+    // Close scope.
+    close_scope( node->scope );
 }
 
 int yssa_builder::visit( yl_stmt_using* node, int count )
@@ -1625,6 +1869,7 @@ int yssa_builder::visit( yl_expr_assign_list* node, int count )
     
         // Push each lvalue.
         std::vector< size_t > lvalues;
+        lvalues.reserve( node->lvalues.size() );
         for ( size_t i = 0; i < node->lvalues.size(); ++i )
         {
             size_t lvalue = push_lvalue( node->lvalues.at( i ) );
@@ -1651,7 +1896,7 @@ int yssa_builder::visit( yl_expr_assign_list* node, int count )
         pop( rvalues, (int)node->lvalues.size(), values.data() );
         
         // Pop lvalues.
-        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        for ( size_t i = node->lvalues.size(); i-- > 0; )
         {
             pop_lvalue( node->lvalues.at( i ), lvalues.at( i ) );
         }
@@ -1713,7 +1958,7 @@ int yssa_builder::visit( yl_expr_assign_list* node, int count )
         pop( rvalues, (int)node->lvalues.size(), poprv.data() );
         
         // Pop lvalues.
-        for ( size_t i = 0; i < node->lvalues.size(); ++i )
+        for ( size_t i = node->lvalues.size(); i-- > 0; )
         {
             pop_lvalue( node->lvalues.at( i ), lvalues.at( i ) );
         }

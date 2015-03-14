@@ -104,7 +104,7 @@ enum yl_opcode
     
     YL_ITER,         // iterators[ r ] = iterator over elements of a
     YL_ITERKEY,      // iterators[ r ] = iterator over keys/values of a
-    YL_JMPITER,      // jump if iterators[ r ] is done
+    YL_JMPITER,      // jump if iterators[ r ] has values
     YL_NEXT1,        // r = next from iterators[ b ]
     YL_NEXT2,        // r, a = next from iterators[ b ]
     YL_NEXT,         // r:a = next from iterators[ b ]

@@ -126,6 +126,7 @@ enum yssa_opcode
     YSSA_SELECT         = 0x81,     // Select a single result from an op.
     YSSA_PHI            = 0x82,     // SSA phi-function.
     YSSA_IMPLICIT       = 0x83,     // Implicit reference to variable.
+    YSSA_ITERDONE       = 0x84,     // Returns true if iterator b is done.
 };
 
 
