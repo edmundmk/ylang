@@ -337,11 +337,12 @@ int yssa_builder::visit( yl_stmt_switch* node, int count )
         {
             link_block( default_goto, case_gotos.empty() ? NEXT : FAIL, block );
         }
-        
-        // Link break.
-        close_break( sbreak, block );
     }
     
+    // Link break.
+    close_break( sbreak, block );
+
+    // Close scope.
     close_scope( node->scope );
     
     return 0;
@@ -352,16 +353,91 @@ int yssa_builder::visit( yl_stmt_while* node, int count )
     /*
         continue:
             test condition
-            if ( failed ) goto fail:
+            if ( failed ) goto exit:
             statements
             close upvals
             goto continue
-        fail:
+        exit:
             close upvals
         break:
     */
 
+    // Enter loop.
+    block = next_block( YSSA_LOOP | YSSA_UNSEALED );
+    yssa_block* loop = block;
     
+    // Enter scope.
+    open_scope( node->scope );
+    break_entry* lbreak = open_break( node->scope, BREAK );
+    break_entry* lcontinue = open_break( node->scope, CONTINUE );
+    
+    // Test condition.
+    size_t value = push( node->condition, 1 );
+    assert( block->test == nullptr );
+    pop( value, 1, &block->test );
+    
+    yssa_block* test_fail = block;
+    
+    if ( block )
+    {
+        block = next_block();
+    }
+    
+    // Remember enough information to construct the close op
+    // on the exit branch.
+    assert( scopes.back().scope == node->scope );
+    assert( scopes.back().itercount == itercount );
+    std::vector< yssa_variable* > close;
+    close.insert
+    (
+        close.end(),
+        localups.begin() + scopes.back().localups,
+        localups.end()
+    );
+    
+    // Statements.
+    execute( node->body );
+    close_scope( node->scope );
+    
+    // Link back to top of loop.
+    close_break( lcontinue, loop );
+    if ( block )
+    {
+        link_block( block, NEXT, loop );
+        block = nullptr;
+    }
+    if ( loop )
+    {
+        seal_block( loop );
+    }
+    
+    // Fill in failure branch.
+    if ( test_fail )
+    {
+        block = label_block();
+        link_block( test_fail, FAIL, block );
+        
+        // Need to close upvals.
+        if ( close.size() )
+        {
+            yssa_opinst* o = op( node->sloc, YL_CLOSE, close.size(), 0 );
+            o->a = localups.size();
+            o->b = itercount;
+            for ( size_t i = 0; i < close.size(); ++i )
+            {
+                o->operand[ i ] = lookup( close.at( i ) );
+            }
+        }
+    }
+    
+    // Fill in breaks.
+    if ( lbreak->blocks.size() )
+    {
+        block = label_block();
+    }
+    close_break( lbreak, block );
+
+    return 0;
 }
 
 int yssa_builder::visit( yl_stmt_do* node, int count )
@@ -375,6 +451,10 @@ int yssa_builder::visit( yl_stmt_do* node, int count )
             if ( succeeded ) goto top
         break:
     */
+    
+    // Enter loop.
+    block = next_block( YSSA_LOOP | YSSA_UNSEALED );
+    
 }
 
 int yssa_builder::visit( yl_stmt_foreach* node, int count )

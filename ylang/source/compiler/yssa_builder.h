@@ -76,8 +76,8 @@ private:
     struct scope_entry
     {
         yl_ast_scope*               scope;
-        uint8_t                     itercount;
         uint8_t                     localups;
+        uint8_t                     itercount;
         yssa_block*                 xchandler;
     };
     
@@ -98,8 +98,8 @@ private:
     {
         yl_ast_scope*               scope;
         break_kind                  iscontinue;
-        uint8_t                     itercount;
         uint8_t                     localups;
+        uint8_t                     itercount;
         std::vector< yssa_block* >  blocks;
     };
     
