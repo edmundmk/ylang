@@ -363,7 +363,10 @@ int yssa_builder::visit( yl_stmt_while* node, int count )
     */
 
     // Enter loop.
-    block = next_block( YSSA_LOOP | YSSA_UNSEALED );
+    if ( block )
+    {
+        block = next_block( YSSA_LOOP | YSSA_UNSEALED );
+    }
     yssa_block* loop = block;
     
     // Enter scope.
@@ -459,7 +462,10 @@ int yssa_builder::visit( yl_stmt_do* node, int count )
     */
     
     // Enter loop.
-    block = next_block( YSSA_LOOP | YSSA_UNSEALED );
+    if ( block )
+    {
+        block = next_block( YSSA_LOOP | YSSA_UNSEALED );
+    }
     yssa_block* loop = block;
     
     // Enter scope.
@@ -708,7 +714,10 @@ int yssa_builder::visit( yl_stmt_for* node, int count )
     }
     
     // Loop.
-    block = next_block( YSSA_LOOP | YSSA_UNSEALED );
+    if ( block )
+    {
+        block = next_block( YSSA_LOOP | YSSA_UNSEALED );
+    }
     yssa_block* loop = block;
     
     // Condition.
@@ -777,6 +786,84 @@ int yssa_builder::visit( yl_stmt_for* node, int count )
 
 int yssa_builder::visit( yl_stmt_using* node, int count )
 {
+    /*
+            o0.acquire();
+        [
+            o1.acquire();
+        [
+            using block
+        ]
+            o1.release();
+            unwind
+        ]
+            o0.release();
+            unwind
+    */
+    
+    
+    
+    // Call o.acquire().
+    int valcount = 0;
+    size_t uvalues = push_all( node->uvalue, &valcount );
+    
+    // Using does support multiple values (more fool me).
+    std::vector< yssa_block_p > xchandlers;
+    for ( int i = 0; i < valcount; ++i )
+    {
+        // Call acquire().
+        yssa_opinst* m = op( node->sloc, YL_KEY, 1, 1 );
+        m->operand[ 0 ] = peek( uvalues, i );
+        m->key = "acquire";
+        
+        yssa_opinst* c = op( node->sloc, YL_CALL, 2, 0 );
+        c->operand[ 0 ] = m;
+        c->operand[ 1 ] = peek( uvalues, i );
+        call( c );
+        
+        // Open protected context.
+        yssa_block_p xchandler =
+                std::make_unique< yssa_block >( YSSA_XCHANDLER );
+        open_scope( node->scope, xchandler.get() );
+        xchandlers.emplace_back( std::move( xchandler ) );
+    }
+    
+    // Using block.  Leave all the uvalues on the stack - there's
+    // only one definition of each.
+    execute( node->body );
+    
+    // Close each scope and implement handler.
+    for ( int i = valcount; i-- > 0; )
+    {
+        // Leave protected context.
+        close_scope( node->scope );
+        
+        // Handler is next block.
+        yssa_block* xchandler = xchandlers.at( i ).get();
+        function->blocks.emplace_back( std::move( xchandlers.at( i ) ) );
+        if ( block )
+        {
+            link_block( block, NEXT, xchandler );
+            block = xchandler;
+        }
+        
+        // Call release().
+        yssa_opinst* m = op( node->sloc, YL_KEY, 1, 1 );
+        m->operand[ 0 ] = peek( uvalues, i );
+        m->key = "release";
+        
+        yssa_opinst* c = op( node->sloc, YL_CALL, 2, 0 );
+        c->operand[ 0 ] = m;
+        c->operand[ 1 ] = peek( uvalues, i );
+        call( c );
+        
+        // Continue potential exception unwind.
+        op( node->sloc, YL_UNWIND, 0, 0 );
+        
+        // Pop uvalue.
+        yssa_opinst* value = nullptr;
+        pop( uvalues + i, 1, &value );
+    }
+    
 }
 
 int yssa_builder::visit( yl_stmt_try* node, int count )
@@ -1512,6 +1599,7 @@ int yssa_builder::visit( yl_new_object* node, int count )
     operand = push_op( o );
     
     // Declare object (as it can potentially be referenced as an upval).
+    open_scope( nullptr );
     yssa_variable* object = varobj( node );
     assign( object, o );
     
@@ -1521,7 +1609,8 @@ int yssa_builder::visit( yl_new_object* node, int count )
         execute( node->members.at( i ) );
     }
 
-    // TODO: close upval if any?
+    // Close upval (if any).
+    close_scope( nullptr );
     
     // object should still be on the virtual stack.
     return 1;
