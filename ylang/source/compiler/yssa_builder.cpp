@@ -110,7 +110,7 @@ int yssa_builder::visit( yl_stmt_block* node, int count )
     
     if ( node->scope )
     {
-        close_scope( node->scope );
+        close_scope( node->sloc, node->scope );
     }
     
     return 0;
@@ -203,7 +203,7 @@ int yssa_builder::visit( yl_stmt_if* node, int count )
         }
     }
     
-    close_scope( node->scope );
+    close_scope( node->sloc, node->scope );
 
     return 0;
 }
@@ -343,7 +343,7 @@ int yssa_builder::visit( yl_stmt_switch* node, int count )
     close_break( sbreak, block );
 
     // Close scope.
-    close_scope( node->scope );
+    close_scope( node->sloc, node->scope );
     
     return 0;
 }
@@ -406,7 +406,7 @@ int yssa_builder::visit( yl_stmt_while* node, int count )
     
     // Statements.
     execute( node->body );
-    close_scope( node->scope );
+    close_scope( node->sloc, node->scope );
     
     // Link back to top of loop.
     close_break( lcontinue, loop );
@@ -495,7 +495,7 @@ int yssa_builder::visit( yl_stmt_do* node, int count )
     }
     
     // Close scope.
-    close_scope( node->scope );
+    close_scope( node->sloc, node->scope );
     
     // Link the success condition to the top of the loop.
     if ( block && loop )
@@ -644,7 +644,7 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
     execute( node->body );
     
     // Exit upval scope.
-    close_scope( node->scope );
+    close_scope( node->sloc, node->scope );
     
     // Loop entry block.
     if ( block || entry_block )
@@ -675,7 +675,7 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
     }
     
     // Exit iterator scope.
-    close_scope( node->scope );
+    close_scope( node->sloc, node->scope );
     
     // Link break.
     if ( lbreak->blocks.size() )
@@ -781,7 +781,7 @@ int yssa_builder::visit( yl_stmt_for* node, int count )
     close_break( lbreak, block );
 
     // Close scope.
-    close_scope( node->scope );
+    close_scope( node->sloc, node->scope );
     return 0;
 }
 
@@ -825,7 +825,8 @@ int yssa_builder::visit( yl_stmt_using* node, int count )
                 std::make_unique< yssa_block >( YSSA_XCHANDLER );
         xchandler->unwind_localups = localups.size();
         xchandler->unwind_itercount = itercount;
-        xchandler->xchandler = scopes.back().xchandler;
+        xchandler->xchandler =
+                scopes.size() ? scopes.back().xchandler : nullptr;
         open_scope( node->scope, xchandler.get() );
         xchandlers.push_back( std::move( xchandler ) );
         
@@ -844,7 +845,7 @@ int yssa_builder::visit( yl_stmt_using* node, int count )
     for ( int i = valcount; i-- > 0; )
     {
         // Leave protected context.
-        close_scope( node->scope );
+        close_scope( node->sloc, node->scope );
         
         // Handler is next block.
         yssa_block* xchandler = xchandlers.at( i ).get();
@@ -915,7 +916,8 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
         xcfinally = std::make_unique< yssa_block >( YSSA_XCHANDLER );
         xcfinally->unwind_localups = localups.size();
         xcfinally->unwind_itercount = itercount;
-        xcfinally->xchandler = scopes.back().xchandler;
+        xcfinally->xchandler =
+                scopes.size() ? scopes.back().xchandler : nullptr;
         open_scope( nullptr, xcfinally.get() );
     }
     
@@ -924,7 +926,8 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
         xccatch = std::make_unique< yssa_block >( YSSA_XCHANDLER );
         xccatch->unwind_localups = localups.size();
         xccatch->unwind_itercount = itercount;
-        xccatch->xchandler = scopes.back().xchandler;
+        xccatch->xchandler =
+                scopes.size() ? scopes.back().xchandler : nullptr;
         open_scope( nullptr, xccatch.get() );
     }
     
@@ -941,7 +944,7 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
     std::vector< yssa_block* > finally_jumps;
     if ( node->clist.size() )
     {
-        close_scope( nullptr );
+        close_scope( node->sloc, nullptr );
 
         if ( block )
         {
@@ -1010,7 +1013,7 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
             }
             
             execute( cstmt->body );
-            close_scope( cstmt->scope );
+            close_scope( node->sloc, cstmt->scope );
             
             if ( block )
             {
@@ -1023,7 +1026,7 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
     
     if ( node->fstmt )
     {
-        close_scope( nullptr );
+        close_scope( node->sloc, nullptr );
         block = xcfinally.get();
         function->blocks.push_back( std::move( xcfinally ) );
     }
@@ -1102,7 +1105,7 @@ int yssa_builder::visit( yl_stmt_continue* node, int count )
     break_entry* b = i->second.get();
     
     // Close.
-    close( b->localups, b->itercount );
+    close( node->sloc, b->localups, b->itercount );
     
     // This branch terminates at the continue (which should be
     // linked when the continuable scope closes).
@@ -1128,7 +1131,7 @@ int yssa_builder::visit( yl_stmt_break* node, int count )
     break_entry* b = i->second.get();
     
     // Close.
-    close( b->localups, b->itercount );
+    close( node->sloc, b->localups, b->itercount );
     
     // This branch terminates at the break (which should be
     // linked when the breakable scope closes).
@@ -1148,7 +1151,7 @@ int yssa_builder::visit( yl_stmt_return* node, int count )
     size_t operands = push_all( node->values, &valcount );
 
     // Close everything.
-    close( 0, 0 );
+    close( node->sloc, 0, 0 );
     
     // Return.
     yssa_opinst* o = op( node->sloc, YL_RETURN, valcount, 0 );
@@ -1880,7 +1883,7 @@ int yssa_builder::visit( yl_new_object* node, int count )
     }
 
     // Close upval (if any).
-    close_scope( nullptr );
+    close_scope( node->sloc, nullptr );
     
     // object should still be on the virtual stack.
     return 1;
@@ -2794,6 +2797,100 @@ void yssa_builder::pop_lvalue( yl_ast_node* lvalue, size_t index )
 }
 
 
+
+/*
+    Scope stack.
+*/
+
+void yssa_builder::open_scope( yl_ast_scope* scope, yssa_block* xchandler )
+{
+    scope_entry s;
+    s.scope         = scope;
+    s.localups      = localups.size();
+    s.itercount     = itercount;
+
+    if ( xchandler )
+        s.xchandler = xchandler;
+    else if ( scopes.size() )
+        s.xchandler = scopes.back().xchandler;
+    else
+        s.xchandler = nullptr;
+
+    scopes.push_back( s );
+}
+
+
+void yssa_builder::close_scope( int sloc, yl_ast_scope* scope )
+{
+    const scope_entry& s = scopes.back();
+    assert( s.scope == scope );
+
+    // Close.
+    close( sloc, s.localups, s.itercount );
+
+    // Pop upvals and reset iterators.
+    assert( s.localups <= localups.size() );
+    assert( s.itercount <= itercount );
+    localups.resize( s.localups );
+    itercount = s.itercount;
+
+    scopes.pop_back();
+}
+
+
+yssa_builder::break_entry* yssa_builder::open_break(
+                        yl_ast_scope* scope, break_kind kind )
+{
+    // Create break entry.
+    std::unique_ptr< break_entry > b = std::make_unique< break_entry >();
+    b->scope        = scope;
+    b->kind         = kind;
+    b->localups     = localups.size();
+    b->itercount    = itercount;
+
+    // Add break entry to map.
+    break_entry* bentry = b.get();
+    breaks.emplace( break_key( scope, kind ), std::move( b ) );
+    return bentry;
+}
+
+void yssa_builder::close_break( break_entry* b, yssa_block* target )
+{
+    if ( target )
+    {
+        for ( size_t i = 0; i < b->blocks.size(); ++i )
+        {
+            yssa_block* break_block = b->blocks.at( i );
+            assert( break_block );
+            link_block( break_block, NEXT, target );
+        }
+    }
+    
+    breaks.erase( break_key( b->scope, b->kind ) );
+}
+
+
+void yssa_builder::close( int sloc, size_t closeups, size_t closeiter )
+{
+    // Don't need to do anything if there's nothing to close.
+    if ( closeups == localups.size() && closeiter == itercount )
+    {
+        return;
+    }
+    
+    assert( closeups <= localups.size() );
+    assert( closeiter <= itercount );
+
+    // Otherwise, close everything relevant.
+    size_t close_count = localups.size() - closeups;
+    yssa_opinst* o = op( sloc, YL_CLOSE, close_count, 0 );
+    o->a = closeups;
+    o->b = closeiter;
+    for ( size_t i = 0; i < close_count; ++i )
+    {
+        o->operand[ i ] = lookup( localups.at( closeups + i ) );
+    }
+}
 
 
 

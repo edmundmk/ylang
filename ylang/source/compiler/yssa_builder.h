@@ -98,7 +98,7 @@ private:
     struct break_entry
     {
         yl_ast_scope*               scope;
-        break_kind                  iscontinue;
+        break_kind                  kind;
         uint8_t                     localups;
         uint8_t                     itercount;
         std::vector< yssa_block* >  blocks;
@@ -219,12 +219,12 @@ private:
 
     // Scope stack.
     void open_scope( yl_ast_scope* scope, yssa_block* xchandler = nullptr );
-    void close_scope( yl_ast_scope* scope );
+    void close_scope( int sloc, yl_ast_scope* scope );
     
     break_entry* open_break( yl_ast_scope* scope, break_kind kind );
     void close_break( break_entry* b, yssa_block* target );
 
-    void close( size_t localups, size_t itercount );
+    void close( int sloc, size_t closeups, size_t closeiter );
 
 
     yl_diagnostics*                 diagnostics;
