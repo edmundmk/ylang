@@ -195,7 +195,7 @@ private:
     yssa_variable* varobj( yl_new_object* object );
     yssa_variable* temporary();
     
-    void assign( yssa_variable* variable, yssa_opinst* op );
+    void assign( yssa_variable* variable, yssa_opinst* value );
     yssa_opinst* lookup( yssa_variable* variable );
     void call( yssa_opinst* callop ); // implicit ref/clobber upvals
 
@@ -206,14 +206,14 @@ private:
     void execute( yl_ast_node* statement );
     size_t push_all( yl_ast_node* expression, int* count );
     size_t push( yl_ast_node* expression, int count );
-    size_t push_op( yssa_opinst* op ); // Cannot have pushed an expression or assigned or clobbered between creating an op and pushing it.
+    size_t push_op( yssa_opinst* op );
     void push_select( int sloc, yssa_opinst* selop, int count );
     void pop( size_t index, int count, yssa_opinst** ops );
     yssa_opinst* peek( size_t index, size_t i );
     
     size_t push_lvalue( yl_ast_node* lvalue );
     size_t push_evalue( yl_ast_node* lvalue, size_t index );
-    void assign_lvalue( yl_ast_node* lvalue, size_t index, yssa_opinst* v );
+    void assign_lvalue( yl_ast_node* lvalue, size_t index, yssa_opinst* value );
     void pop_lvalue( yl_ast_node* lvalue, size_t index );
 
 

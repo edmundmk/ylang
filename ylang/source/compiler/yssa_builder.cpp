@@ -2335,6 +2335,15 @@ int yssa_builder::visit( yl_expr_assign_list* node, int count )
 
 
 
+/*
+    Control flow.
+*/
+
+yssa_block* yssa_builder::make_block( unsigned flags )
+{
+    function->blocks.emplace_back( new yssa_block( flags ) );
+    return function->blocks.back().get();
+}
 
 yssa_block* yssa_builder::next_block( unsigned flags )
 {
@@ -2346,7 +2355,6 @@ yssa_block* yssa_builder::next_block( unsigned flags )
     return next;
 }
 
-
 yssa_block* yssa_builder::fail_block( unsigned flags )
 {
     yssa_block* fail = make_block( flags );
@@ -2356,7 +2364,6 @@ yssa_block* yssa_builder::fail_block( unsigned flags )
     }
     return fail;
 }
-
 
 yssa_block* yssa_builder::label_block( unsigned flags )
 {
@@ -2375,7 +2382,6 @@ yssa_block* yssa_builder::label_block( unsigned flags )
         return next_block( flags );
     }
 }
-
 
 void yssa_builder::link_block( yssa_block* prev, link_kind kind, yssa_block* next )
 {
@@ -2400,6 +2406,10 @@ void yssa_builder::link_block( yssa_block* prev, link_kind kind, yssa_block* nex
 }
 
 
+
+/*
+    Emitting instructions.
+*/
 
 yssa_opinst* yssa_builder::op(
         int sloc, uint8_t opcode, uint8_t operand_count, uint8_t result_count )
@@ -2450,6 +2460,84 @@ yssa_opinst* yssa_builder::assign_op(
 }
 
 
+
+/*
+    Definitions and lookups.
+*/
+
+
+
+
+/*
+    Virtual stack.
+*/
+
+void yssa_builder::execute( yl_ast_node* statement )
+{
+    int valcount = visit( statement, 0 );
+    assert( valcount == 0 || valcount == 1 );
+    assert( multival == nullptr );
+    if ( valcount == 1 )
+    {
+        stack.pop_back();
+    }
+}
+
+size_t yssa_builder::push_all( yl_ast_node* expression, int* count )
+{
+    size_t result = stack.size();
+    *count = visit( expression, -1 );
+    return result;
+}
+
+size_t yssa_builder::push( yl_ast_node* expression, int count )
+{
+    size_t result = stack.size();
+    int valcount = visit( expression, count );
+    assert( valcount <= count || valcount == 1 );
+    if ( valcount < count )
+    {
+        yssa_opinst* o = op( expression->sloc, YL_NULL, 0, 1 );
+        for ( int i = valcount; i < count; ++i )
+        {
+            push_op( o );
+        }
+    }
+    else if ( valcount > count )
+    {
+        assert( count == 0 );
+        assert( valcount == 1 );
+        stack.pop_back();
+    }
+    assert( stack.size() == result + count );
+    return result;
+}
+
+size_t yssa_builder::push_op( yssa_opinst* o )
+{
+    /*
+        Don't do the following things between creating an op and pushing it:
+        
+            -   Pushing an expression.
+            -   Assign to variable.
+            -   Notify a call.
+            
+        We track the block location where each op is pushed, so if we need
+        to insert a temporary to replace it, the temporary is created at the
+        point where the op was pushed, not where it is used.
+    */
+    
+    size_t result = stack.size();
+    
+    stack_entry sentry;
+    sentry.block = block;
+    sentry.index = block ? block->ops.size() : 0;
+    sentry.value = o;
+    stack.push_back( sentry );
+    
+    return result;
+}
+
 void yssa_builder::push_select( int sloc, yssa_opinst* selop, int count )
 {
     if ( count == -1 )
@@ -2472,8 +2560,238 @@ void yssa_builder::push_select( int sloc, yssa_opinst* selop, int count )
     }
 }
 
+void yssa_builder::pop( size_t index, int count, yssa_opinst** ops )
+{
+    assert( index + count == stack.size() );
+    for ( int i = 0; i < count; ++i )
+    {
+        ops[ i ] = stack.at( index + i ).value;
+    }
+    stack.erase( stack.begin() + index, stack.begin() + index + count );
+}
+
+yssa_opinst* yssa_builder::peek( size_t index, size_t i )
+{
+    assert( index + i < stack.size() );
+    return stack.at( index + i ).value;
+}
 
 
+size_t yssa_builder::push_lvalue( yl_ast_node* lvalue )
+{
+    size_t result;
+
+    switch ( lvalue->kind )
+    {
+    case YL_EXPR_LOCAL:
+    case YL_EXPR_GLOBAL:
+    case YL_EXPR_UPREF:
+    {
+        // Don't push anything.
+        result = stack.size();
+        break;
+    }
+    
+    case YL_EXPR_KEY:
+    {
+        // Just the object.
+        yl_expr_key* keyexpr = (yl_expr_key*)lvalue;
+        result = push( keyexpr->object, 1 );
+        break;
+    }
+    
+    case YL_EXPR_INKEY:
+    {
+        // Object and key.
+        yl_expr_inkey* inkey = (yl_expr_inkey*)lvalue;
+        result = push( inkey->object, 1 );
+        push( inkey->key, 1 );
+        break;
+    }
+    
+    case YL_EXPR_INDEX:
+    {
+        // Object and index.
+        yl_expr_index* index = (yl_expr_index*)lvalue;
+        result = push( index->object, 1 );
+        push( index->index, 1 );
+        break;
+    }
+        
+    default:
+        assert( ! "invalid lvalue" );
+        break;
+    }
+    
+    return result;
+}
+
+size_t yssa_builder::push_evalue( yl_ast_node* lvalue, size_t index )
+{
+    switch ( lvalue->kind )
+    {
+    case YL_EXPR_LOCAL:
+    {
+        yl_expr_local* local = (yl_expr_local*)lvalue;
+        yssa_variable* v = variable( local->name );
+        return push_op( lookup( v ) );
+    }
+    
+    case YL_EXPR_GLOBAL:
+    {
+        yl_expr_global* global = (yl_expr_global*)lvalue;
+        yssa_opinst* o = op( global->sloc, YL_GLOBAL, 0, 1 );
+        o->key = module->alloc.strdup( global->name );
+        return push_op( o );
+    }
+    
+    case YL_EXPR_UPREF:
+    {
+        yl_expr_upref* upref = (yl_expr_upref*)lvalue;
+        yssa_opinst* o = op( lvalue->sloc, YL_GETUP, 0, 1 );
+        o->a = upref->index;
+        return push_op( o );
+    }
+    
+    case YL_EXPR_KEY:
+    {
+        yl_expr_key* keyexpr = (yl_expr_key*)lvalue;
+        yssa_opinst* o = op( lvalue->sloc, YL_KEY, 1, 1 );
+        o->operand[ 0 ] = peek( index, 0 );
+        o->key = module->alloc.strdup( keyexpr->key );
+        return push_op( o );
+    }
+    
+    case YL_EXPR_INKEY:
+    {
+        yssa_opinst* o = op( lvalue->sloc, YL_INKEY, 2, 1 );
+        o->operand[ 0 ] = peek( index, 0 );
+        o->operand[ 1 ] = peek( index, 1 );
+        return push_op( o );
+    }
+    
+    case YL_EXPR_INDEX:
+    {
+        yssa_opinst* o = op( lvalue->sloc, YL_INDEX, 2, 1 );
+        o->operand[ 0 ] = peek( index, 0 );
+        o->operand[ 1 ] = peek( index, 1 );
+        return push_op( o );
+    }
+        
+    default:
+    {
+        assert( ! "invalid lvalue" );
+        yssa_opinst* o = op( lvalue->sloc, YL_NULL, 0, 1 );
+        return push_op( o );
+    }
+    }
+}
+
+void yssa_builder::assign_lvalue(
+                yl_ast_node* lvalue, size_t index, yssa_opinst* value )
+{
+    switch ( lvalue->kind )
+    {
+    case YL_EXPR_LOCAL:
+    {
+        yl_expr_local* local = (yl_expr_local*)lvalue;
+        yssa_variable* v = variable( local->name );
+        assign( v, value );
+        break;
+    }
+    
+    case YL_EXPR_GLOBAL:
+    {
+        yl_expr_global* global = (yl_expr_global*)lvalue;
+        yssa_opinst* o = op( global->sloc, YL_SETGLOBAL, 1, 0 );
+        o->operand[ 0 ] = value;
+        o->key = module->alloc.strdup( global->name );
+        break;
+    }
+    
+    case YL_EXPR_UPREF:
+    {
+        yl_expr_upref* upref = (yl_expr_upref*)lvalue;
+        yssa_opinst* o = op( lvalue->sloc, YL_SETUP, 1, 0 );
+        o->operand[ 0 ] = value;
+        o->a = upref->index;
+        break;
+    }
+    
+    case YL_EXPR_KEY:
+    {
+        yl_expr_key* keyexpr = (yl_expr_key*)lvalue;
+        yssa_opinst* o = op( lvalue->sloc, YL_SETKEY, 2, 1 );
+        o->operand[ 0 ] = peek( index, 0 );
+        o->operand[ 1 ] = value;
+        o->key = module->alloc.strdup( keyexpr->key );
+        break;
+    }
+    
+    case YL_EXPR_INKEY:
+    {
+        yssa_opinst* o = op( lvalue->sloc, YL_SETINKEY, 3, 1 );
+        o->operand[ 0 ] = peek( index, 0 );
+        o->operand[ 1 ] = peek( index, 1 );
+        o->operand[ 2 ] = value;
+        break;
+    }
+    
+    case YL_EXPR_INDEX:
+    {
+        yssa_opinst* o = op( lvalue->sloc, YL_SETINDEX, 3, 1 );
+        o->operand[ 0 ] = peek( index, 0 );
+        o->operand[ 1 ] = peek( index, 1 );
+        o->operand[ 2 ] = value;
+        break;
+    }
+        
+    default:
+        assert( ! "invalid lvalue" );
+        break;
+    }
+}
+
+void yssa_builder::pop_lvalue( yl_ast_node* lvalue, size_t index )
+{
+    switch ( lvalue->kind )
+    {
+    case YL_EXPR_LOCAL:
+    case YL_EXPR_GLOBAL:
+    case YL_EXPR_UPREF:
+    {
+        break;
+    }
+    
+    case YL_EXPR_KEY:
+    {
+        // Just the object.
+        yssa_opinst* value = nullptr;
+        pop( index, 1, &value );
+        break;
+    }
+    
+    case YL_EXPR_INKEY:
+    {
+        // Object and key.
+        yssa_opinst* values[ 2 ] = { nullptr, nullptr };
+        pop( index, 2, values );
+        break;
+    }
+    
+    case YL_EXPR_INDEX:
+    {
+        // Object and index.
+        yssa_opinst* values[ 2 ] = { nullptr, nullptr };
+        pop( index, 2, values );
+        break;
+    }
+        
+    default:
+        assert( ! "invalid lvalue" );
+        break;
+    }
+}
 
 
 
