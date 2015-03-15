@@ -37,7 +37,7 @@ bool yssa_builder::build( yl_ast* ast )
             module->alloc.strdup( astf->funcname )
         );
         funcmap.emplace( std::make_pair( astf, ssaf.get() ) );
-        module->functions.emplace_back( std::move( ssaf ) );
+        module->functions.push_back( std::move( ssaf ) );
     }
     
     
@@ -63,7 +63,7 @@ void yssa_builder::build( yl_ast_func* astf )
     // Create entry block.
     yssa_block_p entry_block = std::make_unique< yssa_block >();
     block = entry_block.get();
-    function->blocks.emplace_back( std::move( entry_block ) );
+    function->blocks.push_back( std::move( entry_block ) );
     
     
     // Add parameter ops.
@@ -799,8 +799,7 @@ int yssa_builder::visit( yl_stmt_using* node, int count )
             o0.release();
             unwind
     */
-    
-    
+
     
     // Call o.acquire().
     int valcount = 0;
@@ -823,8 +822,15 @@ int yssa_builder::visit( yl_stmt_using* node, int count )
         // Open protected context.
         yssa_block_p xchandler =
                 std::make_unique< yssa_block >( YSSA_XCHANDLER );
+        xchandler->xchandler = scopes.back().xchandler;
         open_scope( node->scope, xchandler.get() );
-        xchandlers.emplace_back( std::move( xchandler ) );
+        xchandlers.push_back( std::move( xchandler ) );
+        
+        if ( block )
+        {
+            block = next_block();
+            assert( block->xchandler == xchandlers.back().get() );
+        }
     }
     
     // Using block.  Leave all the uvalues on the stack - there's
@@ -839,7 +845,7 @@ int yssa_builder::visit( yl_stmt_using* node, int count )
         
         // Handler is next block.
         yssa_block* xchandler = xchandlers.at( i ).get();
-        function->blocks.emplace_back( std::move( xchandlers.at( i ) ) );
+        function->blocks.push_back( std::move( xchandlers.at( i ) ) );
         if ( block )
         {
             link_block( block, NEXT, xchandler );
@@ -868,10 +874,179 @@ int yssa_builder::visit( yl_stmt_using* node, int count )
 
 int yssa_builder::visit( yl_stmt_try* node, int count )
 {
+    /*
+        [
+        [
+            tstmt
+            goto finally
+        ]
+        catch:
+            filter
+            if ( failed ) goto next_catch
+            catch
+            goto finally
+        next_catch:
+            filter
+            if ( failed ) goto finally
+            catch
+            goto finally
+        ]
+        finally:
+            finally statement
+            unwind
+    */
+    
+    /*
+        There are two potential protected contexts - one that
+        passes control to the finally block (which can also be
+        entered normally), and one that passes control to the
+        exeption filter chain of catch () statements.
+    */
+    
+    yssa_block_p xcfinally = nullptr;
+    yssa_block_p xccatch = nullptr;
+    
+    if ( node->fstmt )
+    {
+        xcfinally = std::make_unique< yssa_block >( YSSA_XCHANDLER );
+        xcfinally->xchandler = scopes.back().xchandler;
+        open_scope( nullptr, xcfinally.get() );
+    }
+    
+    if ( node->clist.size() )
+    {
+        xccatch = std::make_unique< yssa_block >( YSSA_XCHANDLER );
+        xccatch->xchandler = scopes.back().xchandler;
+        open_scope( nullptr, xccatch.get() );
+    }
+    
+    if ( block && ( node->fstmt || node->clist.size() ) )
+    {
+        block = next_block();
+        assert( block->xchandler );
+    }
+    
+    execute( node->tstmt );
+    
+    // Construct exception filter from the catch clauses.
+    yssa_block* catch_jump = nullptr;
+    std::vector< yssa_block* > finally_jumps;
+    if ( node->clist.size() )
+    {
+        close_scope( nullptr );
+
+        if ( block )
+        {
+            finally_jumps.push_back( block );
+            block = nullptr;
+        }
+        
+        // Enter handler block for catch.
+        block = xccatch.get();
+        function->blocks.push_back( std::move( xccatch ) );
+        
+        // If the catch failed, go to the next one.
+        for ( size_t i = 0; i < node->clist.size(); ++i )
+        {
+            assert( node->clist.at( i )->kind == YL_STMT_CATCH );
+            yl_stmt_catch* cstmt = (yl_stmt_catch*)node->clist.at( i );
+            
+            // Link from previous failed catch filter expression.
+            if ( catch_jump )
+            {
+                block = label_block();
+                link_block( catch_jump, FAIL, block );
+            }
+            
+            // Get exception.
+            yssa_opinst* e = nullptr;
+            if ( cstmt->proto || cstmt->lvalue )
+            {
+                e = op( cstmt->sloc, YL_EXCEPT, 0, 1 );
+            }
+            
+            // Test catch filter.
+            if ( cstmt->proto )
+            {
+                size_t operands = push_op( e );
+                push( cstmt->proto, 1 );
+
+                yssa_opinst* o = op( cstmt->sloc, YL_IS, 2, 1 );
+                pop( operands, 2, o->operand );
+                
+                if ( block )
+                {
+                    assert( block->test == nullptr );
+                    block->test = o;
+                    catch_jump = block;
+                    block = next_block();
+                }
+            }
+            
+            // Catch block for when test passes.
+            open_scope( cstmt->scope );
+            
+            // Make exception assignment.
+            if ( cstmt->lvalue && cstmt->declare )
+            {
+                assert( cstmt->lvalue->kind == YL_EXPR_LOCAL );
+                yl_expr_local* local = (yl_expr_local*)cstmt->lvalue;
+                yssa_variable* v = variable( local->name );
+                assign( v, e );
+            }
+            else if ( cstmt->lvalue )
+            {
+                size_t lvalue = push_lvalue( cstmt->lvalue );
+                assign_lvalue( cstmt->lvalue, lvalue, e );
+                pop_lvalue( cstmt->lvalue, lvalue );
+            }
+            
+            execute( cstmt->body );
+            close_scope( cstmt->scope );
+            
+            if ( block )
+            {
+                finally_jumps.push_back( block );
+                block = nullptr;
+            }
+        }
+        
+    }
+    
+    if ( node->fstmt )
+    {
+        close_scope( nullptr );
+        block = xcfinally.get();
+        function->blocks.push_back( std::move( xcfinally ) );
+    }
+    else if ( catch_jump || finally_jumps.size() )
+    {
+        block = label_block();
+    }
+    
+    if ( catch_jump )
+    {
+        link_block( catch_jump, FAIL, block );
+    }
+    
+    for ( size_t i = 0; i < finally_jumps.size(); ++i )
+    {
+        link_block( finally_jumps.at( i ), NEXT, block );
+    }
+    
+    if ( node->fstmt )
+    {
+        execute( node->fstmt );
+        op( node->sloc, YL_UNWIND, 0, 0 );
+    }
+    
+    return 0;
 }
 
 int yssa_builder::visit( yl_stmt_catch* node, int count )
 {
+    assert( ! "catch outside try" );
+    return 0;
 }
 
 int yssa_builder::visit( yl_stmt_delete* node, int count )
