@@ -193,7 +193,7 @@ private:
     // Definitions and lookups.
     yssa_variable* variable( yl_ast_name* name );
     yssa_variable* varobj( yl_new_object* object );
-    yssa_variable* temporary();
+    yssa_variable* temporary( const char* name, int sloc );
     
     void assign( yssa_variable* variable, yssa_opinst* value );
     yssa_opinst* lookup( yssa_variable* variable );
@@ -233,6 +233,8 @@ private:
 
     yssa_function*                  function;
     yssa_block*                     block;
+
+    std::unordered_map< void*, yssa_variable* > variables;
 
     std::vector< stack_entry >      stack;
     yssa_opinst*                    multival;

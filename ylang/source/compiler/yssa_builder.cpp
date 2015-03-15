@@ -1520,7 +1520,8 @@ int yssa_builder::visit( yl_expr_compare* node, int count )
     
     // With shortcut evaluation, the result could be any of the intermediate
     // comparison results.  This requires a temporary.
-    yssa_variable* result = node->opkinds.size() > 1 ? temporary() : nullptr;
+    yssa_variable* result = node->opkinds.size() > 1 ?
+            temporary( "[comparison]", node->sloc ) : nullptr;
     
     // Evaluate first term.
     size_t operands = push( node->first, 1 );               // a
@@ -1657,7 +1658,7 @@ int yssa_builder::visit( yl_expr_logical* node, int count )
             final:
         */
         
-        yssa_variable* result = temporary();
+        yssa_variable* result = temporary( "[shortcut and]", node->sloc );
         
         // Evaluate left hand side.
         size_t operand = push( node->lhs, 1 );
@@ -1713,7 +1714,7 @@ int yssa_builder::visit( yl_expr_logical* node, int count )
             final:
         */
     
-        yssa_variable* result = temporary();
+        yssa_variable* result = temporary( "[shortcut or]", node->sloc );
         
         // Evaluate left hand side.
         size_t operand = push( node->lhs, 1 );
@@ -1785,7 +1786,7 @@ int yssa_builder::visit( yl_expr_qmark* node, int count )
     }
     
     // Result is a temporary since there is more than one definition.
-    yssa_variable* result = temporary();
+    yssa_variable* result = temporary( "[qmark]", node->sloc );
     
     // Evaluate true branch.
     operand = push( node->iftrue, 1 );
@@ -2467,6 +2468,65 @@ yssa_opinst* yssa_builder::assign_op(
 /*
     Definitions and lookups.
 */
+
+yssa_variable* yssa_builder::variable( yl_ast_name* name )
+{
+    auto i = variables.find( name );
+    if ( i != variables.end() )
+    {
+        return i->second;
+    }
+    
+    yssa_variable* v = new ( module->alloc ) yssa_variable();
+    v->name     = module->alloc.strdup( name->name );
+    v->sloc     = name->sloc;
+    v->xcref    = false; // Not (yet) referenced from an exception handler.
+    v->localup  = name->upval ? localups.size() : 0;
+    v->r        = 0;
+    
+    if ( name->upval )
+    {
+        localups.push_back( v );
+    }
+    
+    variables.emplace( name, v );
+    return v;
+}
+
+yssa_variable* yssa_builder::varobj( yl_new_object* object )
+{
+    auto i = variables.find( object );
+    if ( i != variables.end() )
+    {
+        return i->second;
+    }
+    
+    yssa_variable* v = new ( module->alloc ) yssa_variable();
+    v->name     = "[object]";
+    v->sloc     = object->sloc;
+    v->xcref    = false; // Not (yet) referenced from an exception handler.
+    v->localup  = object->upval ? localups.size() : 0;
+    v->r        = 0;
+    
+    if ( object->upval )
+    {
+        localups.push_back( v );
+    }
+    
+    variables.emplace( object, v );
+    return v;
+}
+
+yssa_variable* yssa_builder::temporary( const char* name, int sloc )
+{
+    yssa_variable* v = new ( module->alloc ) yssa_variable();
+    v->name     = name;
+    v->sloc     = sloc;
+    v->xcref    = false; // You know by now!
+    v->localup  = false; // No way to refer to this variable in inner scope.
+    v->r        = 0;
+    return v;
+}
 
 
 
