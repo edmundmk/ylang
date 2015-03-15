@@ -237,7 +237,7 @@
 		4BCF3D4A1A856FF500B9AB3A /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0610;
+				LastUpgradeCheck = 0620;
 				ORGANIZATIONNAME = "Edmund Kapusniak";
 				TargetAttributes = {
 					4BCF3D511A856FF500B9AB3A = {
@@ -375,6 +375,7 @@
 		4BCF3D571A856FF500B9AB3A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -383,6 +384,7 @@
 		4BCF3D581A856FF500B9AB3A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				EXECUTABLE_PREFIX = lib;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
