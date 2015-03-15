@@ -12,6 +12,7 @@
 
 
 #include <unordered_map>
+#include <hash_pair.h>
 #include "yssa.h"
 #include "yl_ast_visitor.h"
 
@@ -92,7 +93,7 @@ private:
         CONTINUE,
     };
     
-    typedef std::pair< yl_ast_scope*, break_kind > break_key;
+    typedef std::pair< yl_ast_scope*, unsigned > break_key;
     
     struct break_entry
     {
@@ -223,6 +224,7 @@ private:
     break_entry* open_break( yl_ast_scope* scope, break_kind kind );
     void close_break( break_entry* b, yssa_block* target );
 
+    void close( size_t localups, size_t itercount );
 
 
     yl_diagnostics*                 diagnostics;

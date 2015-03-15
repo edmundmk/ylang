@@ -235,6 +235,8 @@ struct yssa_block
     explicit yssa_block( unsigned flags = 0 );
 
     unsigned                    flags;
+    uint8_t                     unwind_localups;    // For xchandlers, close.
+    uint8_t                     unwind_itercount;   // Similarly.
     std::vector< yssa_block* >  prev;       // Previous blocks in CFG.
     std::vector< yssa_opinst* > phi;        // phi-functions at head of block.
     std::vector< yssa_opinst* > ops;        // Op list

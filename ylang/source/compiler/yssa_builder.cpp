@@ -782,6 +782,7 @@ int yssa_builder::visit( yl_stmt_for* node, int count )
 
     // Close scope.
     close_scope( node->scope );
+    return 0;
 }
 
 int yssa_builder::visit( yl_stmt_using* node, int count )
@@ -822,6 +823,8 @@ int yssa_builder::visit( yl_stmt_using* node, int count )
         // Open protected context.
         yssa_block_p xchandler =
                 std::make_unique< yssa_block >( YSSA_XCHANDLER );
+        xchandler->unwind_localups = localups.size();
+        xchandler->unwind_itercount = itercount;
         xchandler->xchandler = scopes.back().xchandler;
         open_scope( node->scope, xchandler.get() );
         xchandlers.push_back( std::move( xchandler ) );
@@ -870,6 +873,7 @@ int yssa_builder::visit( yl_stmt_using* node, int count )
         pop( uvalues + i, 1, &value );
     }
     
+    return 0;
 }
 
 int yssa_builder::visit( yl_stmt_try* node, int count )
@@ -909,6 +913,8 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
     if ( node->fstmt )
     {
         xcfinally = std::make_unique< yssa_block >( YSSA_XCHANDLER );
+        xcfinally->unwind_localups = localups.size();
+        xcfinally->unwind_itercount = itercount;
         xcfinally->xchandler = scopes.back().xchandler;
         open_scope( nullptr, xcfinally.get() );
     }
@@ -916,6 +922,8 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
     if ( node->clist.size() )
     {
         xccatch = std::make_unique< yssa_block >( YSSA_XCHANDLER );
+        xccatch->unwind_localups = localups.size();
+        xccatch->unwind_itercount = itercount;
         xccatch->xchandler = scopes.back().xchandler;
         open_scope( nullptr, xccatch.get() );
     }
@@ -1051,26 +1059,113 @@ int yssa_builder::visit( yl_stmt_catch* node, int count )
 
 int yssa_builder::visit( yl_stmt_delete* node, int count )
 {
+    for ( size_t i = 0; i < node->delvals.size(); ++i )
+    {
+        yl_ast_node* delval = node->delvals.at( i );
+        if ( delval->kind == YL_EXPR_KEY )
+        {
+            yl_expr_key* expr = (yl_expr_key*)node;
+            size_t operand = push( expr->object, 1 );
+            yssa_opinst* o = op( node->sloc, YL_DELKEY, 1, 0 );
+            pop( operand, 1, o->operand );
+            o->key = module->alloc.strdup( expr->key );
+        }
+        else if ( delval->kind == YL_EXPR_INKEY )
+        {
+            yl_expr_inkey* expr = (yl_expr_inkey*)node;
+            size_t operands = push( expr->object, 1 );
+            push( expr->key, 1 );
+            yssa_opinst* o = op( node->sloc, YL_DELINKEY, 2, 0 );
+            pop( operands, 2, o->operand );
+        }
+    }
+    
+    return 0;
 }
 
 int yssa_builder::visit( yl_stmt_case* node, int count )
 {
+    assert( ! "case outside switch" );
+    return 0;
 }
 
 int yssa_builder::visit( yl_stmt_continue* node, int count )
 {
+    // Get break entry.
+    auto i = breaks.find( break_key( node->target, CONTINUE ) );
+    if ( i == breaks.end() )
+    {
+        assert( ! "continue outside continuable scope" );
+        return 0;
+    }
+    
+    break_entry* b = i->second.get();
+    
+    // Close.
+    close( b->localups, b->itercount );
+    
+    // This branch terminates at the continue (which should be
+    // linked when the continuable scope closes).
+    if ( block )
+    {
+        b->blocks.push_back( block );
+        block = nullptr;
+    }
+    
+    return 0;
 }
 
 int yssa_builder::visit( yl_stmt_break* node, int count )
 {
+    // Get break entry.
+    auto i = breaks.find( break_key( node->target, BREAK ) );
+    if ( i == breaks.end() )
+    {
+        assert( "break outside breakable scope" );
+        return 0;
+    }
+    
+    break_entry* b = i->second.get();
+    
+    // Close.
+    close( b->localups, b->itercount );
+    
+    // This branch terminates at the break (which should be
+    // linked when the breakable scope closes).
+    if ( block )
+    {
+        b->blocks.push_back( block );
+        block = nullptr;
+    }
+    
+    return 0;
 }
 
 int yssa_builder::visit( yl_stmt_return* node, int count )
 {
+    // Push return values.
+    int valcount = 0;
+    size_t operands = push_all( node->values, &valcount );
+
+    // Close everything.
+    close( 0, 0 );
+    
+    // Return.
+    yssa_opinst* o = op( node->sloc, YL_RETURN, valcount, 0 );
+    pop( operands, valcount, o->operand );
+    o->multival = multival;
+    multival = nullptr;
+    
+    return 0;
 }
 
 int yssa_builder::visit( yl_stmt_throw* node, int count )
 {
+    // The stack unwind should take care of closing things.
+    size_t operand = push( node->value, 1 );
+    yssa_opinst* o = op( node->sloc, YL_THROW, 1, 0 );
+    pop( operand, 1, o->operand );
+    return 0;
 }
 
 
