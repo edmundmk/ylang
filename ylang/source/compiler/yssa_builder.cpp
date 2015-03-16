@@ -582,14 +582,14 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
         
             if ( opcode == YL_NEXT )
             {
-                assign( v, o );
+                assign( node->sloc, v, o );
             }
             else
             {
                 yssa_opinst* select = op( node->sloc, YSSA_SELECT, 1, 1 );
                 select->operand[ 0 ] = o;
                 select->select = (int)i;
-                assign( v, select );
+                assign( node->sloc, v, select );
             }
         }
     }
@@ -630,7 +630,13 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
         for ( size_t i = 0; i < node->lvalues.size(); ++i )
         {
             yssa_opinst* o = selects.at( i );
-            assign_lvalue( node->lvalues.at( i ), lvalues.at( i ), o );
+            assign_lvalue
+            (
+                node->sloc,
+                node->lvalues.at( i ),
+                lvalues.at( i ),
+                o
+            );
         }
         
         // Pop lvalues.
@@ -1003,12 +1009,12 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
                 assert( cstmt->lvalue->kind == YL_EXPR_LOCAL );
                 yl_expr_local* local = (yl_expr_local*)cstmt->lvalue;
                 yssa_variable* v = variable( local->name );
-                assign( v, e );
+                assign( cstmt->sloc, v, e );
             }
             else if ( cstmt->lvalue )
             {
                 size_t lvalue = push_lvalue( cstmt->lvalue );
-                assign_lvalue( cstmt->lvalue, lvalue, e );
+                assign_lvalue( cstmt->sloc, cstmt->lvalue, lvalue, e );
                 pop_lvalue( cstmt->lvalue, lvalue );
             }
             
@@ -1352,7 +1358,7 @@ int yssa_builder::visit( yl_expr_preop* node, int count )
     o->operand[ 1 ]->number = 1.0;;
     
     // perform assignment.
-    assign_lvalue( node->lvalue, lvalue, o );
+    o = assign_lvalue( node->sloc, node->lvalue, lvalue, o );
     
     // push updated value onto stack.
     pop_lvalue( node->lvalue, lvalue );
@@ -1375,7 +1381,7 @@ int yssa_builder::visit( yl_expr_postop* node, int count )
     
     // perform assignment (which might clobber the original value).
     size_t ovalue = push_op( o->operand[ 0 ] );
-    assign_lvalue( node->lvalue, lvalue, o );
+    assign_lvalue( node->sloc, node->lvalue, lvalue, o );
     
     // push original value onto stack.
     yssa_opinst* value = nullptr;
@@ -1601,7 +1607,7 @@ int yssa_builder::visit( yl_expr_compare* node, int count )
         if ( result )
         {
             pop( index, 1, &o );
-            assign( result, o );
+            o = assign( node->sloc, result, o );
         }
         
         // No shortcut after last comparison in chain.
@@ -1664,7 +1670,7 @@ int yssa_builder::visit( yl_expr_logical* node, int count )
         size_t operand = push( node->lhs, 1 );
         yssa_opinst* value = nullptr;
         pop( operand, 1, &value );
-        assign( result, value );
+        value = assign( node->sloc, result, value );
         
         // Only continue to next block if lhs is true.
         yssa_block* lhs_block = block;
@@ -1678,7 +1684,7 @@ int yssa_builder::visit( yl_expr_logical* node, int count )
         // Evaluate right hand side.
         operand = push( node->rhs, 1 );
         pop( operand, 1, &value );
-        assign( result, value );
+        assign( node->sloc, result, value );
 
         // Link in the shortcut.
         if ( lhs_block )
@@ -1720,7 +1726,7 @@ int yssa_builder::visit( yl_expr_logical* node, int count )
         size_t operand = push( node->lhs, 1 );
         yssa_opinst* value = nullptr;
         pop( operand, 1, &value );
-        assign( result, value );
+        value = assign( node->sloc, result, value );
         
         // Only continue to next block if lhs is false.
         yssa_block* lhs_block = block;
@@ -1734,7 +1740,7 @@ int yssa_builder::visit( yl_expr_logical* node, int count )
         // Evaluate right hand side.
         operand = push( node->rhs, 1 );
         pop( operand, 1, &value );
-        assign( result, value );
+        assign( node->sloc, result, value );
 
         // Link in the shortcut.
         if ( lhs_block )
@@ -1791,7 +1797,7 @@ int yssa_builder::visit( yl_expr_qmark* node, int count )
     // Evaluate true branch.
     operand = push( node->iftrue, 1 );
     pop( operand, 1, &value );
-    assign( result, value );
+    assign( node->sloc, result, value );
     
     yssa_block* true_block = block;
 
@@ -1805,7 +1811,7 @@ int yssa_builder::visit( yl_expr_qmark* node, int count )
     // Evaluate false branch.
     operand = push( node->iffalse, 1 );
     pop( operand, 1, &value );
-    assign( result, value );
+    assign( node->sloc, result, value );
     
     yssa_block* false_block = block;
     
@@ -1875,7 +1881,7 @@ int yssa_builder::visit( yl_new_object* node, int count )
     // Declare object (as it can potentially be referenced as an upval).
     open_scope( nullptr );
     yssa_variable* object = varobj( node );
-    assign( object, o );
+    assign( node->sloc, object, o );
     
     // Execute all member initializers.
     for ( size_t i = 0; i < node->members.size(); ++i )
@@ -2140,7 +2146,7 @@ int yssa_builder::visit( yl_expr_assign* node, int count )
         }
         
         // Assign.
-        assign( v, value );
+        value = assign( node->sloc, v, value );
         
         // Push value onto stack as result.
         push_op( value );
@@ -2153,7 +2159,7 @@ int yssa_builder::visit( yl_expr_assign* node, int count )
         size_t rvalue = push( node->rvalue, 1 );            // lv, rv
         yssa_opinst* value = nullptr;
         pop( rvalue, 1, &value );
-        assign_lvalue( node->lvalue, lvalue, value );
+        value = assign_lvalue( node->sloc, node->lvalue, lvalue, value );
         pop_lvalue( node->lvalue, lvalue );
         
         // Push result value onto stack as result.
@@ -2167,7 +2173,7 @@ int yssa_builder::visit( yl_expr_assign* node, int count )
         size_t evalue = push_evalue( node->lvalue, lvalue );    // lv, ev
         push( node->rvalue, 1 );                                // lv, ev, rv
         yssa_opinst* o = assign_op( node->sloc, node->assignop, evalue );
-        assign_lvalue( node->lvalue, lvalue, o );
+        o = assign_lvalue( node->sloc, node->lvalue, lvalue, o );
         pop_lvalue( node->lvalue, lvalue );
         
         // Push result value onto stack as result.
@@ -2203,7 +2209,7 @@ int yssa_builder::visit( yl_expr_assign_list* node, int count )
             yssa_variable* v = variable( local->name );
             
             // Rvalue is on stack.
-            assign( v, peek( rvalues, i ) );
+            assign( node->sloc, v, peek( rvalues, i ) );
         }
 
         // Pop values.
@@ -2247,6 +2253,7 @@ int yssa_builder::visit( yl_expr_assign_list* node, int count )
         {
             assign_lvalue
             (
+                node->sloc,
                 node->lvalues.at( i ),
                 lvalues.at( i ),
                 peek( rvalues, i )
@@ -2305,7 +2312,13 @@ int yssa_builder::visit( yl_expr_assign_list* node, int count )
             
             // Perform assignment.
             yssa_opinst* o = assign_op( node->sloc, node->assignop, operands );
-            assign_lvalue( node->lvalues.at( i ), lvalues.at( i ), o );
+            o = assign_lvalue
+            (
+                node->sloc,
+                node->lvalues.at( i ),
+                lvalues.at( i ),
+                o
+            );
             push_op( o );
         }
         assert( stack.size() == ovalues + node->lvalues.size() );
@@ -2531,6 +2544,136 @@ yssa_variable* yssa_builder::temporary( const char* name, int sloc )
 
 
 
+
+yssa_opinst* yssa_builder::assign(
+                int sloc, yssa_variable* variable, yssa_opinst* value )
+{
+    if ( value->variable )
+    {
+        // The definition was already a definition of another variable.
+        // One op can't define two variables, so the new definition is
+        // a move from the previous one.
+        yssa_opinst* move = op( sloc, YL_MOV, 1, 1 );
+        move->operand[ 0 ] = value;
+        value = move;
+    }
+
+    // This op is a definition of the variable.
+    value->variable = variable;
+    
+    // Record the definition as the latest definition in the current block.
+    if ( block )
+    {
+        block->definitions[ variable ] = value;
+    }
+    
+    return value;
+}
+
+
+
+
+
+void yssa_builder::call( yssa_opinst* callop )
+{
+    /*
+        Any call or yield instruction must implicitly reference all active
+        upvals, and also clobbers them (we can't prove whether or not they
+        are written to by the function being called), so any references to
+        them that are on the virtual stack must be replaced with temporaries.
+    */
+    
+    // Add implicit reference to all active upvals (since they could be
+    // referenced by anything in the function).
+    if ( localups.size() )
+    {
+        yssa_opinst* o = op( callop->sloc, YSSA_IMPLICIT, localups.size(), 0 );
+        o->associated = callop;
+        for ( size_t i = 0; i < localups.size(); ++i )
+        {
+            yssa_variable* localup = localups.at( i );
+            o->operand[ i ] = lookup( localup );
+        }
+    }
+    
+    // Clobber all local upvals (since they could be written by anything
+    // in the function).
+    for ( size_t i = 0; i < localups.size(); ++i )
+    {
+        clobber( localups.at( i ) );
+    }
+    
+}
+
+
+void yssa_builder::clobber( yssa_variable* v )
+{
+    /*
+        Something (potentially) changed the value of v with a new definition.
+        Any definition of v which is on the stack must be replaced with an
+        explicit load, at the point where the value was pushed, to ensure that
+        no two definitions of the same variable are live at the same time.
+    */
+    
+    yssa_opinst* load = nullptr;
+    yssa_opinst* load_value = nullptr;
+    stack_entry* load_entry = nullptr;
+    
+    for ( size_t i = 0; i < stack.size(); ++i )
+    {
+        stack_entry& sentry = stack.at( i );
+
+        // Locations of other values in the same block will have moved now
+        // we have inserted a load.
+        if ( load_entry
+                && sentry.block == load_entry->block
+                && sentry.index >= load_entry->index )
+        {
+            sentry.index += 1;
+        }
+
+        if ( sentry.value->variable != v )
+        {
+            continue;
+        }
+        
+        // Potentially create load.  The oldest copy of the variable
+        // definition will be lowest in the stack.
+        if ( ! load )
+        {
+            // Create load.
+            void* p = module->alloc.malloc(
+                    sizeof( yssa_opinst ) + sizeof( yssa_opinst* ) * 1 );
+            load = new ( p ) yssa_opinst( sentry.value->sloc, YL_MOV, 1, 1 );
+            load->operand[ 0 ] = sentry.value;
+            
+            // Insert at point where the value was pushed.
+            sentry.block->ops.insert
+            (
+                sentry.block->ops.begin() + sentry.index,
+                load
+            );
+            
+            // Remember this value.
+            load_value = sentry.value;
+            load_entry = &sentry;
+        }
+        else
+        {
+            // All definitions of v at this point should be the same.
+            assert( sentry.value == load_value );
+        }
+        
+        // Replace value on stack with the new temporary.
+        sentry.value = load;
+    }
+    
+}
+
+
+
+
+
 /*
     Virtual stack.
 */
@@ -2750,8 +2893,8 @@ size_t yssa_builder::push_evalue( yl_ast_node* lvalue, size_t index )
     }
 }
 
-void yssa_builder::assign_lvalue(
-                yl_ast_node* lvalue, size_t index, yssa_opinst* value )
+yssa_opinst* yssa_builder::assign_lvalue(
+        int sloc, yl_ast_node* lvalue, size_t index, yssa_opinst* value )
 {
     switch ( lvalue->kind )
     {
@@ -2759,8 +2902,7 @@ void yssa_builder::assign_lvalue(
     {
         yl_expr_local* local = (yl_expr_local*)lvalue;
         yssa_variable* v = variable( local->name );
-        assign( v, value );
-        break;
+        return assign( sloc, v, value );
     }
     
     case YL_EXPR_GLOBAL:
@@ -2769,7 +2911,7 @@ void yssa_builder::assign_lvalue(
         yssa_opinst* o = op( global->sloc, YL_SETGLOBAL, 1, 0 );
         o->operand[ 0 ] = value;
         o->key = module->alloc.strdup( global->name );
-        break;
+        return value;
     }
     
     case YL_EXPR_UPREF:
@@ -2778,7 +2920,7 @@ void yssa_builder::assign_lvalue(
         yssa_opinst* o = op( lvalue->sloc, YL_SETUP, 1, 0 );
         o->operand[ 0 ] = value;
         o->a = upref->index;
-        break;
+        return value;
     }
     
     case YL_EXPR_KEY:
@@ -2788,7 +2930,7 @@ void yssa_builder::assign_lvalue(
         o->operand[ 0 ] = peek( index, 0 );
         o->operand[ 1 ] = value;
         o->key = module->alloc.strdup( keyexpr->key );
-        break;
+        return value;
     }
     
     case YL_EXPR_INKEY:
@@ -2797,7 +2939,7 @@ void yssa_builder::assign_lvalue(
         o->operand[ 0 ] = peek( index, 0 );
         o->operand[ 1 ] = peek( index, 1 );
         o->operand[ 2 ] = value;
-        break;
+        return value;
     }
     
     case YL_EXPR_INDEX:
@@ -2806,12 +2948,12 @@ void yssa_builder::assign_lvalue(
         o->operand[ 0 ] = peek( index, 0 );
         o->operand[ 1 ] = peek( index, 1 );
         o->operand[ 2 ] = value;
-        break;
+        return value;
     }
         
     default:
         assert( ! "invalid lvalue" );
-        break;
+        return value;
     }
 }
 

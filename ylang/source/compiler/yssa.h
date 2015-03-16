@@ -81,6 +81,7 @@
 #include <stdint.h>
 #include <memory>
 #include <vector>
+#include <unordered_map>
 #include <region.h>
 #include "yl_diagnostics.h"
 
@@ -244,6 +245,7 @@ struct yssa_block
     yssa_block*                 next;       // Next block (if condition passes).
     yssa_block*                 fail;       // Next block if condition fails.
     yssa_block*                 xchandler;  // Exception handler block.
+    std::unordered_map< yssa_variable*, yssa_opinst* > definitions;
 };
 
 

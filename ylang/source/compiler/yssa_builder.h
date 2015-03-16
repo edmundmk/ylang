@@ -195,11 +195,12 @@ private:
     yssa_variable* varobj( yl_new_object* object );
     yssa_variable* temporary( const char* name, int sloc );
     
-    void assign( yssa_variable* variable, yssa_opinst* value );
+    yssa_opinst* assign( int sloc, yssa_variable* variable, yssa_opinst* value );
     yssa_opinst* lookup( yssa_variable* variable );
-    void call( yssa_opinst* callop ); // implicit ref/clobber upvals
-
     void seal_block( yssa_block* block );
+
+    void call( yssa_opinst* callop );
+    void clobber( yssa_variable* v );
 
 
     // Virtual stack.
@@ -213,7 +214,8 @@ private:
     
     size_t push_lvalue( yl_ast_node* lvalue );
     size_t push_evalue( yl_ast_node* lvalue, size_t index );
-    void assign_lvalue( yl_ast_node* lvalue, size_t index, yssa_opinst* value );
+    yssa_opinst* assign_lvalue(
+            int sloc, yl_ast_node* lvalue, size_t index, yssa_opinst* value );
     void pop_lvalue( yl_ast_node* lvalue, size_t index );
 
 
