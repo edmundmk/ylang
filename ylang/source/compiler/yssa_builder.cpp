@@ -937,7 +937,6 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
         open_scope( nullptr, xccatch.get() );
     }
     
-    yssa_block* entry_block = block;
     if ( block && ( node->fstmt || node->clist.size() ) )
     {
         block = next_block();
@@ -2602,12 +2601,12 @@ yssa_opinst* yssa_builder::assign(
     without finding a definition then the variable is undefined (this is
     an error).  If we reach a block we have already visited, then the
     definition found on that path is the same definition that reaches the
-    already-visible block.
+    already-visited block.
 */
 
 
-static yssa_opinst* YSSA_UNDEF = nullptr;
-static yssa_opinst YSSA_SELF( -1, YL_NOP, 0, 0 );
+static yssa_opinst* YSSA_UNDEF  = (yssa_opinst*)-1;
+static yssa_opinst* YSSA_SELF   = (yssa_opinst*)-2;
 
 
 
@@ -2638,7 +2637,7 @@ yssa_opinst* yssa_builder::lookup_block(
     // Check if we have visited this block already on our search.
     if ( block->flags & YSSA_LOOKUP )
     {
-        return &YSSA_SELF;
+        return YSSA_SELF;
     }
     
     
@@ -2646,11 +2645,20 @@ yssa_opinst* yssa_builder::lookup_block(
     if ( block->flags & YSSA_UNSEALED )
     {
         yssa_opinst* incomplete = make_op( -1, YSSA_REF, 1, 1 );
+        incomplete->variable = variable;
         block->phi.push_back( incomplete );
         block->definitions.emplace( variable, incomplete );
         return incomplete;
     }
-    
+    else
+    {
+        return lookup_seal( block, variable );
+    }
+}
+
+yssa_opinst* yssa_builder::lookup_seal(
+                yssa_block* block, yssa_variable* variable )
+{
     
     // If the variable is live in an exception handler block, mark it.
     if ( block->flags & YSSA_XCHANDLER )
@@ -2680,12 +2688,97 @@ yssa_opinst* yssa_builder::lookup_block(
         return YSSA_UNDEF;
     }
     
+
+    // Mark this block to prevent infinite recursion in lookups.
+    block->flags |= YSSA_LOOKUP;
+
+    
+    // If there is only one predecessor then continue search.
+    if ( block->prev.size() == 1 )
+    {
+        yssa_opinst* def = lookup_block( block->prev.at( 0 ), variable );
+        block->flags &= ~YSSA_LOOKUP;
+        return def;
+    }
     
     
+    // Find which definition reaches each incoming edge.
+    yssa_opinst* sole_def = YSSA_SELF;
+    std::vector< yssa_opinst* > defs;
+    defs.reserve( block->prev.size() );
+    for ( size_t i = 0; i < block->prev.size(); ++i )
+    {
+        yssa_opinst* def = lookup_block( block->prev.at( i ), variable );
+        
+        // If any definition is undefined, so is the entire thing.
+        if ( def == YSSA_UNDEF )
+        {
+            block->flags &= ~YSSA_LOOKUP;
+            return YSSA_UNDEF;
+        }
+        
+        // If all of the defs are the same, or YSSA_SELF, then that's the
+        // sole definition which reaches this point.
+        if ( sole_def == YSSA_SELF )
+        {
+            sole_def = def;
+        }
+        
+        if ( sole_def != def )
+        {
+            sole_def = nullptr;
+        }
+    
+        // Add to the list of definitions.
+        defs.push_back( def );
+    }
+    
+    
+    // Done with lookups.
+    block->flags &= ~YSSA_LOOKUP;
+    
+    
+    // Return sole def if the phi-function collapsed.
+    if ( sole_def == YSSA_SELF )
+    {
+        return YSSA_UNDEF;
+    }
+    
+    if ( sole_def )
+    {
+        return sole_def;
+    }
+    
+    
+    // Create phi function.
+    yssa_opinst* phi = make_op( -1, YSSA_PHI, defs.size(), 1 );
+    for ( size_t i = 0; i < defs.size(); ++i )
+    {
+        yssa_opinst* def = defs.at( i );
+        if ( def != YSSA_SELF )
+        {
+            phi->operand[ i ] = def;
+        }
+        else
+        {
+            phi->operand[ i ] = phi;
+        }
+    }
+    block->phi.push_back( phi );
+    return phi;
 }
 
 void yssa_builder::seal_block( yssa_block* block )
 {
+    assert( block->flags & YSSA_UNSEALED );
+    
+    for ( size_t i = 0; i < block->phi.size(); ++i )
+    {
+        yssa_opinst* ref = block->phi.at( i );
+        assert( ref->opcode == YSSA_REF );
+        ref->operand[ 0 ] = lookup_seal( block, ref->variable );
+        block->phi[ i ] = ref->operand[ 0 ];
+    }
 }
 
 
