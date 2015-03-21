@@ -937,6 +937,7 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
         open_scope( nullptr, xccatch.get() );
     }
     
+    yssa_block* entry_block = block;
     if ( block && ( node->fstmt || node->clist.size() ) )
     {
         block = next_block();
@@ -1033,6 +1034,13 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
     if ( node->fstmt )
     {
         close_scope( node->sloc, nullptr );
+
+        if ( block )
+        {
+            finally_jumps.push_back( block );
+            block = nullptr;
+        }
+
         block = xcfinally.get();
         function->blocks.push_back( std::move( xcfinally ) );
     }
@@ -2428,16 +2436,21 @@ void yssa_builder::link_block( yssa_block* prev, link_kind kind, yssa_block* nex
     Emitting instructions.
 */
 
-yssa_opinst* yssa_builder::op(
+yssa_opinst* yssa_builder::make_op(
         int sloc, uint8_t opcode, uint8_t operand_count, uint8_t result_count )
 {
     // Allocate op from memory region.
     void* p = module->alloc.malloc(
             sizeof( yssa_opinst ) + sizeof( yssa_opinst* ) * operand_count );
-    yssa_opinst* op = new ( p ) yssa_opinst(
-            sloc, opcode, operand_count, result_count );
-    
-    // Add to current block.
+    return new ( p ) yssa_opinst( sloc, opcode, operand_count, result_count );
+}
+
+
+yssa_opinst* yssa_builder::op(
+        int sloc, uint8_t opcode, uint8_t operand_count, uint8_t result_count )
+{
+    // Create op and add to current block.
+    yssa_opinst* op = make_op( sloc, opcode, operand_count, result_count );
     if ( block )
     {
         block->ops.push_back( op );
@@ -2570,6 +2583,110 @@ yssa_opinst* yssa_builder::assign(
     return value;
 }
 
+
+
+/*
+    Some inspiration taken from:
+
+    Simple and Efficient Construction of Static Single Assignment Form
+        Braun, Sebastian Buchwald, et al.
+
+    http://www.cdl.uni-saarland.de/papers/bbhlmz13cc.pdf
+*/
+
+
+/*
+    When a variable is referenced, we must find the definition that reaches
+    the point of the reference.  We search predecessor blocks recursively,
+    adding phi functions as necessary.  If we reach a block with no ancestors
+    without finding a definition then the variable is undefined (this is
+    an error).  If we reach a block we have already visited, then the
+    definition found on that path is the same definition that reaches the
+    already-visible block.
+*/
+
+
+static yssa_opinst* YSSA_UNDEF = nullptr;
+static yssa_opinst YSSA_SELF( -1, YL_NOP, 0, 0 );
+
+
+
+yssa_opinst* yssa_builder::lookup( yssa_variable* variable )
+{
+    // Lookup the variable.
+    if ( block )
+    {
+        return lookup_block( block, variable );
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+yssa_opinst* yssa_builder::lookup_block(
+                yssa_block* block, yssa_variable* variable )
+{
+    // Check for a local definition.
+    auto i = block->definitions.find( variable );
+    if ( i != block->definitions.end() )
+    {
+        return i->second;
+    }
+    
+    
+    // Check if we have visited this block already on our search.
+    if ( block->flags & YSSA_LOOKUP )
+    {
+        return &YSSA_SELF;
+    }
+    
+    
+    // If it's an unsealed block, then we can't proceed, add an incomplete phi.
+    if ( block->flags & YSSA_UNSEALED )
+    {
+        yssa_opinst* incomplete = make_op( -1, YSSA_REF, 1, 1 );
+        block->phi.push_back( incomplete );
+        block->definitions.emplace( variable, incomplete );
+        return incomplete;
+    }
+    
+    
+    // If the variable is live in an exception handler block, mark it.
+    if ( block->flags & YSSA_XCHANDLER )
+    {
+        variable->xcref = true;
+        
+        // If it has no predecessors then the only way to enter
+        // this block is with an exception.  Use YSSA_VAR to indicate
+        // that the current value of the variable should be used.
+        if ( block->prev.empty() )
+        {
+            yssa_opinst* var = make_op( -1, YSSA_VAR, 0, 1 );
+            var->variable = variable;
+            block->phi.push_back( var );
+            block->definitions.emplace( variable, var );
+            return var;
+        }
+        
+        // Otherwise there should be at least one definition of the
+        // variable reaching this block.
+    }
+    
+    
+    // If the block has no predecessors then the name is undefined.
+    if ( block->prev.empty() )
+    {
+        return YSSA_UNDEF;
+    }
+    
+    
+    
+}
+
+void yssa_builder::seal_block( yssa_block* block )
+{
+}
 
 
 

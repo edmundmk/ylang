@@ -123,11 +123,13 @@ struct yssa_module
 
 enum yssa_opcode
 {
-    YSSA_PARAM          = 0x80,     // Select parameter (numbered from 0).
-    YSSA_SELECT         = 0x81,     // Select a single result from an op.
-    YSSA_PHI            = 0x82,     // SSA phi-function.
-    YSSA_IMPLICIT       = 0x83,     // Implicit reference to variable.
-    YSSA_ITERDONE       = 0x84,     // Returns true if iterator b is done.
+    YSSA_PARAM      = 0x80,     // Select parameter (numbered from 0).
+    YSSA_SELECT     = 0x81,     // Select a single result from an op.
+    YSSA_IMPLICIT   = 0x82,     // Implicit reference to variable.
+    YSSA_ITERDONE   = 0x83,     // Returns true if iterator b is done.
+    YSSA_PHI        = 0x84,     // SSA phi-function.
+    YSSA_REF        = 0x85,     // Used for incomplete phis and references.
+    YSSA_VAR        = 0x86,     // Variable values on entry to catch block.
 };
 
 
@@ -225,9 +227,10 @@ struct yssa_function
 
 enum yssa_block_flags
 {
-    YSSA_LOOP                   = 0x0001,
-    YSSA_XCHANDLER              = 0x0002,
-    YSSA_UNSEALED               = 0x0004,
+    YSSA_LOOP       = 0x0001,
+    YSSA_XCHANDLER  = 0x0002,
+    YSSA_UNSEALED   = 0x0004,
+    YSSA_LOOKUP     = 0x0008,
 };
 
 
