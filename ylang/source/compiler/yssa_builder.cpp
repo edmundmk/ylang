@@ -1537,7 +1537,7 @@ int yssa_builder::visit( yl_expr_binary* node, int count )
         break;
     }
 
-    yssa_opinst* o = op( node->sloc, YL_MUL, 2, 1 );
+    yssa_opinst* o = op( node->sloc, opcode, 2, 1 );
     pop( operands, 2, o->operand );
     push_op( o );
     return 1;
