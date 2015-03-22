@@ -1385,12 +1385,15 @@ int yssa_builder::visit( yl_expr_preop* node, int count )
     size_t lvalue = push_lvalue( node->lvalue );            // lv
     size_t evalue = push_evalue( node->lvalue, lvalue );    // lv, ev
 
+    // No increment/decrement opcode so do add/sub 1.0
+    yssa_opinst* n = op( node->sloc, YL_NUMBER, 0, 1 );
+    n->number = 1.0;
+
     // perform operation.
     yl_opcode opcode = ( node->opkind == YL_ASTOP_PREINC ) ? YL_ADD : YL_SUB;
     yssa_opinst* o = op( node->sloc, opcode, 2, 1 );
     pop( evalue, 1, o->operand );
-    o->operand[ 1 ] = op( node->sloc, YL_NUMBER, 0, 1 );
-    o->operand[ 1 ]->number = 1.0;;
+    o->operand[ 1 ] = n;
     
     // perform assignment.
     o = assign_lvalue( node->sloc, node->lvalue, lvalue, o );
@@ -1407,12 +1410,15 @@ int yssa_builder::visit( yl_expr_postop* node, int count )
     size_t lvalue = push_lvalue( node->lvalue );            // lv
     size_t evalue = push_evalue( node->lvalue, lvalue );    // lv, ev
     
+    // No increment/decrement opcode so do add/sub 1.0
+    yssa_opinst* n = op( node->sloc, YL_NUMBER, 0, 1 );
+    n->number = 1.0;
+
     // perform operation
     yl_opcode opcode = ( node->opkind == YL_ASTOP_POSTINC ) ? YL_ADD : YL_SUB;
     yssa_opinst* o = op( node->sloc, opcode, 2, 1 );
     pop( evalue, 1, o->operand );
-    o->operand[ 1 ] = op( node->sloc, YL_NUMBER, 0, 1 );
-    o->operand[ 1 ]->number = 1.0;;
+    o->operand[ 1 ] = n;
     
     // perform assignment (which might clobber the original value).
     size_t ovalue = push_op( o->operand[ 0 ] );
@@ -2783,6 +2789,7 @@ yssa_opinst* yssa_builder::lookup_block(
     
     // Create phi function.
     yssa_opinst* phi = make_op( -1, YSSA_PHI, defs.size(), 1 );
+    phi->variable = variable;
     for ( size_t i = 0; i < defs.size(); ++i )
     {
         yssa_opinst* def = defs.at( i );
