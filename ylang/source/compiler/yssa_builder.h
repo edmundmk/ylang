@@ -196,6 +196,7 @@ private:
     yssa_variable* varobj( yl_new_object* object );
     yssa_variable* temporary( const char* name, int sloc );
     
+    yssa_opinst* declare( int sloc, yssa_variable* variable, yssa_opinst* value );
     yssa_opinst* assign( int sloc, yssa_variable* variable, yssa_opinst* value );
     yssa_opinst* lookup( yssa_variable* variable );
     yssa_opinst* lookup_block( yssa_block* block, yssa_variable* variable );
@@ -211,7 +212,7 @@ private:
     size_t push_all( yl_ast_node* expression, int* count );
     size_t push( yl_ast_node* expression, int count );
     size_t push_op( yssa_opinst* op );
-    void push_select( int sloc, yssa_opinst* selop, int count );
+    int push_select( int sloc, yssa_opinst* selop, int count );
     void pop( size_t index, int count, yssa_opinst** ops );
     yssa_opinst* peek( size_t index, size_t i );
     

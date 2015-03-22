@@ -75,8 +75,8 @@ void yssa_builder::build( yl_ast_func* astf )
     {
         yl_ast_name* param = astf->parameters.at( i );
         yssa_opinst* o = op( param->sloc, YSSA_PARAM, 0, 1 );
-        o->variable = variable( param );
         o->select = (int)i;
+        declare( param->sloc, variable( param ), o );
     }
 
     
@@ -587,14 +587,14 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
         
             if ( opcode == YL_NEXT )
             {
-                assign( node->sloc, v, o );
+                declare( node->sloc, v, o );
             }
             else
             {
                 yssa_opinst* select = op( node->sloc, YSSA_SELECT, 1, 1 );
                 select->operand[ 0 ] = o;
                 select->select = (int)i;
-                assign( node->sloc, v, select );
+                declare( node->sloc, v, select );
             }
         }
     }
@@ -1015,7 +1015,7 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
                 assert( cstmt->lvalue->kind == YL_EXPR_LOCAL );
                 yl_expr_local* local = (yl_expr_local*)cstmt->lvalue;
                 yssa_variable* v = variable( local->name );
-                assign( cstmt->sloc, v, e );
+                declare( cstmt->sloc, v, e );
             }
             else if ( cstmt->lvalue )
             {
@@ -1884,17 +1884,25 @@ int yssa_builder::visit( yl_new_new* node, int count )
 int yssa_builder::visit( yl_new_object* node, int count )
 {
     // Evaluate prototype.
-    size_t operand = push( node->proto, 1 );
+    yssa_opinst* o = nullptr;
+    if ( node->proto )
+    {
+        size_t operand = push( node->proto, 1 );
+        o = op( node->sloc, YL_OBJECT, 1, 1 );
+        pop( operand, 1, o->operand );
+    }
+    else
+    {
+        o = op( node->sloc, YL_OBJECT, 0, 1 );
+    }
     
-    // Create object using prototype.
-    yssa_opinst* o = op( node->sloc, YL_OBJECT, 1, 1 );
-    pop( operand, 1, o->operand );
-    operand = push_op( o );
+    // Push object onto virtual stack.
+    push_op( o );
     
     // Declare object (as it can potentially be referenced as an upval).
     open_scope( nullptr );
     yssa_variable* object = varobj( node );
-    assign( node->sloc, object, o );
+    declare( node->sloc, object, o );
     
     // Execute all member initializers.
     for ( size_t i = 0; i < node->members.size(); ++i )
@@ -2038,8 +2046,7 @@ int yssa_builder::visit( yl_expr_call* node, int count )
     call( c );
     
     // Return results appropriately on the stack.
-    push_select( node->sloc, c, count );
-    return count;
+    return push_select( node->sloc, c, count );
 }
 
 int yssa_builder::visit( yl_expr_yield* node, int count )
@@ -2062,8 +2069,7 @@ int yssa_builder::visit( yl_expr_yield* node, int count )
     call( y );
     
     // Return results appropriately on the stack.
-    push_select( node->sloc, y, count );
-    return count;
+    return push_select( node->sloc, y, count );
 }
 
 int yssa_builder::visit( yl_expr_vararg* node, int count )
@@ -2071,26 +2077,28 @@ int yssa_builder::visit( yl_expr_vararg* node, int count )
     if ( count != 0 )
     {
         yssa_opinst* o = op( node->sloc, YL_VARARG, 0, count );
-        push_select( node->sloc, o, count );
+        return push_select( node->sloc, o, count );
     }
-    return count;
+    else
+    {
+        return 0;
+    }
 }
 
 int yssa_builder::visit( yl_expr_unpack* node, int count )
 {
-    size_t operand = push( node->array, 1 );
     if ( count != 0 )
     {
+        size_t operand = push( node->array, 1 );
         yssa_opinst* o = op( node->sloc, YL_UNPACK, 1, count );
         pop( operand, 1, o->operand );
-        push_select( node->sloc, o, count );
+        return push_select( node->sloc, o, count );
     }
     else
     {
-        yssa_opinst* value = nullptr;
-        pop( operand, 1, &value );
+        execute( node->array );
+        return 0;
     }
-    return count;
 }
 
 int yssa_builder::visit( yl_expr_list* node, int count )
@@ -2159,7 +2167,7 @@ int yssa_builder::visit( yl_expr_assign* node, int count )
         }
         
         // Assign.
-        value = assign( node->sloc, v, value );
+        value = declare( node->sloc, v, value );
         
         // Push value onto stack as result.
         push_op( value );
@@ -2222,7 +2230,7 @@ int yssa_builder::visit( yl_expr_assign_list* node, int count )
             yssa_variable* v = variable( local->name );
             
             // Rvalue is on stack.
-            assign( node->sloc, v, peek( rvalues, i ) );
+            declare( node->sloc, v, peek( rvalues, i ) );
         }
 
         // Pop values.
@@ -2515,11 +2523,6 @@ yssa_variable* yssa_builder::variable( yl_ast_name* name )
     v->localup  = name->upval ? localups.size() : yl_opinst::NOVAL;
     v->r        = 0;
     
-    if ( name->upval )
-    {
-        localups.push_back( v );
-    }
-    
     variables.emplace( name, v );
     return v;
 }
@@ -2536,13 +2539,8 @@ yssa_variable* yssa_builder::varobj( yl_new_object* object )
     v->name     = "[object]";
     v->sloc     = object->sloc;
     v->xcref    = false; // Not (yet) referenced from an exception handler.
-    v->localup  = object->upval ? localups.size() : 0;
+    v->localup  = object->upval ? localups.size() : yl_opinst::NOVAL;
     v->r        = 0;
-    
-    if ( object->upval )
-    {
-        localups.push_back( v );
-    }
     
     variables.emplace( object, v );
     return v;
@@ -2561,6 +2559,19 @@ yssa_variable* yssa_builder::temporary( const char* name, int sloc )
 
 
 
+
+yssa_opinst* yssa_builder::declare(
+                int sloc, yssa_variable* variable, yssa_opinst* value )
+{
+    // Upvals exist from their declaration to the end of the closing scope.
+    if ( variable->localup != yl_opinst::NOVAL )
+    {
+        localups.push_back( variable );
+    }
+
+    // Otherwise acts like an ordinary assignment.
+    return assign( sloc, variable, value );
+}
 
 
 yssa_opinst* yssa_builder::assign(
@@ -2658,13 +2669,19 @@ yssa_opinst* yssa_builder::lookup_block(
     }
     else
     {
-        return lookup_seal( block, variable );
+        yssa_opinst* phi = lookup_seal( block, variable );
+        assert( phi != YSSA_UNDEF );
+        assert( phi != YSSA_SELF );
+        block->phi.push_back( phi );
+        return phi;
     }
 }
 
 yssa_opinst* yssa_builder::lookup_seal(
                 yssa_block* block, yssa_variable* variable )
 {
+    assert( !( block->flags & YSSA_UNSEALED ) );
+    
     
     // If the variable is live in an exception handler block, mark it.
     if ( block->flags & YSSA_XCHANDLER )
@@ -2770,21 +2787,27 @@ yssa_opinst* yssa_builder::lookup_seal(
             phi->operand[ i ] = phi;
         }
     }
-    block->phi.push_back( phi );
     return phi;
 }
 
 void yssa_builder::seal_block( yssa_block* block )
 {
     assert( block->flags & YSSA_UNSEALED );
+    block->flags &= ~YSSA_UNSEALED;
     
     for ( size_t i = 0; i < block->phi.size(); ++i )
     {
         yssa_opinst* ref = block->phi.at( i );
         assert( ref->opcode == YSSA_REF );
-        ref->operand[ 0 ] = lookup_seal( block, ref->variable );
-        block->phi[ i ] = ref->operand[ 0 ];
+        
+        yssa_opinst* phi = lookup_seal( block, ref->variable );
+        assert( phi != YSSA_UNDEF );
+        assert( phi != YSSA_SELF );
+        
+        ref->operand[ 0 ] = phi;
+        block->phi[ i ] = phi;
     }
+    
 }
 
 
@@ -2908,7 +2931,14 @@ void yssa_builder::execute( yl_ast_node* statement )
 size_t yssa_builder::push_all( yl_ast_node* expression, int* count )
 {
     size_t result = stack.size();
-    *count = visit( expression, -1 );
+    if ( expression )
+    {
+        *count = visit( expression, -1 );
+    }
+    else
+    {
+        *count = 0;
+    }
     return result;
 }
 
@@ -2960,15 +2990,17 @@ size_t yssa_builder::push_op( yssa_opinst* o )
     return result;
 }
 
-void yssa_builder::push_select( int sloc, yssa_opinst* selop, int count )
+int yssa_builder::push_select( int sloc, yssa_opinst* selop, int count )
 {
     if ( count == -1 )
     {
         multival = selop;
+        return 0;
     }
     else if ( count == 1 )
     {
         push_op( selop );
+        return 1;
     }
     else
     {
@@ -2979,6 +3011,7 @@ void yssa_builder::push_select( int sloc, yssa_opinst* selop, int count )
             o->select = i;
             push_op( o );
         }
+        return count;
     }
 }
 

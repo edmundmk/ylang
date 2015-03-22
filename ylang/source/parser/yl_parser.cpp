@@ -125,6 +125,7 @@ void yl_parser::parameter( const char* param )
     }
 
     // Add name.
+    region_scope rscope( root->alloc );
     param = root->alloc.strdup( param );
     yl_ast_name* name = alloc< yl_ast_name >(
                     -1, root->function->scope, param );

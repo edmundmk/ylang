@@ -1,0 +1,23 @@
+
+
+switch ( 4 )
+{
+//    printf( "xx" );
+
+default:
+case 2:
+    printf( "2" );
+    break;
+
+case 3:
+case 4:
+    printf( "q" );
+case 5:
+    printf( "r" );
+    break;
+
+//    printf( "n" );
+//    break;
+}
+
+

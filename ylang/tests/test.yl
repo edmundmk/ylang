@@ -1,0 +1,166 @@
+def assert( check )
+{
+    if ( ! check )
+    {
+        printf( "check failed!\n" );
+    }
+}
+
+
+def process( ... ) {}
+
+
+var sword = {};
+var op = 0x343043;
+var MOP = 4;
+var MA = 4;
+var MB = 4;
+var SA = 4;
+var SB = 4;
+var i_need_more_i = true;
+
+def silver_sword : sword
+{
+    var description = "Those who play with the devil's toys will "
+            "be brought by degrees to wield his sword.";
+    var bonus;
+    def damage();
+}
+
+def silver_sword.damage()
+{
+    return roll( "3d8" ) + bonus;
+}
+
+
+//var bindings = [];
+//for ( var element : list )
+//{
+//    list.append( ?() { return element.invoke(); } );
+//}
+
+
+def unpack( op )
+{
+    return op & MOP, ( op & MA ) >> SA, ( op & MB ) >> SB; 
+}
+
+var a, b, c = unpack( op ) ...;
+var abc = [ unpack( op ) ... ];
+
+process( a, b, c );
+process( abc[] ... );
+process( unpack( op ) ... );
+
+
+var i = 0;
+for ( var i = 4; i < 20; ++i )
+{
+    printf( "hello %g\n", i );
+
+    if ( i_need_more_i )
+    {
+        var i = 30;
+    }
+    assert( i >= 4 && i < 20 );
+}
+assert( i == 0 );
+
+
+var type = null;
+type = "ok";
+//typo = null; // !!! error - typo hasn't been declared
+
+def global.global_function() { return "ok"; }
+global.global_variable = "ok";
+
+
+var mapping = {};
+mapping[ "length" ] = 5;
+assert( mapping.length() == 1 );
+assert( mapping.[ "length" ] is function );
+mapping.[ "length" ] = ?() { return 200; };
+assert( mapping.length() == 200 );
+
+
+assert( 5 is number );
+assert( true is boolean );
+assert( "hello" is string );
+
+
+var list = [ "a", "b", "c" ];
+for ( var item : list )
+{
+    printf( item );
+    printf( "\n" );
+}
+
+
+var map = { "p" : 4, "q" : 9, "zz" : 324, "ii" : 0.5 };
+for ( var key, value : map )
+{
+    printf( key );
+    printf( " : " );
+    printf( "%g\n", value );
+}
+
+
+def base
+{
+    def method()
+    {
+        printf( "got here!\n" );
+    }
+}
+
+def derived : base
+{
+    var q = 432;
+    var intensity = "hello";
+    var not_really_here;
+
+    def method()
+    {
+        printf( "went there!\n" );
+        super.method();
+    }
+}
+
+assert( superof( derived ) == base );
+assert( superof( base ) == object );
+assert( superof( assert ) == function );
+assert( superof( function ) == object );
+assert( superof( object ) == null );
+assert( superof( false ) == boolean );
+assert( superof( 532 ) == number );
+assert( superof( "goodbye" ) == string );
+assert( superof( number ) == object );
+
+
+derived.method();
+
+for ( var key, value :: derived )
+{
+    printf( key );
+    printf( " = " );
+    if ( value is number )
+    {
+        printf( "%g", value );
+    }
+    else if ( value is string )
+    {
+        printf( value );
+    }
+    else if ( value is function )
+    {
+        printf( "<function>" );
+    }
+
+    printf( "\n" );
+}
+
+
+printf( "done!\n" );
+
+
+

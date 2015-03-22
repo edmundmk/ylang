@@ -20,8 +20,6 @@
 		4B6FDAB41AA654AE001096B0 /* yl_parser_lemon.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B6FDAA41AA654AE001096B0 /* yl_parser_lemon.h */; };
 		4B6FDAB51AA654AE001096B0 /* yl_token.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDAA81AA654AE001096B0 /* yl_token.cpp */; };
 		4B6FDAB61AA654AE001096B0 /* yl_token.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B6FDAA91AA654AE001096B0 /* yl_token.h */; };
-		4B6FDABA1AA657A2001096B0 /* yl_compile_visitor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDAB81AA657A2001096B0 /* yl_compile_visitor.cpp */; };
-		4B6FDABB1AA657A2001096B0 /* yl_compile_visitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B6FDAB91AA657A2001096B0 /* yl_compile_visitor.h */; };
 		4B6FDABD1AA65C6C001096B0 /* yl_string.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDABC1AA65C6C001096B0 /* yl_string.cpp */; };
 		4B6FDAD21AA66ABF001096B0 /* yl_context.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDAD11AA66ABF001096B0 /* yl_context.cpp */; };
 		4B6FDE801AA7A0B7001096B0 /* yl_compile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDE7F1AA7A0B7001096B0 /* yl_compile.cpp */; };
@@ -66,6 +64,14 @@
 		4B4176F51AA503DD00C014EB /* yl_object.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_object.h; sourceTree = "<group>"; };
 		4B4176F61AA5040300C014EB /* yl_heap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_heap.h; sourceTree = "<group>"; };
 		4B4231461ABE25580065BDAF /* yssa_print.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yssa_print.cpp; sourceTree = "<group>"; };
+		4B4231491ABF39AC0065BDAF /* fannkuch-redux.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fannkuch-redux.lua"; sourceTree = "<group>"; };
+		4B42314A1ABF39AC0065BDAF /* fannkuch-redux.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = "fannkuch-redux.py"; sourceTree = "<group>"; };
+		4B42314B1ABF39AC0065BDAF /* fannkuch-redux.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fannkuch-redux.yl"; sourceTree = "<group>"; };
+		4B42314C1ABF39AC0065BDAF /* n-body.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "n-body.lua"; sourceTree = "<group>"; };
+		4B42314D1ABF39AC0065BDAF /* n-body.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = "n-body.py"; sourceTree = "<group>"; };
+		4B42314E1ABF39AC0065BDAF /* n-body.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "n-body.yl"; sourceTree = "<group>"; };
+		4B42314F1ABF39AC0065BDAF /* switch.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = switch.yl; sourceTree = "<group>"; };
+		4B4231501ABF39AC0065BDAF /* test.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.yl; sourceTree = "<group>"; };
 		4B6FDA981AA5AA83001096B0 /* yl_string.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_string.h; sourceTree = "<group>"; };
 		4B6FDA9A1AA654AE001096B0 /* yl_ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_ast.cpp; sourceTree = "<group>"; };
 		4B6FDA9B1AA654AE001096B0 /* yl_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_ast.h; sourceTree = "<group>"; };
@@ -81,8 +87,6 @@
 		4B6FDAA71AA654AE001096B0 /* yl_parser_ragel.rl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = yl_parser_ragel.rl; sourceTree = "<group>"; };
 		4B6FDAA81AA654AE001096B0 /* yl_token.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_token.cpp; sourceTree = "<group>"; };
 		4B6FDAA91AA654AE001096B0 /* yl_token.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_token.h; sourceTree = "<group>"; };
-		4B6FDAB81AA657A2001096B0 /* yl_compile_visitor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_compile_visitor.cpp; sourceTree = "<group>"; };
-		4B6FDAB91AA657A2001096B0 /* yl_compile_visitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_compile_visitor.h; sourceTree = "<group>"; };
 		4B6FDABC1AA65C6C001096B0 /* yl_string.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_string.cpp; sourceTree = "<group>"; };
 		4B6FDAD11AA66ABF001096B0 /* yl_context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_context.cpp; sourceTree = "<group>"; };
 		4B6FDADA1AA66B65001096B0 /* yl_compile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_compile.h; sourceTree = "<group>"; };
@@ -119,6 +123,21 @@
 			path = runtime;
 			sourceTree = "<group>";
 		};
+		4B4231481ABF39AC0065BDAF /* tests */ = {
+			isa = PBXGroup;
+			children = (
+				4B4231491ABF39AC0065BDAF /* fannkuch-redux.lua */,
+				4B42314A1ABF39AC0065BDAF /* fannkuch-redux.py */,
+				4B42314B1ABF39AC0065BDAF /* fannkuch-redux.yl */,
+				4B42314C1ABF39AC0065BDAF /* n-body.lua */,
+				4B42314D1ABF39AC0065BDAF /* n-body.py */,
+				4B42314E1ABF39AC0065BDAF /* n-body.yl */,
+				4B42314F1ABF39AC0065BDAF /* switch.yl */,
+				4B4231501ABF39AC0065BDAF /* test.yl */,
+			);
+			path = tests;
+			sourceTree = "<group>";
+		};
 		4B6FDA991AA654AE001096B0 /* parser */ = {
 			isa = PBXGroup;
 			children = (
@@ -143,8 +162,6 @@
 		4B6FDAB71AA657A2001096B0 /* compiler */ = {
 			isa = PBXGroup;
 			children = (
-				4B6FDAB81AA657A2001096B0 /* yl_compile_visitor.cpp */,
-				4B6FDAB91AA657A2001096B0 /* yl_compile_visitor.h */,
 				4B6FDE7F1AA7A0B7001096B0 /* yl_compile.cpp */,
 				4B6FDE841AA855C0001096B0 /* yssa.cpp */,
 				4B6FDE831AA7B621001096B0 /* yssa.h */,
@@ -172,6 +189,7 @@
 			children = (
 				4B78BEC31A8DF47000918400 /* include */,
 				4BCF3D5A1A85709800B9AB3A /* source */,
+				4B4231481ABF39AC0065BDAF /* tests */,
 				4BCF3D531A856FF500B9AB3A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -207,7 +225,6 @@
 				4B6FDAB41AA654AE001096B0 /* yl_parser_lemon.h in Headers */,
 				4B6FDAB61AA654AE001096B0 /* yl_token.h in Headers */,
 				4B6FDAB11AA654AE001096B0 /* yl_diagnostics.h in Headers */,
-				4B6FDABB1AA657A2001096B0 /* yl_compile_visitor.h in Headers */,
 				4B4176F21AA3849C00C014EB /* yl_code.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -276,7 +293,6 @@
 				4B6FDABD1AA65C6C001096B0 /* yl_string.cpp in Sources */,
 				4B6FDAB51AA654AE001096B0 /* yl_token.cpp in Sources */,
 				4B6FDE851AA855C0001096B0 /* yssa.cpp in Sources */,
-				4B6FDABA1AA657A2001096B0 /* yl_compile_visitor.cpp in Sources */,
 				4B4231471ABE25580065BDAF /* yssa_print.cpp in Sources */,
 				4B6FDAAA1AA654AE001096B0 /* yl_ast.cpp in Sources */,
 				4B6FDAB21AA654AE001096B0 /* yl_parser.cpp in Sources */,

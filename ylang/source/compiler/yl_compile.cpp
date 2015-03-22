@@ -7,6 +7,7 @@
 
 
 #include "yl_compile.h"
+#include <stdarg.h>
 #include "yl_diagnostics.h"
 #include "yl_parser.h"
 #include "yl_ast.h"
@@ -14,12 +15,22 @@
 
 
 
-yl_invoke yl_compile( const char* path )
+yl_invoke yl_compile( const char* path, size_t paramc, const char* paramv[] )
 {
     yl_diagnostics diagnostics;
 
     // Parse the source file.
     yl_parser parser( &diagnostics );
+    
+    for ( size_t i = 0; i < paramc; ++i )
+    {
+        const char* param = paramv[ i ];
+        if ( strcmp( param, "..." ) != 0 )
+            parser.parameter( param );
+        else
+            parser.varargs();
+    }
+    
     if ( parser.parse( path ) )
     {
         yl_ast_p ast = parser.get_ast();
