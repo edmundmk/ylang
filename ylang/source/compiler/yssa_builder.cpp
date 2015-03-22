@@ -53,6 +53,10 @@ bool yssa_builder::build( yl_ast* ast )
 }
 
 
+yssa_module_p yssa_builder::get_module()
+{
+    return std::move( module );
+}
 
 
 
