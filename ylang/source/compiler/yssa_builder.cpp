@@ -1198,6 +1198,8 @@ int yssa_builder::visit( yl_stmt_return* node, int count )
     o->multival = multival;
     multival = nullptr;
     
+    block = nullptr;
+    
     return 0;
 }
 

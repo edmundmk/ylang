@@ -32,12 +32,13 @@ void yssa_print_function( yssa_function* f )
     {
         yssa_print_block( f->blocks.at( i ).get() );
     }
+    printf( "\n" );
 }
 
 
 void yssa_print_block( yssa_block* b )
 {
-    printf( "%p :", b );
+    printf( "-- %p", b );
     if ( b->flags & YSSA_LOOP )
         printf( " loop" );
     if ( b->flags & YSSA_XCHANDLER )
@@ -224,7 +225,16 @@ const yssa_disasm disasm;
 
 void yssa_print_opinst( yssa_opinst* o )
 {
-    printf( "[%2d] %2d ", o->r, o->result_count );
+    printf( "[%2d] ", o->r );
+    
+    if ( o->result_count != yl_opinst::MARK )
+    {
+        printf( "%2d ", o->result_count );
+    }
+    else
+    {
+        printf( "** " );
+    }
 
     const char* disasm = ::disasm.lookup( o->opcode );
     for ( const char* c = disasm; c[ 0 ] != '\0'; ++c )
@@ -272,6 +282,10 @@ void yssa_print_opinst( yssa_opinst* o )
                 
                 case 's':
                     printf( "\"%*s\"", (int)o->string->length, o->string->string );
+                    break;
+                    
+                case 'f':
+                    printf( "%s", o->function->funcname );
                     break;
             }
         }
