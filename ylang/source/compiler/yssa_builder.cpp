@@ -543,6 +543,7 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
     yssa_opinst* o = op( node->sloc, opcode, 1, 0 );
     pop( operand, 1, o->operand );
     size_t iterindex = itercount;
+    o->r = iterindex;
     itercount += 1;
     
     // Goto entry.
@@ -666,6 +667,7 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
     
     // Perform loop check.
     o = op( node->sloc, YSSA_ITERDONE, 0, 0 );
+    o->b = iterindex;
     
     if ( block )
     {
@@ -2506,7 +2508,7 @@ yssa_variable* yssa_builder::variable( yl_ast_name* name )
     v->name     = module->alloc.strdup( name->name );
     v->sloc     = name->sloc;
     v->xcref    = false; // Not (yet) referenced from an exception handler.
-    v->localup  = name->upval ? localups.size() : 0;
+    v->localup  = name->upval ? localups.size() : yl_opinst::NOVAL;
     v->r        = 0;
     
     if ( name->upval )

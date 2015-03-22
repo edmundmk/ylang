@@ -29,6 +29,8 @@ yl_invoke yl_compile( const char* path )
         yssa_builder builder( &diagnostics );
         builder.build( ast.get() );
 
+        // And write it out.
+        yssa_print( builder.get_module().get() );
     }
     
     

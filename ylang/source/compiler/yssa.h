@@ -253,6 +253,11 @@ struct yssa_block
 
 
 
+/*
+    SSA printing.
+*/
+
+void yssa_print( yssa_module* module );
 
 
 
