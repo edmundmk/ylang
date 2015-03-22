@@ -1827,7 +1827,7 @@ int yssa_builder::visit( yl_expr_qmark* node, int count )
     yssa_block* test_block = block;
     if ( block )
     {
-        assert( block->test = nullptr );
+        assert( block->test == nullptr );
         block->test = value;
         block = next_block();
     }
@@ -1855,6 +1855,7 @@ int yssa_builder::visit( yl_expr_qmark* node, int count )
     assign( node->sloc, result, value );
     
     yssa_block* false_block = block;
+    block = nullptr;
     
     // Final block.
     if ( true_block || false_block )
@@ -2756,31 +2757,29 @@ yssa_opinst* yssa_builder::lookup_block(
         
         // If all of the defs are the same, or YSSA_SELF, then that's the
         // sole definition which reaches this point.
-        if ( sole_def == YSSA_SELF )
+        if ( def != YSSA_SELF )
         {
-            sole_def = def;
-        }
-        
-        if ( sole_def != def )
-        {
-            sole_def = nullptr;
+            if ( sole_def == YSSA_SELF )
+            {
+                sole_def = def;
+            }
+            
+            if ( sole_def != def )
+            {
+                sole_def = nullptr;
+            }
         }
     
         // Add to the list of definitions.
         defs.push_back( def );
     }
-    
+
     
     // Done with lookups.
     block->flags &= ~YSSA_LOOKUP;
     
     
     // Return sole definition if the phi-function collapsed.
-    if ( sole_def == YSSA_SELF )
-    {
-        return YSSA_UNDEF;
-    }
-    
     if ( sole_def )
     {
         return sole_def;
