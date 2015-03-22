@@ -64,10 +64,20 @@ void yssa_builder::build( yl_ast_func* astf )
 {
     function = funcmap.at( astf );
     
+    assert( stack.empty() );
+    assert( scopes.empty() );
+    assert( localups.empty() );
+    assert( itercount == 0 );
+
+
     // Create entry block.
     yssa_block_p entry_block = std::make_unique< yssa_block >();
     block = entry_block.get();
     function->blocks.push_back( std::move( entry_block ) );
+
+
+    // Enter scope.
+    open_scope( astf->scope );
     
     
     // Add parameter ops.
@@ -82,6 +92,16 @@ void yssa_builder::build( yl_ast_func* astf )
     
     // Visit the block.
     visit( astf->block, 0 );
+
+
+    // Close scope.
+    close_scope( astf->sloc, astf->scope );
+
+
+    assert( stack.empty() );
+    assert( scopes.empty() );
+    assert( localups.empty() );
+    assert( itercount == 0 );
 
 }
 
