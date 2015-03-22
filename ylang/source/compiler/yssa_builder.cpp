@@ -2687,22 +2687,8 @@ yssa_opinst* yssa_builder::lookup_block(
         block->definitions.emplace( variable, incomplete );
         return incomplete;
     }
-    else
-    {
-        yssa_opinst* phi = lookup_seal( block, variable );
-        assert( phi != YSSA_UNDEF );
-        assert( phi != YSSA_SELF );
-        block->phi.push_back( phi );
-        return phi;
-    }
-}
-
-yssa_opinst* yssa_builder::lookup_seal(
-                yssa_block* block, yssa_variable* variable )
-{
-    assert( !( block->flags & YSSA_UNSEALED ) );
     
-    
+        
     // If the variable is live in an exception handler block, mark it.
     if ( block->flags & YSSA_XCHANDLER )
     {
@@ -2781,7 +2767,7 @@ yssa_opinst* yssa_builder::lookup_seal(
     block->flags &= ~YSSA_LOOKUP;
     
     
-    // Return sole def if the phi-function collapsed.
+    // Return sole definition if the phi-function collapsed.
     if ( sole_def == YSSA_SELF )
     {
         return YSSA_UNDEF;
@@ -2807,25 +2793,42 @@ yssa_opinst* yssa_builder::lookup_seal(
             phi->operand[ i ] = phi;
         }
     }
+    block->phi.push_back( phi );
+    block->definitions.emplace( variable, phi );
     return phi;
 }
 
 void yssa_builder::seal_block( yssa_block* block )
 {
+    // Seal block.
     assert( block->flags & YSSA_UNSEALED );
     block->flags &= ~YSSA_UNSEALED;
     
-    for ( size_t i = 0; i < block->phi.size(); ++i )
+    // Remove existing phi ops (which should all be refs).
+    std::vector< yssa_opinst* > refs;
+    std::swap( block->phi, refs );
+    
+    for ( size_t i = 0; i < refs.size(); ++i )
     {
-        yssa_opinst* ref = block->phi.at( i );
+        yssa_opinst* ref = refs.at( i );
         assert( ref->opcode == YSSA_REF );
         
-        yssa_opinst* phi = lookup_seal( block, ref->variable );
+        // Remove current definition.
+        yssa_opinst* def = block->definitions.at( ref->variable );
+        block->definitions.erase( ref->variable );
+        
+        // Perform real lookup now that the block is sealed.
+        yssa_opinst* phi = lookup_block( block, ref->variable );
         assert( phi != YSSA_UNDEF );
         assert( phi != YSSA_SELF );
-        
         ref->operand[ 0 ] = phi;
-        block->phi[ i ] = phi;
+        
+        // If the existing definition was the ref, lookup should find
+        // the phi op in the future.
+        if ( def == ref )
+        {
+            block->definitions[ ref->variable ] = phi;
+        }
     }
     
 }

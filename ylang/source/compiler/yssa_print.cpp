@@ -63,7 +63,7 @@ void yssa_print_block( yssa_block* b )
     }
     for ( size_t i = 0; i < b->ops.size(); ++i )
     {
-        yssa_opinst* o = b->phi.at( i );
+        yssa_opinst* o = b->ops.at( i );
         printf( "%p : ", o );
         yssa_print_opinst( o );
     }
