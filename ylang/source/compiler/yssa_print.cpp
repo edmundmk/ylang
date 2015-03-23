@@ -297,7 +297,15 @@ void yssa_print_opinst( yssa_opinst* o )
     
     for ( size_t i = 0; i < o->operand_count; ++i )
     {
-        printf( " %p", o->operand[ i ] );
+        yssa_opinst* operand = o->operand[ i ];
+        if ( operand->opcode != YSSA_REF )
+        {
+            printf( " %p", operand );
+        }
+        else
+        {
+            printf( " %p->%p", operand, operand->operand[ 0 ] );
+        }
     }
     
     if ( o->opcode == YL_RETURN || o->opcode == YL_EXTEND
@@ -306,7 +314,15 @@ void yssa_print_opinst( yssa_opinst* o )
     {
         if ( o->multival )
         {
-            printf( " %p ... ", o->multival );
+            if ( o->multival->opcode != YSSA_REF )
+            {
+                printf( " %p ... ", o->multival );
+            }
+            else
+            {
+                printf( " %p->%p ... ",
+                        o->multival, o->multival->operand[ 0 ] );
+            }
         }
     }
     

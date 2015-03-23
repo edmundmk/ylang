@@ -2661,7 +2661,7 @@ yssa_opinst* yssa_builder::lookup( yssa_variable* variable )
     // Lookup the variable.
     if ( block )
     {
-        return lookup_block( block, variable );
+        return lookup_block( block, variable, nullptr );
     }
     else
     {
@@ -2670,13 +2670,21 @@ yssa_opinst* yssa_builder::lookup( yssa_variable* variable )
 }
 
 yssa_opinst* yssa_builder::lookup_block(
-                yssa_block* block, yssa_variable* variable )
+        yssa_block* block, yssa_variable* variable, yssa_opinst* open_ref )
 {
     // Check for a local definition.
     auto i = block->definitions.find( variable );
     if ( i != block->definitions.end() )
     {
-        return i->second;
+        yssa_opinst* def = i->second;
+
+        // Resolved references are transparent.
+        while ( def->opcode == YSSA_REF && def->operand[ 0 ] )
+        {
+            def = def->operand[ 0 ];
+        }
+
+        return def;
     }
     
     
@@ -2734,7 +2742,7 @@ yssa_opinst* yssa_builder::lookup_block(
     // If there is only one predecessor then continue search.
     if ( block->prev.size() == 1 )
     {
-        yssa_opinst* def = lookup_block( block->prev.at( 0 ), variable );
+        yssa_opinst* def = lookup_block( block->prev.at( 0 ), variable, open_ref );
         block->flags &= ~YSSA_LOOKUP;
         return def;
     }
@@ -2746,7 +2754,7 @@ yssa_opinst* yssa_builder::lookup_block(
     defs.reserve( block->prev.size() );
     for ( size_t i = 0; i < block->prev.size(); ++i )
     {
-        yssa_opinst* def = lookup_block( block->prev.at( i ), variable );
+        yssa_opinst* def = lookup_block( block->prev.at( i ), variable, open_ref );
         
         // If any definition is undefined, so is the entire thing.
         if ( def == YSSA_UNDEF )
@@ -2756,8 +2764,9 @@ yssa_opinst* yssa_builder::lookup_block(
         }
         
         // If all of the defs are the same, or YSSA_SELF, then that's the
-        // sole definition which reaches this point.
-        if ( def != YSSA_SELF )
+        // sole definition which reaches this point.  Treat any reference to
+        // the open ref as YSSA_SELF.
+        if ( def != YSSA_SELF && def != open_ref )
         {
             if ( sole_def == YSSA_SELF )
             {
@@ -2825,11 +2834,17 @@ void yssa_builder::seal_block( yssa_block* block )
         yssa_opinst* def = block->definitions.at( ref->variable );
         block->definitions.erase( ref->variable );
         
-        // Perform real lookup now that the block is sealed.
-        yssa_opinst* phi = lookup_block( block, ref->variable );
+        // Perform real lookup now that the block is sealed.  Pass in the
+        // open ref, because any lookup which finds that value should be
+        // treated as if lookup revisited this block (similar to YSSA_SELF).
+        yssa_opinst* phi = lookup_block( block, ref->variable, ref );
         assert( phi != YSSA_UNDEF );
         assert( phi != YSSA_SELF );
-        ref->operand[ 0 ] = phi;
+        
+        if ( phi != ref )
+        {
+            ref->operand[ 0 ] = phi;
+        }
         
         // If the existing definition was the ref, lookup should find
         // the phi op in the future.

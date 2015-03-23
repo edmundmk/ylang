@@ -199,7 +199,7 @@ private:
     yssa_opinst* declare( int sloc, yssa_variable* variable, yssa_opinst* value );
     yssa_opinst* assign( int sloc, yssa_variable* variable, yssa_opinst* value );
     yssa_opinst* lookup( yssa_variable* variable );
-    yssa_opinst* lookup_block( yssa_block* block, yssa_variable* variable );
+    yssa_opinst* lookup_block( yssa_block* block, yssa_variable* variable, yssa_opinst* open_ref );
     void seal_block( yssa_block* block );
 
     void call( yssa_opinst* callop );
