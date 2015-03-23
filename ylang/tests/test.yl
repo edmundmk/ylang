@@ -21,6 +21,7 @@ var i_need_more_i = true;
 
 def silver_sword : sword
 {
+    var a, b = 1, 2;
     var description = "Those who play with the devil's toys will "
             "be brought by degrees to wield his sword.";
     var bonus;
@@ -29,6 +30,7 @@ def silver_sword : sword
 
 def silver_sword.damage()
 {
+    printf( "%s", description );
     return roll( "3d8" ) + bonus;
 }
 
@@ -79,7 +81,7 @@ var mapping = {};
 mapping[ "length" ] = 5;
 assert( mapping.length() == 1 );
 assert( mapping.[ "length" ] is function );
-mapping.[ "length" ] = ?() { return 200; };
+mapping.[ "length" ] = ^() { return 200; };
 assert( mapping.length() == 200 );
 
 

@@ -97,6 +97,10 @@ void yssa_builder::build( yl_ast_func* astf )
     // Close scope.
     close_scope( astf->sloc, astf->scope );
 
+    
+    // Each function must end with a return statement.
+    op( astf->sloc, YL_RETURN, 0, 0 );
+
 
     assert( stack.empty() );
     assert( scopes.empty() );
@@ -173,6 +177,7 @@ int yssa_builder::visit( yl_stmt_if* node, int count )
 
     yssa_block* test_next = block;
     yssa_block* test_fail = block;
+    block = nullptr;
 
     
     // True branch.
@@ -188,6 +193,7 @@ int yssa_builder::visit( yl_stmt_if* node, int count )
     }
     
     yssa_block* true_block = block;
+    block = nullptr;
 
     // False branch.
     if ( node->iffalse )
@@ -202,6 +208,7 @@ int yssa_builder::visit( yl_stmt_if* node, int count )
     }
     
     yssa_block* false_block = block;
+    block = nullptr;
     
     // Final block.
     if ( test_next || test_fail || true_block || false_block )
@@ -572,6 +579,7 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
     
     // Goto entry.
     yssa_block* entry_block = block;
+    block = nullptr;
     
     // Declare body scope, for upvals contained in the body.  We continue
     // into a scope that contains the iterator.
@@ -690,13 +698,20 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
     }
     
     // Perform loop check.
-    o = op( node->sloc, YSSA_ITERDONE, 0, 0 );
+    o = op( node->sloc, YSSA_ITEREACH, 0, 0 );
     o->b = iterindex;
     
     if ( block )
     {
         assert( block->test == nullptr );
         block->test = o;
+        
+        if ( body_block )
+        {
+            link_block( block, NEXT, body_block );
+        }
+        
+        block = fail_block();
     }
 
     // Link continue.
@@ -2016,8 +2031,8 @@ int yssa_builder::visit( yl_expr_call* node, int count )
     }
     
     // Check for method call.
-    size_t function = 0;
-    int funcount = 0;
+    size_t function;
+    int funcount;
     switch ( node->function->kind )
     {
     case YL_EXPR_KEY:
@@ -2029,7 +2044,7 @@ int yssa_builder::visit( yl_expr_call* node, int count )
         yssa_opinst* o = op( knode->sloc, YL_KEY, 1, 1 );
         pop( operand, 1, o->operand );
         o->key = module->alloc.strdup( knode->key );
-        push_op( o );
+        function = push_op( o );
         
         // Push the object onto the virtual stack as the 'this' parameter.
         push_op( o->operand[ 0 ] );
@@ -2046,7 +2061,7 @@ int yssa_builder::visit( yl_expr_call* node, int count )
         push( knode->key, 1 );
         yssa_opinst* o = op( knode->sloc, YL_INKEY, 2, 1 );
         pop( operands, 2, o->operand );
-        push_op( o );
+        function = push_op( o );
         
         // Push the object onto virtual stack as the 'this' parameter.
         push_op( o->operand[ 0 ] );
@@ -2837,7 +2852,7 @@ void yssa_builder::seal_block( yssa_block* block )
         // Perform real lookup now that the block is sealed.  Pass in the
         // open ref, because any lookup which finds that value should be
         // treated as if lookup revisited this block (similar to YSSA_SELF).
-        yssa_opinst* phi = lookup_block( block, ref->variable, ref );
+        yssa_opinst* phi = lookup_block( block, ref->variable, ref );    
         assert( phi != YSSA_UNDEF );
         assert( phi != YSSA_SELF );
         

@@ -191,7 +191,7 @@ public:
         add( YSSA_PARAM,    "param %i" );
         add( YSSA_SELECT,   "select %i" );
         add( YSSA_IMPLICIT, "implicit (%t)" );
-        add( YSSA_ITERDONE, "iterdone %b" );
+        add( YSSA_ITEREACH, "itereach %b" );
         add( YSSA_PHI,      "phi" );
         add( YSSA_REF,      "ref" );
         add( YSSA_VAR,      "var" );

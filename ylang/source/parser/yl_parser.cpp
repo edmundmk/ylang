@@ -403,9 +403,9 @@ yl_ast_func* yl_parser::function( int sloc, yl_ast_node* name,
     else
     {
         if ( dot )
-            func->funcname = ".?";
+            func->funcname = ".^";
         else
-            func->funcname = "?";
+            func->funcname = "^";
     }
     
     
@@ -437,9 +437,9 @@ void yl_parser::var( int sloc, yl_ast_node* names, yl_ast_node* rvals )
                 return;
             
             yl_expr_assign* assign = alloc< yl_expr_assign >(
-                            sloc, YL_ASTOP_DECLARE );
+                            sloc, YL_ASTOP_ASSIGN );
             yl_expr_objref* objref = alloc< yl_expr_objref >( sloc, object );
-            assign->lvalue = alloc< yl_expr_key> ( sloc, objref, n->name );
+            assign->lvalue = alloc< yl_expr_key > ( sloc, objref, n->name );
             assign->rvalue = rvals;
             object->members.push_back( assign );
         }
@@ -456,7 +456,7 @@ void yl_parser::var( int sloc, yl_ast_node* names, yl_ast_node* rvals )
                 return;
          
             yl_expr_assign_list* assign = alloc< yl_expr_assign_list >(
-                            sloc, YL_ASTOP_DECLARE );
+                            sloc, YL_ASTOP_ASSIGN );
             for ( size_t i = 0; i < l->names.size(); ++i )
             {
                 yl_name_name* n = l->names[ i ];
@@ -1129,16 +1129,17 @@ void yl_parser::declname( int sloc, yl_ast_node* name, yl_ast_node* decl )
         // Single names declare things.
         yl_name_name* n = (yl_name_name*)name;
         yl_ast_name* declname = declare( n->sloc, n->name );
-        assign->assignop = YL_ASTOP_DECLARE;
         
         if ( object )
         {
+            assign->assignop = YL_ASTOP_ASSIGN;
             const char* s = declname->name;
             yl_expr_objref* objref = alloc< yl_expr_objref >( sloc, object );
             assign->lvalue = alloc< yl_expr_key >( sloc, objref, s );
         }
         else
         {
+            assign->assignop = YL_ASTOP_DECLARE;
             assign->lvalue = alloc< yl_expr_local >( sloc, declname );
         }
     }

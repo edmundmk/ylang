@@ -126,7 +126,7 @@ enum yssa_opcode
     YSSA_PARAM      = 0x80,     // Select parameter (numbered from 0).
     YSSA_SELECT     = 0x81,     // Select a single result from an op.
     YSSA_IMPLICIT   = 0x82,     // Implicit reference to variable.
-    YSSA_ITERDONE   = 0x83,     // Returns true if iterator b is done.
+    YSSA_ITEREACH   = 0x83,     // Returns true if iterator b has values.
     YSSA_PHI        = 0x84,     // SSA phi-function.
     YSSA_REF        = 0x85,     // Used for incomplete phis and references.
     YSSA_VAR        = 0x86,     // Variable values on entry to catch block.
