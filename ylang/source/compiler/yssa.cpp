@@ -17,7 +17,7 @@ yssa_opinst::yssa_opinst(
     ,   opcode( opcode )
     ,   operand_count( operand_count )
     ,   result_count( result_count )
-    ,   r( 0 )
+    ,   r( yl_opinst::NOVAL )
     ,   variable( nullptr )
     ,   number( 0.0 )
 {

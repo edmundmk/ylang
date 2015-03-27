@@ -55,16 +55,13 @@
             variable.  Values of variables clobbered by a new definition
             before the use are preserved using a load (a MOV op).  This
             load can be register-allocated like any other temporary value.
-     -  Each function call clobbers all live upvals, effectively redefining
-            them.  Any value of an upval the use of which spans a function
-            call must also be preserved with a load.
+     -  Each function call both implicitly uses and clobbers all live upvals,
+            keeping them alive and effectively redefining them.  Any value
+            of an upval the use of which spans a function call must also be
+            preserved with a load.
      -  Any variable that is referenced by an exception handler is live
-            throughout the entire protected scope.  No definition can be
-            eliminated - there is an implicit use of each definition by the
-            handler, which sits at the end of the protected scope.
-     -  Similarly, but less drastically, there is an implicit use of the
-            latest definition of each upval by each function call, preventing
-            elimination of (most) upval definitions.
+            throughout the entire protected scope.  No definition of such
+            a variable can be eliminated.
      -  phi-functions are present to allow use-def analysis, but must not
             merge definitions with overlapping live ranges, and consequently
             do not cause any moves in the final translation to VM code.
