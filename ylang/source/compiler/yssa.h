@@ -84,6 +84,7 @@
 #include <unordered_map>
 #include <region.h>
 #include "yl_diagnostics.h"
+#include "yl_code.h"
 
 
 struct yssa_module;
@@ -139,6 +140,23 @@ struct yssa_opinst
     
     yssa_opinst( int sloc, uint8_t opcode,
                     uint8_t operand_count, uint8_t result_count );
+
+    bool has_associated() const
+    {
+        return opcode == YL_UPLOCAL
+            || opcode == YL_UPUPVAL
+            || opcode == YSSA_IMPLICIT;
+    }
+    
+    bool has_multival() const
+    {
+        return opcode == YL_RETURN
+            || opcode == YL_EXTEND
+            || opcode == YL_CALL
+            || opcode == YL_YCALL
+            || opcode == YL_YIELD;
+    }
+    
 
     int sloc;
 

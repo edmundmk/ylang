@@ -12,6 +12,11 @@
 #include "yl_parser.h"
 #include "yl_ast.h"
 #include "yssa_builder.h"
+#include "yssa_constfold.h"
+
+
+
+static yl_invoke yl_compile_failure( const yl_diagnostics& diagnostics );
 
 
 
@@ -31,21 +36,34 @@ yl_invoke yl_compile( const char* path, size_t paramc, const char* paramv[] )
             parser.varargs();
     }
     
-    if ( parser.parse( path ) )
+    if ( ! parser.parse( path ) )
     {
-        yl_ast_p ast = parser.get_ast();
-        yl_ast_print( ast.get() );
-        
-        // Construct SSA form.
-        yssa_builder builder( &diagnostics );
-        builder.build( ast.get() );
-
-        // And write it out.
-        yssa_print( builder.get_module().get() );
+        return yl_compile_failure( diagnostics );
     }
     
+    yl_ast* ast = parser.get_ast();
+    yl_ast_print( ast );
     
-    // Report errors.
+    
+    // Construct SSA form.
+    yssa_builder builder( &diagnostics );
+    if ( ! builder.build( ast ) )
+    {
+        return yl_compile_failure( diagnostics );
+    }
+    
+    yssa_module* module = builder.get_module();
+    yssa_constfold( module );
+    yssa_print( module );
+
+
+    return yl_invoke();
+}
+
+
+
+yl_invoke yl_compile_failure( const yl_diagnostics& diagnostics )
+{
     for ( size_t i = 0; i < diagnostics.error_count(); ++i )
     {
         fprintf( stderr, "%s\n", diagnostics.error( i ) );
@@ -53,3 +71,6 @@ yl_invoke yl_compile( const char* path, size_t paramc, const char* paramv[] )
 
     return yl_invoke();
 }
+
+
+

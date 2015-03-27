@@ -61,12 +61,12 @@ void yl_diagnostics::error( int sloc, const char* format, ... )
     va_end( vlist );
 }
 
-size_t yl_diagnostics::error_count()
+size_t yl_diagnostics::error_count() const
 {
     return errors.size();
 }
 
-const char* yl_diagnostics::error( size_t index )
+const char* yl_diagnostics::error( size_t index ) const
 {
     return errors.at( index ).c_str();
 }

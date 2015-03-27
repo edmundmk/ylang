@@ -138,9 +138,9 @@ void yl_parser::varargs()
     root->function->varargs = true;
 }
 
-yl_ast_p yl_parser::get_ast()
+yl_ast* yl_parser::get_ast()
 {
-    return std::move( root );
+    return root.get();
 }
 
 

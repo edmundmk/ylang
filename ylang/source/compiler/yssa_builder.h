@@ -31,7 +31,7 @@ public:
     ~yssa_builder();
 
     bool                build( yl_ast* ast );
-    yssa_module_p       get_module();
+    yssa_module*        get_module();
 
 
 private:

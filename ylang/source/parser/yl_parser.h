@@ -42,7 +42,7 @@ public:
     void                parameter( const char* param );
     void                varargs();
     bool                parse( const char* path );
-    yl_ast_p            get_ast();
+    yl_ast*             get_ast();
     
     
 // lemon private:

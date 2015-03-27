@@ -308,35 +308,26 @@ void yssa_print_opinst( yssa_opinst* o )
         }
     }
     
-    if ( o->opcode == YL_RETURN || o->opcode == YL_EXTEND
-            || o->opcode == YL_CALL || o->opcode == YL_YCALL
-                    || o->opcode == YL_YIELD )
+    if ( o->has_multival() && o->multival )
     {
-        if ( o->multival )
+        if ( o->multival->opcode != YSSA_REF )
         {
-            if ( o->multival->opcode != YSSA_REF )
-            {
-                printf( " %p ... ", o->multival );
-            }
-            else
-            {
-                printf( " %p->%p ... ",
-                        o->multival, o->multival->operand[ 0 ] );
-            }
+            printf( " %p ... ", o->multival );
+        }
+        else
+        {
+            printf( " %p->%p ... ",
+                    o->multival, o->multival->operand[ 0 ] );
         }
     }
     
-    if ( o->opcode != YL_UPLOCAL &&
-            o->opcode != YL_UPUPVAL && o->opcode != YSSA_IMPLICIT )
+    if ( ! o->has_associated() && o->variable )
     {
-        if ( o->variable )
-        {
-            printf( " -> [%d] %s", o->variable->r, o->variable->name );
-            if ( o->variable->xcref )
-                printf( " xcref" );
-            if ( o->variable->localup != yl_opinst::NOVAL )
-                printf( " %d", o->variable->localup );
-        }
+        printf( " -> [%d] %s", o->variable->r, o->variable->name );
+        if ( o->variable->xcref )
+            printf( " xcref" );
+        if ( o->variable->localup != yl_opinst::NOVAL )
+            printf( " %d", o->variable->localup );
     }
     
     printf( "\n" );

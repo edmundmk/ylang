@@ -38,8 +38,8 @@ public:
     
     void            error( int sloc, const char* format, ... );
     
-    size_t          error_count();
-    const char*     error( size_t index );
+    size_t          error_count() const;
+    const char*     error( size_t index ) const;
 
     
 private:

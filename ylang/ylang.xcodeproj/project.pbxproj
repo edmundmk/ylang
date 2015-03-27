@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		4B4176F21AA3849C00C014EB /* yl_code.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4176F11AA3849C00C014EB /* yl_code.h */; };
 		4B4231471ABE25580065BDAF /* yssa_print.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4231461ABE25580065BDAF /* yssa_print.cpp */; };
+		4B4231531AC407C70065BDAF /* yssa_constfold.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4231511AC407C70065BDAF /* yssa_constfold.cpp */; };
+		4B4231541AC407C70065BDAF /* yssa_constfold.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4231521AC407C70065BDAF /* yssa_constfold.h */; };
 		4B6FDAAA1AA654AE001096B0 /* yl_ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDA9A1AA654AE001096B0 /* yl_ast.cpp */; };
 		4B6FDAAB1AA654AE001096B0 /* yl_ast.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B6FDA9B1AA654AE001096B0 /* yl_ast.h */; };
 		4B6FDAAC1AA654AE001096B0 /* yl_ast_print.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDA9C1AA654AE001096B0 /* yl_ast_print.cpp */; };
@@ -72,6 +74,8 @@
 		4B42314E1ABF39AC0065BDAF /* n-body.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "n-body.yl"; sourceTree = "<group>"; };
 		4B42314F1ABF39AC0065BDAF /* switch.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = switch.yl; sourceTree = "<group>"; };
 		4B4231501ABF39AC0065BDAF /* test.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.yl; sourceTree = "<group>"; };
+		4B4231511AC407C70065BDAF /* yssa_constfold.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yssa_constfold.cpp; sourceTree = "<group>"; };
+		4B4231521AC407C70065BDAF /* yssa_constfold.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yssa_constfold.h; sourceTree = "<group>"; };
 		4B6FDA981AA5AA83001096B0 /* yl_string.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_string.h; sourceTree = "<group>"; };
 		4B6FDA9A1AA654AE001096B0 /* yl_ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_ast.cpp; sourceTree = "<group>"; };
 		4B6FDA9B1AA654AE001096B0 /* yl_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_ast.h; sourceTree = "<group>"; };
@@ -168,6 +172,8 @@
 				4B4231461ABE25580065BDAF /* yssa_print.cpp */,
 				4B6FDE871AA8F1E6001096B0 /* yssa_builder.cpp */,
 				4B6FDE861AA8F1D2001096B0 /* yssa_builder.h */,
+				4B4231511AC407C70065BDAF /* yssa_constfold.cpp */,
+				4B4231521AC407C70065BDAF /* yssa_constfold.h */,
 			);
 			path = compiler;
 			sourceTree = "<group>";
@@ -220,6 +226,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4B6FDAAB1AA654AE001096B0 /* yl_ast.h in Headers */,
+				4B4231541AC407C70065BDAF /* yssa_constfold.h in Headers */,
 				4B6FDAAD1AA654AE001096B0 /* yl_ast_visitor.h in Headers */,
 				4B6FDAB31AA654AE001096B0 /* yl_parser.h in Headers */,
 				4B6FDAB41AA654AE001096B0 /* yl_parser_lemon.h in Headers */,
@@ -287,6 +294,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4B4231531AC407C70065BDAF /* yssa_constfold.cpp in Sources */,
 				4B6FDE811AA7B4D8001096B0 /* yl_parser_lemon.ly in Sources */,
 				4B6FDE821AA7B4D8001096B0 /* yl_parser_ragel.rl in Sources */,
 				4B6FDAD21AA66ABF001096B0 /* yl_context.cpp in Sources */,
