@@ -42,7 +42,7 @@ void yssa_print_block( yssa_block* b )
     if ( b->flags & YSSA_LOOP )
         printf( " loop" );
     if ( b->flags & YSSA_XCHANDLER )
-        printf( " xchandler [ %d %d ]", b->unwind_localups, b->unwind_itercount );
+        printf( " xchandler [ %d %d ]", b->xclocalups, b->xcitercount );
     if ( b->flags & YSSA_UNSEALED )
         printf( " unsealed" );
     if ( b->flags & YSSA_LOOKUP )

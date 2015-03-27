@@ -11,6 +11,8 @@
 		4B4231471ABE25580065BDAF /* yssa_print.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4231461ABE25580065BDAF /* yssa_print.cpp */; };
 		4B4231531AC407C70065BDAF /* yssa_constfold.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4231511AC407C70065BDAF /* yssa_constfold.cpp */; };
 		4B4231541AC407C70065BDAF /* yssa_constfold.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4231521AC407C70065BDAF /* yssa_constfold.h */; };
+		4B4231571AC4D9950065BDAF /* yssa_analyze.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4231551AC4D9950065BDAF /* yssa_analyze.cpp */; };
+		4B4231581AC4D9950065BDAF /* yssa_analyze.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4231561AC4D9950065BDAF /* yssa_analyze.h */; };
 		4B6FDAAA1AA654AE001096B0 /* yl_ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDA9A1AA654AE001096B0 /* yl_ast.cpp */; };
 		4B6FDAAB1AA654AE001096B0 /* yl_ast.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B6FDA9B1AA654AE001096B0 /* yl_ast.h */; };
 		4B6FDAAC1AA654AE001096B0 /* yl_ast_print.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDA9C1AA654AE001096B0 /* yl_ast_print.cpp */; };
@@ -76,6 +78,8 @@
 		4B4231501ABF39AC0065BDAF /* test.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.yl; sourceTree = "<group>"; };
 		4B4231511AC407C70065BDAF /* yssa_constfold.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yssa_constfold.cpp; sourceTree = "<group>"; };
 		4B4231521AC407C70065BDAF /* yssa_constfold.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yssa_constfold.h; sourceTree = "<group>"; };
+		4B4231551AC4D9950065BDAF /* yssa_analyze.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yssa_analyze.cpp; sourceTree = "<group>"; };
+		4B4231561AC4D9950065BDAF /* yssa_analyze.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yssa_analyze.h; sourceTree = "<group>"; };
 		4B6FDA981AA5AA83001096B0 /* yl_string.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_string.h; sourceTree = "<group>"; };
 		4B6FDA9A1AA654AE001096B0 /* yl_ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_ast.cpp; sourceTree = "<group>"; };
 		4B6FDA9B1AA654AE001096B0 /* yl_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_ast.h; sourceTree = "<group>"; };
@@ -169,11 +173,13 @@
 				4B6FDE7F1AA7A0B7001096B0 /* yl_compile.cpp */,
 				4B6FDE841AA855C0001096B0 /* yssa.cpp */,
 				4B6FDE831AA7B621001096B0 /* yssa.h */,
-				4B4231461ABE25580065BDAF /* yssa_print.cpp */,
+				4B4231551AC4D9950065BDAF /* yssa_analyze.cpp */,
+				4B4231561AC4D9950065BDAF /* yssa_analyze.h */,
 				4B6FDE871AA8F1E6001096B0 /* yssa_builder.cpp */,
 				4B6FDE861AA8F1D2001096B0 /* yssa_builder.h */,
 				4B4231511AC407C70065BDAF /* yssa_constfold.cpp */,
 				4B4231521AC407C70065BDAF /* yssa_constfold.h */,
+				4B4231461ABE25580065BDAF /* yssa_print.cpp */,
 			);
 			path = compiler;
 			sourceTree = "<group>";
@@ -229,6 +235,7 @@
 				4B4231541AC407C70065BDAF /* yssa_constfold.h in Headers */,
 				4B6FDAAD1AA654AE001096B0 /* yl_ast_visitor.h in Headers */,
 				4B6FDAB31AA654AE001096B0 /* yl_parser.h in Headers */,
+				4B4231581AC4D9950065BDAF /* yssa_analyze.h in Headers */,
 				4B6FDAB41AA654AE001096B0 /* yl_parser_lemon.h in Headers */,
 				4B6FDAB61AA654AE001096B0 /* yl_token.h in Headers */,
 				4B6FDAB11AA654AE001096B0 /* yl_diagnostics.h in Headers */,
@@ -299,6 +306,7 @@
 				4B6FDE821AA7B4D8001096B0 /* yl_parser_ragel.rl in Sources */,
 				4B6FDAD21AA66ABF001096B0 /* yl_context.cpp in Sources */,
 				4B6FDABD1AA65C6C001096B0 /* yl_string.cpp in Sources */,
+				4B4231571AC4D9950065BDAF /* yssa_analyze.cpp in Sources */,
 				4B6FDAB51AA654AE001096B0 /* yl_token.cpp in Sources */,
 				4B6FDE851AA855C0001096B0 /* yssa.cpp in Sources */,
 				4B4231471ABE25580065BDAF /* yssa_print.cpp in Sources */,

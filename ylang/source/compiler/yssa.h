@@ -93,11 +93,13 @@ struct yssa_string;
 struct yssa_variable;
 struct yssa_function;
 struct yssa_block;
+struct yssa_loop;
 
 
 typedef std::unique_ptr< yssa_module >      yssa_module_p;
 typedef std::unique_ptr< yssa_function >    yssa_function_p;
 typedef std::unique_ptr< yssa_block >       yssa_block_p;
+typedef std::unique_ptr< yssa_loop >        yssa_loop_p;
 
 
 
@@ -234,6 +236,7 @@ struct yssa_function
     const char*                 funcname;
     int                         sloc;
     std::vector< yssa_block_p > blocks;
+    std::vector< yssa_loop_p >  loops;
 };
 
 
@@ -245,10 +248,11 @@ struct yssa_function
 
 enum yssa_block_flags
 {
-    YSSA_LOOP       = 0x0001,
-    YSSA_XCHANDLER  = 0x0002,
-    YSSA_UNSEALED   = 0x0004,
-    YSSA_LOOKUP     = 0x0008,
+    YSSA_LOOP           = 0x0001,
+    YSSA_XCHANDLER      = 0x0002,
+    YSSA_UNSEALED       = 0x0004,
+    YSSA_LOOKUP         = 0x0008,
+    YSSA_PREFER_FAIL    = 0x0010,
 };
 
 
@@ -256,18 +260,32 @@ struct yssa_block
 {
     explicit yssa_block( unsigned flags = 0 );
 
-    unsigned                    flags;
-    uint8_t                     unwind_localups;    // For xchandlers, close.
-    uint8_t                     unwind_itercount;   // Similarly.
-    std::vector< yssa_block* >  prev;       // Previous blocks in CFG.
-    std::vector< yssa_opinst* > phi;        // phi-functions at head of block.
-    std::vector< yssa_opinst* > ops;        // Op list
-    yssa_opinst*                test;       // Condition to test (if any).
-    yssa_block*                 next;       // Next block (if condition passes).
-    yssa_block*                 fail;       // Next block if condition fails.
-    yssa_block*                 xchandler;  // Exception handler block.
+    uint16_t                    flags;
+    uint8_t                     xclocalups;   // For xchandlers, close.
+    uint8_t                     xcitercount;  // Similarly.
+    int                         index;        // Index in the DFO.
+    yssa_loop*                  loop;         // Loop containing this block.
+    std::vector< yssa_block* >  prev;         // Previous blocks in CFG.
+    std::vector< yssa_opinst* > phi;          // phi-functions at head of block.
+    std::vector< yssa_opinst* > ops;          // Op list
+    yssa_opinst*                test;         // Condition to test (if any).
+    yssa_block*                 next;         // Next block (if condition passes).
+    yssa_block*                 fail;         // Next block if condition fails.
+    yssa_block*                 xchandler;    // Exception handler block.
     std::unordered_map< yssa_variable*, yssa_opinst* > definitions;
+    std::unordered_set< yssa_opinst* > livein;
+    std::unordered_set< yssa_opinst* > liveout;
 };
+
+
+struct yssa_loop
+{
+    yssa_loop*                          parent;
+    std::unordered_set< yssa_loop* >    children;
+    yssa_block*                         header;
+    std::unordered_set< yssa_block* >   blocks;
+};
+
 
 
 

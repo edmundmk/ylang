@@ -870,8 +870,8 @@ int yssa_builder::visit( yl_stmt_using* node, int count )
         // Open protected context.
         yssa_block_p xchandler =
                 std::make_unique< yssa_block >( YSSA_XCHANDLER );
-        xchandler->unwind_localups = localups.size();
-        xchandler->unwind_itercount = itercount;
+        xchandler->xclocalups = localups.size();
+        xchandler->xcitercount = itercount;
         xchandler->xchandler =
                 scopes.size() ? scopes.back().xchandler : nullptr;
         open_scope( node->scope, xchandler.get() );
@@ -961,8 +961,8 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
     if ( node->fstmt )
     {
         xcfinally = std::make_unique< yssa_block >( YSSA_XCHANDLER );
-        xcfinally->unwind_localups = localups.size();
-        xcfinally->unwind_itercount = itercount;
+        xcfinally->xclocalups = localups.size();
+        xcfinally->xcitercount = itercount;
         xcfinally->xchandler =
                 scopes.size() ? scopes.back().xchandler : nullptr;
         open_scope( nullptr, xcfinally.get() );
@@ -971,8 +971,8 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
     if ( node->clist.size() )
     {
         xccatch = std::make_unique< yssa_block >( YSSA_XCHANDLER );
-        xccatch->unwind_localups = localups.size();
-        xccatch->unwind_itercount = itercount;
+        xccatch->xclocalups = localups.size();
+        xccatch->xcitercount = itercount;
         xccatch->xchandler =
                 scopes.size() ? scopes.back().xchandler : nullptr;
         open_scope( nullptr, xccatch.get() );
