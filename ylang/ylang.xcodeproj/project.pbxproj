@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		4B4176F21AA3849C00C014EB /* yl_code.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4176F11AA3849C00C014EB /* yl_code.h */; };
-		4B4231471ABE25580065BDAF /* yssa_print.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4231461ABE25580065BDAF /* yssa_print.cpp */; };
 		4B4231531AC407C70065BDAF /* yssa_constfold.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4231511AC407C70065BDAF /* yssa_constfold.cpp */; };
 		4B4231541AC407C70065BDAF /* yssa_constfold.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4231521AC407C70065BDAF /* yssa_constfold.h */; };
 		4B4231571AC4D9950065BDAF /* yssa_analyze.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4231551AC4D9950065BDAF /* yssa_analyze.cpp */; };
@@ -69,7 +68,6 @@
 		4B4176F41AA5033100C014EB /* yl_value.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_value.h; sourceTree = "<group>"; };
 		4B4176F51AA503DD00C014EB /* yl_object.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_object.h; sourceTree = "<group>"; };
 		4B4176F61AA5040300C014EB /* yl_heap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_heap.h; sourceTree = "<group>"; };
-		4B4231461ABE25580065BDAF /* yssa_print.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yssa_print.cpp; sourceTree = "<group>"; };
 		4B4231491ABF39AC0065BDAF /* fannkuch-redux.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fannkuch-redux.lua"; sourceTree = "<group>"; };
 		4B42314A1ABF39AC0065BDAF /* fannkuch-redux.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = "fannkuch-redux.py"; sourceTree = "<group>"; };
 		4B42314B1ABF39AC0065BDAF /* fannkuch-redux.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fannkuch-redux.yl"; sourceTree = "<group>"; };
@@ -183,7 +181,6 @@
 				4B6FDE861AA8F1D2001096B0 /* yssa_builder.h */,
 				4B4231511AC407C70065BDAF /* yssa_constfold.cpp */,
 				4B4231521AC407C70065BDAF /* yssa_constfold.h */,
-				4B4231461ABE25580065BDAF /* yssa_print.cpp */,
 				4B4231591AC5FF810065BDAF /* yssa_regalloc.cpp */,
 				4B42315A1AC5FF810065BDAF /* yssa_regalloc.h */,
 			);
@@ -316,7 +313,6 @@
 				4B4231571AC4D9950065BDAF /* yssa_analyze.cpp in Sources */,
 				4B6FDAB51AA654AE001096B0 /* yl_token.cpp in Sources */,
 				4B6FDE851AA855C0001096B0 /* yssa.cpp in Sources */,
-				4B4231471ABE25580065BDAF /* yssa_print.cpp in Sources */,
 				4B6FDAAA1AA654AE001096B0 /* yl_ast.cpp in Sources */,
 				4B42315B1AC5FF810065BDAF /* yssa_regalloc.cpp in Sources */,
 				4B6FDAB21AA654AE001096B0 /* yl_parser.cpp in Sources */,

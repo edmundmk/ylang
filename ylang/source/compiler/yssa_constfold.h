@@ -11,9 +11,10 @@
 
 
 struct yssa_module;
+struct yssa_function;
 
 
-void yssa_constfold( yssa_module* module );
+void yssa_constfold( yssa_module* module, yssa_function* function );
 
 
 #endif

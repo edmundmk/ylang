@@ -218,6 +218,7 @@ struct yssa_variable
     bool                xcref;      // Referenced from an exception handler?
     uint8_t             localup;    // Localup index.
     uint8_t             r;
+    
 };
 
 
@@ -232,8 +233,9 @@ struct yssa_function
 
     const char*                 funcname;
     int                         sloc;
-    std::vector< yssa_block_p > blocks;
     std::vector< yssa_loop_p >  loops;
+    std::vector< yssa_block_p > blocks;
+    std::vector< yssa_opinst* > ops;
 };
 
 
@@ -250,6 +252,7 @@ enum yssa_block_flags
     YSSA_UNSEALED       = 0x0004,
     YSSA_LOOKUP         = 0x0008,
     YSSA_PREFER_FAIL    = 0x0010,
+    YSSA_LINEARIZED     = 0x8000,
 };
 
 
@@ -265,6 +268,8 @@ struct yssa_block
     std::vector< yssa_block* >  prev;         // Previous blocks in CFG.
     std::vector< yssa_opinst* > phi;          // phi-functions at head of block.
     std::vector< yssa_opinst* > ops;          // Op list
+    size_t                      lstart;       // Index into function op list.
+    size_t                      lfinal;       // One past the end in the list.
     yssa_opinst*                test;         // Condition to test (if any).
     yssa_block*                 next;         // Next block (if condition passes).
     yssa_block*                 fail;         // Next block if condition fails.
@@ -282,6 +287,15 @@ struct yssa_loop
     yssa_block*                         header;
     std::unordered_set< yssa_block* >   blocks;
 };
+
+
+
+/*
+    Linearize an SSA function by removing ops from blocks and putting them
+    in order into the function directly.
+*/
+
+void yssa_linearize( yssa_function* function );
 
 
 

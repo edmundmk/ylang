@@ -7,6 +7,7 @@
 
 
 #include "yssa_regalloc.h"
+#include "yssa.h"
 
 
 
@@ -43,8 +44,23 @@
     to assign _all_ arguments to the optimal register.  Again, we probably
     produce worse code, but the allocated registers are more likely to be
     tightly clustered and the total size of stack frames is likely to be
-    smaller.
+    smaller.  I think.
 
 */
+
+
+void yssa_regalloc( yssa_function* function )
+{
+    // Calculate live ranges for each op and for each variable.
+    
+}
+
+
+
+
+
+
+
+
 
 

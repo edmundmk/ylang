@@ -15,25 +15,20 @@ static void yssa_constfold_op( yssa_module* module, yssa_opinst* op );
 static yssa_opinst* yssa_fold_refs( yssa_opinst* op );
 
 
-void yssa_constfold( yssa_module* module )
+void yssa_constfold( yssa_module* module, yssa_function* function )
 {
-    for ( size_t i = 0; i < module->functions.size(); ++i )
+    for ( size_t i = 0; i < function->blocks.size(); ++i )
     {
-        yssa_function* function = module->functions.at( i ).get();
+        yssa_block* block = function->blocks.at( i ).get();
         
-        for ( size_t i = 0; i < function->blocks.size(); ++i )
+        for ( size_t i = 0; i < block->phi.size(); ++i )
         {
-            yssa_block* block = function->blocks.at( i ).get();
-            
-            for ( size_t i = 0; i < block->phi.size(); ++i )
-            {
-                yssa_constfold_op( module, block->phi.at( i ) );
-            }
-            
-            for ( size_t i = 0; i < block->ops.size(); ++i )
-            {
-                yssa_constfold_op( module, block->ops.at( i ) );
-            }
+            yssa_constfold_op( module, block->phi.at( i ) );
+        }
+        
+        for ( size_t i = 0; i < block->ops.size(); ++i )
+        {
+            yssa_constfold_op( module, block->ops.at( i ) );
         }
     }
 }
