@@ -45,6 +45,7 @@
 		4B0F170C1A8181E300104105 /* hash.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = hash.cpp; sourceTree = "<group>"; };
 		4B0F170D1A8181E300104105 /* region.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = region.cpp; sourceTree = "<group>"; };
 		4B0F170E1A8181E300104105 /* strpath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = strpath.cpp; sourceTree = "<group>"; };
+		4B42315D1AC6B21F0065BDAF /* escstring.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = escstring.h; sourceTree = "<group>"; };
 		4B6FDE8C1AB585DE001096B0 /* hash_pair.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = hash_pair.h; sourceTree = "<group>"; };
 		4B9FFB4C1A93E15800DC4019 /* anyalias.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = anyalias.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -83,6 +84,7 @@
 				4B9FFB4C1A93E15800DC4019 /* anyalias.h */,
 				4B0F16FA1A8181E300104105 /* delegate.h */,
 				4B0F16FB1A8181E300104105 /* divmod.h */,
+				4B42315D1AC6B21F0065BDAF /* escstring.h */,
 				4B0F16FC1A8181E300104105 /* event.h */,
 				4B0F16FD1A8181E300104105 /* exception.h */,
 				4B0F16FE1A8181E300104105 /* hash.h */,
