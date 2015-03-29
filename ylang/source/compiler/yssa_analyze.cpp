@@ -219,7 +219,6 @@ void yssa_analyze_loop_forest( yssa_function* function )
     
     // Loop structure contains all nested loops and blocks in this loop.
     assert( loop->header->loop == nullptr );
-    loop->header->loop = loop.get();
     for ( auto i = loop->blocks.begin(); i != loop->blocks.end(); ++i )
     {
         yssa_block* block = *i;
