@@ -175,8 +175,10 @@ void yssa_print_function( yssa_function* f )
     }
     for ( size_t i = 0; i < f->ops.size(); ++i )
     {
-        printf( "%04zX ", i );
-        yssa_print_opinst( f->ops.at( i ) );
+        yssa_opinst* o = f->ops.at( i );
+        printf( "%04zX : ", i );
+        printf( "%p : ", o );
+        yssa_print_opinst( o );
     }
     printf( "\n" );
 }
@@ -491,11 +493,18 @@ void yssa_print_opinst( yssa_opinst* o )
     
     if ( ! o->has_associated() && o->variable )
     {
-        printf( " -> [%d] %s", o->variable->r, o->variable->name );
+        printf( " ~" );
+        if ( o->variable->r != yl_opinst::NOVAL )
+            printf( " [%2d]", o->variable->r );
+        else
+            printf( " [--]" );
+        printf( " %s", o->variable->name );
         if ( o->variable->xcref )
             printf( " xcref" );
         if ( o->variable->localup != yl_opinst::NOVAL )
             printf( " %d", o->variable->localup );
+        for ( yssa_live_range* live = o->variable->live; live; live = live->next )
+            printf( " %04zX:%04zX", live->start, live->final );
     }
     
     if ( o->live )

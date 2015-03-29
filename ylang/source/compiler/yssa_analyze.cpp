@@ -150,6 +150,7 @@ void yssa_analyze_loop_forest( yssa_function* function )
     
     // This is a loop header.
     yssa_loop_p loop = std::make_unique< yssa_loop >( nullptr, block );
+    loop->blocks.insert( block );
     
     
     // Blocks in the work list are those at the 'continue' points of the

@@ -58,7 +58,8 @@ static void live_loop( yssa_module* module,
 static void add_live_range( yssa_module* module,
                 yssa_opinst* op, size_t start, size_t final );
 static void union_live_range( yssa_module* module,
-                yssa_opinst* op, size_t start, size_t final );
+                yssa_live_range** pnext, size_t start, size_t final );
+
 
 
 
@@ -157,7 +158,25 @@ void yssa_liveness( yssa_module* module, yssa_function* function )
     // Live range for a variable is the union of live ranges of its
     // definitions (which must not overlap), plus the range of all
     // protected blocks if the variable is used in an xchandler.
-
+    
+    for ( size_t i = 0; i < function->ops.size(); ++i )
+    {
+        yssa_opinst* op = function->ops.at( i );
+        if ( ! op->has_associated() && op->variable )
+        {
+            for ( yssa_live_range* live = op->live; live; live = live->next )
+            {
+                yssa_live_range** pnext = &op->variable->live;
+                union_live_range( module, pnext, live->start, live->final );
+            }
+        }
+    }
+    
+    for ( size_t i = 0; i < function->blocks.size(); ++i )
+    {
+        yssa_block* block = function->blocks.at( i ).get();
+        
+    }
 
 
 }
@@ -222,7 +241,7 @@ static void live_loop( yssa_module* module,
         yssa_opinst* op = liveop.first;
         for ( yssa_block* block : loop->blocks )
         {
-            union_live_range( module, op, block->lstart, block->lfinal );
+            union_live_range( module, &op->live, block->lstart, block->lfinal );
         }
     }
     
@@ -251,10 +270,8 @@ static void add_live_range( yssa_module* module,
 
 
 static void union_live_range( yssa_module* module,
-                yssa_opinst* op, size_t start, size_t final )
+                yssa_live_range** pnext, size_t start, size_t final )
 {
-    yssa_live_range** pnext = &op->live;
-    
     // Skip all existing ranges that lie completely before this range.
     while ( *pnext && ( *pnext )->final < start )
     {
