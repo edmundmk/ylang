@@ -14,13 +14,6 @@
 /*
     This is how we do register allocation:
  
-     -  All ops are flattened out into a single list.
-     -  Live ranges for each variable and for each op are calculated.  Our
-            modified SSA form mandates that live ranges of definitions of
-            the same variable do not overlap.  Live ranges can have holes,
-            where ops are not live in particular blocks.  Variables
-            referenced from exception handlers are live throughout all
-            blocks protected by that handler.
      -  Variables and temporaries which have a single use as an argument
             of a call-like instruction, are 'argument values'.
      -  Parameters are allocated to the appropriate registers.
@@ -49,10 +42,11 @@
 */
 
 
-void yssa_regalloc( yssa_function* function )
+
+
+
+void yssa_regalloc( yssa_module* module, yssa_function* function )
 {
-    // Calculate live ranges for each op and for each variable.
-    
 }
 
 

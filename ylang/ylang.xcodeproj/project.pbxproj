@@ -14,6 +14,8 @@
 		4B4231581AC4D9950065BDAF /* yssa_analyze.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4231561AC4D9950065BDAF /* yssa_analyze.h */; };
 		4B42315B1AC5FF810065BDAF /* yssa_regalloc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4231591AC5FF810065BDAF /* yssa_regalloc.cpp */; };
 		4B42315C1AC5FF810065BDAF /* yssa_regalloc.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B42315A1AC5FF810065BDAF /* yssa_regalloc.h */; };
+		4B4231601AC82E2B0065BDAF /* yssa_liveness.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B42315E1AC82E2B0065BDAF /* yssa_liveness.cpp */; };
+		4B4231611AC82E2B0065BDAF /* yssa_liveness.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B42315F1AC82E2B0065BDAF /* yssa_liveness.h */; };
 		4B6FDAAA1AA654AE001096B0 /* yl_ast.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDA9A1AA654AE001096B0 /* yl_ast.cpp */; };
 		4B6FDAAB1AA654AE001096B0 /* yl_ast.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B6FDA9B1AA654AE001096B0 /* yl_ast.h */; };
 		4B6FDAAC1AA654AE001096B0 /* yl_ast_print.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDA9C1AA654AE001096B0 /* yl_ast_print.cpp */; };
@@ -82,6 +84,8 @@
 		4B4231561AC4D9950065BDAF /* yssa_analyze.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yssa_analyze.h; sourceTree = "<group>"; };
 		4B4231591AC5FF810065BDAF /* yssa_regalloc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yssa_regalloc.cpp; sourceTree = "<group>"; };
 		4B42315A1AC5FF810065BDAF /* yssa_regalloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yssa_regalloc.h; sourceTree = "<group>"; };
+		4B42315E1AC82E2B0065BDAF /* yssa_liveness.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yssa_liveness.cpp; sourceTree = "<group>"; };
+		4B42315F1AC82E2B0065BDAF /* yssa_liveness.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yssa_liveness.h; sourceTree = "<group>"; };
 		4B6FDA981AA5AA83001096B0 /* yl_string.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_string.h; sourceTree = "<group>"; };
 		4B6FDA9A1AA654AE001096B0 /* yl_ast.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_ast.cpp; sourceTree = "<group>"; };
 		4B6FDA9B1AA654AE001096B0 /* yl_ast.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_ast.h; sourceTree = "<group>"; };
@@ -181,6 +185,8 @@
 				4B6FDE861AA8F1D2001096B0 /* yssa_builder.h */,
 				4B4231511AC407C70065BDAF /* yssa_constfold.cpp */,
 				4B4231521AC407C70065BDAF /* yssa_constfold.h */,
+				4B42315E1AC82E2B0065BDAF /* yssa_liveness.cpp */,
+				4B42315F1AC82E2B0065BDAF /* yssa_liveness.h */,
 				4B4231591AC5FF810065BDAF /* yssa_regalloc.cpp */,
 				4B42315A1AC5FF810065BDAF /* yssa_regalloc.h */,
 			);
@@ -239,6 +245,7 @@
 				4B4231541AC407C70065BDAF /* yssa_constfold.h in Headers */,
 				4B6FDAAD1AA654AE001096B0 /* yl_ast_visitor.h in Headers */,
 				4B6FDAB31AA654AE001096B0 /* yl_parser.h in Headers */,
+				4B4231611AC82E2B0065BDAF /* yssa_liveness.h in Headers */,
 				4B4231581AC4D9950065BDAF /* yssa_analyze.h in Headers */,
 				4B6FDAB41AA654AE001096B0 /* yl_parser_lemon.h in Headers */,
 				4B6FDAB61AA654AE001096B0 /* yl_token.h in Headers */,
@@ -315,6 +322,7 @@
 				4B6FDE851AA855C0001096B0 /* yssa.cpp in Sources */,
 				4B6FDAAA1AA654AE001096B0 /* yl_ast.cpp in Sources */,
 				4B42315B1AC5FF810065BDAF /* yssa_regalloc.cpp in Sources */,
+				4B4231601AC82E2B0065BDAF /* yssa_liveness.cpp in Sources */,
 				4B6FDAB21AA654AE001096B0 /* yl_parser.cpp in Sources */,
 				4B6FDAAC1AA654AE001096B0 /* yl_ast_print.cpp in Sources */,
 				4B6FDAB01AA654AE001096B0 /* yl_diagnostics.cpp in Sources */,

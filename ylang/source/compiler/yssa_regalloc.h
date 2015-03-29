@@ -10,10 +10,11 @@
 #define YSSA_REGALLOC_H
 
 
+struct yssa_module;
 struct yssa_function;
 
 
-void yssa_regalloc( yssa_function* function );
+void yssa_regalloc( yssa_module* module, yssa_function* function );
 
 
 

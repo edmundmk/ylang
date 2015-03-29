@@ -14,6 +14,7 @@
 #include "yssa_builder.h"
 #include "yssa_constfold.h"
 #include "yssa_analyze.h"
+#include "yssa_liveness.h"
 #include "yssa_regalloc.h"
 
 
@@ -62,9 +63,9 @@ yl_invoke yl_compile( const char* path, size_t paramc, const char* paramv[] )
         yssa_constfold( module, function );
         yssa_analyze_depth_first_order( function );
         yssa_analyze_loop_forest( function );
-        yssa_analyze_live_in_out( function );
         yssa_linearize( function );
-        yssa_regalloc( function );
+        yssa_liveness( module, function );
+        yssa_regalloc( module, function );
     }
         
     yssa_print( module );

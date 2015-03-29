@@ -21,6 +21,7 @@ yssa_opinst::yssa_opinst(
     ,   operand_count( operand_count )
     ,   result_count( result_count )
     ,   r( yl_opinst::NOVAL )
+    ,   live( nullptr )
     ,   variable( nullptr )
     ,   number( 0.0 )
 {
@@ -34,6 +35,18 @@ yssa_opinst::yssa_opinst(
 yssa_string::yssa_string( const char* string, size_t length )
     :   string( string )
     ,   length( length )
+{
+}
+
+
+yssa_variable::yssa_variable(
+                const char* name, int sloc, bool xcref, uint8_t localup )
+    :   name( name )
+    ,   sloc( sloc )
+    ,   xcref( xcref )
+    ,   localup( localup )
+    ,   r( yl_opinst::NOVAL )
+    ,   live( nullptr )
 {
 }
 
@@ -57,6 +70,22 @@ yssa_block::yssa_block( unsigned flags )
     ,   xchandler( nullptr )
     ,   lstart( -1 )
     ,   lfinal( -1 )
+{
+}
+
+
+yssa_loop::yssa_loop( yssa_loop* parent, yssa_block* header )
+    :   parent( parent )
+    ,   header( header )
+{
+}
+
+
+yssa_live_range::yssa_live_range(
+                size_t start, size_t final, yssa_live_range* next )
+    :   start( start )
+    ,   final( final )
+    ,   next( next )
 {
 }
 
@@ -89,6 +118,7 @@ void yssa_linearize( yssa_function* function )
             block->phi.begin(),
             block->phi.end()
         );
+        block->lfiphi = function->ops.size();
         function->ops.insert
         (
             function->ops.end(),
@@ -466,6 +496,16 @@ void yssa_print_opinst( yssa_opinst* o )
             printf( " xcref" );
         if ( o->variable->localup != yl_opinst::NOVAL )
             printf( " %d", o->variable->localup );
+    }
+    
+    if ( o->live )
+    {
+        printf( " ~" );
+    }
+    
+    for ( yssa_live_range* live = o->live; live; live = live->next )
+    {
+        printf( " %04zX:%04zX", live->start, live->final );
     }
     
     printf( "\n" );

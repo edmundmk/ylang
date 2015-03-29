@@ -91,6 +91,7 @@ struct yssa_variable;
 struct yssa_function;
 struct yssa_block;
 struct yssa_loop;
+struct yssa_live_range;
 
 
 typedef std::unique_ptr< yssa_module >      yssa_module_p;
@@ -164,6 +165,8 @@ struct yssa_opinst
     uint8_t result_count;           // Number of results, or MULTIVAL.
     uint8_t r;
     
+    yssa_live_range*    live;       // Live range of op.
+    
     union
     {
         yssa_variable*  variable;   // Variable this op defines.
@@ -213,12 +216,14 @@ struct yssa_string
 
 struct yssa_variable
 {
+    yssa_variable( const char* name, int sloc, bool xcref, uint8_t localup );
+
     const char*         name;
     int                 sloc;
     bool                xcref;      // Referenced from an exception handler?
     uint8_t             localup;    // Localup index.
     uint8_t             r;
-    
+    yssa_live_range*    live;
 };
 
 
@@ -269,6 +274,7 @@ struct yssa_block
     std::vector< yssa_opinst* > phi;          // phi-functions at head of block.
     std::vector< yssa_opinst* > ops;          // Op list
     size_t                      lstart;       // Index into function op list.
+    size_t                      lfiphi;       // One past the last phi op.
     size_t                      lfinal;       // One past the end in the list.
     yssa_opinst*                test;         // Condition to test (if any).
     yssa_block*                 next;         // Next block (if condition passes).
@@ -276,17 +282,39 @@ struct yssa_block
     yssa_block*                 xchandler;    // Exception handler block.
     std::unordered_map< yssa_variable*, yssa_opinst* > definitions;
     std::unordered_set< yssa_opinst* > livein;
-    std::unordered_set< yssa_opinst* > liveout;
 };
 
 
+
+/*
+    Loop structure of control flow graph.
+*/
+
 struct yssa_loop
 {
+    yssa_loop( yssa_loop* parent, yssa_block* header );
+
     yssa_loop*                          parent;
     std::unordered_set< yssa_loop* >    children;
     yssa_block*                         header;
     std::unordered_set< yssa_block* >   blocks;
 };
+
+
+
+/*
+    Live range (in linearized op list) of an SSA op.
+*/
+
+struct yssa_live_range
+{
+    yssa_live_range( size_t start, size_t final, yssa_live_range* next );
+
+    size_t              start;   // Index where this range starts.
+    size_t              final;   // Index of the op where this live range dies.
+    yssa_live_range*    next;
+};
+
 
 
 

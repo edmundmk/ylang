@@ -2560,12 +2560,13 @@ yssa_variable* yssa_builder::variable( yl_ast_name* name )
         return i->second;
     }
     
-    yssa_variable* v = new ( module->alloc ) yssa_variable();
-    v->name     = module->alloc.strdup( name->name );
-    v->sloc     = name->sloc;
-    v->xcref    = false; // Not (yet) referenced from an exception handler.
-    v->localup  = name->upval ? localups.size() : yl_opinst::NOVAL;
-    v->r        = 0;
+    yssa_variable* v = new ( module->alloc ) yssa_variable
+    (
+        module->alloc.strdup( name->name ),
+        name->sloc,
+        false,              // Not (yet) referenced from an exception handler.
+        name->upval ? localups.size() : yl_opinst::NOVAL
+    );
     
     variables.emplace( name, v );
     return v;
@@ -2579,12 +2580,13 @@ yssa_variable* yssa_builder::varobj( yl_new_object* object )
         return i->second;
     }
     
-    yssa_variable* v = new ( module->alloc ) yssa_variable();
-    v->name     = "[object]";
-    v->sloc     = object->sloc;
-    v->xcref    = false; // Not (yet) referenced from an exception handler.
-    v->localup  = object->upval ? localups.size() : yl_opinst::NOVAL;
-    v->r        = 0;
+    yssa_variable* v = new ( module->alloc ) yssa_variable
+    (
+        "[object]",
+        object->sloc,
+        false,              // Not (yet) referenced from an exception handler.
+        object->upval ? localups.size() : yl_opinst::NOVAL
+    );
     
     variables.emplace( object, v );
     return v;
@@ -2592,12 +2594,14 @@ yssa_variable* yssa_builder::varobj( yl_new_object* object )
 
 yssa_variable* yssa_builder::temporary( const char* name, int sloc )
 {
-    yssa_variable* v = new ( module->alloc ) yssa_variable();
-    v->name     = name;
-    v->sloc     = sloc;
-    v->xcref    = false; // You know by now!
-    v->localup  = false; // No way to refer to this variable in inner scope.
-    v->r        = 0;
+    yssa_variable* v = new ( module->alloc ) yssa_variable
+    (
+        name,
+        sloc,
+        false,              // You know by now!
+        yl_opinst::NOVAL    // No way to refer to this variable in inner scope.
+    );
+    
     return v;
 }
 

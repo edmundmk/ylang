@@ -34,15 +34,6 @@ void yssa_analyze_loop_forest( yssa_function* function );
 
 
 
-/*
-    Calculate inter-block liveness (the in set and the out set).  Values
-    that are local to a particular block are easy to deal with.
-*/
-
-void yssa_analyze_live_in_out( yssa_function* function );
-
-
-
 
 #endif
 
