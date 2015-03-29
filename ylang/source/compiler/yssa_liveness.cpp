@@ -175,7 +175,20 @@ void yssa_liveness( yssa_module* module, yssa_function* function )
     for ( size_t i = 0; i < function->blocks.size(); ++i )
     {
         yssa_block* block = function->blocks.at( i ).get();
-        
+        for ( yssa_block* xchandler = block->xchandler;
+                        xchandler; xchandler = xchandler->xchandler )
+        {
+            for ( size_t i = xchandler->lstart; i < xchandler->lfiphi; ++i )
+            {
+                yssa_opinst* op = function->ops.at( i );
+                if ( op->opcode == YSSA_VAR && op->variable )
+                {
+                    yssa_live_range** pnext = &op->variable->live;
+                    union_live_range( module, pnext,
+                                    block->lstart, block->lfinal );
+                }
+            }
+        }
     }
 
 
