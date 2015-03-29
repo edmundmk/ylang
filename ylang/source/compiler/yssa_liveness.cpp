@@ -253,7 +253,33 @@ static void add_live_range( yssa_module* module,
 static void union_live_range( yssa_module* module,
                 yssa_opinst* op, size_t start, size_t final )
 {
+    yssa_live_range** pnext = &op->live;
     
+    // Skip all existing ranges that lie completely before this range.
+    while ( *pnext && ( *pnext )->final < start )
+    {
+        pnext = &( *pnext )->next;
+    }
+    
+    // The current range is either overlapping, or after.
+    if ( *pnext && ( *pnext )->start <= final )
+    {
+        // Overlapping.
+        yssa_live_range* overlap = *pnext;
+        overlap->start = std::min( overlap->start, start );
+        overlap->final = std::max( overlap->final, final );
+        
+        while ( overlap->next && overlap->next->start <= final )
+        {
+            overlap->final = std::max( overlap->next->final, final );
+            overlap->next  = overlap->next->next;
+        }
+    }
+    else
+    {
+        // Next range is after, so insert new range.
+        *pnext = new ( module->alloc ) yssa_live_range( start, final, *pnext );
+    }
 }
 
 
