@@ -47,6 +47,7 @@ yssa_variable::yssa_variable(
     ,   localup( localup )
     ,   r( yl_opinst::NOVAL )
     ,   live( nullptr )
+    ,   argof( nullptr )
 {
 }
 
@@ -141,8 +142,8 @@ void yssa_linearize( yssa_function* function )
 
 
 static void yssa_print_function( yssa_function* f );
-static void yssa_print_block( yssa_block* b );
-static void yssa_print_opinst( yssa_opinst* o );
+static void yssa_print_block( yssa_function* f, yssa_block* b );
+static void yssa_print_opinst( yssa_function* f, yssa_opinst* o );
 
 
 void yssa_print( yssa_module* module )
@@ -171,20 +172,20 @@ void yssa_print_function( yssa_function* f )
     }
     for ( size_t i = 0; i < f->blocks.size(); ++i )
     {
-        yssa_print_block( f->blocks.at( i ).get() );
+        yssa_print_block( f, f->blocks.at( i ).get() );
     }
     for ( size_t i = 0; i < f->ops.size(); ++i )
     {
         yssa_opinst* o = f->ops.at( i );
         printf( "%04zX : ", i );
         printf( "%p : ", o );
-        yssa_print_opinst( o );
+        yssa_print_opinst( f, o );
     }
     printf( "\n" );
 }
 
 
-void yssa_print_block( yssa_block* b )
+void yssa_print_block( yssa_function* f, yssa_block* b )
 {
     printf( "-- %p", b );
     if ( b->flags & YSSA_LOOP )
@@ -214,13 +215,13 @@ void yssa_print_block( yssa_block* b )
     {
         yssa_opinst* o = b->phi.at( i );
         printf( "%p - ", o );
-        yssa_print_opinst( o );
+        yssa_print_opinst( f, o );
     }
     for ( size_t i = 0; i < b->ops.size(); ++i )
     {
         yssa_opinst* o = b->ops.at( i );
         printf( "%p : ", o );
-        yssa_print_opinst( o );
+        yssa_print_opinst( f, o );
     }
     
     if ( b->flags & YSSA_LINEARIZED )
@@ -383,7 +384,7 @@ const yssa_disasm disasm;
 
 
 
-void yssa_print_opinst( yssa_opinst* o )
+void yssa_print_opinst( yssa_function* f, yssa_opinst* o )
 {
     if ( o->r != yl_opinst::NOVAL )
     {
@@ -491,6 +492,22 @@ void yssa_print_opinst( yssa_opinst* o )
         }
     }
     
+    if ( o->live )
+    {
+        printf( " ~" );
+    }
+    
+    for ( yssa_live_range* live = o->live; live; live = live->next )
+    {
+        printf( " %04zX:%04zX", live->start, live->final );
+    }
+    
+    auto i = f->argof.find( o );
+    if ( i != f->argof.end() )
+    {
+        printf( " >>%p", i->second );
+    }
+    
     if ( ! o->has_associated() && o->variable )
     {
         printf( " ~" );
@@ -505,16 +522,8 @@ void yssa_print_opinst( yssa_opinst* o )
             printf( " %d", o->variable->localup );
         for ( yssa_live_range* live = o->variable->live; live; live = live->next )
             printf( " %04zX:%04zX", live->start, live->final );
-    }
-    
-    if ( o->live )
-    {
-        printf( " ~" );
-    }
-    
-    for ( yssa_live_range* live = o->live; live; live = live->next )
-    {
-        printf( " %04zX:%04zX", live->start, live->final );
+        if ( o->variable->argof )
+            printf( " >>%p", o->variable->argof );
     }
     
     printf( "\n" );

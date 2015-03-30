@@ -157,6 +157,15 @@ struct yssa_opinst
             || opcode == YL_YIELD;
     }
     
+    bool is_call() const
+    {
+        return opcode == YL_RETURN
+            || opcode == YL_EXTEND
+            || opcode == YL_CALL
+            || opcode == YL_YCALL
+            || opcode == YL_YIELD;
+    }
+    
 
     int sloc;
 
@@ -224,6 +233,7 @@ struct yssa_variable
     uint8_t             localup;    // Localup index.
     uint8_t             r;
     yssa_live_range*    live;
+    yssa_opinst*        argof;
 };
 
 
@@ -241,6 +251,7 @@ struct yssa_function
     std::vector< yssa_loop_p >  loops;
     std::vector< yssa_block_p > blocks;
     std::vector< yssa_opinst* > ops;
+    std::unordered_map< yssa_opinst*, yssa_opinst* > argof;
 };
 
 

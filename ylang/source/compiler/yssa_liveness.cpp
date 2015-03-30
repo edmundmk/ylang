@@ -62,10 +62,17 @@ static void union_live_range( yssa_module* module,
 
 
 
+static yssa_opinst* YSSA_NOARG = (yssa_opinst*)-1;
+
 
 
 void yssa_liveness( yssa_module* module, yssa_function* function )
 {
+    // Map opinsts to the single call op they are an argument for, or NOARG.
+    
+    std::unordered_map< yssa_opinst*, yssa_opinst* > argof;
+
+
     // Calculate live ranges for each op.
 
     for ( int i = (int)function->blocks.size() - 1; i >= 0; --i )
@@ -126,11 +133,28 @@ void yssa_liveness( yssa_module* module, yssa_function* function )
                     continue;
                 
                 live.emplace( op->operand[ i ], index );
+                
+                // Update argof.
+                if ( op->is_call() )
+                {
+                    yssa_opinst*& call = argof[ op->operand[ i ] ];
+                    if ( ! call || call == op )
+                        call = op;
+                    else
+                        call = YSSA_NOARG;
+                }
             }
             
             if ( op->has_multival() && op->multival )
             {
                 live.emplace( op->multival, index );
+                
+                // Update argof.
+                yssa_opinst* call = argof[ op->multival ];
+                if ( ! call || call == op )
+                    call = op;
+                else
+                    call = YSSA_NOARG;
             }
         }
         
@@ -150,8 +174,24 @@ void yssa_liveness( yssa_module* module, yssa_function* function )
         if ( block->loop && block->loop->header == block )
         {
             live_loop( module, block->loop, live );
+            
+            // And none of them are treated as arguments.
+            for ( auto liveop : live )
+            {
+                argof[ liveop.first ] = YSSA_NOARG;
+            }
         }
 
+    }
+    
+    
+    // Update argof map.
+    for ( auto argop : argof )
+    {
+        if ( argop.second != YSSA_NOARG )
+        {
+            function->argof.insert( argop );
+        }
     }
 
 
@@ -159,15 +199,29 @@ void yssa_liveness( yssa_module* module, yssa_function* function )
     // definitions (which must not overlap), plus the range of all
     // protected blocks if the variable is used in an xchandler.
     
+    std::unordered_map< yssa_variable*, yssa_opinst* > vargof;
+    
     for ( size_t i = 0; i < function->ops.size(); ++i )
     {
         yssa_opinst* op = function->ops.at( i );
         if ( ! op->has_associated() && op->variable )
         {
+            // Merge live range into live range of variable.
             for ( yssa_live_range* live = op->live; live; live = live->next )
             {
                 yssa_live_range** pnext = &op->variable->live;
                 union_live_range( module, pnext, live->start, live->final );
+            }
+            
+            // Update argument status.
+            auto j = function->argof.find( op );
+            if ( j != function->argof.end() )
+            {
+                yssa_opinst*& call = vargof[ op->variable ];
+                if ( ! call || call == j->second )
+                    call = j->second;
+                else
+                    call = YSSA_NOARG;
             }
         }
     }
@@ -178,18 +232,32 @@ void yssa_liveness( yssa_module* module, yssa_function* function )
         for ( yssa_block* xchandler = block->xchandler;
                         xchandler; xchandler = xchandler->xchandler )
         {
+            // Go through entire exception handler chain.
             for ( size_t i = xchandler->lstart; i < xchandler->lfiphi; ++i )
             {
                 yssa_opinst* op = function->ops.at( i );
                 if ( op->opcode == YSSA_VAR && op->variable )
                 {
+                    // This variable is used in this handler.
                     yssa_live_range** pnext = &op->variable->live;
                     union_live_range( module, pnext,
                                     block->lstart, block->lfinal );
+                    
+                    // Don't treat it as an argument.
+                    vargof[ op->variable ] = YSSA_NOARG;
                 }
             }
         }
     }
+
+    for ( auto argvar : vargof )
+    {
+        if ( argvar.second != YSSA_NOARG )
+        {
+            argvar.first->argof = argvar.second;
+        }
+    }
+    
 
 
 }
