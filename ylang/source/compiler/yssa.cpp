@@ -17,6 +17,7 @@
 yssa_opinst::yssa_opinst(
         int sloc, uint8_t opcode, uint8_t operand_count, uint8_t result_count )
     :   sloc( sloc )
+    ,   stacktop( yl_opinst::NOVAL )
     ,   opcode( opcode )
     ,   operand_count( operand_count )
     ,   result_count( result_count )

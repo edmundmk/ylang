@@ -167,39 +167,40 @@ struct yssa_opinst
     }
     
 
-    int sloc;
+    int                 sloc : 24;
+    uint8_t             stacktop;
 
-    uint8_t opcode;
-    uint8_t operand_count;          // Length of operand array.
-    uint8_t result_count;           // Number of results, or MULTIVAL.
-    uint8_t r;
+    uint8_t             opcode;
+    uint8_t             operand_count;  // Length of operand array.
+    uint8_t             result_count;   // Number of results, or MULTIVAL.
+    uint8_t             r;
     
-    yssa_live_range*    live;       // Live range of op.
+    yssa_live_range*    live;           // Live range of op.
     
     union
     {
-        yssa_variable*  variable;   // Variable this op defines.
-        yssa_opinst*    associated; // Op this op is associated with.
+        yssa_variable*  variable;       // Variable this op defines.
+        yssa_opinst*    associated;     // Op this op is associated with.
     };
     
     union
     {
-        double          number;     // Constant number.
-        bool            boolean;    // Constant bool.
-        yssa_string*    string;     // Constant string.
-        yssa_function*  function;   // Function to instantiate.
-        const char*     key;        // Key for lookups.
-        int             select;     // Which parameter or result to select.
+        double          number;         // Constant number.
+        bool            boolean;        // Constant bool.
+        yssa_string*    string;         // Constant string.
+        yssa_function*  function;       // Function to instantiate.
+        const char*     key;            // Key for lookups.
+        int             select;         // Which parameter or result to select.
         struct
         {
-            uint8_t     a;          // ycode a operand.
-            uint8_t     b;          // ycode b operand.
+            uint8_t     a;              // ycode a operand.
+            uint8_t     b;              // ycode b operand.
         };
-        uint16_t        c;          // ycode c operand.
-        yssa_opinst*    multival;   // Multival operand (after normal ones).
+        uint16_t        c;              // ycode c operand.
+        yssa_opinst*    multival;       // Multival operand (after normal ones).
     };
     
-    yssa_opinst*        operand[];  // Operand list.
+    yssa_opinst*        operand[];      // Operand list.
 
 };
 
