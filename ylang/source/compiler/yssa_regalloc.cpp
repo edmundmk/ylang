@@ -90,7 +90,6 @@ struct yssa_regcall
 {
     size_t                          index;
     yssa_opinst*                    op;
-    yssa_opinst*                    argof;
     std::vector< yssa_regvalue* >   arguments;
     size_t                          across_count;
 };
@@ -224,9 +223,30 @@ bool yssa_regscan::interfere( yssa_live_range* a, yssa_live_range* b )
 
 
 
-static uint8_t preferred_stacktop( yssa_regcall* call )
+static uint8_t preferred_stacktop( yssa_function* function, yssa_regcall* call )
 {
-
+    auto i = function->argof.find( call->op );
+    if ( i == function->argof.end() )
+    {
+        return yl_opinst::NOVAL;
+    }
+    
+    // The call is itself an argument.
+    yssa_opinst* argof = i->second;
+    assert( argof->stacktop != yl_opinst::NOVAL );
+    for ( size_t i = 0; i < argof->operand_count; ++i )
+    {
+        if ( argof->operand[ i ] == call->op )
+        {
+            return argof->stacktop + i;
+        }
+        
+        if ( argof->has_multival() && argof->multival == call->op )
+        {
+            return argof->stacktop + argof->operand_count;
+        }
+    }
+    
     return yl_opinst::NOVAL;
 }
 
@@ -237,35 +257,55 @@ static uint8_t preferred_register( yssa_regvalue* value )
     // Check if the value is an argument.
     if ( value->argof )
     {
-        yssa_opinst* call = value->argof;
-        assert( call->is_call() );
-        assert( call->stacktop != yl_opinst::NOVAL );
+        yssa_opinst* argof = value->argof;
+        assert( argof->is_call() );
+        assert( argof->stacktop != yl_opinst::NOVAL );
 
         for ( yssa_opinst* op : value->ops )
         {
-            for ( size_t i = 0; i < call->operand_count; ++i )
+            for ( size_t i = 0; i < argof->operand_count; ++i )
             {
-                if ( call->operand[ i ] == op )
+                if ( argof->operand[ i ] == op )
                 {
-                    return call->stacktop + i;
+                    return argof->stacktop + i;
                 }
                 
-                if ( call->has_multival() && call->multival == op )
+                if ( argof->has_multival() && argof->multival == op )
                 {
-                    return call->stacktop + call->operand_count;
+                    return argof->stacktop + argof->operand_count;
                 }
             }
         }
     }
     
-    //
+    // Other preferred clauses depend on there being a single definition.
+    if ( value->ops.size() != 1 )
+    {
+        return yl_opinst::NOVAL;
+    }
     
+    yssa_opinst* op = value->ops.at( 0 );
     
     // Check if the value is a call itself.
-    
+    if ( op->is_call() )
+    {
+        assert( op->stacktop != yl_opinst::NOVAL );
+        return op->stacktop;
+    }
     
     // Check if the value is a select.
-
+    if ( op->opcode == YSSA_SELECT && op->operand[ 0 ]->is_call() )
+    {
+        assert( op->operand[ 0 ]->stacktop != yl_opinst::NOVAL );
+        return op->operand[ 0 ]->stacktop + op->select;
+    }
+    
+    // Or a parameter.
+    if ( op->opcode == YSSA_PARAM )
+    {
+        // On entry, register 0 is the function object, with parameters after.
+        return 1 + op->select;
+    }
     
     return yl_opinst::NOVAL;
 }
@@ -434,7 +474,7 @@ void yssa_regalloc( yssa_module* module, yssa_function* function )
                 uint8_t stacktop = regscan.stacktop( call->index );
                 
                 // Identify preferred stack top (if any).
-                uint8_t preferred = preferred_stacktop( call );
+                uint8_t preferred = preferred_stacktop( function, call );
                 if ( preferred != yl_opinst::NOVAL && preferred >= stacktop )
                 {
                     stacktop = preferred;
@@ -450,11 +490,12 @@ void yssa_regalloc( yssa_module* module, yssa_function* function )
                     assert( argument->argof == call->op );
                     free_values.push( argument );
                 }
+                
             }
+            
         }
+        
     }
-    
-    
 
 
 }
