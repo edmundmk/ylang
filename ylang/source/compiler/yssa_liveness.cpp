@@ -126,6 +126,13 @@ void yssa_liveness( yssa_module* module, yssa_function* function )
             }
             
             
+            // Select ops don't create liveness.
+            if ( op->opcode == YSSA_SELECT )
+            {
+                continue;
+            }
+            
+            
             // All operands which are not already live are live now.
             for ( size_t i = 0; i < op->operand_count; ++i )
             {

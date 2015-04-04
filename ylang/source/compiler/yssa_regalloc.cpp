@@ -233,11 +233,7 @@ static uint8_t preferred_stacktop( yssa_function* function, yssa_regcall* call )
     
     // The call is itself an argument.
     yssa_opinst* argof = i->second;
-    if ( argof->stacktop == yl_opinst::NOVAL )
-    {
-        return yl_opinst::NOVAL;
-    }
-    
+    assert( argof->stacktop == yl_opinst::NOVAL );
     for ( size_t i = 0; i < argof->operand_count; ++i )
     {
         if ( argof->operand[ i ] == call->op )
@@ -422,7 +418,22 @@ void yssa_regalloc( yssa_module* module, yssa_function* function )
     yssa_regvalue_queue free_values;
     for ( const auto& v : values )
     {
-        if ( ! v.second->argof )
+        yssa_regvalue* value = v.second.get();
+
+        // Sort calls this value is across so that the last
+        // call is allocated first.
+        std::sort
+        (
+            value->across.begin(),
+            value->across.end(),
+            []( yssa_regcall* a, yssa_regcall* b )
+            {
+                return a->index > b->index;
+            }
+        );
+        
+        // If the value isn't an argument, it's free.
+        if ( ! value->argof )
         {
             free_values.push( v.second.get() );
         }
