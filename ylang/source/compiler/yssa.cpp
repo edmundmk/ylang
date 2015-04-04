@@ -389,11 +389,20 @@ void yssa_print_opinst( yssa_function* f, yssa_opinst* o )
 {
     if ( o->r != yl_opinst::NOVAL )
     {
-        printf( "[%2d] ", o->r );
+        printf( "[%2d]", o->r );
     }
     else
     {
-        printf( "[--] " );
+        printf( "[--]" );
+    }
+    
+    if ( o->stacktop != yl_opinst::NOVAL )
+    {
+        printf( "[%2d] ", o->stacktop );
+    }
+    else
+    {
+        printf( " " );
     }
     
     if ( o->result_count != yl_opinst::MARK )
