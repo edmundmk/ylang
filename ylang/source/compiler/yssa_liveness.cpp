@@ -204,7 +204,7 @@ void yssa_liveness( yssa_module* module, yssa_function* function )
     for ( size_t i = 0; i < function->ops.size(); ++i )
     {
         yssa_opinst* op = function->ops.at( i );
-        if ( ! op->has_associated() && op->variable )
+        if ( op->live && ! op->has_associated() && op->variable )
         {
             // Merge live range into live range of variable.
             for ( yssa_live_range* live = op->live; live; live = live->next )
@@ -214,14 +214,18 @@ void yssa_liveness( yssa_module* module, yssa_function* function )
             }
             
             // Update argument status.
+            yssa_opinst*& call = vargof[ op->variable ];
             auto j = function->argof.find( op );
             if ( j != function->argof.end() )
             {
-                yssa_opinst*& call = vargof[ op->variable ];
                 if ( ! call || call == j->second )
                     call = j->second;
                 else
                     call = YSSA_NOARG;
+            }
+            else
+            {
+                call = YSSA_NOARG;
             }
         }
     }
