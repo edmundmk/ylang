@@ -7,6 +7,8 @@
 
 
 #include "yssa_regalloc.h"
+#include <queue>
+#include <make_unique.h>
 #include "yssa.h"
 
 
@@ -27,7 +29,7 @@
      -  There is a set of 'free' values, initially consisting of all
             non-argument values.
      -  The free value whose live range starts first is allocated such that
-            it does not interefere with other values assigned to the same
+            it does not interfere with other values assigned to the same
             register.  We prefer:
         -  For arguments, a register based on the call op's stack top.
         -  For selects or calls, a register based on the call op's stack top.
@@ -49,50 +51,73 @@
     Since an argument value cannot span its call op (or any outer call op
     which has that call as an argument), the algorithm should always complete
     after allocating all values.
+    
+    
+    The benefit from delaying allocation of arguments until the associated
+    call's stack top is identified is probably quite small.  It's likely that
+    arguments will be encountered after all values live across the call,
+    meaning that in most cases there will be no delay after all.
  
 
 */
 
 
 
-
-
-
-
 /*
-    This is how we do register allocation:
- 
-     -  Variables and temporaries which have a single use as an argument
-            of a call-like instruction, are 'argument values'.
-     -  Parameters are allocated to the appropriate registers.
-     -  Perform a linear scan in reverse order to greedily allocate
-            registers.  Performing the scan in reverse allows us to allocate
-            argument values to the correct registers more often than not.
-
-
-    The restriction on overlapping definitions of a variable means that
-    all operands to a phi-function will be allocated to the same register.
-    The previous compiler used a true SSA form without this restriction.
-    We probably produce worse code (and the new way complicates the SSA
-    construction process since temporaries needed to be generated), but:
-
-     -  'Open' upvals can live on the stack like other variables.
-     -  No special phi-handling for values used in exception handlers.
-     -  Debug information is much simpler.
-
-
-    The previous compiler also performed a bottom-up scan, but it attempted
-    to assign _all_ arguments to the optimal register.  Again, we probably
-    produce worse code, but the allocated registers are more likely to be
-    tightly clustered and the total size of stack frames is likely to be
-    smaller.  I think.
-
+    Make each value and each call op explicit.
 */
 
 
+struct yssa_regvalue;
+struct yssa_regcall;
+
+
+typedef std::unique_ptr< yssa_regvalue > yssa_regvalue_p;
+typedef std::unique_ptr< yssa_regcall > yssa_regcall_p;
+
+
+struct yssa_regvalue
+{
+    yssa_live_range*                live;
+    yssa_variable*                  variable;
+    yssa_opinst*                    argof;
+    std::vector< yssa_opinst* >     ops;
+    std::vector< yssa_regcall* >    across;
+};
+
+
+struct yssa_regcall
+{
+    size_t                          index;
+    yssa_opinst*                    op;
+    std::vector< yssa_regvalue* >   arguments;
+    size_t                          across_count;
+};
+
+
+struct yssa_regvalue_priority
+{
+    bool operator() ( yssa_regvalue* a, yssa_regvalue* b ) const
+    {
+        // First op has highest priority.
+        return a->live->start >= b->live->start;
+    }
+};
+
+
+typedef std::priority_queue
+        <
+            yssa_regvalue*,
+            std::vector< yssa_regvalue* >,
+            yssa_regvalue_priority
+        >
+        yssa_regvalue_queue;
+
+
+
+
 /*
-    But for now let's forget some of that and do brute-force interference
-    analysis, top-down, but delaying allocation of argument ops.
+    Allocation record.
 */
 
 
@@ -118,7 +143,7 @@ uint8_t yssa_regscan::stack_top( size_t address )
         {
             for ( ; live; live = live->next )
             {
-                if ( address >= live->start || address < live->final )
+                if ( address >= live->start && address < live->final )
                 {
                     return r + 1;
                 }
@@ -218,17 +243,122 @@ bool yssa_regscan::interfere( yssa_live_range* a, yssa_live_range* b )
 
 void yssa_regalloc( yssa_module* module, yssa_function* function )
 {
-    yssa_regscan regscan;
-    std::unordered_map< yssa_opinst*, std::unordered_set< yssa_opinst* > > argops;
-    std::unordered_map< yssa_opinst*, std::unordered_set< yssa_variable* > > argvars;
-    
+    // Build values.
+    std::unordered_map< void*, yssa_regvalue_p > values;
     for ( size_t i = 0; i < function->ops.size(); ++i )
     {
         yssa_opinst* op = function->ops.at( i );
-        
+
+        if ( op->variable )
+        {
+            auto j = values.find( op->variable );
+            if ( j != values.end() )
+            {
+                j->second->ops.push_back( op );
+            }
+            else
+            {
+                yssa_regvalue_p value = std::make_unique< yssa_regvalue >();
+                value->live     = op->variable->live;
+                value->variable = op->variable;
+                value->argof    = op->variable->argof;
+                value->ops.push_back( op );
+                values.emplace( op->variable, std::move( value ) );
+            }
+        }
+        else if ( op->live )
+        {
+            assert( ! values.count( op ) );
+            yssa_regvalue_p value = std::make_unique< yssa_regvalue >();
+            value->live = op->live;
+            value->variable = nullptr;
+            auto j = function->argof.find( op );
+            if ( j != function->argof.end() )
+                value->argof = j->second;
+            else
+                value->argof = nullptr;
+            value->ops.push_back( op );
+            values.emplace( op, std::move( value ) );
+        }
     }
 
+    
+    // Build calls.
+    std::vector< yssa_regcall_p > calls;
+    for ( size_t i = 0; i < function->ops.size(); ++i )
+    {
+        yssa_opinst* op = function->ops.at( i );
+
+        if ( ! op->is_call() )
+        {
+            continue;
+        }
+        
+        yssa_regcall_p call = std::make_unique< yssa_regcall >();
+        call->index         = i;
+        call->op            = op;
+        call->across_count  = 0;
+        
+        for ( const auto& v : values )
+        {
+            for ( yssa_live_range* live = v.second->live;
+                            live; live = live->next )
+            {
+                if ( i >= live->start && i < live->final )
+                {
+                    v.second->across.push_back( call.get() );
+                    call->across_count += 1;
+                }
+            }
+            
+            if ( v.second->argof == op )
+            {
+                call->arguments.push_back( v.second.get() );
+            }
+        }
+        
+        if ( call->across_count == 0 )
+        {
+            // No variables are live across the call.
+            call->op->stacktop = 0;
+            for ( yssa_regvalue* value : call->arguments )
+            {
+                value->argof = nullptr;
+            }
+        }
+        
+        calls.push_back( std::move( call ) );
+    }
+    
+    
+    // Identify free values.
+    yssa_regvalue_queue free_values;
+    for ( const auto& v : values )
+    {
+        if ( ! v.second->argof )
+        {
+            free_values.push( v.second.get() );
+        }
+    }
+    
+    
+    // Perform allocations.
+    while ( free_values.size() )
+    {
+        yssa_regvalue* value = free_values.top();
+        free_values.pop();
+        
+        
+    }
+    
+    
+
+
 }
+
+
+
+
 
 
 
