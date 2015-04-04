@@ -154,7 +154,7 @@ void yssa_liveness( yssa_module* module, yssa_function* function )
                 live.emplace( op->multival, index );
                 
                 // Update argof.
-                yssa_opinst* call = argof[ op->multival ];
+                yssa_opinst*& call = argof[ op->multival ];
                 assert( op->is_call() );
                 if ( ! call || call == op )
                     call = op;
@@ -195,6 +195,7 @@ void yssa_liveness( yssa_module* module, yssa_function* function )
     {
         if ( argop.second != YSSA_NOARG )
         {
+            assert( argop.second != nullptr );
             function->argof.insert( argop );
         }
     }
