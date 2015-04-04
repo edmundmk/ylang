@@ -90,6 +90,7 @@ struct yssa_regcall
 {
     size_t                          index;
     yssa_opinst*                    op;
+    yssa_opinst*                    argof;
     std::vector< yssa_regvalue* >   arguments;
     size_t                          across_count;
 };
@@ -125,8 +126,7 @@ struct yssa_regscan
 {
     std::vector< std::vector< yssa_live_range* > > registers;
     
-    uint8_t stack_top( size_t address );
-    uint8_t allocate_call( size_t address, yssa_live_range* range );
+    uint8_t stacktop( size_t address );
     uint8_t allocate( yssa_live_range* range );
     bool    allocate( uint8_t r, yssa_live_range* range );
     bool    interfere( yssa_live_range* a, yssa_live_range* b );
@@ -134,7 +134,7 @@ struct yssa_regscan
 };
 
 
-uint8_t yssa_regscan::stack_top( size_t address )
+uint8_t yssa_regscan::stacktop( size_t address )
 {
     uint8_t r = registers.size();
     while ( r-- )
@@ -151,20 +151,6 @@ uint8_t yssa_regscan::stack_top( size_t address )
         }
     }
     
-    return 0;
-}
-
-uint8_t yssa_regscan::allocate_call( size_t address, yssa_live_range* range )
-{
-    for ( uint8_t r = stack_top( address ); r <= registers.size(); ++r )
-    {
-        if ( allocate( r, range ) )
-        {
-            return r;
-        }
-    }
-    
-    assert( ! "final allocation should have succeeded" );
     return 0;
 }
 
@@ -238,6 +224,51 @@ bool yssa_regscan::interfere( yssa_live_range* a, yssa_live_range* b )
 
 
 
+static uint8_t preferred_stacktop( yssa_regcall* call )
+{
+
+    return yl_opinst::NOVAL;
+}
+
+
+
+static uint8_t preferred_register( yssa_regvalue* value )
+{
+    // Check if the value is an argument.
+    if ( value->argof )
+    {
+        yssa_opinst* call = value->argof;
+        assert( call->is_call() );
+        assert( call->stacktop != yl_opinst::NOVAL );
+
+        for ( yssa_opinst* op : value->ops )
+        {
+            for ( size_t i = 0; i < call->operand_count; ++i )
+            {
+                if ( call->operand[ i ] == op )
+                {
+                    return call->stacktop + i;
+                }
+                
+                if ( call->has_multival() && call->multival == op )
+                {
+                    return call->stacktop + call->operand_count;
+                }
+            }
+        }
+    }
+    
+    //
+    
+    
+    // Check if the value is a call itself.
+    
+    
+    // Check if the value is a select.
+
+    
+    return yl_opinst::NOVAL;
+}
 
 
 
@@ -249,12 +280,16 @@ void yssa_regalloc( yssa_module* module, yssa_function* function )
     {
         yssa_opinst* op = function->ops.at( i );
 
+        if ( ! op->live )
+            continue;
+
         if ( op->variable )
         {
             auto j = values.find( op->variable );
             if ( j != values.end() )
             {
-                j->second->ops.push_back( op );
+                yssa_regvalue* value = j->second.get();
+                value->ops.push_back( op );
             }
             else
             {
@@ -266,22 +301,28 @@ void yssa_regalloc( yssa_module* module, yssa_function* function )
                 values.emplace( op->variable, std::move( value ) );
             }
         }
-        else if ( op->live )
+        else
         {
             assert( ! values.count( op ) );
             yssa_regvalue_p value = std::make_unique< yssa_regvalue >();
-            value->live = op->live;
+            value->live     = op->live;
             value->variable = nullptr;
+            
             auto j = function->argof.find( op );
             if ( j != function->argof.end() )
+            {
                 value->argof = j->second;
+            }
             else
+            {
                 value->argof = nullptr;
+            }
+            
             value->ops.push_back( op );
             values.emplace( op, std::move( value ) );
         }
     }
-
+    
     
     // Build calls.
     std::vector< yssa_regcall_p > calls;
@@ -302,9 +343,11 @@ void yssa_regalloc( yssa_module* module, yssa_function* function )
         for ( const auto& v : values )
         {
             for ( yssa_live_range* live = v.second->live;
-                            live; live = live->next )
+                        live; live = live->next )
             {
-                if ( i >= live->start && i < live->final )
+                // Note that if i == live->start then the live range begins at
+                // the call itself.  Calls are not live across themselves.
+                if ( i > live->start && i < live->final )
                 {
                     v.second->across.push_back( call.get() );
                     call->across_count += 1;
@@ -343,12 +386,72 @@ void yssa_regalloc( yssa_module* module, yssa_function* function )
     
     
     // Perform allocations.
+    yssa_regscan regscan;
     while ( free_values.size() )
     {
         yssa_regvalue* value = free_values.top();
         free_values.pop();
         
+        // Identify preferred register (if any).
+        uint8_t r = preferred_register( value );
         
+        // Attempt to allocate to preferred register.
+        if ( r != yl_opinst::NOVAL && ! regscan.allocate( r, value->live ) )
+        {
+            r = yl_opinst::NOVAL;
+        }
+        
+        // Allocate to any register.
+        if ( r == yl_opinst::NOVAL )
+        {
+            r = regscan.allocate( value->live );
+        }
+        
+        // Set value.
+        if ( value->variable )
+        {
+            assert( value->variable->r == yl_opinst::NOVAL );
+            value->variable->r = r;
+        }
+        
+        for ( yssa_opinst* op : value->ops )
+        {
+            assert( op->r == yl_opinst::NOVAL );
+            op->r = r;
+        }
+        
+        // Update calls now that this value has been allocated.
+        for ( yssa_regcall* call : value->across )
+        {
+            assert( call->across_count > 0 );
+            call->across_count -= 1;
+            if ( call->across_count == 0 )
+            {
+                // All values live across this call have been allocated,
+                // find the stack top at this call.
+                
+                // Find top of stack.
+                uint8_t stacktop = regscan.stacktop( call->index );
+                
+                // Identify preferred stack top (if any).
+                uint8_t preferred = preferred_stacktop( call );
+                if ( preferred != yl_opinst::NOVAL && preferred >= stacktop )
+                {
+                    stacktop = preferred;
+                }
+                
+                // Assign stack top.
+                assert( call->op->stacktop == yl_opinst::NOVAL );
+                call->op->stacktop = stacktop;
+                
+                // All arguments to this call are now free to be allocated.
+                for ( yssa_regvalue* argument : call->arguments )
+                {
+                    assert( argument->argof == call->op );
+                    free_values.push( argument );
+                }
+            }
+        }
     }
     
     
