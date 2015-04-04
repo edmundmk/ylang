@@ -155,6 +155,7 @@ void yssa_liveness( yssa_module* module, yssa_function* function )
                 
                 // Update argof.
                 yssa_opinst* call = argof[ op->multival ];
+                assert( op->is_call() );
                 if ( ! call || call == op )
                     call = op;
                 else
