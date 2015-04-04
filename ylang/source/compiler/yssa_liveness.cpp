@@ -135,13 +135,17 @@ void yssa_liveness( yssa_module* module, yssa_function* function )
                 live.emplace( op->operand[ i ], index );
                 
                 // Update argof.
+                yssa_opinst*& call = argof[ op->operand[ i ] ];
                 if ( op->is_call() )
                 {
-                    yssa_opinst*& call = argof[ op->operand[ i ] ];
                     if ( ! call || call == op )
                         call = op;
                     else
                         call = YSSA_NOARG;
+                }
+                else
+                {
+                    call = YSSA_NOARG;
                 }
             }
             
