@@ -303,7 +303,7 @@ public:
         add( YL_JMPF,       "jmpf" );
     
         add( YL_VARARG,     "vararg" );
-        add( YL_CLOSURE,    "closure %f" );
+        add( YL_FUNCTION,   "function %f" );
         add( YL_CALL,       "call" );
         add( YL_YCALL,      "ycall" );
         add( YL_YIELD,      "yield" );

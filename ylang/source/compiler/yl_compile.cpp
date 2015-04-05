@@ -16,6 +16,7 @@
 #include "yssa_analyze.h"
 #include "yssa_liveness.h"
 #include "yssa_regalloc.h"
+#include "yssa_codegen.h"
 
 
 
@@ -69,6 +70,8 @@ yl_invoke yl_compile( const char* path, size_t paramc, const char* paramv[] )
     }
         
     yssa_print( module );
+    
+    yl_invoke invoke = yssa_codegen( module );
 
 
     return yl_invoke();

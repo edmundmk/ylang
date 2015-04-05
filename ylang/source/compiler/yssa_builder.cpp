@@ -1237,7 +1237,7 @@ int yssa_builder::visit( yl_ast_func* node, int count )
 {
     // Function op.
     yssa_function* function = funcmap.at( node );
-    yssa_opinst* o = op( node->sloc, YL_CLOSURE, 0, 1 );
+    yssa_opinst* o = op( node->sloc, YL_FUNCTION, 0, 1 );
     o->function = function;
     
     // Upval initializers.

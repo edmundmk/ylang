@@ -33,6 +33,9 @@ public:
 
     static yl_function* alloc( yl_program* program );
 
+    void acquire();
+    void release();
+
 
 private:
 
@@ -54,19 +57,29 @@ class yl_program : public yl_heapobj
 {
 public:
 
-    static yl_program*  alloc();
+    static yl_program* alloc(
+            size_t valcount, size_t opcount, size_t xfcount, size_t vncount );
     
     
 
 private:
 
-    yl_heapref< yl_valarray >   _constants;
-    std::vector< yl_opinst >    _opinsts;
-    std::vector< yl_xframe >    _xframes;
-    std::vector< yl_varname >   _varnames;
+    uint16_t                    _valcount;
+    size_t                      _opcount;
+    size_t                      _xfcount;
+    size_t                      _vncount;
+
+    // yl_value                 _values[];
+    // yl_opinst                _ops[];
+    // yl_xframe                _xframes[];
+    // yl_varname               _varnames[];
 
 };
 
 
 
 #endif
+
+
+
+

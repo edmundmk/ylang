@@ -93,7 +93,7 @@ enum yl_opcode
     */
     
     YL_VARARG,       // r:a = ...
-    YL_CLOSURE,      // r = close over functions[ c ], upval instructions follow
+    YL_FUNCTION,     // r = close over functions[ c ], upval instructions follow
     YL_CALL,         // r:b = call r:a
     YL_YCALL,        // r:b = yield call r:a
     YL_YIELD,        // r:b = yield r:a

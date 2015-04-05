@@ -11,6 +11,7 @@
 
 
 #include <cstddef>
+#include <utility>
 
 
 class yl_function;
@@ -29,8 +30,14 @@ public:
     yl_invoke();
     yl_invoke( std::nullptr_t );
     yl_invoke& operator = ( std::nullptr_t );
+    yl_invoke( const yl_invoke& p );
+    yl_invoke& operator = ( const yl_invoke& p );
+    yl_invoke( yl_invoke&& p );
+    yl_invoke& operator = ( yl_invoke&& p );
+    ~yl_invoke();
     
-
+    explicit operator bool () const;
+    
 
 private:
 
@@ -44,6 +51,72 @@ private:
 };
 
 
+/*
+*/
+
+
+inline yl_invoke::yl_invoke( yl_function* function )
+    :   _function( function )
+{
+    acquire();
+}
+
+inline yl_invoke::yl_invoke()
+    :   _function( nullptr )
+{
+}
+
+inline yl_invoke::yl_invoke( std::nullptr_t )
+    :   _function( nullptr )
+{
+}
+
+inline yl_invoke& yl_invoke::operator = ( std::nullptr_t )
+{
+    release();
+    return *this;
+}
+
+inline yl_invoke::yl_invoke( const yl_invoke& p )
+    :   _function( p._function )
+{
+    acquire();
+}
+
+inline yl_invoke& yl_invoke::operator = ( const yl_invoke& p )
+{
+    release();
+    _function = p._function;
+    acquire();
+    return *this;
+}
+
+inline yl_invoke::yl_invoke( yl_invoke&& p )
+{
+    _function = p._function;
+    p._function = nullptr;
+}
+
+inline yl_invoke& yl_invoke::operator = ( yl_invoke&& p )
+{
+    std::swap( _function, p._function );
+    p.release();
+    return *this;
+}
+
+inline yl_invoke::~yl_invoke()
+{
+    release();
+}
+
+inline yl_invoke::operator bool () const
+{
+    return _function != nullptr;
+}
 
 
 #endif
+
+
+
+
