@@ -1,9 +1,9 @@
 //
-//  yl_program.cpp
-//  ylang
+//  yl_function.cpp
 //
 //  Created by Edmund Kapusniak on 05/04/2015.
 //  Copyright (c) 2015 Edmund Kapusniak. All rights reserved.
 //
 
-#include "yl_program.h"
+
+#include "yl_function.h"

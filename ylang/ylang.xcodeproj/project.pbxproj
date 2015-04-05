@@ -8,8 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		4B24D8B51AD156CA00A83A4C /* yl_value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B24D8B41AD156CA00A83A4C /* yl_value.cpp */; };
-		4B24D8B81AD160E900A83A4C /* yl_program.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B24D8B61AD160E900A83A4C /* yl_program.cpp */; };
-		4B24D8B91AD160E900A83A4C /* yl_program.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B24D8B71AD160E900A83A4C /* yl_program.h */; };
+		4B24D8B81AD160E900A83A4C /* yl_function.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B24D8B61AD160E900A83A4C /* yl_function.cpp */; };
+		4B24D8B91AD160E900A83A4C /* yl_function.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B24D8B71AD160E900A83A4C /* yl_function.h */; };
 		4B4176F21AA3849C00C014EB /* yl_code.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4176F11AA3849C00C014EB /* yl_code.h */; };
 		4B4231531AC407C70065BDAF /* yssa_constfold.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4231511AC407C70065BDAF /* yssa_constfold.cpp */; };
 		4B4231541AC407C70065BDAF /* yssa_constfold.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4231521AC407C70065BDAF /* yssa_constfold.h */; };
@@ -66,8 +66,8 @@
 
 /* Begin PBXFileReference section */
 		4B24D8B41AD156CA00A83A4C /* yl_value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_value.cpp; sourceTree = "<group>"; };
-		4B24D8B61AD160E900A83A4C /* yl_program.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_program.cpp; sourceTree = "<group>"; };
-		4B24D8B71AD160E900A83A4C /* yl_program.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_program.h; sourceTree = "<group>"; };
+		4B24D8B61AD160E900A83A4C /* yl_function.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_function.cpp; sourceTree = "<group>"; };
+		4B24D8B71AD160E900A83A4C /* yl_function.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_function.h; sourceTree = "<group>"; };
 		4B4176CE1AA24AEE00C014EB /* yl_context.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_context.h; sourceTree = "<group>"; };
 		4B4176CF1AA24B1500C014EB /* yl_expose.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_expose.h; sourceTree = "<group>"; };
 		4B4176D01AA24B3D00C014EB /* yl_invoke.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_invoke.h; sourceTree = "<group>"; };
@@ -136,8 +136,8 @@
 				4B6FDAD11AA66ABF001096B0 /* yl_context.cpp */,
 				4B4176F61AA5040300C014EB /* yl_heap.h */,
 				4B4176F51AA503DD00C014EB /* yl_object.h */,
-				4B24D8B61AD160E900A83A4C /* yl_program.cpp */,
-				4B24D8B71AD160E900A83A4C /* yl_program.h */,
+				4B24D8B61AD160E900A83A4C /* yl_function.cpp */,
+				4B24D8B71AD160E900A83A4C /* yl_function.h */,
 				4B6FDABC1AA65C6C001096B0 /* yl_string.cpp */,
 				4B6FDA981AA5AA83001096B0 /* yl_string.h */,
 				4B24D8B41AD156CA00A83A4C /* yl_value.cpp */,
@@ -259,7 +259,7 @@
 				4B6FDAB41AA654AE001096B0 /* yl_parser_lemon.h in Headers */,
 				4B6FDAB61AA654AE001096B0 /* yl_token.h in Headers */,
 				4B6FDAB11AA654AE001096B0 /* yl_diagnostics.h in Headers */,
-				4B24D8B91AD160E900A83A4C /* yl_program.h in Headers */,
+				4B24D8B91AD160E900A83A4C /* yl_function.h in Headers */,
 				4B4176F21AA3849C00C014EB /* yl_code.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -327,7 +327,7 @@
 				4B6FDE821AA7B4D8001096B0 /* yl_parser_ragel.rl in Sources */,
 				4B6FDAD21AA66ABF001096B0 /* yl_context.cpp in Sources */,
 				4B6FDABD1AA65C6C001096B0 /* yl_string.cpp in Sources */,
-				4B24D8B81AD160E900A83A4C /* yl_program.cpp in Sources */,
+				4B24D8B81AD160E900A83A4C /* yl_function.cpp in Sources */,
 				4B4231571AC4D9950065BDAF /* yssa_analyze.cpp in Sources */,
 				4B6FDAB51AA654AE001096B0 /* yl_token.cpp in Sources */,
 				4B6FDE851AA855C0001096B0 /* yssa.cpp in Sources */,
