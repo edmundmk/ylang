@@ -10,6 +10,8 @@
 #define YL_CODE_H
 
 
+#include <string>
+
 
 /*
     yl script bytecodes.  The yl bytecode interpreter owes a large debt to Lua.

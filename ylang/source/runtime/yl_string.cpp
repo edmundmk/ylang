@@ -11,7 +11,7 @@
 
 
 yl_string::yl_string( size_t size )
-    :   yl_heapobj( YL_STRING )
+    :   yl_heapobj( YLOBJ_STRING )
     ,   _is_symbol( false )
     ,   _has_hash( false )
     ,   _hash( 0 )

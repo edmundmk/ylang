@@ -19,6 +19,12 @@
     Garbage-collected ylang heap.  Each heap supports a single mutator
     thread.  The garbage collector runs concurrently with the mutator
     thread (save for marking of stack roots).
+    
+    The root set consists of the current execution stack, closures
+    referenced by yl_invoke objects, and ylang objects which are the
+    script part of a yl_expose.
+    
+    Cothread execution stacks are marked lazily.
 */
 
 
@@ -36,22 +42,21 @@ class yl_heap
 enum yl_heapobj_kind : uint8_t
 {
     // User-visible
-    YL_STRING,      // string or symbol
-    YL_OBJECT,      // object
-    YL_NATIVE,      // object linked to native yl_expose
-    YL_ARRAY,       // dynamic array
-    YL_TABLE,       // hashtable
-    YL_FUNCTION,    // function
-    YL_COTHREAD,    // coroutine with stack
+    YLOBJ_STRING,       // string or symbol
+    YLOBJ_OBJECT,       // object
+    YLOBJ_NATIVE,       // object linked to native yl_expose
+    YLOBJ_ARRAY,        // dynamic array
+    YLOBJ_TABLE,        // hashtable
+    YLOBJ_FUNCTION,     // function
+    YLOBJ_COTHREAD,     // coroutine with stack
     
     // Compiled code
-    YL_MODULE,      // result of compiling a .yl source file
-    YL_PROGRAM,     // code for a single function
+    YLOBJ_PROGRAM,      // code for a single function
 
     // Internal
-    YL_VALARRAY,    // fixed-size array of yl_values
-    YL_SLOT,        // node in an object's class tree
-    YL_UPVAL,       // implements function closures
+    YLOBJ_VALARRAY,     // fixed-size array of yl_values
+    YLOBJ_SLOT,         // node in an object's class tree
+    YLOBJ_UPVAL,        // implements function closures
 };
 
 
