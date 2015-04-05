@@ -10,6 +10,7 @@
 		4B24D8B51AD156CA00A83A4C /* yl_value.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B24D8B41AD156CA00A83A4C /* yl_value.cpp */; };
 		4B24D8B81AD160E900A83A4C /* yl_function.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B24D8B61AD160E900A83A4C /* yl_function.cpp */; };
 		4B24D8B91AD160E900A83A4C /* yl_function.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B24D8B71AD160E900A83A4C /* yl_function.h */; };
+		4B24D8BB1AD1DE0500A83A4C /* yl_code.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B24D8BA1AD1DE0500A83A4C /* yl_code.cpp */; };
 		4B4176F21AA3849C00C014EB /* yl_code.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4176F11AA3849C00C014EB /* yl_code.h */; };
 		4B4231531AC407C70065BDAF /* yssa_constfold.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4231511AC407C70065BDAF /* yssa_constfold.cpp */; };
 		4B4231541AC407C70065BDAF /* yssa_constfold.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4231521AC407C70065BDAF /* yssa_constfold.h */; };
@@ -71,6 +72,7 @@
 		4B24D8B41AD156CA00A83A4C /* yl_value.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_value.cpp; sourceTree = "<group>"; };
 		4B24D8B61AD160E900A83A4C /* yl_function.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_function.cpp; sourceTree = "<group>"; };
 		4B24D8B71AD160E900A83A4C /* yl_function.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_function.h; sourceTree = "<group>"; };
+		4B24D8BA1AD1DE0500A83A4C /* yl_code.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_code.cpp; sourceTree = "<group>"; };
 		4B4176CE1AA24AEE00C014EB /* yl_context.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_context.h; sourceTree = "<group>"; };
 		4B4176CF1AA24B1500C014EB /* yl_expose.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_expose.h; sourceTree = "<group>"; };
 		4B4176D01AA24B3D00C014EB /* yl_invoke.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_invoke.h; sourceTree = "<group>"; };
@@ -138,6 +140,7 @@
 		4B4176D31AA3820600C014EB /* runtime */ = {
 			isa = PBXGroup;
 			children = (
+				4B24D8BA1AD1DE0500A83A4C /* yl_code.cpp */,
 				4B4176F11AA3849C00C014EB /* yl_code.h */,
 				4B6FDAD11AA66ABF001096B0 /* yl_context.cpp */,
 				4B4176F61AA5040300C014EB /* yl_heap.h */,
@@ -333,6 +336,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4B4231531AC407C70065BDAF /* yssa_constfold.cpp in Sources */,
+				4B24D8BB1AD1DE0500A83A4C /* yl_code.cpp in Sources */,
 				4B6FDE811AA7B4D8001096B0 /* yl_parser_lemon.ly in Sources */,
 				4B6FDE821AA7B4D8001096B0 /* yl_parser_ragel.rl in Sources */,
 				4B6FDAD21AA66ABF001096B0 /* yl_context.cpp in Sources */,

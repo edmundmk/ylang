@@ -33,7 +33,7 @@ enum yl_opcode
         Constants.
     */
     
-    YL_NULL,         // r:a = null
+    YL_NULL,         // r = null
     YL_BOOL,         // r = a ? true : false
     YL_NUMBER,       // r = numbers[ c ]
     YL_STRING,       // r = strings[ c ]
@@ -92,7 +92,7 @@ enum yl_opcode
         Calls.
     */
     
-    YL_VARARG,       // r:a = ...
+    YL_VARARG,       // r:b = ...
     YL_FUNCTION,     // r = close over functions[ c ], upval instructions follow
     YL_CALL,         // r:b = call r:a
     YL_YCALL,        // r:b = yield call r:a
@@ -140,7 +140,7 @@ enum yl_opcode
     YL_KEY,          // r = a.b, where b is a key index
     YL_INKEY,        // r = a.[ b ]
     YL_INDEX,        // r = a[ b ]
-    YL_SETKEY,       // r.b = a,
+    YL_SETKEY,       // r.b = a, where b is a key index
     YL_SETINKEY,     // r.[ a ] = b
     YL_SETINDEX,     // r[ a ] = b
     YL_DELKEY,       // delete a.b, where b is a key index
@@ -251,6 +251,44 @@ struct yl_varname
     unsigned    r;          // Register or upval index.
     std::string name;       // Name of variable.
 };
+
+
+
+/*
+
+*/
+
+
+inline yl_opcode yl_opinst::opcode()
+{
+    return (yl_opcode)(uint8_t)i;
+}
+
+inline unsigned yl_opinst::r()
+{
+    return (uint8_t)( i >> 8 );
+}
+
+inline unsigned yl_opinst::a()
+{
+    return (uint8_t)( i >> 16 );
+}
+
+inline unsigned yl_opinst::b()
+{
+    return (uint8_t)( i >> 24 );
+}
+
+inline unsigned yl_opinst::c()
+{
+    return (uint16_t)( i >> 16 );
+}
+
+inline signed yl_opinst::j()
+{
+    return (int16_t)( i >> 16 );
+}
+
 
 
 
