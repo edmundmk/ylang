@@ -311,9 +311,9 @@ public:
     
         add( YL_ITER,       "iterkey %r" );
         add( YL_ITERKEY,    "iterkey %r" );
-        add( YL_NEXT1,      "next1 %b" );
-        add( YL_NEXT2,      "next2 %b" );
-        add( YL_NEXT,       "next %b" );
+        add( YL_NEXT1,      "next1 %a" );
+        add( YL_NEXT2,      "next2 %a" );
+        add( YL_NEXT,       "next %a" );
 
         add( YL_JMPV,       "jmpv" );
         add( YL_JMPN,       "jmpn" );
@@ -355,7 +355,7 @@ public:
         add( YSSA_PARAM,    "param %i" );
         add( YSSA_SELECT,   "select %i" );
         add( YSSA_IMPLICIT, "implicit (%t)" );
-        add( YSSA_ITEREACH, "itereach %b" );
+        add( YSSA_ITEREACH, "itereach %r" );
         add( YSSA_PHI,      "phi" );
         add( YSSA_REF,      "ref" );
         add( YSSA_VAR,      "var" );

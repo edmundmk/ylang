@@ -639,7 +639,7 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
         
         // Request correct number of ops from iterator.
         yssa_opinst* o = op( node->sloc, opcode, 0, node->lvalues.size() );
-        o->b = iterindex;
+        o->a = iterindex;
         
         // Build select ops.
         std::vector< yssa_opinst* > selects;
@@ -699,7 +699,7 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
     
     // Perform loop check.
     o = op( node->sloc, YSSA_ITEREACH, 0, 0 );
-    o->b = iterindex;
+    o->r = iterindex;
     
     if ( block )
     {

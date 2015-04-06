@@ -30,6 +30,8 @@ void yssa_constfold( yssa_module* module, yssa_function* function )
         {
             yssa_constfold_op( module, block->ops.at( i ) );
         }
+        
+        block->test = yssa_fold_refs( block->test );
     }
 }
 

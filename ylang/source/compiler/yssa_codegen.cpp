@@ -429,6 +429,7 @@ void yssa_codegen_function( ygen_module* m, yssa_function* function )
     
     // Construct each block.
     std::vector< size_t > indexes;
+    std::vector< std::pair< size_t, size_t > > jumps;
     for ( size_t i = 0; i < function->blocks.size(); ++i )
     {
         yssa_block* block = function->blocks.at( i ).get();
@@ -446,15 +447,78 @@ void yssa_codegen_function( ygen_module* m, yssa_function* function )
             indexes.insert( indexes.end(), count, opindex );
         }
         
+        // Find next block.
+        yssa_block* next_block = nullptr;
+        if ( i + 1 < function->blocks.size() )
+        {
+            next_block = function->blocks.at( i + 1 ).get();
+        }
+
         // Compile jumps.
         if ( block->test )
         {
-        }
-        else
-        {
+            assert( block->next );
+            assert( block->fail );
             
+            assert( block->test->r != yl_opinst::NOVAL );
+            unsigned r = block->test->r;
+            yl_opcode jmpt;
+            yl_opcode jmpf;
+            
+            if ( block->test->opcode != YSSA_ITEREACH )
+            {
+                jmpt = YL_JMPT;
+                jmpf = YL_JMPF;
+            }
+            else
+            {
+                jmpt = YL_JMPV;
+                jmpf = YL_JMPN;
+            }
+            
+            if ( block->next == next_block )
+            {
+                size_t index = p->ops.size();
+                p->ops.emplace_back( YL_JMPF, r, (signed)0 );
+                jumps.emplace_back( index, block->fail->lstart );
+            }
+            else if ( block->fail == next_block )
+            {
+                size_t index = p->ops.size();
+                p->ops.emplace_back( YL_JMPT, r, (signed)0 );
+                jumps.emplace_back( index, block->next->lstart );
+            }
+            else
+            {
+                size_t index = p->ops.size();
+                p->ops.emplace_back( YL_JMPT, r, (signed)0 );
+                jumps.emplace_back( index, block->next->lstart );
+                index = p->ops.size();
+                p->ops.emplace_back( YL_JMP, 0, (signed)0 );
+                jumps.emplace_back( index, block->fail->lstart );
+            }
+        }
+        else if ( block->next && block->next != next_block )
+        {
+            size_t index = p->ops.size();
+            p->ops.emplace_back( YL_JMP, 0, (signed)0 );
+            jumps.emplace_back( index, block->next->lstart );
         }
     }
+    
+    indexes.push_back( p->ops.size() );
+    
+    
+    // Fix up jumps.
+    for ( auto jump : jumps )
+    {
+        size_t index = jump.first;
+        size_t target = indexes.at( jump.second );
+        signed j = (signed)target - (signed)( index + 1 );
+        yl_opinst& op = p->ops.at( index );
+        op = yl_opinst( op.opcode(), op.r(), j );
+    }
+    
     
 }
 
@@ -695,7 +759,6 @@ size_t yssa_codegen_op(
         // Move all results into correct registers.
         return emit_select( p, function, index );
     }
-     
      
     case YL_ITER:
     case YL_ITERKEY:
