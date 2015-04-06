@@ -15,6 +15,7 @@
 
 
 class yl_function;
+struct yssa_module;
 
 
 /*
@@ -41,6 +42,8 @@ public:
 
 private:
 
+    friend yl_invoke yssa_codegen( yssa_module* module );
+    
     explicit yl_invoke( yl_function* function );
 
     void acquire();

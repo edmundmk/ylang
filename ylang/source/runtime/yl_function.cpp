@@ -10,6 +10,14 @@
 
 
 
+yl_function* yl_function::alloc( yl_program* program )
+{
+    // TODO.
+    return nullptr;
+}
+
+
+
 void yl_function::acquire()
 {
     assert( _refcount < 255 );
