@@ -31,10 +31,10 @@ typedef std::unique_ptr< ygen_string >  ygen_string_p;
 
 enum ygen_value_kind
 {
-    YCV_KEY,
-    YCV_STRING,
-    YCV_NUMBER,
-    YCV_PROGRAM,
+    YGEN_KEY,
+    YGEN_STRING,
+    YGEN_NUMBER,
+    YGEN_PROGRAM,
 };
 
 
@@ -263,29 +263,132 @@ yl_invoke yssa_codegen( yssa_module* module )
 }
 
 
-void yssa_codegen_function( ygen_module* m, yssa_function* function )
+static ygen_program* add_program( ygen_module* m, yssa_function* function )
 {
     // Get (or create) program object.
-    ygen_program* p;
     auto i = m->programs.find( function );
     if ( i != m->programs.end() )
     {
-        p = i->second.get();
+        return i->second.get();
     }
     else
     {
         ygen_program_p program = std::make_unique< ygen_program >();
         program->program = nullptr;
-        p = program.get();
+        ygen_program* p = program.get();
         m->programs.emplace( function, std::move( program ) );
+        return p;
     }
-    
+}
+
+
+static ygen_string* add_string( ygen_module* m, symkey k )
+{
+    // Find string.
+    auto i = m->strings.find( k );
+    if ( i != m->strings.end() )
+    {
+        return i->second.get();
+    }
+    else
+    {
+        ygen_string_p string = std::make_unique< ygen_string >();
+        string->text = k.c_str();
+        string->size = k.size();
+        ygen_string* s = string.get();
+        m->strings.emplace( k, std::move( string ) );
+        return s;
+    }
+}
+
+
+void yssa_codegen_function( ygen_module* m, yssa_function* function )
+{
+    ygen_program* p = add_program( m, function );
     
     // Extract all constants.
-    for ( size_t i = 0; i < function->blocks.size(); ++i )
+    for ( size_t i = 0; i < function->ops.size(); ++i )
     {
+        yssa_opinst* op = function->ops.at( i );
+        switch ( op->opcode )
+        {
+        case YL_GLOBAL:
+        case YL_SETGLOBAL:
+        case YL_KEY:
+        case YL_SETKEY:
+        case YL_DELKEY:
+        {
+            symkey k( op->key );
+            auto i = p->strvals.find( k );
+            if ( i != p->strvals.end() )
+            {
+                // Upgrade to key, in case value was used earlier as string.
+                ygen_value& value = p->values.at( i->second );
+                value.kind = YGEN_KEY;
+            }
+            else
+            {
+                size_t index = p->values.size();
+                ygen_value value;
+                value.kind      = YGEN_KEY;
+                value.string    = add_string( m, k );
+                value.string->iskey = true;
+                p->values.push_back( value );
+                p->strvals.emplace( k, index );
+            }
+            break;
+        }
         
+        case YL_NUMBER:
+        {
+            if ( ! p->numvals.count( op->number ) )
+            {
+                size_t index = p->values.size();
+                ygen_value value;
+                value.kind      = YGEN_NUMBER;
+                value.number    = op->number;
+                p->values.push_back( value );
+                p->numvals.emplace( op->number, index );
+            }
+            break;
+        }
+        
+        case YL_STRING:
+        {
+            symkey k( op->string->string, op->string->length );
+            if ( ! p->strvals.count( k ) )
+            {
+                size_t index = p->values.size();
+                ygen_value value;
+                value.kind      = YGEN_STRING;
+                value.string    = add_string( m, k );
+                p->values.push_back( value );
+                p->strvals.emplace( k, index );
+            }
+            break;
+        }
+        
+        case YL_FUNCTION:
+        {
+            if ( ! p->funvals.count( op->function ) )
+            {
+                size_t index = p->values.size();
+                ygen_value value;
+                value.kind      = YGEN_PROGRAM;
+                value.program   = add_program( m, op->function );
+                p->values.push_back( value );
+                p->funvals.emplace( op->function, index );
+            }
+            break;
+        }
+        
+        default:
+            break;
+        }
     }
+    
+    
+    // And sort the values.
     
     
     
@@ -306,6 +409,7 @@ void yssa_codegen_function( ygen_module* m, yssa_function* function )
             size_t opindex = p->ops.size();
             count = yssa_codegen_op( m, p, function, i );
             indexes.insert( indexes.end(), count, opindex );
+
         }
     
     }
