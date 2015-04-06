@@ -389,7 +389,42 @@ void yssa_codegen_function( ygen_module* m, yssa_function* function )
     
     
     // And sort the values.
+    std::vector< size_t > sorted;
+    sorted.reserve( p->values.size() );
+    for ( size_t i = 0; i < p->values.size(); ++i )
+    {
+        sorted.push_back( i );
+    }
     
+    std::sort
+    (
+        sorted.begin(),
+        sorted.end(),
+        [=]( size_t a, size_t b )
+        {
+            const ygen_value& aval = p->values.at( a );
+            const ygen_value& bval = p->values.at( b );
+            
+            if ( aval.kind < bval.kind )
+                return true;
+            if ( aval.kind != bval.kind )
+                return false;
+            
+            switch ( aval.kind )
+            {
+            case YGEN_KEY:
+            case YGEN_STRING:
+                return strcmp( aval.string->text, bval.string->text ) < 0;
+            
+            case YGEN_NUMBER:
+                return aval.number < bval.number;
+
+            case YGEN_PROGRAM:
+                return a <  b;
+            }
+            
+        }
+    );
     
     
     // Construct each block.
@@ -429,6 +464,45 @@ static unsigned operand( yssa_opinst* op, size_t index )
     {
         return 0;
     }
+}
+
+
+static size_t emit_select( ygen_program* p, yssa_function* function, size_t index )
+{
+    yssa_opinst* op = function->ops.at( index );
+
+    ygen_movgraph results;
+    if ( op->r != yl_opinst::NOVAL )
+    {
+        results.move( op->r, op->stacktop );
+    }
+    
+    size_t n;
+    for ( n = 1; index + n < function->ops.size(); ++n )
+    {
+        yssa_opinst* sel = function->ops.at( index + n );
+        if ( sel->opcode == YSSA_SELECT )
+        {
+            assert( sel->operand_count == 1 );
+            assert( sel->operand[ 0 ] == op );
+            if ( sel->r != yl_opinst::NOVAL )
+            {
+                results.move( sel->r, op->stacktop + sel->select );
+            }
+        }
+        else if ( sel->opcode == YSSA_IMPLICIT )
+        {
+            // Ignore YSSA_IMPLICIT ops.
+        }
+        else
+        {
+            break;
+        }
+    }
+    
+    results.emit( p );
+    
+    return n;
 }
 
 
@@ -603,41 +677,20 @@ size_t yssa_codegen_op(
         p->ops.emplace_back( (yl_opcode)op->opcode, op->stacktop, a, b );
         
         // Move all results into correct registers.
-        ygen_movgraph results;
-        if ( op->r != yl_opinst::NOVAL )
-        {
-            results.move( op->r, op->stacktop );
-        }
-        
-        size_t n;
-        for ( n = 1; index + n < function->ops.size(); ++n )
-        {
-            yssa_opinst* sel = function->ops.at( index + n );
-            if ( sel->opcode == YSSA_SELECT )
-            {
-                assert( sel->operand_count == 1 );
-                assert( sel->operand[ 0 ] == op );
-                if ( sel->r != yl_opinst::NOVAL )
-                {
-                    results.move( sel->r, op->stacktop + sel->select );
-                }
-            }
-            else
-            {
-                break;
-            }
-        }
-        
-        results.emit( p );
-        return n;
+        return emit_select( p, function, index );
     }
      
      
     case YL_ITER:
     case YL_ITERKEY:
+    
     case YL_NEXT1:
     case YL_NEXT2:
     case YL_NEXT:
+    {
+        
+        return emit_select( p, function, index );
+    }
  
     case YL_GETUP:
     case YL_SETUP:
@@ -649,6 +702,8 @@ size_t yssa_codegen_op(
      
     case YL_KEY:
     case YL_SETKEY:
+    case YL_SETINKEY:
+    case YL_SETINDEX:
     case YL_DELKEY:
      
     case YL_APPEND:
