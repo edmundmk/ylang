@@ -154,16 +154,20 @@ struct yssa_opinst
             || opcode == YL_EXTEND
             || opcode == YL_CALL
             || opcode == YL_YCALL
-            || opcode == YL_YIELD;
+            || opcode == YL_YIELD
+            || opcode == YL_EXTEND;
     }
     
     bool is_call() const
     {
-        return opcode == YL_RETURN
-            || opcode == YL_EXTEND
+        return opcode == YL_VARARG
             || opcode == YL_CALL
             || opcode == YL_YCALL
-            || opcode == YL_YIELD;
+            || opcode == YL_YIELD
+            || opcode == YL_RETURN
+            || opcode == YL_NEXT
+            || opcode == YL_EXTEND
+            || opcode == YL_UNPACK;
     }
     
 

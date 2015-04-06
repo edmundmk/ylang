@@ -91,8 +91,12 @@ void yssa_liveness( yssa_module* module, yssa_function* function )
             successor( function, &live, block, block->next );
             successor( function, &live, block, block->fail );
             
-            // The condition is also live at the bottom of the block.
-            live.emplace( block->test, block->lfinal );
+            // The condition is also live at the bottom of the block, but
+            // itereach ops do not require a register.
+            if ( block->test->opcode != YSSA_ITEREACH )
+            {
+                live.emplace( block->test, block->lfinal );
+            }
         }
         else
         {

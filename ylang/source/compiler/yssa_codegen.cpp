@@ -444,9 +444,16 @@ void yssa_codegen_function( ygen_module* m, yssa_function* function )
             size_t opindex = p->ops.size();
             count = yssa_codegen_op( m, p, function, i );
             indexes.insert( indexes.end(), count, opindex );
-
         }
-    
+        
+        // Compile jumps.
+        if ( block->test )
+        {
+        }
+        else
+        {
+            
+        }
     }
     
 }
@@ -467,7 +474,34 @@ static unsigned operand( yssa_opinst* op, size_t index )
 }
 
 
-static size_t emit_select( ygen_program* p, yssa_function* function, size_t index )
+static void emit_arguments(
+        ygen_program* p, yssa_function* function, size_t index, unsigned first )
+{
+    yssa_opinst* op = function->ops.at( index );
+
+    ygen_movgraph arguments;
+    for ( unsigned i = first; i < op->operand_count; ++i )
+    {
+        assert( op->operand[ i ] );
+        assert( op->operand[ i ]->r != yl_opinst::NOVAL );
+        arguments.move( op->stacktop + i - first, op->operand[ i ]->r );
+    }
+
+    if ( op->multival )
+    {
+        assert( op->multival->r == op->stacktop + op->operand_count );
+        if ( op->multival->is_call() )
+        {
+            assert( op->multival->r == op->multival->stacktop );
+        }
+    }
+    
+    arguments.emit( p );
+}
+
+
+static size_t emit_select(
+        ygen_program* p, yssa_function* function, size_t index )
 {
     yssa_opinst* op = function->ops.at( index );
 
@@ -501,7 +535,6 @@ static size_t emit_select( ygen_program* p, yssa_function* function, size_t inde
     }
     
     results.emit( p );
-    
     return n;
 }
 
@@ -542,7 +575,6 @@ size_t yssa_codegen_op(
     case YL_SUPER:
     case YL_INKEY:
     case YL_INDEX:
-    case YL_DELINKEY:
     case YL_IN:
     case YL_IS:
     {
@@ -652,26 +684,10 @@ size_t yssa_codegen_op(
     case YL_RETURN:
     {
         // Get all operands into the correct registers.
-        ygen_movgraph arguments;
-        for ( unsigned i = 0; i < op->operand_count; ++i )
-        {
-            assert( op->operand[ i ] );
-            assert( op->operand[ i ]->r != yl_opinst::NOVAL );
-            arguments.move( op->stacktop + i, op->operand[ i ]->r );
-        }
-
-        if ( op->multival )
-        {
-            assert( op->multival->r == op->stacktop + op->operand_count );
-            if ( op->multival->is_call() )
-            {
-                assert( op->multival->r == op->multival->stacktop );
-            }
-        }
-        
-        arguments.emit( p );
+        emit_arguments( p, function, index, 0 );
         
         // Emit call instruction.
+        assert( op->stacktop != yl_opinst::NOVAL );
         unsigned a = op->multival ? yl_opinst::MARK : op->operand_count;
         unsigned b = op->result_count;
         p->ops.emplace_back( (yl_opcode)op->opcode, op->stacktop, a, b );
@@ -683,46 +699,213 @@ size_t yssa_codegen_op(
      
     case YL_ITER:
     case YL_ITERKEY:
+    {
+        unsigned a = operand( op, 0 );
+        p->ops.emplace_back( (yl_opcode)op->opcode, op->r, a, 0 );
+        return 1;
+    }
     
     case YL_NEXT1:
+    {
+        if ( op->r != yl_opinst::NOVAL )
+        {
+            p->ops.emplace_back( YL_NEXT1, op->r, op->a );
+        }
+    }
+    
     case YL_NEXT2:
+    {
+        // Find selects.
+        unsigned r = yl_opinst::NOVAL;
+        unsigned b = yl_opinst::NOVAL;
+        
+        size_t n;
+        for ( n = 1; index + n < function->ops.size(); ++n )
+        {
+            yssa_opinst* sel = function->ops.at( index + n );
+            if ( sel->opcode == YSSA_SELECT )
+            {
+                assert( sel->operand_count == 1 );
+                assert( sel->operand[ 0 ] == op );
+                
+                if ( sel->select == 0 )
+                {
+                    r = sel->r;
+                }
+                else if ( sel->select == 1 )
+                {
+                    b = sel->r;
+                }
+                else
+                {
+                    assert( ! "invalid select index" );
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        p->ops.emplace_back( YL_NEXT2, r, op->a, b );
+        return n;
+    }
+    
     case YL_NEXT:
     {
-        
+        assert( op->stacktop != yl_opinst::NOVAL );
+        p->ops.emplace_back( YL_NEXT, op->stacktop, op->a, op->result_count );
         return emit_select( p, function, index );
     }
  
     case YL_GETUP:
+    {
+        if ( op->r != yl_opinst::NOVAL )
+        {
+            p->ops.emplace_back( YL_GETUP, op->r, op->a, 0 );
+        }
+        return 1;
+    }
+    
     case YL_SETUP:
+    {
+        p->ops.emplace_back( YL_SETUP, operand( op, 0 ), op->a, 0 );
+        return 1;
+    }
  
     case YL_CLOSE:
+    {
+        p->ops.emplace_back( YL_CLOSE, 0, op->a, op->b );
+        return 1;
+    }
  
     case YL_ARRAY:
     case YL_TABLE:
+    {
+        if ( op->r != yl_opinst::NOVAL )
+        {
+            p->ops.emplace_back( (yl_opcode)op->opcode, op->r, op->c );
+        }
+        return 1;
+    }
      
     case YL_KEY:
+    {
+        if ( op->r != yl_opinst::NOVAL )
+        {
+            unsigned b = (unsigned)p->strvals.at( op->key );
+            p->ops.emplace_back( YL_KEY, op->r, operand( op, 0 ), b );
+        }
+        return 1;
+    }
+    
     case YL_SETKEY:
+    {
+        unsigned r = operand( op, 0 );
+        unsigned a = operand( op, 1 );
+        unsigned b = (unsigned)p->strvals.at( op->key );
+        p->ops.emplace_back( YL_SETKEY, r, a, b );
+        return 1;
+    }
+    
     case YL_SETINKEY:
     case YL_SETINDEX:
+    {
+        unsigned r = operand( op, 0 );
+        unsigned a = operand( op, 1 );
+        unsigned b = operand( op, 2 );
+        p->ops.emplace_back( (yl_opcode)op->opcode, r, a, b );
+        return 1;
+    }
+    
     case YL_DELKEY:
+    {
+        unsigned a = operand( op, 0 );
+        unsigned b = (unsigned)p->strvals.at( op->key );
+        p->ops.emplace_back( YL_DELKEY, 0, a, b );
+        return 1;
+    }
+
+    case YL_DELINKEY:
+    {
+        unsigned a = operand( op, 0 );
+        unsigned b = operand( op, 1 );
+        p->ops.emplace_back( YL_DELINKEY, 0, a, b );
+        return 1;
+    }
      
     case YL_APPEND:
+    {
+        unsigned a = operand( op, 0 );
+        unsigned r = operand( op, 1 );
+        p->ops.emplace_back( YL_APPEND, r, a, 0 );
+        return 1;
+    }
+    
     case YL_EXTEND:
+    {
+        emit_arguments( p, function, index, 1 );
+        assert( op->stacktop != yl_opinst::NOVAL );
+        unsigned a = op->multival ? yl_opinst::MARK : op->operand_count;
+        unsigned b = operand( op, 0 );
+        p->ops.emplace_back( YL_EXTEND, op->stacktop, a, b );
+        return 1;
+    }
+    
     case YL_UNPACK:
+    {
+        assert( op->stacktop != yl_opinst::NOVAL );
+        unsigned a = operand( op, 0 );
+        p->ops.emplace_back( YL_UNPACK, op->stacktop, a, op->result_count );
+        return emit_select( p, function, index );
+    }
      
     case YL_THROW:
-    case YL_EXCEPT:
-    case YL_UNWIND:
+    {
+        p->ops.emplace_back( YL_THROW, operand( op, 0 ), 0, 0 );
         return 1;
- 
+    }
+    
+    case YL_EXCEPT:
+    {
+        if ( op->r != yl_opinst::NOVAL )
+        {
+            p->ops.emplace_back( YL_EXCEPT, op->r, 0, 0 );
+        }
+        return 1;
+    }
+    
+    case YL_UNWIND:
+    {
+        p->ops.emplace_back( YL_UNWIND, 0, 0, 0 );
+        return 1;
+    }
  
     case YSSA_PARAM:
     {
         // Get all parameters into the correct registers.
+        ygen_movgraph params;
         
+        size_t n;
+        for ( n = 0; index + n < function->ops.size(); ++n )
+        {
+            yssa_opinst* param = function->ops.at( index + n );
+            if ( param->opcode == YSSA_PARAM )
+            {
+                if ( param->r != yl_opinst::NOVAL )
+                {
+                    params.move( param->r, param->select + 1 );
+                }
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        params.emit( p );
+        return n;
     }
-
-
 
     case YSSA_IMPLICIT:
     case YSSA_ITEREACH:
@@ -737,7 +920,8 @@ size_t yssa_codegen_op(
     case YL_JMP:
     case YL_JMPT:
     case YL_JMPF:
-    case YL_JMPITER:
+    case YL_JMPV:
+    case YL_JMPN:
     case YL_UPLOCAL:
     case YL_UPUPVAL:
     case YSSA_SELECT:

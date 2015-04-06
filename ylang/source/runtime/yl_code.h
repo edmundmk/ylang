@@ -106,10 +106,12 @@ enum yl_opcode
     
     YL_ITER,         // iterators[ r ] = iterator over elements of a
     YL_ITERKEY,      // iterators[ r ] = iterator over keys/values of a
-    YL_JMPITER,      // jump if iterators[ r ] has values
-    YL_NEXT1,        // r = next from iterators[ b ]
-    YL_NEXT2,        // r, a = next from iterators[ b ]
-    YL_NEXT,         // r:a = next from iterators[ b ]
+    YL_NEXT1,        // r = next from iterators[ a ]
+    YL_NEXT2,        // r, b = next from iterators[ a ]
+    YL_NEXT,         // r:b = next from iterators[ a ]
+
+    YL_JMPV,         // jump if iterators[ r ] has values
+    YL_JMPN,         // jump if iterators[ r ] is done
 
 
     /*
@@ -149,9 +151,9 @@ enum yl_opcode
     YL_IN,           // r = ( a in b )
     YL_IS,           // r = ( a is b )
 
-    YL_APPEND,       // append a to (array)r
-    YL_EXTEND,       // append value list a:b to (array)r
-    YL_UNPACK,       // a:b = unpack values from (array)r
+    YL_APPEND,       // append r to (array)a
+    YL_EXTEND,       // append value list r:a to (array)b
+    YL_UNPACK,       // r:b = unpack values from (array)a
     
     
     /*

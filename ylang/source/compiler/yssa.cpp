@@ -311,10 +311,12 @@ public:
     
         add( YL_ITER,       "iterkey %r" );
         add( YL_ITERKEY,    "iterkey %r" );
-        add( YL_JMPITER,    "jumpiter" );
         add( YL_NEXT1,      "next1 %b" );
         add( YL_NEXT2,      "next2 %b" );
         add( YL_NEXT,       "next %b" );
+
+        add( YL_JMPV,       "jmpv" );
+        add( YL_JMPN,       "jmpn" );
 
         add( YL_GETUP,      "getup %a" );
         add( YL_SETUP,      "setup %a" );

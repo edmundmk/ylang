@@ -604,7 +604,7 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
     {
         // Request correct number of ops from iterator.
         yssa_opinst* o = op( node->sloc, opcode, 0, node->lvalues.size() );
-        o->b = iterindex;
+        o->a = iterindex;
         
         // Declare each variable.
         for ( size_t i = 0; i < node->lvalues.size(); ++i )
@@ -613,7 +613,7 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
             yl_expr_local* local = (yl_expr_local*)node->lvalues.at( i );
             yssa_variable* v = variable( local->name );
         
-            if ( opcode == YL_NEXT )
+            if ( opcode == YL_NEXT1 )
             {
                 declare( node->sloc, v, o );
             }
@@ -646,7 +646,7 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
         selects.reserve( node->lvalues.size() );
         for ( size_t i = 0; i < node->lvalues.size(); ++i )
         {
-            if ( opcode == YL_NEXT )
+            if ( opcode == YL_NEXT1 )
             {
                 selects.push_back( o );
             }
