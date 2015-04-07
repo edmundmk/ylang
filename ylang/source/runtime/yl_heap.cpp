@@ -1,7 +1,7 @@
 //
 //  yl_heap.cpp
 //
-//  Created by Edmund Kapusniak on 07/04/2015.
+//  Created by Edmund Kapusniak on 06/04/2015.
 //  Copyright (c) 2015 Edmund Kapusniak. All rights reserved.
 //
 
@@ -28,5 +28,16 @@ yl_heap::~yl_heap()
 void* yl_heap::malloc( size_t size )
 {
     return mspace_malloc( _mspace, size );
+}
+
+
+yl_alloc_scope::yl_alloc_scope()
+{
+    // TODO.
+}
+
+yl_alloc_scope::~yl_alloc_scope()
+{
+    // TODO.
 }
 

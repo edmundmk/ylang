@@ -56,6 +56,26 @@ private:
 
 
 
+/*
+    When we are constructing a set of objects (e.g. when compiling a
+    script), then we don't want those constructed objects to be garbage
+    collected until they are reachable by the GC.
+    
+    Note that allocating a single object and assigning it directly to a
+    GC-reachable reference is always safe.
+*/
+
+class yl_alloc_scope
+{
+public:
+
+    yl_alloc_scope();
+    ~yl_alloc_scope();
+    
+};
+
+
+
 
 /*
     List of all ylang heap object types.

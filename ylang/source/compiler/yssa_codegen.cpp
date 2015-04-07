@@ -52,17 +52,13 @@ struct ygen_value
 
 
 /*
-    We have to be very careful that the programs and strings we create are
-    reachable by the garbage collector at all times.  The code generator
-    constructs an unmanaged representation of the entire module before
-    translating it to the final objects (ensuring that each heapobj is
-    reachable from a yl_invoke that puts the main function in the root set).
+    Construct unmanaged 
 */
 
 
 struct ygen_module
 {
-    std::unordered_map< symkey, ygen_string_p >  strings;
+    std::unordered_map< symkey, ygen_string_p > strings;
     std::unordered_map< yssa_function*, ygen_program_p > programs;
 };
 
@@ -84,6 +80,8 @@ struct ygen_program
 
 struct ygen_string
 {
+    yl_string*                  string;
+
     const char*                 text;
     size_t                      size;
     bool                        iskey;
@@ -241,7 +239,9 @@ void ygen_movgraph::emit( ygen_program* p )
 static void yssa_codegen_function( ygen_module* m, yssa_function* function );
 static size_t yssa_codegen_op(
     ygen_module* m, ygen_program* p, yssa_function* function, size_t index );
-
+static void yssa_codegen_string( ygen_module* m, ygen_string* s );
+static void yssa_codegen_program( ygen_module* m, ygen_program* p );
+static void yssa_codegen_fixup( ygen_module* m, ygen_program* p );
 
 
 yl_invoke yssa_codegen( yssa_module* module )
@@ -254,12 +254,36 @@ yl_invoke yssa_codegen( yssa_module* module )
         yssa_function* function = module->functions.at( i ).get();
         yssa_codegen_function( &m, function );
     }
-    
+
+
+    // Suppress garbage collection of created objects.
+    yl_alloc_scope alloc_scope;
+
+
     // Construct final heap objects.
-
+    for ( const auto& s : m.strings )
+    {
+        yssa_codegen_string( &m, s.second.get() );
+    }
+    
+    for ( const auto& p : m.programs )
+    {
+        yssa_codegen_program( &m, p.second.get() );
+    }
+    
+    
+    // Fixup value references.
+    for ( const auto& p : m.programs )
+    {
+        yssa_codegen_fixup( &m, p.second.get() );
+    }
     
 
-    return yl_invoke();
+    // Create invoke.
+    yssa_function* ssafunc = module->functions.at( 0 ).get();
+    yl_program* program = m.programs.at( ssafunc )->program;
+    yl_function* function = yl_function::alloc( program );
+    return yl_invoke( function );
 }
 
 
@@ -293,6 +317,7 @@ static ygen_string* add_string( ygen_module* m, symkey k )
     else
     {
         ygen_string_p string = std::make_unique< ygen_string >();
+        string->string = nullptr;
         string->text = k.c_str();
         string->size = k.size();
         ygen_string* s = string.get();
@@ -1000,7 +1025,22 @@ size_t yssa_codegen_op(
 }
 
 
+void yssa_codegen_string( ygen_module* m, ygen_string* s )
+{
+    // TODO.
+}
 
+
+void yssa_codegen_program( ygen_module* m, ygen_program* p )
+{
+    // TODO.
+}
+
+
+void yssa_codegen_fixup( ygen_module* m, ygen_program* p )
+{
+    // TODO.
+}
 
 
 
