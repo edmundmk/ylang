@@ -12,6 +12,12 @@
 
 #include <stdint.h>
 #include <atomic>
+#include "dlmalloc.h"
+
+
+class yl_heap;
+class yl_heapobj;
+template < typename object_t > class yl_heapref;
 
 
 
@@ -28,8 +34,24 @@
 */
 
 
+extern __thread yl_heap* yl_heap_current;
+
+
 class yl_heap
 {
+public:
+
+    yl_heap();
+    ~yl_heap();
+
+    void* malloc( size_t size );
+
+
+private:
+
+    mspace _mspace;
+
+
 };
 
 

@@ -10,9 +10,10 @@
 #define YL_CONTEXT_H
 
 
-
+class yl_context;
+class yl_scope;
 class yl_invoke;
-
+class yl_heap;
 
 
 /*
@@ -32,7 +33,9 @@ public:
 
 private:
 
-    
+    friend class yl_scope;
+
+    yl_heap* _heap;
 
 };
 
@@ -50,6 +53,12 @@ public:
 
     explicit yl_scope( yl_context* context );
     ~yl_scope();
+
+
+private:
+
+    yl_heap* _heap;
+    yl_heap* _prev;
 
 };
 
