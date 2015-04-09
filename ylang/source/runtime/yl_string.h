@@ -32,6 +32,7 @@ class yl_string : public yl_heapobj
 public:
 
     static yl_string*   alloc( const char* string );
+    static yl_string*   alloc( const char* string, size_t size );
 
     hash32_t            hash() const;
     size_t              size() const;

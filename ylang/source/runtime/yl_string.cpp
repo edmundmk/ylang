@@ -7,6 +7,24 @@
 
 
 #include "yl_string.h"
+#include <string.h>
+#include <new>
+
+
+
+yl_string* yl_string::alloc( const char* string )
+{
+    return alloc( string, strlen( string ) );
+}
+
+yl_string* yl_string::alloc( const char* string, size_t size )
+{
+    void* p = yl_heap_current->malloc( sizeof( string ) + size + 1 );
+    yl_string* s = new ( p ) yl_string( size );
+    memcpy( s->_s, string, size );
+    s->_s[ size ] = '\0';
+    return s;
+}
 
 
 

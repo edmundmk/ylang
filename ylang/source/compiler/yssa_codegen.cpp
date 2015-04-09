@@ -1027,13 +1027,29 @@ size_t yssa_codegen_op(
 
 void yssa_codegen_string( ygen_module* m, ygen_string* s )
 {
-    // TODO.
+    if ( s->string )
+        return;
+    
+    s->string = yl_string::alloc( s->text, s->size );
+
+    // TODO: Turn key strings into symbols.
+
 }
 
 
 void yssa_codegen_program( ygen_module* m, ygen_program* p )
 {
-    // TODO.
+    if ( p->program )
+        return;
+    
+    p->program = yl_program::alloc
+    (
+        p->values.size(),
+        p->ops.size(),
+        p->xframes.size(),
+        p->varnames.size()
+    );
+    
 }
 
 

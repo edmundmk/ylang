@@ -41,3 +41,11 @@ yl_alloc_scope::~yl_alloc_scope()
     // TODO.
 }
 
+
+yl_heapobj::yl_heapobj( yl_heapobj_kind kind )
+    :   _kind( kind )
+    ,   _colour( /* TODO */ YL_GREY )
+{
+}
+
+

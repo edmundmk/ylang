@@ -10,6 +10,9 @@
 #define YL_CONTEXT_H
 
 
+#include <memory>
+
+
 class yl_context;
 class yl_scope;
 class yl_invoke;
@@ -35,7 +38,7 @@ private:
 
     friend class yl_scope;
 
-    yl_heap* _heap;
+    std::unique_ptr< yl_heap > _heap;
 
 };
 

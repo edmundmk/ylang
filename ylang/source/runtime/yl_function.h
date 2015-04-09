@@ -18,7 +18,7 @@
 
 class yl_function;
 class yl_program;
-class yl_upref;
+class yl_upval;
 
 
 
@@ -39,10 +39,32 @@ public:
 
 private:
 
+    explicit yl_function( yl_program* program );
+
     uint8_t                     _upcount;
     uint8_t                     _refcount;
     yl_heapref< yl_program >    _program;
-    yl_heapref< yl_upref >      _uprefs[ 0 ];
+    yl_heapref< yl_upval >      _upval[ 0 ];
+
+};
+
+
+
+
+/*
+    An upval.
+*/
+
+class yl_upval : public yl_heapobj
+{
+public:
+
+
+private:
+
+    bool        _open;
+    uint32_t    _index;
+    yl_value    _value;
 
 };
 
@@ -58,23 +80,110 @@ class yl_program : public yl_heapobj
 public:
 
     static yl_program* alloc(
-            size_t valcount, size_t opcount, size_t xfcount, size_t vncount );
+        uint16_t valcount, size_t opcount, size_t xfcount, size_t varcount );
+    ~yl_program();
     
+    yl_string*              name();
+    
+    size_t                  paramcount();
+    bool                    varargs();
+    bool                    coroutine();
+
+    size_t                  upcount();
+    size_t                  stackcount();
+    
+    size_t                  valcount();
+    const yl_value*         values();
+    
+    size_t                  opcount();
+    const yl_opinst*        ops();
     
 
 private:
 
-    uint16_t                    _valcount;
-    size_t                      _opcount;
-    size_t                      _xfcount;
-    size_t                      _vncount;
+    yl_program(
+        uint16_t valcount, size_t opcount, size_t xfcount, size_t varcount );
 
-    // yl_value                 _values[];
-    // yl_opinst                _ops[];
-    // yl_xframe                _xframes[];
-    // yl_varname               _varnames[];
+
+    uint16_t                _valcount;
+    size_t                  _opcount;
+    size_t                  _xfcount;
+    size_t                  _varcount;
+    
+    yl_heapref< yl_string > _name;
+    
+    uint8_t                 _paramcount;
+    uint8_t                 _upcount;
+    uint8_t                 _stackcount;
+    bool                    _varargs        : 1;
+    bool                    _coroutine      : 1;
+
+    // yl_value             _values[];
+    // yl_opinst            _ops[];
+    // yl_xframe            _xframes[];
+    // yl_varname           _varnames[];
 
 };
+
+
+
+/*
+
+*/
+
+
+
+inline yl_string* yl_program::name()
+{
+    return _name.get();
+}
+
+inline size_t yl_program::paramcount()
+{
+    return _paramcount;
+}
+
+inline bool yl_program::varargs()
+{
+    return _varargs;
+}
+
+inline bool yl_program::coroutine()
+{
+    return _coroutine;
+}
+
+inline size_t yl_program::upcount()
+{
+    return _upcount;
+}
+
+inline size_t yl_program::stackcount()
+{
+    return _stackcount;
+}
+
+inline size_t yl_program::valcount()
+{
+    return _valcount;
+}
+
+inline const yl_value* yl_program::values()
+{
+    return (yl_value*)( this + 1 );
+}
+
+inline size_t yl_program::opcount()
+{
+    return _opcount;
+}
+
+inline const yl_opinst* yl_program::ops()
+{
+    return (yl_opinst*)( values() + valcount() );
+}
+
+
 
 
 

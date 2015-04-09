@@ -11,6 +11,8 @@
 
 
 #include <string>
+#include "yl_heap.h"
+#include "yl_string.h"
 
 
 /*
@@ -248,10 +250,10 @@ struct yl_varname
 {
     static const unsigned UPVAL = 0x8000;
 
+    yl_heapref< yl_string > name;
     int         start;      // Instruction declaring the variable.
     int         end;        // After last instruction where variable is live.
     unsigned    r;          // Register or upval index.
-    std::string name;       // Name of variable.
 };
 
 

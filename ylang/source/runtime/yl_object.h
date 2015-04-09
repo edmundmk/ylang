@@ -72,8 +72,6 @@ class yl_slot : public yl_heapobj
 {
 public:
 
-    ~yl_slot();
-
 
 private:
 
@@ -88,7 +86,7 @@ private:
     yl_heapref< yl_string >     _symbol;    // symbol string
     size_t                      _index;     // index into slot value array
     
-    shortcut_hash*              _hash;      // shortcut hash
+    std::unique_ptr< shortcut_hash > _hash;
     
     /* weak */ yl_slot*         _head;      // first child
     /* weak */ yl_slot*         _next;      // next sibling
