@@ -34,7 +34,10 @@ bool yssa_builder::build( yl_ast* ast )
         yssa_function_p ssaf = std::make_unique< yssa_function >
         (
             astf->sloc,
-            module->alloc.strdup( astf->funcname )
+            module->alloc.strdup( astf->funcname ),
+            astf->varargs,
+            astf->coroutine,
+            astf->parameters.size()
         );
         funcmap.emplace( std::make_pair( astf, ssaf.get() ) );
         module->functions.push_back( std::move( ssaf ) );

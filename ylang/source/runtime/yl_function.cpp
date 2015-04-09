@@ -81,25 +81,25 @@ yl_program::yl_program(
     ,   _varargs( false )
     ,   _coroutine( false )
 {
-    yl_value* values = (yl_value*)( this + 1 );
+    yl_value* values = _values();
     for ( size_t i = 0; i < _valcount; ++i )
     {
         new ( values + i ) yl_value();
     }
     
-    yl_opinst* ops = (yl_opinst*)( values + _valcount );
+    yl_opinst* ops = _ops();
     for ( size_t i = 0; i < _opcount; ++i )
     {
         new ( ops + i ) yl_opinst();
     }
     
-    yl_xframe* xframes = (yl_xframe*)( ops + _opcount );
+    yl_xframe* xframes = _xframes();
     for ( size_t i = 0; i < _xfcount; ++i )
     {
         new ( xframes + i ) yl_xframe();
     }
     
-    yl_varname* varnames = (yl_varname*)( xframes + _xfcount );
+    yl_varname* varnames = _varnames();
     for ( size_t i = 0; i < _varcount; ++i )
     {
         new ( varnames + i ) yl_varname();
@@ -108,25 +108,25 @@ yl_program::yl_program(
 
 yl_program::~yl_program()
 {
-    yl_value* values = (yl_value*)( this + 1 );
+    yl_value* values = _values();
     for ( size_t i = 0; i < _valcount; ++i )
     {
         values[ i ].~yl_value();
     }
     
-    yl_opinst* ops = (yl_opinst*)( values + _valcount );
+    yl_opinst* ops = _ops();
     for ( size_t i = 0; i < _opcount; ++i )
     {
         ops[ i ].~yl_opinst();
     }
     
-    yl_xframe* xframes = (yl_xframe*)( ops + _opcount );
+    yl_xframe* xframes = _xframes();
     for ( size_t i = 0; i < _xfcount; ++i )
     {
         xframes[ i ].~yl_xframe();
     }
     
-    yl_varname* varnames = (yl_varname*)( xframes + _xfcount );
+    yl_varname* varnames = _varnames();
     for ( size_t i = 0; i < _varcount; ++i )
     {
         varnames[ i ].~yl_varname();
@@ -135,4 +135,23 @@ yl_program::~yl_program()
 
 
 
+yl_value* yl_program::_values()
+{
+    return (yl_value*)( this + 1 );
+}
+
+yl_opinst* yl_program::_ops()
+{
+    return (yl_opinst*)( _values() + _valcount );
+}
+
+yl_xframe* yl_program::_xframes()
+{
+    return (yl_xframe*)( _ops() + _opcount );
+}
+
+yl_varname* yl_program::_varnames()
+{
+    return (yl_varname*)( _xframes() + _xfcount );
+}
 

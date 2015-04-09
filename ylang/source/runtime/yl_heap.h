@@ -46,7 +46,7 @@ public:
 
     void*   malloc( size_t size );
     
-    void    write_barrier( yl_heapobj* refp );
+    void    write_barrier( yl_heapobj* obj );
 
 
 private:
@@ -200,10 +200,10 @@ template < typename object_t >
 inline yl_heapref< object_t >&
                 yl_heapref< object_t >::operator = ( object_t* p )
 {
-    object_t* refp = _p.load( std::memory_order_relaxed );
-    if ( refp )
+    object_t* obj = _p.load( std::memory_order_relaxed );
+    if ( obj )
     {
-        yl_heap_current->write_barrier( refp );
+        yl_heap_current->write_barrier( obj );
     }
     
     _p.store( p, std::memory_order_relaxed );

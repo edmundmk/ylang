@@ -17,7 +17,7 @@
 struct ygen_module;
 struct ygen_program;
 struct ygen_string;
-
+struct ygen_emit;
 
 typedef std::unique_ptr< ygen_program > ygen_program_p;
 typedef std::unique_ptr< ygen_string >  ygen_string_p;
@@ -65,6 +65,7 @@ struct ygen_module
 
 struct ygen_program
 {
+    yssa_function*              ssafunc;
     yl_program*                 program;
 
     std::vector< ygen_value >   values;
@@ -236,23 +237,38 @@ void ygen_movgraph::emit( ygen_program* p )
 */
 
 
-static void yssa_codegen_function( ygen_module* m, yssa_function* function );
-static size_t yssa_codegen_op(
-    ygen_module* m, ygen_program* p, yssa_function* function, size_t index );
-static void yssa_codegen_string( ygen_module* m, ygen_string* s );
-static void yssa_codegen_program( ygen_module* m, ygen_program* p );
-static void yssa_codegen_fixup( ygen_module* m, ygen_program* p );
+class ygen_emit
+{
+public:
+
+    explicit ygen_emit( ygen_module* m );
+
+    void codegen_function( yssa_function* function );
+    size_t codegen_op( ygen_program* p, yssa_function* function, size_t index );
+
+    void make_string( ygen_string* s );
+    void make_program( ygen_program* p );
+
+    void emit( ygen_program* p );
+    
+private:
+    
+    ygen_module* m;
+
+};
+
 
 
 yl_invoke yssa_codegen( yssa_module* module )
 {
     ygen_module m;
+    ygen_emit emit( &m );
     
     // Generate each function.
     for ( size_t i = 0; i < module->functions.size(); ++i )
     {
         yssa_function* function = module->functions.at( i ).get();
-        yssa_codegen_function( &m, function );
+        emit.codegen_function( function );
     }
 
 
@@ -263,19 +279,19 @@ yl_invoke yssa_codegen( yssa_module* module )
     // Construct final heap objects.
     for ( const auto& s : m.strings )
     {
-        yssa_codegen_string( &m, s.second.get() );
+        emit.make_string( s.second.get() );
     }
     
     for ( const auto& p : m.programs )
     {
-        yssa_codegen_program( &m, p.second.get() );
+        emit.make_program( p.second.get() );
     }
     
     
-    // Fixup value references.
+    // Emit code and fixup references between objects.
     for ( const auto& p : m.programs )
     {
-        yssa_codegen_fixup( &m, p.second.get() );
+        emit.emit( p.second.get() );
     }
     
 
@@ -287,23 +303,13 @@ yl_invoke yssa_codegen( yssa_module* module )
 }
 
 
-static ygen_program* add_program( ygen_module* m, yssa_function* function )
+
+
+ygen_emit::ygen_emit( ygen_module* m )
+    :   m( m )
 {
-    // Get (or create) program object.
-    auto i = m->programs.find( function );
-    if ( i != m->programs.end() )
-    {
-        return i->second.get();
-    }
-    else
-    {
-        ygen_program_p program = std::make_unique< ygen_program >();
-        program->program = nullptr;
-        ygen_program* p = program.get();
-        m->programs.emplace( function, std::move( program ) );
-        return p;
-    }
 }
+
 
 
 static ygen_string* add_string( ygen_module* m, symkey k )
@@ -327,7 +333,28 @@ static ygen_string* add_string( ygen_module* m, symkey k )
 }
 
 
-void yssa_codegen_function( ygen_module* m, yssa_function* function )
+static ygen_program* add_program( ygen_module* m, yssa_function* function )
+{
+    // Get (or create) program object.
+    auto i = m->programs.find( function );
+    if ( i != m->programs.end() )
+    {
+        return i->second.get();
+    }
+    else
+    {
+        ygen_program_p program = std::make_unique< ygen_program >();
+        program->ssafunc = function;
+        program->program = nullptr;
+        ygen_program* p = program.get();
+        m->programs.emplace( function, std::move( program ) );
+        add_string( m, function->funcname );
+        return p;
+    }
+}
+
+
+void ygen_emit::codegen_function( yssa_function* function )
 {
     ygen_program* p = add_program( m, function );
     
@@ -468,7 +495,7 @@ void yssa_codegen_function( ygen_module* m, yssa_function* function )
             
             // 'count' SSA ops map to one or more VM ops.
             size_t opindex = p->ops.size();
-            count = yssa_codegen_op( m, p, function, i );
+            count = codegen_op( p, function, i );
             indexes.insert( indexes.end(), count, opindex );
         }
         
@@ -628,8 +655,8 @@ static size_t emit_select(
 }
 
 
-size_t yssa_codegen_op(
-    ygen_module* m, ygen_program* p, yssa_function* function, size_t index )
+size_t ygen_emit::codegen_op(
+                ygen_program* p, yssa_function* function, size_t index )
 {
     yssa_opinst* op = function->ops.at( index );
     switch ( op->opcode )
@@ -1025,7 +1052,7 @@ size_t yssa_codegen_op(
 }
 
 
-void yssa_codegen_string( ygen_module* m, ygen_string* s )
+void ygen_emit::make_string( ygen_string* s )
 {
     if ( s->string )
         return;
@@ -1037,7 +1064,7 @@ void yssa_codegen_string( ygen_module* m, ygen_string* s )
 }
 
 
-void yssa_codegen_program( ygen_module* m, ygen_program* p )
+void ygen_emit::make_program( ygen_program* p )
 {
     if ( p->program )
         return;
@@ -1050,11 +1077,44 @@ void yssa_codegen_program( ygen_module* m, ygen_program* p )
         p->varnames.size()
     );
     
+    p->program->_paramcount = p->ssafunc->paramcount;
+    p->program->_upcount    = 0; // TODO.
+    p->program->_stackcount = 0; // TODO.
+    p->program->_varargs    = p->ssafunc->varargs;
+    p->program->_coroutine  = p->ssafunc->coroutine;
+    
 }
 
 
-void yssa_codegen_fixup( ygen_module* m, ygen_program* p )
+void ygen_emit::emit( ygen_program* p )
 {
+    p->program->_name = m->strings.at( p->ssafunc->funcname )->string;
+
+    yl_value* values = p->program->_values();
+    for ( size_t i = 0; i < p->values.size(); ++i )
+    {
+        const ygen_value& value = p->values.at( i );
+        switch ( value.kind )
+        {
+        case YGEN_KEY:
+        case YGEN_STRING:
+            values[ i ].set( value.string->string );
+            break;
+        case YGEN_NUMBER:
+            values[ i ].set( value.number );
+            break;
+        case YGEN_PROGRAM:
+            values[ i ].set( value.program->program );
+            break;
+        }
+    }
+
+    yl_opinst* ops = p->program->_ops();
+    for ( size_t i = 0; i < p->ops.size(); ++i )
+    {
+        ops[ i ] = p->ops.at( i );
+    }
+    
     // TODO.
 }
 

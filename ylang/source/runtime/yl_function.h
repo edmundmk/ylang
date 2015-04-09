@@ -101,9 +101,10 @@ public:
 
 private:
 
+    friend class ygen_emit;
+    
     yl_program(
         uint16_t valcount, size_t opcount, size_t xfcount, size_t varcount );
-
 
     uint16_t                _valcount;
     size_t                  _opcount;
@@ -122,6 +123,11 @@ private:
     // yl_opinst            _ops[];
     // yl_xframe            _xframes[];
     // yl_varname           _varnames[];
+
+    yl_value*               _values();
+    yl_opinst*              _ops();
+    yl_xframe*              _xframes();
+    yl_varname*             _varnames();
 
 };
 

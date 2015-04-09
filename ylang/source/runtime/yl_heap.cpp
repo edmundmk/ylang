@@ -30,6 +30,12 @@ void* yl_heap::malloc( size_t size )
     return mspace_malloc( _mspace, size );
 }
 
+void yl_heap::write_barrier( yl_heapobj* obj )
+{
+    // TODO.
+}
+
+
 
 yl_alloc_scope::yl_alloc_scope()
 {
