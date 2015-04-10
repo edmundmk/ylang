@@ -1116,6 +1116,9 @@ void ygen_emit::emit( ygen_program* p )
     }
     
     // TODO.
+    
+    p->program->print();
+    printf( "\n" );
 }
 
 

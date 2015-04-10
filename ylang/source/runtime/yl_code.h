@@ -259,6 +259,15 @@ struct yl_varname
 
 
 /*
+    Code printing.
+*/
+
+void ylop_print( size_t index, yl_opinst* op );
+
+
+
+
+/*
 
 */
 

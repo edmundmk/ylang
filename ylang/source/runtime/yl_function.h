@@ -83,6 +83,8 @@ public:
         uint16_t valcount, size_t opcount, size_t xfcount, size_t varcount );
     ~yl_program();
     
+    void                    print();
+    
     yl_string*              name();
     
     size_t                  paramcount();

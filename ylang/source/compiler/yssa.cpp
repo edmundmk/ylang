@@ -313,7 +313,7 @@ public:
         add( YL_YIELD,      "yield" );
         add( YL_RETURN,     "return" );
     
-        add( YL_ITER,       "iterkey %r" );
+        add( YL_ITER,       "iter %r" );
         add( YL_ITERKEY,    "iterkey %r" );
         add( YL_NEXT1,      "next1 %a" );
         add( YL_NEXT2,      "next2 %a" );

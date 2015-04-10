@@ -134,6 +134,18 @@ yl_program::~yl_program()
 }
 
 
+void yl_program::print()
+{
+    yl_string* name = _name.get();
+    printf( "%s\n", name ? name->c_str() : "[unknown]" );
+
+    yl_opinst* ops = _ops();
+    for ( size_t i = 0; i < _opcount; ++i )
+    {
+        ylop_print( i, ops + i );
+    }
+}
+
 
 yl_value* yl_program::_values()
 {
