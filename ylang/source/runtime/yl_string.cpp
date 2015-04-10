@@ -19,7 +19,7 @@ yl_string* yl_string::alloc( const char* string )
 
 yl_string* yl_string::alloc( const char* string, size_t size )
 {
-    void* p = yl_heap_current->malloc( sizeof( string ) + size + 1 );
+    void* p = yl_heap_current->malloc( sizeof( yl_string ) + size + 1 );
     yl_string* s = new ( p ) yl_string( size );
     memcpy( s->_s, string, size );
     s->_s[ size ] = '\0';
