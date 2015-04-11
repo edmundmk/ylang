@@ -118,18 +118,14 @@ private:
     uint8_t                 _paramcount;
     uint8_t                 _upcount;
     uint8_t                 _stackcount;
+    uint8_t                 _itercount      : 6;
     bool                    _varargs        : 1;
     bool                    _coroutine      : 1;
 
-    // yl_value             _values[];
-    // yl_opinst            _ops[];
-    // yl_xframe            _xframes[];
-    // yl_varname           _varnames[];
-
-    yl_value*               _values();
-    yl_opinst*              _ops();
-    yl_xframe*              _xframes();
-    yl_varname*             _varnames();
+    yl_value*               _values();      // _values[ _valcount ]
+    yl_opinst*              _ops();         // _ops[ _opcount ]
+    yl_xframe*              _xframes();     // _xframes[ _xfcount ]
+    yl_varname*             _varnames();    // _varnames[ _varcount ]
 
 };
 

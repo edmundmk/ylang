@@ -139,6 +139,13 @@ void yl_program::print()
     yl_string* name = _name.get();
     printf( "%s\n", name ? name->c_str() : "[unknown]" );
 
+    printf( "    paramcount : %u\n", _paramcount );
+    printf( "    upcount    : %u\n", _upcount );
+    printf( "    stackcount : %u\n", _stackcount );
+    printf( "    itercount  : %u\n", _itercount );
+    printf( "    varargs    : %s\n", _varargs ? "true" : "false" );
+    printf( "    coroutine  : %s\n", _coroutine ? "true" : "false" );
+
     yl_opinst* ops = _ops();
     for ( size_t i = 0; i < _opcount; ++i )
     {

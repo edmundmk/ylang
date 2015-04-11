@@ -136,8 +136,6 @@ enum yssa_opcode
 
 struct yssa_opinst
 {
-    static const uint8_t MULTIVAL = 0xFF;
-    
     yssa_opinst( int sloc, uint8_t opcode,
                     uint8_t operand_count, uint8_t result_count );
 
@@ -176,7 +174,7 @@ struct yssa_opinst
 
     uint8_t             opcode;
     uint8_t             operand_count;  // Length of operand array.
-    uint8_t             result_count;   // Number of results, or MULTIVAL.
+    uint8_t             result_count;   // Number of results, or MARK.
     uint8_t             r;
     
     yssa_live_range*    live;           // Live range of op.

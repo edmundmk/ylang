@@ -114,7 +114,7 @@ public:
         add( YL_GETUP,      "getup %r, ^%a" );
         add( YL_SETUP,      "setup %r, ^%a" );
 
-        add( YL_CLOSE,      "close ^%a, ~%b" );
+        add( YL_CLOSE,      "close *%a, ~%b" );
 
         add( YL_OBJECT,     "object %r, %a" );
         add( YL_ARRAY,      "array %r, #%c" );
@@ -142,7 +142,7 @@ public:
         add( YL_EXCEPT,     "except %r" );
         add( YL_UNWIND,     "unwind" );
 
-        add( YL_UPLOCAL,    "uplocal -%r, ^%a, %b" );
+        add( YL_UPLOCAL,    "uplocal -%r, *%a, %b" );
         add( YL_UPUPVAL,    "upupval -%r, ^%a" );
     }
     
