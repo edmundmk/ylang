@@ -16,6 +16,10 @@
 yssa_builder::yssa_builder( yl_diagnostics* diagnostics )
     :   diagnostics( diagnostics )
     ,   module( std::make_unique< yssa_module >() )
+    ,   function( nullptr )
+    ,   block( nullptr )
+    ,   multival( nullptr )
+    ,   itercount( 0 )
 {
 }
 
