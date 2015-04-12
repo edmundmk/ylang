@@ -83,8 +83,10 @@ public:
     List of all ylang heap object types.
 */
 
-enum yl_heapobj_kind : uint8_t
+enum yl_objkind : uint8_t
 {
+    YLOBJ_NUMBER,
+
     // User-visible
     YLOBJ_STRING,       // string or symbol
     YLOBJ_OBJECT,       // object
@@ -109,7 +111,7 @@ enum yl_heapobj_kind : uint8_t
     Garbage collector colour.
 */
 
-enum yl_mark_colour : uint8_t
+enum yl_markcolour : uint8_t
 {
     YL_GREY,    // added to greylist but not yet marked
     YL_YELLOW,  // marked/unmarked/dead
@@ -127,13 +129,13 @@ class yl_heapobj
 {
 protected:
 
-    explicit yl_heapobj( yl_heapobj_kind kind );
+    explicit yl_heapobj( yl_objkind kind );
 
 
 private:
 
-    yl_heapobj_kind                 _kind;
-    std::atomic< yl_mark_colour >   _colour;
+    yl_objkind                      _kind;
+    std::atomic< yl_markcolour >    _colour;
 
 
 };
@@ -150,15 +152,16 @@ class yl_heapref
 public:
 
     yl_heapref();
-    yl_heapref( const yl_heapref& p );
     yl_heapref( object_t* p );
-    yl_heapref& operator = ( const yl_heapref& p );
-    yl_heapref& operator = ( object_t* p );
     
-    object_t* get() const;
+    void        set( object_t* p );
+    object_t*   get() const;
     
 
 private:
+
+    yl_heapref( const yl_heapref& ) = delete;
+    yl_heapref& operator = ( const yl_heapref& ) = delete;
 
     std::atomic< object_t* > _p;
 
@@ -178,27 +181,13 @@ inline yl_heapref< object_t >::yl_heapref()
 }
 
 template < typename object_t >
-inline yl_heapref< object_t >::yl_heapref( const yl_heapref& p )
-    :   _p( p.get() )
-{
-}
-
-template < typename object_t >
 inline yl_heapref< object_t >::yl_heapref( object_t* p )
     :   _p( p )
 {
 }
 
 template < typename object_t >
-inline yl_heapref< object_t >&
-                yl_heapref< object_t >::operator = ( const yl_heapref& p )
-{
-    return this->operator = ( p.get() );
-}
-
-template < typename object_t >
-inline yl_heapref< object_t >&
-                yl_heapref< object_t >::operator = ( object_t* p )
+inline void yl_heapref< object_t >::set( object_t* p )
 {
     object_t* obj = _p.load( std::memory_order_relaxed );
     if ( obj )
@@ -207,7 +196,6 @@ inline yl_heapref< object_t >&
     }
     
     _p.store( p, std::memory_order_relaxed );
-    return *this;
 }
 
 template < typename object_t >

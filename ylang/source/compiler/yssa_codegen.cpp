@@ -1241,7 +1241,7 @@ void ygen_emit::make_program( ygen_program* p )
 
 void ygen_emit::emit( ygen_program* p )
 {
-    p->program->_name = m->strings.at( p->ssafunc->funcname )->string;
+    p->program->_name.set( m->strings.at( p->ssafunc->funcname )->string );
 
     yl_value* values = p->program->_values();
     for ( size_t i = 0; i < p->values.size(); ++i )
@@ -1278,13 +1278,13 @@ void ygen_emit::emit( ygen_program* p )
     for ( size_t i = 0; i < p->ssafunc->upnames.size(); ++i )
     {
         const char* upname = p->ssafunc->upnames.at( i );
-        debugvars[ i ].name = m->strings.at( upname )->string;
+        debugvars[ i ].name.set( m->strings.at( upname )->string );
         debugvars[ i ].r = (unsigned)i;
     }
     for ( size_t i = p->ssafunc->upnames.size(); i < p->debugvars.size(); ++i )
     {
         yssa_variable* variable = p->debugvars.at( i );
-        debugvars[ i ].name = m->strings.at( variable->name )->string;
+        debugvars[ i ].name.set( m->strings.at( variable->name )->string );
         debugvars[ i ].r = variable->r;
     }
     

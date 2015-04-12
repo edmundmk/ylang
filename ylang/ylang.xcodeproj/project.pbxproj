@@ -44,6 +44,9 @@
 		DB55C7A91AD1A1C400BD6C17 /* yssa_codegen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB55C7A71AD1A1C400BD6C17 /* yssa_codegen.cpp */; };
 		DB55C7AA1AD1A1C400BD6C17 /* yssa_codegen.h in Headers */ = {isa = PBXBuildFile; fileRef = DB55C7A81AD1A1C400BD6C17 /* yssa_codegen.h */; };
 		DB55C7AC1AD32CD500BD6C17 /* yl_heap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB55C7AB1AD32CD500BD6C17 /* yl_heap.cpp */; };
+		DB5B1FE21ADADDE100701000 /* yl_cothread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB5B1FE01ADADDE100701000 /* yl_cothread.cpp */; };
+		DB5B1FE31ADADDE100701000 /* yl_cothread.h in Headers */ = {isa = PBXBuildFile; fileRef = DB5B1FE11ADADDE100701000 /* yl_cothread.h */; };
+		DB5B1FE51ADADF8500701000 /* yl_object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB5B1FE41ADADF8500701000 /* yl_object.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -130,6 +133,9 @@
 		DB55C7A71AD1A1C400BD6C17 /* yssa_codegen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yssa_codegen.cpp; sourceTree = "<group>"; };
 		DB55C7A81AD1A1C400BD6C17 /* yssa_codegen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yssa_codegen.h; sourceTree = "<group>"; };
 		DB55C7AB1AD32CD500BD6C17 /* yl_heap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_heap.cpp; sourceTree = "<group>"; };
+		DB5B1FE01ADADDE100701000 /* yl_cothread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_cothread.cpp; sourceTree = "<group>"; };
+		DB5B1FE11ADADDE100701000 /* yl_cothread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_cothread.h; sourceTree = "<group>"; };
+		DB5B1FE41ADADF8500701000 /* yl_object.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_object.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -151,8 +157,11 @@
 				4B24D8BA1AD1DE0500A83A4C /* yl_code.cpp */,
 				4B4176F11AA3849C00C014EB /* yl_code.h */,
 				4B6FDAD11AA66ABF001096B0 /* yl_context.cpp */,
+				DB5B1FE01ADADDE100701000 /* yl_cothread.cpp */,
+				DB5B1FE11ADADDE100701000 /* yl_cothread.h */,
 				DB55C7AB1AD32CD500BD6C17 /* yl_heap.cpp */,
 				4B4176F61AA5040300C014EB /* yl_heap.h */,
+				DB5B1FE41ADADF8500701000 /* yl_object.cpp */,
 				4B4176F51AA503DD00C014EB /* yl_object.h */,
 				4B24D8B61AD160E900A83A4C /* yl_function.cpp */,
 				4B24D8B71AD160E900A83A4C /* yl_function.h */,
@@ -284,6 +293,7 @@
 				4B6FDAB11AA654AE001096B0 /* yl_diagnostics.h in Headers */,
 				4B24D8B91AD160E900A83A4C /* yl_function.h in Headers */,
 				4B4176F21AA3849C00C014EB /* yl_code.h in Headers */,
+				DB5B1FE31ADADDE100701000 /* yl_cothread.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -351,6 +361,7 @@
 				4B6FDE821AA7B4D8001096B0 /* yl_parser_ragel.rl in Sources */,
 				4B6FDAD21AA66ABF001096B0 /* yl_context.cpp in Sources */,
 				DB55C7A61AD19F9C00BD6C17 /* yl_invoke.cpp in Sources */,
+				DB5B1FE21ADADDE100701000 /* yl_cothread.cpp in Sources */,
 				DB55C7A91AD1A1C400BD6C17 /* yssa_codegen.cpp in Sources */,
 				4B6FDABD1AA65C6C001096B0 /* yl_string.cpp in Sources */,
 				4B24D8B81AD160E900A83A4C /* yl_function.cpp in Sources */,
@@ -366,6 +377,7 @@
 				4B6FDAAC1AA654AE001096B0 /* yl_ast_print.cpp in Sources */,
 				4B6FDAB01AA654AE001096B0 /* yl_diagnostics.cpp in Sources */,
 				4B6FDE881AA8F1E6001096B0 /* yssa_builder.cpp in Sources */,
+				DB5B1FE51ADADF8500701000 /* yl_object.cpp in Sources */,
 				DB55C7AC1AD32CD500BD6C17 /* yl_heap.cpp in Sources */,
 				4B6FDE801AA7A0B7001096B0 /* yl_compile.cpp in Sources */,
 			);

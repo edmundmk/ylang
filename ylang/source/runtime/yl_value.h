@@ -92,6 +92,10 @@ public:
 
 private:
 
+    yl_value( const yl_value& ) = delete;
+    yl_value& operator = ( const yl_value& ) = delete;
+
+
     union
     {
         std::atomic< uintptr_t >    v;
