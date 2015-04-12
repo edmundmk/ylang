@@ -233,11 +233,11 @@ private:
 
 struct yl_xframe
 {
-    int start;              // First protected instruction.
-    int end;                // After last protected instruction.
-    int close_upvals;       // Close upvals during unwind.
-    int close_iterators;    // Close iterators during unwind.
-    int handler;            // First instruction of handler.
+    unsigned    start;              // First protected instruction.
+    unsigned    end;                // After last protected instruction.
+    uint8_t     close_upvals;       // Close upvals during unwind.
+    uint8_t     close_iterators;    // Close iterators during unwind.
+    unsigned    handler;            // First instruction of handler.
 };
 
 
@@ -246,14 +246,20 @@ struct yl_xframe
     Debug information linking a variable to a register.
 */
 
-struct yl_varname
+struct yl_debugvar
 {
     static const unsigned UPVAL = 0x8000;
 
-    yl_heapref< yl_string > name;
-    int         start;      // Instruction declaring the variable.
-    int         end;        // After last instruction where variable is live.
-    unsigned    r;          // Register or upval index.
+    yl_heapref< yl_string > name;   // Name.
+    bool        isupval;            // Is it an upval?
+    uint16_t    r;                  // Register or upval index.
+};
+
+struct yl_debugspan
+{
+    unsigned    varindex;           // Variable index.
+    unsigned    start;              // First instruction in span.
+    unsigned    end;                // One past last instruction in span.
 };
 
 

@@ -71,7 +71,8 @@ struct ygen_program
     std::vector< ygen_value >   values;
     std::vector< yl_opinst >    ops;
     std::vector< yl_xframe >    xframes;
-    std::vector< yl_varname >   varnames;
+    std::vector< yssa_variable* > debugvars;
+    std::vector< yl_debugspan > debugspans;
 
     std::unordered_map< symkey, size_t > strvals;
     std::unordered_map< double, size_t > numvals;
@@ -589,6 +590,81 @@ void ygen_emit::codegen_function( yssa_function* function )
     }
     
     
+    // Construct xframes.
+    for ( size_t i = 0; i < function->blocks.size(); ++i )
+    {
+        yssa_block* block = function->blocks.at( i ).get();
+        
+        // Skip blocks without exception handlers.
+        if ( ! block->xchandler )
+        {
+            continue;
+        }
+        
+        // Construct xframe.
+        yl_xframe xf;
+        xf.start            = (unsigned)indexes.at( block->lstart );
+        xf.end              = (unsigned)indexes.at( block->lfinal );
+        xf.close_upvals     = block->xchandler->xclocalups;
+        xf.close_iterators  = block->xchandler->xcitercount;
+        xf.handler          = (unsigned)indexes.at( block->xchandler->lstart );
+        
+        // Check if we can just extend the previous xframe.
+        if ( p->xframes.size()
+                && p->xframes.back().end == xf.start
+                && p->xframes.back().handler == xf.handler )
+        {
+            yl_xframe& merge = p->xframes.back();
+            assert( merge.close_upvals == xf.close_upvals );
+            assert( merge.close_iterators == xf.close_iterators );
+            merge.end = xf.end;
+            continue;
+        }
+        
+        // Otherwise add it.
+        p->xframes.push_back( xf );
+    }
+
+
+    // Construct debug information for variables.
+    std::unordered_set< yssa_variable* > variables;
+    for ( size_t i = 0; i < function->ops.size(); ++i )
+    {
+        yssa_opinst* op = function->ops.at( i );
+
+        if ( op->has_associated() || ! op->variable )
+        {
+            continue;
+        }
+        
+        yssa_variable* v = op->variable;
+        if ( variables.count( v ) )
+        {
+            continue;
+        }
+        
+        unsigned varindex = (unsigned)p->debugvars.size();
+        p->debugvars.push_back( v );
+        variables.insert( v );
+        
+        for ( yssa_live_range* live = v->live; live; live = live->next )
+        {
+            yl_debugspan span;
+            span.varindex   = varindex;
+            span.start      = (unsigned)indexes.at( live->start );
+            span.end        = (unsigned)indexes.at( live->final );
+            
+            if ( p->debugspans.size()
+                    && p->debugspans.back().varindex == varindex
+                    && p->debugspans.back().end == span.start )
+            {
+                p->debugspans.back().end = span.end;
+                continue;
+            }
+            
+            p->debugspans.push_back( span );
+        }
+    }
     
 }
 
@@ -1126,7 +1202,8 @@ void ygen_emit::make_program( ygen_program* p )
         p->values.size(),
         p->ops.size(),
         p->xframes.size(),
-        p->varnames.size()
+        p->debugvars.size(),
+        p->debugspans.size()
     );
     
     p->program->_paramcount = p->ssafunc->paramcount;

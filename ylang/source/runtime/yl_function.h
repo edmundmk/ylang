@@ -79,8 +79,14 @@ class yl_program : public yl_heapobj
 {
 public:
 
-    static yl_program* alloc(
-        uint16_t valcount, size_t opcount, size_t xfcount, size_t varcount );
+    static yl_program* alloc
+    (
+        uint16_t    valcount,
+        size_t      opcount,
+        size_t      xfcount,
+        size_t      dvcount,
+        size_t      dscount
+    );
     ~yl_program();
     
     void                    print();
@@ -105,13 +111,20 @@ private:
 
     friend class ygen_emit;
     
-    yl_program(
-        uint16_t valcount, size_t opcount, size_t xfcount, size_t varcount );
+    yl_program
+    (
+        uint16_t    valcount,
+        size_t      opcount,
+        size_t      xfcount,
+        size_t      dvcount,
+        size_t      dscount
+    );
 
     uint16_t                _valcount;
     size_t                  _opcount;
     size_t                  _xfcount;
-    size_t                  _varcount;
+    size_t                  _dvcount;
+    size_t                  _dscount;
     
     yl_heapref< yl_string > _name;
     
@@ -125,7 +138,8 @@ private:
     yl_value*               _values();      // _values[ _valcount ]
     yl_opinst*              _ops();         // _ops[ _opcount ]
     yl_xframe*              _xframes();     // _xframes[ _xfcount ]
-    yl_varname*             _varnames();    // _varnames[ _varcount ]
+    yl_debugvar*            _debugvars();   // _debugvars[ _dvcount ]
+    yl_debugspan*           _debugspans();  // _debugspans[ _dscount ]
 
 };
 

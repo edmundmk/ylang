@@ -55,26 +55,40 @@ void yl_function::release()
 
 
 
-yl_program* yl_program::alloc(
-        uint16_t valcount, size_t opcount, size_t xfcount, size_t varcount )
+yl_program* yl_program::alloc
+(
+    uint16_t    valcount,
+    size_t      opcount,
+    size_t      xfcount,
+    size_t      dvcount,
+    size_t      dscount
+)
 {
     size_t size = sizeof( yl_program );
     size += sizeof( yl_value ) * valcount;
     size += sizeof( yl_opinst ) * opcount;
     size += sizeof( yl_xframe ) * xfcount;
-    size += sizeof( yl_varname ) * varcount;
+    size += sizeof( yl_debugvar ) * dvcount;
+    size += sizeof( yl_debugspan ) * dscount;
     void* p = yl_heap_current->malloc( size );
-    return new ( p ) yl_program( valcount, opcount, xfcount, varcount );
+    return new ( p ) yl_program( valcount, opcount, xfcount, dvcount, dscount );
 }
 
 
-yl_program::yl_program(
-        uint16_t valcount, size_t opcount, size_t xfcount, size_t varcount )
+yl_program::yl_program
+(
+    uint16_t    valcount,
+    size_t      opcount,
+    size_t      xfcount,
+    size_t      dvcount,
+    size_t      dscount
+)
     :   yl_heapobj( YLOBJ_PROGRAM )
     ,   _valcount( valcount )
     ,   _opcount( opcount )
     ,   _xfcount( xfcount )
-    ,   _varcount( varcount )
+    ,   _dvcount( dvcount )
+    ,   _dscount( dscount )
     ,   _paramcount( 0 )
     ,   _upcount( 0 )
     ,   _stackcount( 0 )
@@ -99,10 +113,16 @@ yl_program::yl_program(
         new ( xframes + i ) yl_xframe();
     }
     
-    yl_varname* varnames = _varnames();
-    for ( size_t i = 0; i < _varcount; ++i )
+    yl_debugvar* debugvars = _debugvars();
+    for ( size_t i = 0; i < _dvcount; ++i )
     {
-        new ( varnames + i ) yl_varname();
+        new ( debugvars + i ) yl_debugvar();
+    }
+    
+    yl_debugspan* debugspans = _debugspans();
+    for ( size_t i = 0; i < _dscount; ++i )
+    {
+        new ( debugspans + i ) yl_debugspan();
     }
 }
 
@@ -126,10 +146,16 @@ yl_program::~yl_program()
         xframes[ i ].~yl_xframe();
     }
     
-    yl_varname* varnames = _varnames();
-    for ( size_t i = 0; i < _varcount; ++i )
+    yl_debugvar* debugvars = _debugvars();
+    for ( size_t i = 0; i < _dvcount; ++i )
     {
-        varnames[ i ].~yl_varname();
+        debugvars[ i ].~yl_debugvar();
+    }
+    
+    yl_debugspan* debugspans = _debugspans();
+    for ( size_t i = 0; i < _dscount; ++i )
+    {
+        debugspans[ i ].~yl_debugspan();
     }
 }
 
@@ -169,8 +195,20 @@ yl_xframe* yl_program::_xframes()
     return (yl_xframe*)( _ops() + _opcount );
 }
 
-yl_varname* yl_program::_varnames()
+yl_debugvar* yl_program::_debugvars()
 {
-    return (yl_varname*)( _xframes() + _xfcount );
+    return (yl_debugvar*)( _xframes() + _xfcount );
 }
+
+yl_debugspan* yl_program::_debugspans()
+{
+    return (yl_debugspan*)( _debugvars() + _dvcount );
+}
+
+
+
+
+
+
+
 
