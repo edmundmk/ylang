@@ -676,6 +676,19 @@ void ygen_emit::codegen_function( yssa_function* function )
         }
     }
     
+    std::sort
+    (
+        p->debugspans.begin(),
+        p->debugspans.end(),
+        []( const yl_debugspan& a, const yl_debugspan& b )
+        {
+            if ( a.start < b.start )
+                return true;
+            if ( a.start == b.start && a.end < b.end )
+                return true;
+            return false;
+        }
+    );
 }
 
 

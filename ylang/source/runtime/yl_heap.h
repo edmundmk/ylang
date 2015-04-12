@@ -155,7 +155,7 @@ public:
     yl_heapref& operator = ( const yl_heapref& p );
     yl_heapref& operator = ( object_t* p );
     
-    object_t* get();
+    object_t* get() const;
     
 
 private:
@@ -211,7 +211,7 @@ inline yl_heapref< object_t >&
 }
 
 template < typename object_t >
-object_t* yl_heapref< object_t >::get()
+object_t* yl_heapref< object_t >::get() const
 {
     return _p.load( std::memory_order_relaxed );
 }

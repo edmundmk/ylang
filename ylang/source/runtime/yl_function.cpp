@@ -172,6 +172,53 @@ void yl_program::print()
     printf( "    varargs    : %s\n", _varargs ? "true" : "false" );
     printf( "    coroutine  : %s\n", _coroutine ? "true" : "false" );
 
+    if ( _xfcount )
+    {
+        printf( "    xframes:\n" );
+        yl_xframe* xframes = _xframes();
+        for ( size_t i = 0; i < _xfcount; ++i )
+        {
+            const yl_xframe& xf = xframes[ i ];
+            printf
+            (
+                "        %04X:%04X *%u ~%u @%04X\n",
+                xf.start,
+                xf.end,
+                xf.close_upvals,
+                xf.close_iterators,
+                xf.handler
+            );
+        }
+    }
+    
+    if ( _dvcount )
+    {
+        printf( "    debugvars:\n" );
+        yl_debugvar* debugvars = _debugvars();
+        yl_debugspan* debugspans = _debugspans();
+        for ( size_t varindex = 0; varindex < _dvcount; ++varindex )
+        {
+            const yl_debugvar& dv = debugvars[ varindex ];
+            printf
+            (
+                "        %s %s%u",
+                dv.name.get()->c_str(),
+                varindex < _upcount ? "*" : "",
+                dv.r
+            );
+            for ( size_t i = 0; i < _dscount; ++i )
+            {
+                const yl_debugspan& ds = debugspans[ i ];
+
+                if ( ds.varindex != varindex )
+                    continue;
+                
+                printf( " %04X:%04X", ds.start, ds.end );
+            }
+            printf( "\n" );
+        }
+    }
+
     yl_opinst* ops = _ops();
     for ( size_t i = 0; i < _opcount; ++i )
     {
