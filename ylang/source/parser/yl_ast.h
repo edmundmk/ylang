@@ -48,7 +48,7 @@ enum yl_ast_node_kind
     YL_AST_FUNC,
 
     // Literals.
-    YL_EXPR_nullptr,
+    YL_EXPR_NULL,
     YL_EXPR_BOOL,
     YL_EXPR_NUMBER,
     YL_EXPR_STRING,

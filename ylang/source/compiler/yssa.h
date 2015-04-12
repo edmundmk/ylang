@@ -255,6 +255,7 @@ struct yssa_function
     bool                        varargs;
     bool                        coroutine;
     size_t                      paramcount;
+    std::vector< const char* >  upnames;
     std::vector< yssa_loop_p >  loops;
     std::vector< yssa_block_p > blocks;
     std::vector< yssa_opinst* > ops;

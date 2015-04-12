@@ -624,7 +624,15 @@ void ygen_emit::codegen_function( yssa_function* function )
         // Otherwise add it.
         p->xframes.push_back( xf );
     }
-
+    
+    
+    // The first n debugvars are the names of upvals.
+    for ( size_t i = 0; i < function->upnames.size(); ++i )
+    {
+        add_string( function->upnames.at( i ) );
+        p->debugvars.push_back( nullptr );
+    }
+    
 
     // Construct debug information for variables.
     std::unordered_set< yssa_variable* > variables;
@@ -642,6 +650,8 @@ void ygen_emit::codegen_function( yssa_function* function )
         {
             continue;
         }
+        
+        add_string( v->name );
         
         unsigned varindex = (unsigned)p->debugvars.size();
         p->debugvars.push_back( v );
@@ -1245,7 +1255,31 @@ void ygen_emit::emit( ygen_program* p )
         ops[ i ] = p->ops.at( i );
     }
     
-    // TODO.
+    yl_xframe* xframes = p->program->_xframes();
+    for ( size_t i = 0; i < p->xframes.size(); ++i )
+    {
+        xframes[ i ] = p->xframes.at( i );
+    }
+    
+    yl_debugvar* debugvars = p->program->_debugvars();
+    for ( size_t i = 0; i < p->ssafunc->upnames.size(); ++i )
+    {
+        const char* upname = p->ssafunc->upnames.at( i );
+        debugvars[ i ].name = m->strings.at( upname )->string;
+        debugvars[ i ].r = (unsigned)i;
+    }
+    for ( size_t i = p->ssafunc->upnames.size(); i < p->debugvars.size(); ++i )
+    {
+        yssa_variable* variable = p->debugvars.at( i );
+        debugvars[ i ].name = m->strings.at( variable->name )->string;
+        debugvars[ i ].r = variable->r;
+    }
+    
+    yl_debugspan* debugspans = p->program->_debugspans();
+    for ( size_t i = 0; i < p->debugspans.size(); ++i )
+    {
+        debugspans[ i ] = p->debugspans.at( i );
+    }
     
     p->program->print();
     printf( "\n" );

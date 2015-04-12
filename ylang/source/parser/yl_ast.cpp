@@ -117,7 +117,7 @@ yl_ast_func::yl_ast_func( int sloc )
 
 
 yl_expr_null::yl_expr_null( int sloc )
-    :   yl_ast_node( YL_EXPR_nullptr, sloc )
+    :   yl_ast_node( YL_EXPR_NULL, sloc )
 {
 }
 

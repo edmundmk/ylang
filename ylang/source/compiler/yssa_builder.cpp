@@ -35,6 +35,7 @@ bool yssa_builder::build( yl_ast* ast )
     for ( size_t i = 0; i < ast->functions.size(); ++i )
     {
         yl_ast_func* astf = ast->functions.at( i );
+
         yssa_function_p ssaf = std::make_unique< yssa_function >
         (
             astf->sloc,
@@ -43,6 +44,37 @@ bool yssa_builder::build( yl_ast* ast )
             astf->coroutine,
             astf->parameters.size()
         );
+        
+        for ( size_t i = 0; i < astf->upvals.size(); ++i )
+        {
+            yl_ast_func* upfunc = astf;
+            yl_ast_upval* upval = &upfunc->upvals.at( i );
+
+            while ( upval->kind == YL_UPVAL_UPVAL )
+            {
+                assert( upfunc->scope->outer );
+                assert( upfunc->scope->outer->func );
+                upfunc = upfunc->scope->outer->func;
+                upval = &upfunc->upvals.at( upval->upval );
+            }
+            
+            switch ( upval->kind )
+            {
+            case YL_UPVAL_LOCAL:
+                ssaf->upnames.push_back(
+                        module->alloc.strdup( upval->local->name ) );
+                break;
+            
+            case YL_UPVAL_OBJECT:
+                ssaf->upnames.push_back( "[object]" );
+                break;
+            
+            case YL_UPVAL_UPVAL:
+                assert( ! "should have resolved upval" );
+                break;
+            }
+        }
+        
         funcmap.emplace( std::make_pair( astf, ssaf.get() ) );
         module->functions.push_back( std::move( ssaf ) );
     }

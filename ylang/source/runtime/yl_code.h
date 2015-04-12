@@ -251,8 +251,7 @@ struct yl_debugvar
     static const unsigned UPVAL = 0x8000;
 
     yl_heapref< yl_string > name;   // Name.
-    bool        isupval;            // Is it an upval?
-    uint16_t    r;                  // Register or upval index.
+    unsigned    r;                  // Register or upval index.
 };
 
 struct yl_debugspan
