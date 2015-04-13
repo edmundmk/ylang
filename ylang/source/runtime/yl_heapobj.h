@@ -65,7 +65,7 @@ private:
     template < typename object_t > friend class yl_heapref;
 
     yl_objkind                      _kind;
-    std::atomic< yl_markcolour >    _colour;
+    std::atomic< yl_mark_colour >    _colour;
 
 };
 
@@ -121,7 +121,7 @@ inline void yl_heapref< object_t >::set( object_t* p )
     object_t* object = _p.load( std::memory_order_relaxed );
     if ( object )
     {
-        yl_markcolour colour =
+        yl_mark_colour colour =
                 object->_colour.load( std::memory_order_relaxed );
         if ( colour == yl_current->unmarked_colour() )
         {

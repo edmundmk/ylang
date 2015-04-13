@@ -25,7 +25,7 @@ class yl_cothread;
 */
 
 
-enum yl_markcolour : uint8_t
+enum yl_mark_colour : uint8_t
 {
     YL_GREY,    // added to mark list but not yet marked
     YL_YELLOW,  // marked/unmarked/dead
@@ -66,7 +66,7 @@ public:
 
     void*           malloc( size_t size );
     
-    yl_markcolour   unmarked_colour();
+    yl_mark_colour  unmarked_colour();
     void            write_barrier( yl_heapobj* object );
 
 
@@ -75,7 +75,7 @@ private:
     yl_cothread*    _cothread;
 
     mspace          _heap;
-    yl_markcolour   _unmarked_colour;
+    yl_mark_colour  _unmarked_colour;
 
 
 };
@@ -111,7 +111,7 @@ public:
 */
 
 
-inline yl_markcolour yl_context_impl::unmarked_colour()
+inline yl_mark_colour yl_context_impl::unmarked_colour()
 {
     return _unmarked_colour;
 }
