@@ -62,6 +62,8 @@ protected:
 
 private:
 
+    template < typename object_t > friend class yl_heapref;
+
     yl_objkind                      _kind;
     std::atomic< yl_markcolour >    _colour;
 

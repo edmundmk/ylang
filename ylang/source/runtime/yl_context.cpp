@@ -29,7 +29,9 @@ __thread yl_context_impl* yl_current = nullptr;
 
 
 yl_context_impl::yl_context_impl()
-    :   _heap( create_mspace( 0, 0 ) )
+    :   _cothread( nullptr )
+    ,   _heap( create_mspace( 0, 0 ) )
+    ,   _unmarked_colour( YL_YELLOW )
 {
     mspace_track_large_chunks( _heap, 1 );
 }

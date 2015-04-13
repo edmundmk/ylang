@@ -11,7 +11,7 @@
 
 
 
-yl_heapobj::yl_heapobj( yl_heapobj_kind kind )
+yl_heapobj::yl_heapobj( yl_objkind kind )
     :   _kind( kind )
     ,   _colour( /* TODO */ YL_GREY )
 {

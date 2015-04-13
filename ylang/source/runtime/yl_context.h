@@ -15,6 +15,7 @@
 
 
 class yl_heapobj;
+class yl_cothread;
 
 
 /*
@@ -65,11 +66,13 @@ public:
 
     void*           malloc( size_t size );
     
-    yl_markcolour  unmarked_colour();
+    yl_markcolour   unmarked_colour();
     void            write_barrier( yl_heapobj* object );
 
 
 private:
+
+    yl_cothread*    _cothread;
 
     mspace          _heap;
     yl_markcolour   _unmarked_colour;
