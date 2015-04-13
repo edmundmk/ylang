@@ -6,7 +6,7 @@
 //
 
 
-#include "yl_compile.h"
+#include "ylang.h"
 #include <stdarg.h>
 #include "yl_diagnostics.h"
 #include "yl_parser.h"
@@ -20,11 +20,11 @@
 
 
 
-static yl_invoke yl_compile_failure( const yl_diagnostics& diagnostics );
+static yl_function yl_compile_failure( const yl_diagnostics& diagnostics );
 
 
 
-yl_invoke yl_compile( const char* path, size_t paramc, const char* paramv[] )
+yl_function yl_compile( const char* path, size_t paramc, const char* paramv[] )
 {
     yl_diagnostics diagnostics;
 
@@ -71,22 +71,20 @@ yl_invoke yl_compile( const char* path, size_t paramc, const char* paramv[] )
         
     yssa_print( module );
     
-    yl_invoke invoke = yssa_codegen( module );
-
-
-    return yl_invoke();
+    yl_function function = yssa_codegen( module );
+    return function;
 }
 
 
 
-yl_invoke yl_compile_failure( const yl_diagnostics& diagnostics )
+yl_function yl_compile_failure( const yl_diagnostics& diagnostics )
 {
     for ( size_t i = 0; i < diagnostics.error_count(); ++i )
     {
         fprintf( stderr, "%s\n", diagnostics.error( i ) );
     }
 
-    return yl_invoke();
+    return yl_function();
 }
 
 

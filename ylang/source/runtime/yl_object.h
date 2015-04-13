@@ -10,7 +10,15 @@
 #define YL_OBJECT_H
 
 
-#include "yl_heap.h"
+#include <unordered_map>
+#include <symkey.h>
+#include "yl_heapobj.h"
+#include "yl_value.h"
+#include "yl_string.h"
+
+
+class yl_object;
+class yl_slot;
 
 
 

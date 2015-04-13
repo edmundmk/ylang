@@ -1,5 +1,5 @@
 //
-//  yl_function.h
+//  yl_funcobj.h
 //
 //  Created by Edmund Kapusniak on 05/04/2015.
 //  Copyright (c) 2015 Edmund Kapusniak. All rights reserved.
@@ -11,12 +11,12 @@
 
 #include <vector>
 #include "yl_code.h"
-#include "yl_heap.h"
+#include "yl_heapobj.h"
 #include "yl_value.h"
 
 
 
-class yl_function;
+class yl_funcobj;
 class yl_program;
 class yl_upval;
 
@@ -27,11 +27,12 @@ class yl_upval;
     An instance of a function.
 */
 
-class yl_function : public yl_heapobj
+class yl_funcobj : public yl_heapobj
 {
 public:
 
-    static yl_function* alloc( yl_program* program );
+    static yl_function make_function( yl_funcobj* funcobj );
+    static yl_funcobj* alloc( yl_program* program );
 
     void acquire();
     void release();
@@ -39,7 +40,7 @@ public:
 
 private:
 
-    explicit yl_function( yl_program* program );
+    explicit yl_funcobj( yl_program* program );
 
     uint8_t                     _upcount;
     uint8_t                     _refcount;
