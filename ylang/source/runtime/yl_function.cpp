@@ -10,17 +10,43 @@
 
 
 
-yl_function* yl_function::alloc( yl_program* program )
+
+void yl_function::acquire()
 {
-    uint8_t upcount = program->upcount();
-    void* p = yl_heap_current->malloc(
-        sizeof( yl_function ) + sizeof( yl_heapref< yl_upval > ) * upcount );
-    return new ( p ) yl_function( program );
+    if ( _funcobj )
+    {
+        _funcobj->acquire();
+    }
+}
+
+void yl_function::release()
+{
+    if ( _funcobj )
+    {
+        _funcobj->release();
+    }
+    _funcobj = nullptr;
 }
 
 
-yl_function::yl_function( yl_program* program )
-    :   yl_heapobj( YLOBJ_FUNCTION )
+
+yl_function yl_funcobj::make_function( yl_funcobj* funcobj )
+{
+    return yl_function( funcobj );
+}
+
+
+yl_funcobj* yl_funcobj::alloc( yl_program* program )
+{
+    uint8_t upcount = program->upcount();
+    void* p = yl_current->malloc(
+        sizeof( yl_funcobj ) + sizeof( yl_heapref< yl_upval > ) * upcount );
+    return new ( p ) yl_funcobj( program );
+}
+
+
+yl_funcobj::yl_funcobj( yl_program* program )
+    :   yl_heapobj( YLOBJ_FUNCOBJ )
     ,   _upcount( program->upcount() )
     ,   _refcount( 0 )
     ,   _program( program )
@@ -33,7 +59,7 @@ yl_function::yl_function( yl_program* program )
 
 
 
-void yl_function::acquire()
+void yl_funcobj::acquire()
 {
     assert( _refcount < 255 );
     _refcount += 1;
@@ -43,7 +69,7 @@ void yl_function::acquire()
     }
 }
 
-void yl_function::release()
+void yl_funcobj::release()
 {
     assert( _refcount > 0 );
     _refcount -= 1;
@@ -70,7 +96,7 @@ yl_program* yl_program::alloc
     size += sizeof( yl_xframe ) * xfcount;
     size += sizeof( yl_debugvar ) * dvcount;
     size += sizeof( yl_debugspan ) * dscount;
-    void* p = yl_heap_current->malloc( size );
+    void* p = yl_current->malloc( size );
     return new ( p ) yl_program( valcount, opcount, xfcount, dvcount, dscount );
 }
 

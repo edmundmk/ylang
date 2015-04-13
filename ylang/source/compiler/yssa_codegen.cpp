@@ -8,7 +8,7 @@
 
 #include "yssa_codegen.h"
 #include <make_unique.h>
-#include "yl_invoke.h"
+#include "ylang.h"
 #include "yssa.h"
 #include "yl_string.h"
 #include "yl_function.h"
@@ -274,7 +274,7 @@ private:
 
 
 
-yl_invoke yssa_codegen( yssa_module* module )
+yl_function yssa_codegen( yssa_module* module )
 {
     ygen_module m;
     ygen_emit emit( &m );
@@ -313,8 +313,8 @@ yl_invoke yssa_codegen( yssa_module* module )
     // Create invoke.
     yssa_function* ssafunc = module->functions.at( 0 ).get();
     yl_program* program = m.programs.at( ssafunc )->program;
-    yl_function* function = yl_function::alloc( program );
-    return yl_invoke( function );
+    yl_funcobj* funcobj = yl_funcobj::alloc( program );
+    return yl_funcobj::make_function( funcobj );
 }
 
 

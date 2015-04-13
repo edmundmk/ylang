@@ -12,69 +12,11 @@
 
 #include <stdint.h>
 #include <atomic>
-#include "dlmalloc.h"
+#include "yl_context.h"
 
 
-class yl_heap;
 class yl_heapobj;
 template < typename object_t > class yl_heapref;
-
-
-
-/*
-    Garbage-collected ylang heap.  Each heap supports a single mutator
-    thread.  The garbage collector runs concurrently with the mutator
-    thread (save for marking of stack roots).
-    
-    The root set consists of the current execution stack, closures
-    referenced by yl_invoke objects, and ylang objects which are the
-    script part of a yl_expose.
-    
-    Cothread execution stacks are marked lazily.
-*/
-
-
-extern __thread yl_heap* yl_heap_current;
-
-
-class yl_heap
-{
-public:
-
-    yl_heap();
-    ~yl_heap();
-
-    void*   malloc( size_t size );
-    
-    void    write_barrier( yl_heapobj* obj );
-
-
-private:
-
-    mspace _mspace;
-
-
-};
-
-
-
-/*
-    When we are constructing a set of objects (e.g. when compiling a
-    script), then we don't want those constructed objects to be garbage
-    collected until they are reachable by the GC.
-    
-    Note that allocating a single object and assigning it directly to a
-    GC-reachable reference is always safe.
-*/
-
-class yl_alloc_scope
-{
-public:
-
-    yl_alloc_scope();
-    ~yl_alloc_scope();
-    
-};
 
 
 
@@ -91,7 +33,7 @@ enum yl_heapobj_kind : uint8_t
     YLOBJ_NATIVE,       // object linked to native yl_expose
     YLOBJ_ARRAY,        // dynamic array
     YLOBJ_TABLE,        // hashtable
-    YLOBJ_FUNCTION,     // function
+    YLOBJ_FUNCOBJ,      // function
     YLOBJ_COTHREAD,     // coroutine with stack
     
     // Compiled code
@@ -101,20 +43,6 @@ enum yl_heapobj_kind : uint8_t
     YLOBJ_VALARRAY,     // fixed-size array of yl_values
     YLOBJ_SLOT,         // node in an object's class tree
     YLOBJ_UPVAL,        // implements function closures
-};
-
-
-
-/*
-    Garbage collector colour.
-*/
-
-enum yl_mark_colour : uint8_t
-{
-    YL_GREY,    // added to greylist but not yet marked
-    YL_YELLOW,  // marked/unmarked/dead
-    YL_PURPLE,  // marked/unmarked/dead
-    YL_ORANGE,  // marked/unmarked/dead
 };
 
 
@@ -131,6 +59,8 @@ protected:
 
 
 private:
+
+    template < typename object_t > friend class yl_heapref;
 
     yl_heapobj_kind                 _kind;
     std::atomic< yl_mark_colour >   _colour;
@@ -200,10 +130,15 @@ template < typename object_t >
 inline yl_heapref< object_t >&
                 yl_heapref< object_t >::operator = ( object_t* p )
 {
-    object_t* obj = _p.load( std::memory_order_relaxed );
-    if ( obj )
+    object_t* object = _p.load( std::memory_order_relaxed );
+    if ( object )
     {
-        yl_heap_current->write_barrier( obj );
+        yl_mark_colour colour =
+                object->_colour.load( std::memory_order_relaxed );
+        if ( colour == yl_current->unmarked_colour() )
+        {
+            yl_current->write_barrier( object );
+        }
     }
     
     _p.store( p, std::memory_order_relaxed );
