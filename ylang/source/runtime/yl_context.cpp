@@ -13,6 +13,8 @@
 
 
 
+
+
 yl_context::yl_context()
     :   _impl( new yl_context_impl() )
 {
@@ -40,6 +42,15 @@ yl_context_impl::~yl_context_impl()
 {
     destroy_mspace( _heap );
 }
+
+
+
+yl_string* yl_context_impl::symbol( yl_string* string )
+{
+    // TODO.
+    return string;
+}
+
 
 
 void* yl_context_impl::malloc( size_t size )

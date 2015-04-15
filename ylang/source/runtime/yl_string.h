@@ -34,6 +34,8 @@ public:
     static yl_string*   alloc( const char* string );
     static yl_string*   alloc( const char* string, size_t size );
 
+    static yl_string*   concat( yl_string* a, yl_string* b );
+    
     hash32_t            hash() const;
     size_t              size() const;
     const char*         c_str() const;
@@ -41,7 +43,7 @@ public:
 
 private:
 
-    yl_string( size_t size );
+    explicit yl_string( size_t size );
 
     bool                _is_symbol;
     mutable bool        _has_hash;

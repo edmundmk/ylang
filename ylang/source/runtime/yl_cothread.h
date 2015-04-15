@@ -11,7 +11,7 @@
 
 
 #include <vector>
-#include "yl_heap.h"
+#include "yl_heapobj.h"
 #include "yl_function.h"
 
 
@@ -29,7 +29,7 @@ class yl_cothread;
 
 struct yl_stackframe
 {
-    yl_function*    function;
+    yl_funcobj*     funcobj;
     unsigned        base;
     uint8_t         argcount;
     uint8_t         outcount;
@@ -40,21 +40,6 @@ struct yl_stackframe
 };
 
 
-
-/*
-    A slot on the execution stack.  Curently a type-tagged 'fat value'.
-*/
-
-
-struct yl_stackslot
-{
-    yl_objkind  kind;
-    union
-    {
-        double      number;
-        yl_heapobj* heapobj;
-    };
-};
 
 
 
@@ -112,16 +97,29 @@ public:
 
     yl_cothread* alloc();
 
+    yl_stackframe*  call_frame();
+
+    yl_tagval*      stack( size_t base, size_t count );
+    yl_upval**      upval( size_t base, size_t count );
+    yl_iterator*    iters( size_t base, size_t count );
+    
 
 private:
 
     std::vector< yl_stackframe >    _frames;
-    std::vector< yl_stackslot >     _stack;
+    std::vector< yl_tagval >        _stack;
     std::vector< yl_upval* >        _upval;
     std::vector< yl_iterator >      _iters;
     unsigned                        _mark;
 
 };
+
+
+
+/*
+
+*/
+
 
 
 

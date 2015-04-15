@@ -30,6 +30,7 @@ enum yl_objkind : uint8_t
     YLOBJ_NUMBER,
 
     // User-visible
+    YLOBJ_SINGULAR,     // null, undef, true or false
     YLOBJ_STRING,       // string or symbol
     YLOBJ_OBJECT,       // object
     YLOBJ_NATIVE,       // object linked to native yl_expose
@@ -49,12 +50,19 @@ enum yl_objkind : uint8_t
 
 
 
+
+
 /*
     The base class of ylang heap objects.
 */
 
 class yl_heapobj
 {
+public:
+
+    yl_objkind kind() const;
+
+
 protected:
 
     explicit yl_heapobj( yl_objkind kind );
@@ -65,7 +73,7 @@ private:
     template < typename object_t > friend class yl_heapref;
 
     yl_objkind                      _kind;
-    std::atomic< yl_mark_colour >    _colour;
+    std::atomic< yl_mark_colour >   _colour;
 
 };
 
@@ -101,6 +109,14 @@ private:
 /*
 
 */
+
+
+
+inline yl_objkind yl_heapobj::kind() const
+{
+    return _kind;
+}
+
 
 
 template < typename object_t >

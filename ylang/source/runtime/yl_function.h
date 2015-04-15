@@ -36,6 +36,8 @@ public:
 
     void acquire();
     void release();
+    
+    yl_program* program();
 
 
 private:
@@ -100,6 +102,7 @@ public:
 
     size_t                  upcount();
     size_t                  stackcount();
+    size_t                  itercount();
     
     size_t                  valcount();
     const yl_value*         values();
@@ -151,6 +154,12 @@ private:
 */
 
 
+inline yl_program* yl_funcobj::program()
+{
+    return _program.get();
+}
+
+
 
 inline yl_string* yl_program::name()
 {
@@ -180,6 +189,11 @@ inline size_t yl_program::upcount()
 inline size_t yl_program::stackcount()
 {
     return _stackcount;
+}
+
+inline size_t yl_program::itercount()
+{
+    return _itercount;
 }
 
 inline size_t yl_program::valcount()

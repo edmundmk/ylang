@@ -11,8 +11,12 @@
 
 
 #include <memory>
+#include <exception>
+#include <string>
+#include <vector>
 
 
+class yl_exception;
 class yl_context;
 class yl_scope;
 class yl_function;
@@ -22,6 +26,32 @@ class yl_callframe;
 
 class yl_context_impl;
 class yl_funcobj;
+
+
+
+
+/*
+    Exception thrown when there is an error in ylang code.
+*/
+
+
+class yl_exception : public std::exception
+{
+public:
+
+    yl_exception( const char* format, ... );
+    
+    const char* what() const throw() override;
+    
+    
+private:
+
+    std::string message;
+
+};
+
+
+
 
 
 
@@ -123,8 +153,6 @@ private:
 
 
 
-
-
 /*
     Attributes marking functions or methods exposed to ylang (ylfunc), or
     entry points or callbacks to ylang (ylcall).
@@ -181,6 +209,17 @@ class yl_callframe
 
 
 
+
+/*
+    The most basic entry point.
+*/
+
+void yl_invoke( const yl_function& function, yl_callframe& callframe );
+
+
+
+
+
 /*
 
 */
@@ -193,10 +232,6 @@ inline yl_function yl_compile( const char* path, arguments_t ... arguments )
     return yl_compile( path, sizeof ... ( arguments ), paramv );
 }
 
-
-
-/*
-*/
 
 
 

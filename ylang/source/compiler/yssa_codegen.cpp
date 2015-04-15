@@ -1209,9 +1209,10 @@ void ygen_emit::make_string( ygen_string* s )
         return;
     
     s->string = yl_string::alloc( s->text, s->size );
-
-    // TODO: Turn key strings into symbols.
-
+    if ( s->iskey )
+    {
+        s->string = yl_current->symbol( s->string );
+    }
 }
 
 

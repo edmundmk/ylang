@@ -16,15 +16,56 @@
 #include "yl_heapobj.h"
 
 
+class yl_tagval;
+class yl_value;
+class yl_valref;
+
+
 
 /*
-    Small values representing singleton objects.
+    Small integer pointers representing singleton objects.
 */
 
-static const yl_heapobj* yl_null    = nullptr;
-static const yl_heapobj* yl_undef   = (yl_heapobj*)1;
-static const yl_heapobj* yl_false   = (yl_heapobj*)2;
-static const yl_heapobj* yl_true    = (yl_heapobj*)3;
+static yl_heapobj* const yl_null    = nullptr;
+static yl_heapobj* const yl_undef   = (yl_heapobj*)1;
+static yl_heapobj* const yl_false   = (yl_heapobj*)2;
+static yl_heapobj* const yl_true    = (yl_heapobj*)3;
+
+bool yl_is_singular( yl_heapobj* heapobj );
+
+
+
+
+/*
+    A yl_tagval is two pointers in size, but stores the object kind
+    explicitly, which means we don't have to disambiguate different kinds
+    of objects before using them.  Could be termed a 'fat value'.
+*/
+
+
+class yl_tagval
+{
+public:
+
+    yl_tagval( const yl_valref& value );
+    yl_tagval( double number );
+    yl_tagval( yl_objkind kind, yl_heapobj* heapobj );
+
+    yl_objkind      kind() const;
+    double          number() const;
+    yl_heapobj*     heapobj() const;
+
+
+private:
+
+    yl_objkind      _kind;
+    union
+    {
+        double      _number;
+        yl_heapobj* _heapobj;
+    };
+    
+};
 
 
 
@@ -63,7 +104,7 @@ static const yl_heapobj* yl_true    = (yl_heapobj*)3;
         If the top bits are zero, then it's a pointer.  Otherwise the number
         can be recovered by inverting the entire value.
     
-    pointer   0000000000000---pppppppppppppppp pppppppppppppppppppppppppppppppp
+    pointer   0000000000000000pppppppppppppppp pppppppppppppppppppppppppppppppp
  
         False values:
         
@@ -83,11 +124,11 @@ public:
     yl_value();
     ~yl_value();
 
-    void            set( double n );
-    void            set( yl_heapobj* o );
+    void            set( const yl_tagval& value );
+    void            set( double number );
+    void            set( yl_heapobj* heapobj );
 
-    double          as_number();
-    yl_heapobj*     as_heapobj();
+    yl_valref       get() const;
 
 
 private:
@@ -98,8 +139,42 @@ private:
 
     union
     {
-        std::atomic< uintptr_t >    v;
-        yl_heapobj*                 p;
+        std::atomic< uintptr_t >    _value;
+        yl_heapobj*                 _p;
+    };
+
+};
+
+
+
+/*
+    A valref is the result of reading a yl_value.  It allows values to
+    be manipulated without multiple inadvertent atomic reads (which the
+    compiler can't coalesce).
+*/
+
+
+class yl_valref
+{
+public:
+
+    bool            is_number() const;
+    bool            is_heapobj() const;
+    
+    double          as_number() const;
+    yl_heapobj*     as_heapobj() const;
+
+
+private:
+
+    friend class yl_value;
+
+    explicit yl_valref( uintptr_t value );
+
+    union
+    {
+        uintptr_t                   _value;
+        yl_heapobj*                 _p;
     };
 
 };
@@ -118,17 +193,17 @@ public:
     static yl_valarray* alloc( size_t size );
     ~yl_valarray();
     
-    size_t              size() const;
-    const yl_value&     at( size_t index ) const;
-    yl_value&           at( size_t index );
+    size_t          size() const;
+    const yl_value& at( size_t index ) const;
+    yl_value&       at( size_t index );
 
 
 private:
 
-    yl_valarray( size_t size );
+    explicit yl_valarray( size_t size );
 
-    size_t      _size;
-    yl_value    _elements[ 0 ];
+    size_t          _size;
+    yl_value        _elements[ 0 ];
 
 };
 
@@ -140,8 +215,68 @@ private:
 */
 
 
+
+inline bool yl_is_singular( yl_heapobj* heapobj )
+{
+    return heapobj <= yl_true;
+}
+
+
+
+inline yl_tagval::yl_tagval( const yl_valref& value )
+{
+    if ( value.is_number() )
+    {
+        _kind    = YLOBJ_NUMBER;
+        _number  = value.as_number();
+    }
+    else
+    {
+        _heapobj = value.as_heapobj();
+        if ( yl_is_singular( _heapobj ) )
+        {
+            _kind = YLOBJ_SINGULAR;
+        }
+        else
+        {
+            _kind = _heapobj->kind();
+        }
+    }
+}
+
+
+inline yl_tagval::yl_tagval( double number )
+    :   _kind( YLOBJ_NUMBER )
+    ,   _number( number )
+{
+}
+
+inline yl_tagval::yl_tagval( yl_objkind kind, yl_heapobj* heapobj )
+    :   _kind( kind )
+    ,   _heapobj( heapobj )
+{
+}
+
+inline yl_objkind yl_tagval::kind() const
+{
+    return _kind;
+}
+
+inline double yl_tagval::number() const
+{
+    return _number;
+}
+
+inline yl_heapobj* yl_tagval::heapobj() const
+{
+    return _heapobj;
+}
+
+
+
+
 inline yl_value::yl_value()
-    :   v( 0 )
+    :   _value( 0 )
 {
 }
 
@@ -149,13 +284,27 @@ inline yl_value::~yl_value()
 {
 }
 
+inline void yl_value::set( const yl_tagval& value )
+{
+    if ( value.kind() == YLOBJ_NUMBER )
+    {
+        set( value.number() );
+    }
+    else
+    {
+        set( value.heapobj() );
+    }
+}
+
 inline void yl_value::set( double n )
 {
+    // TODO: perform write barrier.
+
     if ( sizeof( uintptr_t ) == 8 )
     {
         union { double n; uintptr_t v; } bits;
         bits.n = n;
-        this->v.store( ~bits.v, std::memory_order_relaxed );
+        this->_value.store( ~bits.v, std::memory_order_relaxed );
     }
     else
     {
@@ -165,53 +314,68 @@ inline void yl_value::set( double n )
 
 inline void yl_value::set( yl_heapobj* o )
 {
-    this->v.store( (uintptr_t)o, std::memory_order_relaxed );
+    // TODO: perform write barrier.
+
+    this->_value.store( (uintptr_t)o, std::memory_order_relaxed );
 }
 
-inline double yl_value::as_number()
+inline yl_valref yl_value::get() const
+{
+    return yl_valref( this->_value.load( std::memory_order_relaxed ) );
+}
+
+
+
+
+inline yl_valref::yl_valref( uintptr_t value )
+    :   _value( value )
+{
+}
+
+inline bool yl_valref::is_number() const
 {
     if ( sizeof( uintptr_t ) == 8 )
     {
-        uintptr_t v = this->v.load( std::memory_order_relaxed );
-        if ( ( v & UINT64_C( 0xFFFF000000000000 ) ) != 0 )
-        {
-            union { uintptr_t v; double n; } bits;
-            bits.v = ~v;
-            return bits.n;
-        }
-        else
-        {
-            throw 0; // ??? TODO
-        }
+        return ( _value & UINT64_C( 0xFFFF000000000000 ) ) != 0;
     }
     else
     {
-        assert( ! "uinmplemented for this architecture" );
-        return 0.0;
+        assert( ! "unimplemented for this architecture" );
     }
 }
 
-inline yl_heapobj* yl_value::as_heapobj()
+inline bool yl_valref::is_heapobj() const
 {
     if ( sizeof( uintptr_t ) == 8 )
     {
-        uintptr_t v = this->v.load( std::memory_order_relaxed );
-        if ( ( v & UINT64_C( 0xFFFF000000000000 ) ) == 0 )
-        {
-            return (yl_heapobj*)v;
-        }
-        else
-        {
-            throw 0; // ??? TODO
-        }
+        return ( _value & UINT64_C( 0xFFFF000000000000 ) ) == 0;
     }
     else
     {
-        assert( ! "uinmplemented for this architecture" );
-        return nullptr;
+        assert( ! "unimplemented for this architecture" );
     }
 }
 
+inline double yl_valref::as_number() const
+{
+    assert( is_number() );
+    if ( sizeof( uintptr_t ) == 8 )
+    {
+        union { uintptr_t v; double n; } bits;
+        bits.v = ~_value;
+        return bits.n;
+    }
+    else
+    {
+        assert( ! "unimplemented for this architecture" );
+    }
+}
+
+inline yl_heapobj* yl_valref::as_heapobj() const
+{
+    assert( is_heapobj() );
+    return (yl_heapobj*)_value;
+}
 
 
 

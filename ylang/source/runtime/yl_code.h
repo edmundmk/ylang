@@ -211,12 +211,12 @@ public:
     yl_opinst( yl_opcode opcode, unsigned r, unsigned c );
     yl_opinst( yl_opcode opcode, unsigned r, signed j );
     
-    yl_opcode   opcode();
-    unsigned    r();
-    unsigned    a();
-    unsigned    b();
-    unsigned    c();
-    signed      j();
+    yl_opcode   opcode() const;
+    unsigned    r() const;
+    unsigned    a() const;
+    unsigned    b() const;
+    unsigned    c() const;
+    signed      j() const;
 
 
 private:
@@ -277,32 +277,32 @@ void ylop_print( size_t index, yl_opinst* op );
 */
 
 
-inline yl_opcode yl_opinst::opcode()
+inline yl_opcode yl_opinst::opcode() const
 {
     return (yl_opcode)(uint8_t)i;
 }
 
-inline unsigned yl_opinst::r()
+inline unsigned yl_opinst::r() const
 {
     return (uint8_t)( i >> 8 );
 }
 
-inline unsigned yl_opinst::a()
+inline unsigned yl_opinst::a() const
 {
     return (uint8_t)( i >> 16 );
 }
 
-inline unsigned yl_opinst::b()
+inline unsigned yl_opinst::b() const
 {
     return (uint8_t)( i >> 24 );
 }
 
-inline unsigned yl_opinst::c()
+inline unsigned yl_opinst::c() const
 {
     return (uint16_t)( i >> 16 );
 }
 
-inline signed yl_opinst::j()
+inline signed yl_opinst::j() const
 {
     return (int16_t)( i >> 16 );
 }

@@ -17,21 +17,40 @@
     Floored (integer) division.
 */
 
-float intdiv( float a, float b )
+inline float intdiv( float a, float b )
+{
+    return floor( a / b );
+}
+
+inline double intdiv( double a, double b )
 {
     return floor( a / b );
 }
 
 
 /*
-    Modulus where the remainder has same sign as divisor.
+    Euclidean modulo where the remainder has same sign as divisor.
 */
 
-float mod( float a, float b )
+inline float emod( float a, float b )
 {
-    return a - floor( a / b ) * b;
+    float v = fmod( a, b );
+    if ( ( b < 0 ) != ( v < 0 ) )
+    {
+        v += b;
+    }
+    return v;
 }
 
+inline double emod( double a, double b )
+{
+    double v = fmod( a, b );
+    if ( ( b < 0 ) != ( v < 0 ) )
+    {
+        v += b;
+    }
+    return v;
+}
 
 
 #endif

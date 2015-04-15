@@ -16,6 +16,8 @@
 
 class yl_heapobj;
 class yl_cothread;
+class yl_tagval;
+class yl_string;
 
 
 /*
@@ -64,8 +66,15 @@ public:
     yl_context_impl();
     ~yl_context_impl();
 
-    void*           malloc( size_t size );
+
+    yl_string*      symbol( yl_string* symbol );
+
     
+    yl_tagval       get_global( yl_string* key );
+    void            set_global( yl_string* key, const yl_tagval& value );
+
+
+    void*           malloc( size_t size );
     yl_mark_colour  unmarked_colour();
     void            write_barrier( yl_heapobj* object );
 
