@@ -37,7 +37,7 @@ public:
     static yl_string*   concat( yl_string* a, yl_string* b );
     
     hash32_t            hash() const;
-    size_t              size() const;
+    size_t              length() const;
     const char*         c_str() const;
     
 
@@ -48,7 +48,7 @@ private:
     bool                _is_symbol;
     mutable bool        _has_hash;
     mutable hash32_t    _hash;
-    uint32_t            _size;
+    uint32_t            _length;
     char                _s[];
 
 };
@@ -64,15 +64,15 @@ inline hash32_t yl_string::hash() const
 {
     if ( ! _has_hash )
     {
-        _hash = hash32( _s, _size );
+        _hash = hash32( _s, _length );
         _has_hash = true;
     }
     return _hash;
 }
 
-inline size_t yl_string::size() const
+inline size_t yl_string::length() const
 {
-    return _size;
+    return _length;
 }
 
 inline const char* yl_string::c_str() const

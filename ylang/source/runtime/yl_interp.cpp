@@ -35,6 +35,73 @@ static inline yl_string* cast_string( const yl_tagval& value )
 
 
 
+static inline bool equal( const yl_tagval& a, const yl_tagval& b )
+{
+    if ( a.kind() != b.kind() )
+    {
+        return false;
+    }
+    
+    if ( a.kind() == YLOBJ_NUMBER )
+    {
+        return a.number() == b.number();
+    }
+
+    if ( a.heapobj() == b.heapobj() )
+    {
+        return true;
+    }
+    
+    if ( a.kind() == YLOBJ_STRING )
+    {
+        yl_string* sa = (yl_string*)a.heapobj();
+        yl_string* sb = (yl_string*)b.heapobj();
+
+        if ( sa->length() != sb->length() )
+        {
+            return false;
+        }
+        
+        return memcmp( sa->c_str(), sb->c_str(), sa->length() ) == 0;
+    }
+    
+    return false;
+}
+
+static inline int compare_strings( const yl_tagval& a, const yl_tagval& b )
+{
+    yl_string* sa = (yl_string*)a.heapobj();
+    yl_string* sb = (yl_string*)b.heapobj();
+    
+    size_t common_length = std::min( sa->length(), sb->length() );
+    int result = memcmp( sa->c_str(), sb->c_str(), common_length );
+    if ( result == 0 )
+    {
+        if ( sa->length() < sb->length() )
+            return -1;
+        else if ( sa->length() == sb->length() )
+            return 0;
+        else
+            return 1;
+    }
+    
+    return result;
+}
+
+static inline bool test( const yl_tagval& v )
+{
+    if ( v.kind() == YLOBJ_NUMBER )
+    {
+        return v.number() != 0.0;
+    }
+    else
+    {
+        return v.heapobj() >= yl_true;
+    }
+}
+
+
+
 yl_cothread* yl_interp( yl_cothread* cothread )
 {
     yl_stackframe* f = cothread->call_frame();
@@ -225,23 +292,136 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     }
     
     case YL_EQ:
+    {
+        bool isequal = equal( s[ a ], s[ b ] );
+        s[ r ] = yl_tagval( YLOBJ_SINGULAR, isequal ? yl_true : yl_false );
+        break;
+    }
+    
     case YL_NE:
+    {
+        bool isequal = equal( s[ a ], s[ b ] );
+        s[ r ] = yl_tagval( YLOBJ_SINGULAR, isequal ? yl_false : yl_true );
+        break;
+    }
+    
     case YL_LT:
+    {
+        bool islt;
+        if ( s[ a ].kind() == s[ b ].kind() )
+        {
+            if ( s[ a ].kind() == YLOBJ_NUMBER )
+                islt = ( s[ a ].number() < s[ b ].number() );
+            else if ( s[ a ].kind() == YLOBJ_STRING )
+                islt = ( compare_strings( s[ a ], s[ b ] ) < 0 );
+            else
+                throw yl_exception( "invalid type for comparison" );
+        }
+        else
+        {
+            throw yl_exception( "type mismatch in comparison" );
+        }
+        s[ r ] = yl_tagval( YLOBJ_SINGULAR, islt ? yl_true : yl_false );
+        break;
+    }
+    
     case YL_GT:
+    {
+        bool isgt;
+        if ( s[ a ].kind() == s[ b ].kind() )
+        {
+            if ( s[ a ].kind() == YLOBJ_NUMBER )
+                isgt = ( s[ a ].number() > s[ b ].number() );
+            else if ( s[ a ].kind() == YLOBJ_STRING )
+                isgt = ( compare_strings( s[ a ], s[ b ] ) > 0 );
+            else
+                throw yl_exception( "invalid type for comparison" );
+        }
+        else
+        {
+            throw yl_exception( "type mismatch in comparison" );
+        }
+        s[ r ] = yl_tagval( YLOBJ_SINGULAR, isgt ? yl_true : yl_false );
+        break;
+    }
+    
     case YL_LE:
+    {
+        bool isle;
+        if ( s[ a ].kind() == s[ b ].kind() )
+        {
+            if ( s[ a ].kind() == YLOBJ_NUMBER )
+                isle = ( s[ a ].number() <= s[ b ].number() );
+            else if ( s[ a ].kind() == YLOBJ_STRING )
+                isle = ( compare_strings( s[ a ], s[ b ] ) <= 0 );
+            else
+                throw yl_exception( "invalid type for comparison" );
+        }
+        else
+        {
+            throw yl_exception( "type mismatch in comparison" );
+        }
+        s[ r ] = yl_tagval( YLOBJ_SINGULAR, isle ? yl_true : yl_false );
+        break;
+    }
+    
     case YL_GE:
+    {
+        bool isge;
+        if ( s[ a ].kind() == s[ b ].kind() )
+        {
+            if ( s[ a ].kind() == YLOBJ_NUMBER )
+                isge = ( s[ a ].number() >= s[ b ].number() );
+            else if ( s[ a ].kind() == YLOBJ_STRING )
+                isge = ( compare_strings( s[ a ], s[ b ] ) >= 0 );
+            else
+                throw yl_exception( "invalid type for comparison" );
+        }
+        else
+        {
+            throw yl_exception( "type mismatch in comparison" );
+        }
+        s[ r ] = yl_tagval( YLOBJ_SINGULAR, isge ? yl_true : yl_false );
+        break;
+    }
     
     case YL_LNOT:
-    case YL_LXOR:
-
-
-    /*
-        Tests and branches.
-    */
+    {
+        bool istrue = test( s[ a ] );
+        s[ r ] = yl_tagval( YLOBJ_SINGULAR, istrue ? yl_false : yl_true );
+        break;
+    }
     
+    case YL_LXOR:
+    {
+        bool result = test( s[ a ] ) != test( s[ b ] );
+        s[ r ] = yl_tagval( YLOBJ_SINGULAR, result ? yl_true : yl_false );
+        break;
+    }
+
     case YL_JMP:
+    {
+        f->ip += j;
+        break;
+    }
+    
     case YL_JMPT:
+    {
+        if ( test( s[ r ] ) )
+        {
+            f->ip += j;
+        }
+        break;
+    }
+    
     case YL_JMPF:
+    {
+        if ( ! test( s[ r ] ) )
+        {
+            f->ip += j;
+        }
+        break;
+    }
     
     
     /*
