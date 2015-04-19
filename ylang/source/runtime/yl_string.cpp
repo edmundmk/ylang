@@ -14,26 +14,26 @@
 
 yl_string* yl_string::alloc( const char* string )
 {
-    return alloc( string, strlen( string ) );
+    return alloc( string, (unsigned)strlen( string ) );
 }
 
-yl_string* yl_string::alloc( const char* string, size_t size )
+yl_string* yl_string::alloc( const char* string, unsigned length )
 {
-    void* p = yl_current->malloc( sizeof( yl_string ) + size + 1 );
-    yl_string* s = new ( p ) yl_string( size );
-    memcpy( s->_s, string, size );
-    s->_s[ size ] = '\0';
+    void* p = yl_current->malloc( sizeof( yl_string ) + length + 1 );
+    yl_string* s = new ( p ) yl_string( length );
+    memcpy( s->_s, string, length );
+    s->_s[ length ] = '\0';
     return s;
 }
 
 
 
-yl_string::yl_string( size_t size )
+yl_string::yl_string( unsigned length )
     :   yl_heapobj( YLOBJ_STRING )
     ,   _is_symbol( false )
     ,   _has_hash( false )
     ,   _hash( 0 )
-    ,   _size( (uint32_t)size )
+    ,   _length( (uint32_t)length )
 {
 }
 

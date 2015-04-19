@@ -54,11 +54,12 @@ yssa_variable::yssa_variable(
 
 
 yssa_function::yssa_function( int sloc, const char* funcname,
-                bool varargs, bool coroutine, size_t paramcount )
+            bool varargs, bool coroutine, size_t upcount,size_t paramcount )
     :   sloc( sloc )
     ,   funcname( funcname )
     ,   varargs( varargs )
     ,   coroutine( coroutine )
+    ,   upcount( upcount )
     ,   paramcount( paramcount )
 {
 }

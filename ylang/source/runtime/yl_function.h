@@ -31,13 +31,16 @@ class yl_funcobj : public yl_heapobj
 {
 public:
 
-    static yl_function make_function( yl_funcobj* funcobj );
-    static yl_funcobj* alloc( yl_program* program );
+    static yl_function  make_function( yl_funcobj* funcobj );
+    static yl_funcobj*  alloc( yl_program* program );
 
-    void acquire();
-    void release();
+    void                acquire();
+    void                release();
     
-    yl_program* program();
+    yl_program*         program();
+    
+    void                set_upval( size_t index, yl_upval* upval );
+    yl_upval*           get_upval( size_t index );
 
 
 private:
@@ -62,11 +65,15 @@ class yl_upval : public yl_heapobj
 {
 public:
 
+    static yl_upval*    alloc( unsigned index );
+
 
 private:
 
+    explicit yl_upval( unsigned index );
+
     bool        _open;
-    uint32_t    _index;
+    unsigned    _index;
     yl_value    _value;
 
 };
@@ -96,12 +103,13 @@ public:
     
     yl_string*              name();
     
+    size_t                  upcount();
     size_t                  paramcount();
     bool                    varargs();
     bool                    coroutine();
 
-    size_t                  upcount();
     size_t                  stackcount();
+    size_t                  localupcount();
     size_t                  itercount();
     
     size_t                  valcount();
@@ -132,12 +140,13 @@ private:
     
     yl_heapref< yl_string > _name;
     
-    uint8_t                 _paramcount;
     uint8_t                 _upcount;
+    uint8_t                 _paramcount;
     uint8_t                 _stackcount;
-    uint8_t                 _itercount      : 6;
-    bool                    _varargs        : 1;
-    bool                    _coroutine      : 1;
+    uint8_t                 _localupcount;
+    uint8_t                 _itercount;
+    bool                    _varargs;
+    bool                    _coroutine;
 
     yl_value*               _values();      // _values[ _valcount ]
     yl_opinst*              _ops();         // _ops[ _opcount ]
@@ -158,6 +167,19 @@ inline yl_program* yl_funcobj::program()
 {
     return _program.get();
 }
+
+inline void yl_funcobj::set_upval( size_t index, yl_upval* upval )
+{
+    assert( index < _upcount );
+    _upval[ index ].set( upval );
+}
+
+inline yl_upval* yl_funcobj::get_upval( size_t index )
+{
+    assert( index < _upcount );
+    return _upval[ index ].get();
+}
+
 
 
 

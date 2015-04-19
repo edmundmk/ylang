@@ -42,6 +42,7 @@ bool yssa_builder::build( yl_ast* ast )
             module->alloc.strdup( astf->funcname ),
             astf->varargs,
             astf->coroutine,
+            astf->upvals.size(),
             astf->parameters.size()
         );
         

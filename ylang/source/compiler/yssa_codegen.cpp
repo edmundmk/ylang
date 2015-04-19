@@ -78,8 +78,8 @@ struct ygen_program
     std::unordered_map< double, size_t > numvals;
     std::unordered_map< yssa_function*, size_t > funvals;
     
-    size_t                      upcount;
     size_t                      stackcount;
+    size_t                      localupcount;
     size_t                      itercount;
 };
 
@@ -359,11 +359,11 @@ ygen_program* ygen_emit::add_program( yssa_function* function )
     else
     {
         ygen_program_p program = std::make_unique< ygen_program >();
-        program->ssafunc    = function;
-        program->program    = nullptr;
-        program->upcount    = 0;
-        program->stackcount = 0;
-        program->itercount  = 0;
+        program->ssafunc        = function;
+        program->program        = nullptr;
+        program->stackcount     = 0;
+        program->localupcount   = 0;
+        program->itercount      = 0;
         ygen_program* p = program.get();
         m->programs.emplace( function, std::move( program ) );
         add_string( function->funcname );
@@ -915,7 +915,8 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
                 {
                     unsigned b = operand( up, 0 );
                     p->ops.emplace_back( YL_UPLOCAL, up->r, up->a, b );
-                    p->upcount = std::max( p->upcount, (size_t)up->a + 1 );
+                    p->localupcount =
+                            std::max( p->localupcount, (size_t)up->a + 1 );
                 }
             }
             else if ( up->opcode == YL_UPUPVAL )
@@ -1208,7 +1209,7 @@ void ygen_emit::make_string( ygen_string* s )
     if ( s->string )
         return;
     
-    s->string = yl_string::alloc( s->text, s->size );
+    s->string = yl_string::alloc( s->text, (unsigned)s->size );
     if ( s->iskey )
     {
         s->string = yl_current->symbol( s->string );
@@ -1230,12 +1231,13 @@ void ygen_emit::make_program( ygen_program* p )
         p->debugspans.size()
     );
     
-    p->program->_paramcount = p->ssafunc->paramcount;
-    p->program->_upcount    = p->upcount;
-    p->program->_stackcount = p->stackcount;
-    p->program->_itercount  = p->itercount;
-    p->program->_varargs    = p->ssafunc->varargs;
-    p->program->_coroutine  = p->ssafunc->coroutine;
+    p->program->_upcount        = p->ssafunc->upcount;
+    p->program->_paramcount     = p->ssafunc->paramcount;
+    p->program->_stackcount     = p->stackcount;
+    p->program->_localupcount   = p->localupcount;
+    p->program->_itercount      = p->itercount;
+    p->program->_varargs        = p->ssafunc->varargs;
+    p->program->_coroutine      = p->ssafunc->coroutine;
     
 }
 

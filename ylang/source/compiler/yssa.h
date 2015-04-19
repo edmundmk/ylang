@@ -248,12 +248,13 @@ struct yssa_variable
 struct yssa_function
 {
     yssa_function( int sloc, const char* funcname,
-                    bool varargs, bool coroutine, size_t paramcount );
+            bool varargs, bool coroutine, size_t upcount, size_t paramcount );
 
     const char*                 funcname;
     int                         sloc;
     bool                        varargs;
     bool                        coroutine;
+    size_t                      upcount;
     size_t                      paramcount;
     std::vector< const char* >  upnames;
     std::vector< yssa_loop_p >  loops;

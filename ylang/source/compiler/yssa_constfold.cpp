@@ -100,7 +100,7 @@ void yssa_constfold_op( yssa_module* module, yssa_opinst* op )
         {
             op->opcode = YL_NUMBER;
             op->operand_count = 0;
-            op->number = mod( o[ 0 ]->number, o[ 1 ]->number );
+            op->number = emod( o[ 0 ]->number, o[ 1 ]->number );
         }
         break;
 

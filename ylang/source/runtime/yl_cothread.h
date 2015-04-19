@@ -34,7 +34,7 @@ struct yl_stackframe
     uint8_t         argcount;
     uint8_t         outcount;
     unsigned        stack_base;
-    unsigned        upval_base;
+    unsigned        locup_base;
     unsigned        iters_base;
     unsigned        ip;
 };
@@ -100,7 +100,7 @@ public:
     yl_stackframe*  call_frame();
 
     yl_tagval*      stack( size_t base, size_t count );
-    yl_upval**      upval( size_t base, size_t count );
+    yl_upval**      locup( size_t base, size_t count );
     yl_iterator*    iters( size_t base, size_t count );
     
 
@@ -108,7 +108,7 @@ private:
 
     std::vector< yl_stackframe >    _frames;
     std::vector< yl_tagval >        _stack;
-    std::vector< yl_upval* >        _upval;
+    std::vector< yl_upval* >        _locup;
     std::vector< yl_iterator >      _iters;
     unsigned                        _mark;
 

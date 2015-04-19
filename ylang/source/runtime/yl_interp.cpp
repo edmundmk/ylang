@@ -110,8 +110,9 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     const yl_value*  values = p->values();
     const yl_opinst* ops    = p->ops();
     
+    yl_tagval*   vargs = cothread->stack( f->base + 1, f->argcount );
     yl_tagval*   s     = cothread->stack( f->stack_base, p->stackcount() );
-    yl_upval**   upval = cothread->upval( f->upval_base, p->upcount() );
+    yl_upval**   locup = cothread->locup( f->locup_base, p->localupcount() );
     yl_iterator* iters = cothread->iters( f->iters_base, p->itercount() );
 
     
@@ -423,13 +424,70 @@ yl_cothread* yl_interp( yl_cothread* cothread )
         break;
     }
     
-    
-    /*
-        Calls.
-    */
-    
     case YL_VARARG:
+    {
+        assert( p->varargs() );
+        size_t argcopy = std::min( (size_t)f->argcount, (size_t)b );
+        for ( size_t i = 0; i < argcopy; ++i )
+        {
+            s[ r + i ] = vargs[ i ];
+        }
+        for ( size_t i = argcopy; i < b; ++i )
+        {
+            s[ r + i ] = yl_tagval( YLOBJ_SINGULAR, yl_null );
+        }
+        break;
+    }
+    
     case YL_FUNCTION:
+    {
+        // Get program object.
+        yl_heapobj* progobj = values[ c ].get().as_heapobj();
+        assert( progobj->kind() == YLOBJ_PROGRAM );
+        yl_program* program = (yl_program*)progobj;
+        
+        // Create funcobj.
+        yl_funcobj* funcobj = yl_funcobj::alloc( program );
+
+        // Add upvals.
+        for ( size_t i = 0; i < program->upcount(); ++i )
+        {
+            const yl_opinst* op = ops + f->ip;
+            f->ip += 1;
+
+            unsigned r = op->r();
+            unsigned a = op->a();
+            unsigned b = op->b();
+
+            switch ( op->opcode() )
+            {
+            case YL_UPLOCAL:
+            {
+                if ( ! locup[ a ] )
+                {
+                    locup[ a ] = yl_upval::alloc( f->stack_base + b );
+                }
+                funcobj->set_upval( r, locup[ a ] );
+                break;
+            }
+            
+            case YL_UPUPVAL:
+            {
+                funcobj->set_upval( r, f->funcobj->get_upval( a ) );
+                break;
+            }
+            
+            default:
+            {
+                assert( ! "invalid code" );
+                break;
+            }
+            }
+        }
+        
+        break;
+    }
+    
     case YL_CALL:
     case YL_YCALL:
     case YL_YIELD:
