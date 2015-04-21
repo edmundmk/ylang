@@ -490,6 +490,12 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     
     case YL_CALL:
     case YL_YCALL:
+    {
+        // If you call a coroutine, then we construct a new cothread.
+        // If you call a cothread, then we pass a new set of parameters in.
+        // Ycalls of coroutines or 
+    }
+    
     case YL_YIELD:
     case YL_RETURN:
     
