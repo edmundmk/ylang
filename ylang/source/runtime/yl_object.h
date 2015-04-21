@@ -48,6 +48,7 @@ public:
 
     yl_tagval   get_key( const yl_tagval& key ) const;
     void        set_key( const yl_tagval& key, const yl_tagval& value );
+    void        del_key( const yl_tagval& key );
 
 
 private:

@@ -128,6 +128,14 @@ static inline yl_object* keyerof( const yl_tagval& v )
     }
 }
 
+static inline yl_tagval get_index( const yl_tagval& v, const yl_tagval& index )
+{
+}
+
+static inline void set_index(
+        const yl_tagval& v, const yl_tagval& index, const yl_tagval& value )
+{
+}
 
 
 
@@ -647,6 +655,7 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     case YL_KEY:
     {
         yl_heapobj* key = values[ b ].get().as_heapobj();
+        assert( key->kind() == YLOBJ_STRING );
         s[ r ] = keyerof( s[ a ] )->get_key( yl_tagval( YLOBJ_STRING, key ) );
         break;
     }
@@ -659,17 +668,51 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     
     case YL_INDEX:
     {
-        
+        s[ r ] = get_index( s[ a ], s[ b ] );
+        break;
     }
     
     case YL_SETKEY:
+    {
+        yl_heapobj* key = values[ b ].get().as_heapobj();
+        assert( key->kind() == YLOBJ_STRING );
+        s[ r ] = keyerof( s[ a ] )->get_key( yl_tagval( YLOBJ_STRING, key ) );
+        break;
+    }
+    
     case YL_SETINKEY:
+    {
+        keyerof( s[ r ] )->set_key( s[ a ], s[ b ] );
+        break;
+    }
+    
     case YL_SETINDEX:
+    {
+        set_index( s[ r ], s[ a ], s[ b ] );
+        break;
+    }
+    
     case YL_DELKEY:
+    {
+        yl_heapobj* key = values[ b ].get().as_heapobj();
+        assert( key->kind() == YLOBJ_STRING );
+        keyerof( s[ a ] )->del_key( yl_tagval( YLOBJ_STRING, key ) );
+        break;
+    }
+    
     case YL_DELINKEY:
+    {
+        keyerof( s[ a ] )->del_key( s[ b ] );
+        break;
+    }
     
     case YL_IN:
+    {
+    }
+    
     case YL_IS:
+    {
+    }
 
     case YL_APPEND:
     case YL_EXTEND:
