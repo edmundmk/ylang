@@ -27,25 +27,28 @@ template < typename object_t > class yl_heapref;
 
 enum yl_objkind : uint8_t
 {
-    YLOBJ_NUMBER,
+    YLOBJ_IS_OBJECT = 0x10,
+
+    // Numbers.
+    YLOBJ_NUMBER    = 0x00,
 
     // User-visible
-    YLOBJ_SINGULAR,     // null, undef, true or false
-    YLOBJ_STRING,       // string or symbol
-    YLOBJ_OBJECT,       // object
-    YLOBJ_NATIVE,       // object linked to native yl_expose
-    YLOBJ_ARRAY,        // dynamic array
-    YLOBJ_TABLE,        // hashtable
-    YLOBJ_FUNCOBJ,      // function
-    YLOBJ_COTHREAD,     // coroutine with stack
+    YLOBJ_SINGULAR  = 0x01,                     // null, undef, true or false
+    YLOBJ_STRING    = 0x02,                     // string or symbol
+    YLOBJ_OBJECT    = YLOBJ_IS_OBJECT | 0x03,   // object
+    YLOBJ_NATIVE    = YLOBJ_IS_OBJECT | 0x04,   // yl_expose native object
+    YLOBJ_ARRAY     = YLOBJ_IS_OBJECT | 0x05,   // dynamic array
+    YLOBJ_TABLE     = YLOBJ_IS_OBJECT | 0x06,   // hashtable
+    YLOBJ_FUNCOBJ   = 0x07,                     // function
+    YLOBJ_COTHREAD  = 0x08,                     // coroutine with stack
     
     // Compiled code
-    YLOBJ_PROGRAM,      // code for a single function
+    YLOBJ_PROGRAM   = 0x09,     // code for a single function
 
     // Internal
-    YLOBJ_VALARRAY,     // fixed-size array of yl_values
-    YLOBJ_SLOT,         // node in an object's class tree
-    YLOBJ_UPVAL,        // implements function closures
+    YLOBJ_VALARRAY  = 0x0A,     // fixed-size array of yl_values
+    YLOBJ_SLOT      = 0x0B,     // node in an object's class tree
+    YLOBJ_UPVAL     = 0x0C,     // implements function closures
 };
 
 

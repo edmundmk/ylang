@@ -65,8 +65,12 @@ class yl_upval : public yl_heapobj
 {
 public:
 
-    static yl_upval*    alloc( unsigned index );
+    static yl_upval* alloc( unsigned index );
 
+    void        close();
+
+    yl_tagval   get_value( yl_cothread* cothread );
+    void        set_value( yl_cothread* cothread, const yl_tagval& value );
 
 private:
 

@@ -18,6 +18,8 @@ class yl_heapobj;
 class yl_cothread;
 class yl_tagval;
 class yl_string;
+class yl_object;
+
 
 
 /*
@@ -77,6 +79,13 @@ public:
     void*           malloc( size_t size );
     yl_mark_colour  unmarked_colour();
     void            write_barrier( yl_heapobj* object );
+
+
+    yl_object*      superof( const yl_tagval& value );
+
+    yl_tagval       new_object( const yl_tagval& prototype );
+    yl_tagval       new_array( size_t size_hint );
+    yl_tagval       new_table( size_t size_hint );
 
 
 private:

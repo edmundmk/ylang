@@ -44,7 +44,10 @@ class yl_object : public yl_heapobj
 {
 public:
 
+    yl_object*  superof() const;
 
+    yl_tagval   get_key( const yl_tagval& key ) const;
+    void        set_key( const yl_tagval& key, const yl_tagval& value );
 
 
 private:

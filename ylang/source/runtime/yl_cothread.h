@@ -61,13 +61,14 @@ class yl_iterator
 {
 public:
 
-    explicit yl_iterator( yl_object* object );
-    explicit yl_iterator( yl_array* array );
-    explicit yl_iterator( yl_table* table );
-    explicit yl_iterator( yl_cothread* generator );
+    void open_vals( const yl_tagval& value );
+    void open_keys( const yl_tagval& value );
+    void close();
 
-    bool valid();
-    
+    bool has_values();
+    void next1( yl_tagval* r );
+    void next2( yl_tagval* r, yl_tagval* b );
+    void next( yl_tagval* r, size_t b );
 
 
 private:

@@ -10,6 +10,7 @@
 #include "yl_interp.h"
 #include "yl_cothread.h"
 #include <divmod.h>
+#include "yl_object.h"
 
 
 
@@ -102,6 +103,34 @@ static inline bool test( const yl_tagval& v )
 
 
 
+static inline yl_object* superof( const yl_tagval& v )
+{
+    if ( v.kind() & YLOBJ_IS_OBJECT )
+    {
+        yl_object* object = (yl_object*)v.heapobj();
+        return object->superof();
+    }
+    else
+    {
+        return yl_current->superof( v );
+    }
+}
+
+static inline yl_object* keyerof( const yl_tagval& v )
+{
+    if ( v.kind() & YLOBJ_IS_OBJECT )
+    {
+        return (yl_object*)v.heapobj();
+    }
+    else
+    {
+        return yl_current->superof( v );
+    }
+}
+
+
+
+
 yl_cothread* yl_interp( yl_cothread* cothread )
 {
     yl_stackframe* f = cothread->call_frame();
@@ -110,10 +139,13 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     const yl_value*  values = p->values();
     const yl_opinst* ops    = p->ops();
     
-    yl_tagval*   vargs = cothread->stack( f->base + 1, f->argcount );
-    yl_tagval*   s     = cothread->stack( f->stack_base, p->stackcount() );
-    yl_upval**   locup = cothread->locup( f->locup_base, p->localupcount() );
-    yl_iterator* iters = cothread->iters( f->iters_base, p->itercount() );
+    size_t localupcount = p->localupcount();
+    size_t itercount    = p->itercount();
+    
+    yl_tagval*   vargs  = cothread->stack( f->base + 1, f->argcount );
+    yl_tagval*   s      = cothread->stack( f->stack_base, p->stackcount() );
+    yl_upval**   locup  = cothread->locup( f->locup_base, localupcount );
+    yl_iterator* iters  = cothread->iters( f->iters_base, itercount );
 
     
     while ( true )
@@ -493,55 +525,143 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     {
         // If you call a coroutine, then we construct a new cothread.
         // If you call a cothread, then we pass a new set of parameters in.
-        // Ycalls of coroutines or 
+        // Ycalls are always real calls.
+        // TODO.
+        break;
     }
     
     case YL_YIELD:
+    {
+        // TODO.
+        break;
+    }
+    
     case YL_RETURN:
-    
-    
-    /*
-        Iterators.
-    */
+    {
+        // TODO
+        break;
+    }
     
     case YL_ITER:
+    {
+        iters[ r ].open_vals( s[ a ] );
+        break;
+    }
+    
     case YL_ITERKEY:
+    {
+        iters[ r ].open_keys( s[ a ] );
+        break;
+    }
+    
     case YL_NEXT1:
+    {
+        iters[ a ].next1( &s[ r ] );
+        break;
+    }
+    
     case YL_NEXT2:
+    {
+        iters[ a ].next2( &s[ r ], &s[ b ] );
+        break;
+    }
+    
     case YL_NEXT:
+    {
+        iters[ a ].next( &s[ r ], b );
+        break;
+    }
 
     case YL_JMPV:
+    {
+        if ( iters[ r ].has_values() )
+        {
+            f->ip += j;
+        }
+        break;
+    }
+    
     case YL_JMPN:
+    {
+        if ( ! iters[ r ].has_values() )
+        {
+            f->ip += j;
+        }
+        break;
+    }
 
-
-    /*
-        Upvals.
-    */
-    
     case YL_GETUP:
+    {
+        yl_upval* upval = f->funcobj->get_upval( a );
+        s[ r ] = upval->get_value( cothread );
+        break;
+    }
+    
     case YL_SETUP:
+    {
+        yl_upval* upval = f->funcobj->get_upval( a );
+        upval->set_value( cothread, s[ r ] );
+        break;
+    }
 
-
-    /*
-        Close upvals and iterators.
-    */
-    
     case YL_CLOSE:
+    {
+        for ( size_t i = localupcount; i-- > a; )
+        {
+            locup[ i ]->close();
+        }
+        
+        for ( size_t i = itercount; i-- > b; )
+        {
+            iters[ i ].close();
+        }
+        
+        break;
+    }
 
-
-    /*
-        Object model instructions.
-    */
-    
     case YL_OBJECT:
+    {
+        s[ r ] = yl_current->new_object( s[ a ] );
+        break;
+    }
+    
     case YL_ARRAY:
+    {
+        s[ r ] = yl_current->new_array( c );
+        break;
+    }
+    
     case YL_TABLE:
+    {
+        s[ r ] = yl_current->new_table( c );
+        break;
+    }
     
     case YL_SUPER:
+    {
+        yl_object* object = superof( s[ a ] );
+        s[ r ] = yl_tagval( object->kind(), object );
+        break;
+    }
     
     case YL_KEY:
+    {
+        yl_heapobj* key = values[ b ].get().as_heapobj();
+        s[ r ] = keyerof( s[ a ] )->get_key( yl_tagval( YLOBJ_STRING, key ) );
+        break;
+    }
+    
     case YL_INKEY:
+    {
+        s[ r ] = keyerof( s[ a ] )->get_key( s[ b ] );
+        break;
+    }
+    
     case YL_INDEX:
+    {
+        
+    }
+    
     case YL_SETKEY:
     case YL_SETINKEY:
     case YL_SETINDEX:
