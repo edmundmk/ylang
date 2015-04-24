@@ -136,59 +136,6 @@ static inline yl_object* keyerof( const yl_tagval& v )
     }
 }
 
-static inline yl_tagval get_index( const yl_tagval& v, const yl_tagval& index )
-{
-    yl_tagval u = v;
-    while ( true )
-    {
-        if ( u.kind() == YLOBJ_ARRAY )
-        {
-            yl_array* array = (yl_array*)u.heapobj();
-            return array->get_index( index );
-        }
-        else if ( u.kind() == YLOBJ_TABLE )
-        {
-            yl_table* table = (yl_table*)u.heapobj();
-            return table->get_index( index );
-        }
-        else
-        {
-            yl_object* object = superof( u );
-            if ( object )
-                u = yl_tagval( object->kind(), object );
-            else
-                throw yl_exception( "unindexable object" );
-        }
-    }
-}
-
-static inline void set_index(
-        const yl_tagval& v, const yl_tagval& index, const yl_tagval& value )
-{
-    yl_tagval u = v;
-    while ( true )
-    {
-        if ( u.kind() == YLOBJ_ARRAY )
-        {
-            yl_array* array = (yl_array*)u.heapobj();
-            array->set_index( index, value );
-            return;
-        }
-        else if ( u.kind() == YLOBJ_TABLE )
-        {
-            yl_table* table = (yl_table*)u.heapobj();
-            table->set_index( index, value );
-        }
-        else
-        {
-            yl_object* object = superof( u );
-            if ( object )
-                u = yl_tagval( object->kind(), object );
-            else
-                throw yl_exception( "unindexable object" );
-        }
-    }
-}
 
 
 
@@ -733,7 +680,20 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     
     case YL_INDEX:
     {
-        s[ r ] = get_index( s[ a ], s[ b ] );
+        if ( s[ a ].kind() == YLOBJ_ARRAY )
+        {
+            yl_array* array = (yl_array*)s[ a ].heapobj();
+            s[ r ] = array->get_index( s[ b ] );
+        }
+        else if ( s[ a ].kind() == YLOBJ_TABLE )
+        {
+            yl_table* table = (yl_table*)s[ a ].heapobj();
+            s[ r ] = table->get_index( s[ b ] );
+        }
+        else
+        {
+            throw yl_exception( "unindexable object" );
+        }
         if ( undefined( s[ r ] ) )
         {
             throw yl_exception( "index not found" );
@@ -743,35 +703,80 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     
     case YL_SETKEY:
     {
-        yl_heapobj* key = values[ b ].get().as_heapobj();
-        assert( key->kind() == YLOBJ_STRING );
-        keyerof( s[ r ] )->set_key( s[ a ], yl_tagval( YLOBJ_STRING, key ) );
+        if ( s[ r ].kind() & YLOBJ_IS_OBJECT )
+        {
+            yl_object* object = (yl_object*)s[ r ].heapobj();
+            yl_heapobj* key = values[ b ].get().as_heapobj();
+            assert( key->kind() == YLOBJ_STRING );
+            object->set_key( yl_tagval( YLOBJ_STRING, key ), s[ a ] );
+        }
+        else
+        {
+            throw yl_exception( "unkeyable object" );
+        }
         break;
     }
     
     case YL_SETINKEY:
     {
-        keyerof( s[ r ] )->set_key( s[ a ], s[ b ] );
+        if ( s[ r ].kind() & YLOBJ_IS_OBJECT )
+        {
+            yl_object* object = (yl_object*)s[ r ].heapobj();
+            object->set_key( s[ a ], s[ b ] );
+        }
+        else
+        {
+            throw yl_exception( "unkeyable object" );
+        }
         break;
     }
     
     case YL_SETINDEX:
     {
-        set_index( s[ r ], s[ a ], s[ b ] );
+        if ( s[ r ].kind() == YLOBJ_ARRAY )
+        {
+            yl_array* array = (yl_array*)s[ r ].heapobj();
+            array->set_index( s[ a ], s[ b ] );
+        }
+        else if ( s[ r ].kind() == YLOBJ_TABLE )
+        {
+            yl_table* table = (yl_table*)s[ r ].heapobj();
+            table->set_index( s[ a ], s[ b ] );
+        }
+        else
+        {
+            throw yl_exception( "unindexable object" );
+        }
         break;
     }
     
     case YL_DELKEY:
     {
-        yl_heapobj* key = values[ b ].get().as_heapobj();
-        assert( key->kind() == YLOBJ_STRING );
-        keyerof( s[ a ] )->del_key( yl_tagval( YLOBJ_STRING, key ) );
+        if ( s[ a ].kind() & YLOBJ_IS_OBJECT )
+        {
+            yl_object* object = (yl_object*)s[ a ].heapobj();
+            yl_heapobj* key = values[ b ].get().as_heapobj();
+            assert( key->kind() == YLOBJ_STRING );
+            object->del_key( yl_tagval( YLOBJ_STRING, key ) );
+        }
+        else
+        {
+            throw yl_exception( "unkeyable object" );
+        }
         break;
     }
     
     case YL_DELINKEY:
     {
-        keyerof( s[ a ] )->del_key( s[ b ] );
+        if ( s[ a ].kind() & YLOBJ_IS_OBJECT )
+        {
+            yl_object* object = (yl_object*)s[ a ].heapobj();
+            object->del_key( s[ b ] );
+        }
+        else
+        {
+            throw yl_exception( "unkeyable object" );
+        }
         break;
     }
     
@@ -807,12 +812,15 @@ yl_cothread* yl_interp( yl_cothread* cothread )
                 break;
             }
         }
-        
         s[ r ] = yl_tagval( YLOBJ_SINGULAR, result ? yl_true : yl_false );
         break;
     }
 
     case YL_APPEND:
+    {
+        
+    }
+    
     case YL_EXTEND:
     case YL_UNPACK:
     
