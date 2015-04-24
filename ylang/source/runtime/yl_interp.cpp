@@ -777,10 +777,39 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     
     case YL_IN:
     {
+        yl_tagval value = keyerof( s[ a ] )->get_key( s[ b ] );
+        yl_heapobj* result = undefined( value ) ? yl_true : yl_false;
+        s[ r ] = yl_tagval( YLOBJ_SINGULAR, result );
+        break;
     }
     
     case YL_IS:
     {
+        bool result = false;
+        yl_tagval u = s[ a ];
+        yl_tagval proto = s[ b ];
+        while ( true )
+        {
+            if ( u.kind() == proto.kind() && u.heapobj() == proto.heapobj() )
+            {
+                result = true;
+                break;
+            }
+            
+            yl_object* object = superof( u );
+            if ( object )
+            {
+                u = yl_tagval( object->kind(), object );
+            }
+            else
+            {
+                result = false;
+                break;
+            }
+        }
+        
+        s[ r ] = yl_tagval( YLOBJ_SINGULAR, result ? yl_true : yl_false );
+        break;
     }
 
     case YL_APPEND:
