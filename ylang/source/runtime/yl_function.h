@@ -107,14 +107,14 @@ public:
     
     yl_string*              name();
     
-    size_t                  upcount();
-    size_t                  paramcount();
+    unsigned                upcount();
+    unsigned                paramcount();
     bool                    varargs();
     bool                    coroutine();
 
-    size_t                  stackcount();
-    size_t                  localupcount();
-    size_t                  itercount();
+    unsigned                stackcount();
+    unsigned                locupcount();
+    unsigned                iterscount();
     
     size_t                  valcount();
     const yl_value*         values();
@@ -147,8 +147,8 @@ private:
     uint8_t                 _upcount;
     uint8_t                 _paramcount;
     uint8_t                 _stackcount;
-    uint8_t                 _localupcount;
-    uint8_t                 _itercount;
+    uint8_t                 _locupcount;
+    uint8_t                 _iterscount;
     bool                    _varargs;
     bool                    _coroutine;
 
@@ -192,7 +192,7 @@ inline yl_string* yl_program::name()
     return _name.get();
 }
 
-inline size_t yl_program::paramcount()
+inline unsigned yl_program::paramcount()
 {
     return _paramcount;
 }
@@ -207,19 +207,24 @@ inline bool yl_program::coroutine()
     return _coroutine;
 }
 
-inline size_t yl_program::upcount()
+inline unsigned yl_program::upcount()
 {
     return _upcount;
 }
 
-inline size_t yl_program::stackcount()
+inline unsigned yl_program::stackcount()
 {
     return _stackcount;
 }
 
-inline size_t yl_program::itercount()
+inline unsigned yl_program::locupcount()
 {
-    return _itercount;
+    return _locupcount;
+}
+
+inline unsigned yl_program::iterscount()
+{
+    return _iterscount;
 }
 
 inline size_t yl_program::valcount()

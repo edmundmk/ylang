@@ -17,9 +17,15 @@ class yl_array : public yl_object
 {
 public:
 
-    yl_tagval   get_index( const yl_tagval& index );
+    size_t      length() const;
+
+    yl_tagval   at( size_t index ) const;
+
+    yl_tagval   get_index( const yl_tagval& index ) const;
     void        set_index( const yl_tagval& index, const yl_tagval& value );
 
+    void        append( const yl_tagval& value );
+    void        extend( const yl_tagval* values, size_t count );
 
 };
 

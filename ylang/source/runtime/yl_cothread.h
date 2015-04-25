@@ -26,17 +26,15 @@ class yl_cothread;
     A stack frame.
 */
 
-
 struct yl_stackframe
 {
-    yl_funcobj*     funcobj;
-    unsigned        base;
-    uint8_t         argcount;
-    uint8_t         outcount;
-    unsigned        stack_base;
-    unsigned        locup_base;
-    unsigned        iters_base;
-    unsigned        ip;
+    yl_funcobj*     funcobj;        // function
+    unsigned        ip;             // instruction pointer
+    unsigned        sp;             // stack pointer
+    unsigned        fp;             // frame pointer (after vararg adjustment)
+    unsigned        locup_base;     // local upval pointer
+    unsigned        iters_base;     // iterators pointer
+    unsigned        rcount;         // requested number of result values
 };
 
 
@@ -98,12 +96,19 @@ public:
 
     yl_cothread* alloc();
 
-    yl_stackframe*  call_frame();
+    void            push_frame( const yl_stackframe& frame );
+    yl_stackframe   pop_frame() const;
 
     yl_tagval*      stack( size_t base, size_t count );
     yl_upval**      locup( size_t base, size_t count );
     yl_iterator*    iters( size_t base, size_t count );
     
+    void            set_mark( unsigned mark );
+    unsigned        get_mark() const;
+    
+    unsigned        get_locup_base() const;
+    unsigned        get_iters_base() const;
+
 
 private:
 
@@ -120,6 +125,18 @@ private:
 /*
 
 */
+
+
+inline void yl_cothread::set_mark( unsigned mark )
+{
+    _mark = mark;
+}
+
+inline unsigned yl_cothread::get_mark() const
+{
+    return _mark;
+}
+
 
 
 

@@ -11,9 +11,10 @@
 
 
 class yl_cothread;
+class yl_funcobj;
 
 
-yl_cothread* yl_interp( yl_cothread* cothread );
+void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount );
 
 
 

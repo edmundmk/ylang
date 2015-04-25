@@ -69,23 +69,34 @@ public:
     ~yl_context_impl();
 
 
-    yl_string*      symbol( yl_string* symbol );
-
-    
-    yl_tagval       get_global( yl_string* key );
-    void            set_global( yl_string* key, const yl_tagval& value );
-
+    // Garbage collection.
 
     void*           malloc( size_t size );
     yl_mark_colour  unmarked_colour();
     void            write_barrier( yl_heapobj* object );
 
 
+    // Execution context.
+
+    yl_cothread*    get_cothread() const;
+    void            set_cothread( yl_cothread* cothread );
+
+
+    // Object model.
+
+    yl_string*      symbol( yl_string* symbol );
+    
     yl_object*      superof( const yl_tagval& value );
 
     yl_tagval       new_object( const yl_tagval& prototype );
     yl_tagval       new_array( size_t size_hint );
     yl_tagval       new_table( size_t size_hint );
+
+
+    // Global table.
+
+    yl_tagval       get_global( yl_string* key );
+    void            set_global( yl_string* key, const yl_tagval& value );
 
 
 private:

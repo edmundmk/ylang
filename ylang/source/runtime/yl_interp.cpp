@@ -17,6 +17,10 @@
 
 
 
+/*
+    Helpers.
+*/
+
 static inline bool undefined( const yl_tagval& value )
 {
     return value.kind() == YLOBJ_SINGULAR && value.heapobj() == yl_undef;
@@ -41,8 +45,6 @@ static inline yl_string* cast_string( const yl_tagval& value )
     
     return (yl_string*)value.heapobj();
 }
-
-
 
 static inline bool equal( const yl_tagval& a, const yl_tagval& b )
 {
@@ -109,8 +111,6 @@ static inline bool test( const yl_tagval& v )
     }
 }
 
-
-
 static inline yl_object* superof( const yl_tagval& v )
 {
     if ( v.kind() & YLOBJ_IS_OBJECT )
@@ -138,29 +138,154 @@ static inline yl_object* keyerof( const yl_tagval& v )
 
 
 
+/*
+    Build stack frame for a function call.
+*/
 
-yl_cothread* yl_interp( yl_cothread* cothread )
+static void reverse( yl_tagval* array, size_t size )
 {
-    yl_stackframe* f = cothread->call_frame();
-    
-    yl_program* p = f->funcobj->program();
-    const yl_value*  values = p->values();
-    const yl_opinst* ops    = p->ops();
-    
-    size_t localupcount = p->localupcount();
-    size_t itercount    = p->itercount();
-    
-    yl_tagval*   vargs  = cothread->stack( f->base + 1, f->argcount );
-    yl_tagval*   s      = cothread->stack( f->stack_base, p->stackcount() );
-    yl_upval**   locup  = cothread->locup( f->locup_base, localupcount );
-    yl_iterator* iters  = cothread->iters( f->iters_base, itercount );
+    for ( size_t i = 0; i < size / 2; ++i )
+    {
+        std::swap( array[ i ], array[ size - 1 - i ] );
+    }
+}
 
+
+static unsigned build_frame( yl_cothread* t, unsigned sp, unsigned acount )
+{
+    /*
+        If acount is MARK then the mark points after the last argument.
+    */
     
+    if ( acount == yl_opinst::MARK )
+    {
+        acount = t->get_mark() - sp;
+    }
+    
+    
+    /*
+        On entry, the stack should look like this:
+    
+            sp          ->  funcobj
+                            argument
+                            argument
+                            ...
+            sp + acount ->
+    */
+    
+    yl_tagval* stack = t->stack( sp, acount );
+
+    if ( stack[ 0 ].kind() != YLOBJ_FUNCOBJ )
+    {
+        throw yl_exception( "cannot call non-function" );
+    }
+
+    yl_funcobj* f = (yl_funcobj*)stack[ 0 ].heapobj();
+    yl_program* p = f->program();
+    
+    unsigned argcount = acount - 1;
+    unsigned paramcount = p->paramcount();
+    
+    unsigned fp;
+    if ( p->varargs() && argcount > paramcount )
+    {
+        /*
+            We must preserve the additional arguments in case they are used:
+            
+                sp          ->  argument
+                                ...
+                fp          ->  funcobj
+                                argument
+                                argument
+                                ...
+                fp + acount ->
+                
+            Essentially this means rotating the values on the stack.  There
+            is a great trick to rotate an array using reversals:
+
+            http://www.geeksforgeeks.org/program-for-array-rotation-continued-reversal-algorithm/
+        */
+
+        fp = sp + ( argcount - paramcount );
+        reverse( stack, fp - sp );
+        reverse( stack + fp - sp, acount );
+        reverse( stack, fp + acount - sp );
+        
+    }
+    else
+    {
+        /*
+            There are no varargs, use the frame in-place.
+        */
+        
+        fp = sp;
+    }
+    
+    if ( argcount < paramcount )
+    {
+        /*
+            Set missing parameters to null.
+        */
+        
+        stack = t->stack( fp, 1 + paramcount );
+        for ( unsigned arg = argcount; arg < paramcount; ++arg )
+        {
+            stack[ 1 + arg ] = yl_tagval( YLOBJ_SINGULAR, yl_null );
+        }
+    }
+
+    return fp;
+}
+
+
+
+/*
+    Main interpreter loop.
+*/
+
+void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
+{
+    // Set current cothread.
+    yl_current->set_cothread( t );
+    
+    
+    // Remember call depth.
+    unsigned call_depth = 0;
+    
+    
+    // Get function.
+    yl_tagval* s = t->stack( sp, 1 + acount );
+    if ( s[ 0 ].kind() != YLOBJ_FUNCOBJ )
+    {
+        throw yl_exception( "cannot call non-function" );
+    }
+    
+    // Build frame for this call.
+    unsigned            ip          = 0;
+    unsigned            fp          = build_frame( t, sp, acount );
+    unsigned            locup_base  = t->get_locup_base();
+    unsigned            iters_base  = t->get_iters_base();
+    
+    
+    // Get program.
+    yl_funcobj*         f           = (yl_funcobj*)s[ 0 ].heapobj();
+    yl_program*         p           = f->program();
+    const yl_value*     values      = p->values();
+    const yl_opinst*    ops         = p->ops();
+
+
+    // Get stacks.
+                        s           = t->stack( fp, p->stackcount() );
+    yl_upval**          locup       = t->locup( locup_base, p->locupcount() );
+    yl_iterator*        iters       = t->iters( iters_base, p->iterscount() );
+    
+    
+    // Main instruction dispatch loop.
     while ( true )
     {
     
-    const yl_opinst* op = ops + f->ip;
-    f->ip += 1;
+    const yl_opinst* op = ops + ip;
+    ip += 1;
     
     unsigned r = op->r();
     unsigned a = op->a();
@@ -213,7 +338,6 @@ yl_cothread* yl_interp( yl_cothread* cothread )
         break;
     }
 
-
     case YL_GLOBAL:
     {
         yl_heapobj* value = values[ b ].get().as_heapobj();
@@ -229,7 +353,6 @@ yl_cothread* yl_interp( yl_cothread* cothread )
         yl_current->set_global( (yl_string*)value, s[ r ] );
         break;
     }
-
 
     case YL_NEG:
     {
@@ -442,7 +565,7 @@ yl_cothread* yl_interp( yl_cothread* cothread )
 
     case YL_JMP:
     {
-        f->ip += j;
+        ip += j;
         break;
     }
     
@@ -450,7 +573,7 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     {
         if ( test( s[ r ] ) )
         {
-            f->ip += j;
+            ip += j;
         }
         break;
     }
@@ -459,7 +582,7 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     {
         if ( ! test( s[ r ] ) )
         {
-            f->ip += j;
+            ip += j;
         }
         break;
     }
@@ -467,15 +590,36 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     case YL_VARARG:
     {
         assert( p->varargs() );
-        size_t argcopy = std::min( (size_t)f->argcount, (size_t)b );
-        for ( size_t i = 0; i < argcopy; ++i )
+        
+        unsigned count;
+        if ( b != yl_opinst::MARK )
         {
-            s[ r + i ] = vargs[ i ];
+            count = std::min( b, fp - sp );
         }
-        for ( size_t i = argcopy; i < b; ++i )
+        else
         {
-            s[ r + i ] = yl_tagval( YLOBJ_SINGULAR, yl_null );
+            count = fp - sp;
+            s = t->stack( fp, r + count );
         }
+        
+        yl_tagval* varargs = t->stack( sp, fp - sp );
+        for ( unsigned i = 0; i < count; ++i )
+        {
+            s[ r + i ] = varargs[ i ];
+        }
+        
+        if ( b != yl_opinst::MARK )
+        {
+            for ( unsigned i = count; i < b; ++i )
+            {
+                s[ r + i ] = yl_tagval( YLOBJ_SINGULAR, yl_null );
+            }
+        }
+        else
+        {
+            t->set_mark( fp + r + count );
+        }
+
         break;
     }
     
@@ -492,8 +636,8 @@ yl_cothread* yl_interp( yl_cothread* cothread )
         // Add upvals.
         for ( size_t i = 0; i < program->upcount(); ++i )
         {
-            const yl_opinst* op = ops + f->ip;
-            f->ip += 1;
+            const yl_opinst* op = ops + ip;
+            ip += 1;
 
             unsigned r = op->r();
             unsigned a = op->a();
@@ -505,7 +649,7 @@ yl_cothread* yl_interp( yl_cothread* cothread )
             {
                 if ( ! locup[ a ] )
                 {
-                    locup[ a ] = yl_upval::alloc( f->stack_base + b );
+                    locup[ a ] = yl_upval::alloc( fp + b );
                 }
                 funcobj->set_upval( r, locup[ a ] );
                 break;
@@ -513,7 +657,7 @@ yl_cothread* yl_interp( yl_cothread* cothread )
             
             case YL_UPUPVAL:
             {
-                funcobj->set_upval( r, f->funcobj->get_upval( a ) );
+                funcobj->set_upval( r, f->get_upval( a ) );
                 break;
             }
             
@@ -531,22 +675,133 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     case YL_CALL:
     case YL_YCALL:
     {
-        // If you call a coroutine, then we construct a new cothread.
-        // If you call a cothread, then we pass a new set of parameters in.
-        // Ycalls are always real calls.
-        // TODO.
+        // TODO:
+        //     If you call a coroutine, then we construct a new cothread.
+        //     If you call a cothread, then we pass a new set of parameters in.
+        //     Ycalls are always real calls.
+        
+        // Push current stack frame.
+        yl_stackframe frame;
+        frame.funcobj       = f;
+        frame.ip            = ip;
+        frame.sp            = sp;
+        frame.fp            = fp;
+        frame.locup_base    = locup_base;
+        frame.iters_base    = iters_base;
+        frame.rcount        = rcount;
+        t->push_frame( frame );
+
+        // This call requests b values.
+        rcount = b;
+
+        // Check function.
+        if ( s[ r ].kind() != YLOBJ_FUNCOBJ )
+        {
+            throw yl_exception( "cannot call non-function" );
+        }
+
+        // Build new frame.
+        ip          = 0;
+        sp          = fp + r;
+        fp          = build_frame( t, sp, a );
+        locup_base  += p->locupcount();
+        iters_base  += p->iterscount();
+        
+        // Get function and program.
+        f           = (yl_funcobj*)s[ r ].heapobj();
+        p           = f->program();
+        values      = p->values();
+        ops         = p->ops();
+        
+        // Get stacks.
+        s           = t->stack( fp, p->stackcount() );
+        locup       = t->locup( locup_base, p->locupcount() );
+        iters       = t->iters( iters_base, p->iterscount() );
+     
+        // Increase call depth.
+        call_depth += 1;
         break;
     }
     
     case YL_YIELD:
     {
-        // TODO.
+        assert( ! "coroutines are unimplemented" );
         break;
     }
     
     case YL_RETURN:
     {
-        // TODO
+        // Find out how many results to copy.
+        if ( a == yl_opinst::MARK )
+        {
+            a = t->get_mark() - r;
+        }
+        
+        unsigned count;
+        if ( rcount != yl_opinst::MARK )
+        {
+            count = std::min( rcount, a );
+        }
+        else
+        {
+            count = a;
+        }
+        
+        // Perform copy relative to sp.
+        r = fp - sp + r;
+        if ( r != 0 )
+        {
+            s = t->stack( sp, r + a );
+            for ( unsigned i = 0; i < count; ++i )
+            {
+                s[ i ] = s[ r + i ];
+            }
+        }
+        
+        if ( rcount != yl_opinst::MARK )
+        {
+            for ( unsigned i = count; i < rcount; ++i )
+            {
+                s[ i ] = yl_tagval( YLOBJ_SINGULAR, yl_null );
+            }
+        }
+        else
+        {
+            t->set_mark( sp + count );
+        }
+        
+        // Return from previous call.
+        if ( call_depth > 0 )
+        {
+            // Pop stack frame.
+            yl_stackframe frame = t->pop_frame();
+            f           = frame.funcobj;
+            ip          = frame.ip;
+            sp          = frame.sp;
+            fp          = frame.fp;
+            locup_base  = frame.locup_base;
+            iters_base  = frame.iters_base;
+            rcount      = frame.rcount;
+            
+            // Get function and program.
+            f           = (yl_funcobj*)s[ r ].heapobj();
+            p           = f->program();
+            values      = p->values();
+            ops         = p->ops();
+            
+            // Get stacks.
+            s           = t->stack( fp, p->stackcount() );
+            locup       = t->locup( locup_base, p->locupcount() );
+            iters       = t->iters( iters_base, p->iterscount() );
+            
+            // Decrease call depth.
+            call_depth -= 1;
+        }
+        else
+        {
+            return;
+        }
+
         break;
     }
     
@@ -584,7 +839,7 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     {
         if ( iters[ r ].has_values() )
         {
-            f->ip += j;
+            ip += j;
         }
         break;
     }
@@ -593,33 +848,33 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     {
         if ( ! iters[ r ].has_values() )
         {
-            f->ip += j;
+            ip += j;
         }
         break;
     }
 
     case YL_GETUP:
     {
-        yl_upval* upval = f->funcobj->get_upval( a );
-        s[ r ] = upval->get_value( cothread );
+        yl_upval* upval = f->get_upval( a );
+        s[ r ] = upval->get_value( t );
         break;
     }
     
     case YL_SETUP:
     {
-        yl_upval* upval = f->funcobj->get_upval( a );
-        upval->set_value( cothread, s[ r ] );
+        yl_upval* upval = f->get_upval( a );
+        upval->set_value( t, s[ r ] );
         break;
     }
 
     case YL_CLOSE:
     {
-        for ( size_t i = localupcount; i-- > a; )
+        for ( size_t i = p->locupcount(); i-- > a; )
         {
             locup[ i ]->close();
         }
         
-        for ( size_t i = itercount; i-- > b; )
+        for ( size_t i = p->iterscount(); i-- > b; )
         {
             iters[ i ].close();
         }
@@ -818,11 +1073,72 @@ yl_cothread* yl_interp( yl_cothread* cothread )
 
     case YL_APPEND:
     {
-        
+        if ( s[ a ].kind() == YLOBJ_ARRAY )
+        {
+            yl_array* array = (yl_array*)s[ a ].heapobj();
+            array->append( s[ r ] );
+        }
+        else
+        {
+            throw yl_exception( "cannot append to non-array" );
+        }
+        break;
     }
     
     case YL_EXTEND:
+    {
+        if ( s[ b ].kind() != YLOBJ_ARRAY )
+        {
+            throw yl_exception( "cannot extend non-array" );
+        }
+
+        yl_array* array = (yl_array*)s[ b ].heapobj();
+        if ( a == yl_opinst::MARK )
+        {
+            a = t->get_mark() - r;
+        }
+        array->extend( s + r, a );
+        break;
+    }
+    
     case YL_UNPACK:
+    {
+        if ( s[ b ].kind() != YLOBJ_ARRAY )
+        {
+            throw yl_exception( "cannot unpack non-array" );
+        }
+        
+        yl_array* array = (yl_array*)s[ b ].heapobj();
+        unsigned count;
+        if ( b != yl_opinst::MARK )
+        {
+            count = std::min( b, (unsigned)array->length() );
+        }
+        else
+        {
+            count = (unsigned)array->length();
+            s = t->stack( fp, r + count );
+        }
+        
+        for ( unsigned i = 0; i < count; ++i )
+        {
+            s[ r + i ] = array->at( i );
+        }
+        
+        if ( b != yl_opinst::MARK )
+        {
+            for ( unsigned i = count; i < b; ++i )
+            {
+                s[ r + i ] = yl_tagval( YLOBJ_SINGULAR, yl_null );
+            }
+        }
+        else
+        {
+            t->set_mark( fp + r + count );
+        }
+        
+        break;
+    }
     
     
     /*
@@ -830,8 +1146,22 @@ yl_cothread* yl_interp( yl_cothread* cothread )
     */
     
     case YL_THROW:
+    {
+        assert( ! "exception handling unimplemented" );
+        break;
+    }
+    
     case YL_EXCEPT:
+    {
+        assert( ! "exception handling unimplemented" );
+        break;
+    }
+    
     case YL_UNWIND:
+    {
+        // TODO.
+        break;
+    }
 
 
     case YL_UPLOCAL:
