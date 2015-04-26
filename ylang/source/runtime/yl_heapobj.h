@@ -22,33 +22,36 @@ template < typename object_t > class yl_heapref;
 
 
 /*
-    List of all ylang heap object types.
+    List of all ylang object types.  Note that this must match
+    the object types from yl_valkind.
 */
 
 enum yl_objkind : uint8_t
 {
-    YLOBJ_IS_OBJECT = 0x10,
-
-    // Numbers.
-    YLOBJ_NUMBER    = 0x00,
+    // Flags.
+    YLOBJ_IS_OBJECT = 0x10,     // inherits from yl_object
 
     // User-visible
-    YLOBJ_SINGULAR  = 0x01,                     // null, undef, true or false
-    YLOBJ_STRING    = 0x02,                     // string or symbol
-    YLOBJ_OBJECT    = YLOBJ_IS_OBJECT | 0x03,   // object
-    YLOBJ_NATIVE    = YLOBJ_IS_OBJECT | 0x04,   // yl_expose native object
-    YLOBJ_ARRAY     = YLOBJ_IS_OBJECT | 0x05,   // dynamic array
-    YLOBJ_TABLE     = YLOBJ_IS_OBJECT | 0x06,   // hashtable
-    YLOBJ_FUNCOBJ   = 0x07,                     // function
-    YLOBJ_COTHREAD  = 0x08,                     // coroutine with stack
+    YLOBJ_NULL      = 0x00,     // null
+    YLOBJ_UNDEF     = 0x01,     // undefined (internal)
+    YLOBJ_BOOL      = 0x02,     // true or false
+    YLOBJ_NUMBER    = 0x03,     // number
+    YLOBJ_STRING    = 0x04,                     // string or symbol
+    YLOBJ_OBJECT    = YLOBJ_IS_OBJECT | 0x05,   // object
+    YLOBJ_NATIVE    = YLOBJ_IS_OBJECT | 0x06,   // yl_expose native object
+    YLOBJ_ARRAY     = YLOBJ_IS_OBJECT | 0x07,   // dynamic array
+    YLOBJ_TABLE     = YLOBJ_IS_OBJECT | 0x08,   // hashtable
+    YLOBJ_FUNCOBJ   = 0x09,                     // function
+    YLOBJ_THUNK     = 0x0A,                     // thunk to native function
+    YLOBJ_COTHREAD  = 0x0B,                     // coroutine with stack
     
     // Compiled code
-    YLOBJ_PROGRAM   = 0x09,     // code for a single function
+    YLOBJ_PROGRAM   = 0x0C,     // code for a single function
 
     // Internal
-    YLOBJ_VALARRAY  = 0x0A,     // fixed-size array of yl_values
-    YLOBJ_SLOT      = 0x0B,     // node in an object's class tree
-    YLOBJ_UPVAL     = 0x0C,     // implements function closures
+    YLOBJ_VALARRAY  = 0x0D,     // fixed-size array of yl_values
+    YLOBJ_SLOT      = 0x0E,     // node in an object's class tree
+    YLOBJ_UPVAL     = 0x0F,     // implements function closures
 };
 
 

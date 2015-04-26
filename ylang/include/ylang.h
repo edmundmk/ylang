@@ -25,7 +25,8 @@ class yl_callframe;
 
 
 class yl_context_impl;
-class yl_funcobj;
+class yl_funcbase;
+class yl_cothread;
 
 
 
@@ -140,13 +141,14 @@ public:
 private:
 
     friend class yl_funcobj;
+    friend class yl_callframe;
 
-    explicit yl_function( yl_funcobj* funcobj );
+    explicit yl_function( yl_funcbase* function );
 
     void acquire();
     void release();
 
-    yl_funcobj* _funcobj;
+    yl_funcbase* _function;
 
 };
 
@@ -198,13 +200,56 @@ private:
 
 
 /*
-    A yl_callframe represents multiple values passed from ylang to C++ or back.
+    A yl_callframe passes variable argument lists between ylang and C++.
 
 */
+
+enum yl_valkind
+{
+    YLVAL_NULL      = 0x00,
+    YLVAL_UNDEF     = 0x01,
+    YLVAL_BOOL      = 0x02,
+    YLVAL_NUMBER    = 0x03,
+    YLVAL_STRING    = 0x04,
+    YLVAL_EXPOSE    = 0x06,
+    YLVAL_FUNCTION  = 0x09,
+};
 
 
 class yl_callframe
 {
+public:
+
+    yl_callframe();
+    ~yl_callframe();
+
+    void            push( std::nullptr_t );
+    void            push( bool value );
+    void            push( const char* value );
+    void            push( double value );
+    void            push( yl_expose* value );
+    void            push( const yl_function& function );
+
+    size_t          size() const;
+    
+    yl_valkind      at( size_t index ) const;
+    bool            get_bool( size_t index ) const;
+    double          get_number( size_t index ) const;
+    const char*     get_string( size_t index ) const;
+    yl_expose*      get_expose( size_t index ) const;
+    yl_function     get_function( size_t index ) const;
+
+    void            clear();
+
+
+private:
+
+    friend void yl_invoke( yl_callframe& xf );
+
+    yl_cothread*    _cothread;
+    unsigned        _base;
+    unsigned        _size;
+
 };
 
 
@@ -214,7 +259,7 @@ class yl_callframe
     The most basic entry point.
 */
 
-void yl_invoke( const yl_function& function, yl_callframe& callframe );
+void yl_invoke( yl_callframe& xf );
 
 
 
@@ -235,19 +280,19 @@ inline yl_function yl_compile( const char* path, arguments_t ... arguments )
 
 
 
-inline yl_function::yl_function( yl_funcobj* funcobj )
-    :   _funcobj( funcobj )
+inline yl_function::yl_function( yl_funcbase* function )
+    :   _function( function )
 {
     acquire();
 }
 
 inline yl_function::yl_function()
-    :   _funcobj( nullptr )
+    :   _function( nullptr )
 {
 }
 
 inline yl_function::yl_function( std::nullptr_t )
-    :   _funcobj( nullptr )
+    :   _function( nullptr )
 {
 }
 
@@ -258,7 +303,7 @@ inline yl_function& yl_function::operator = ( std::nullptr_t )
 }
 
 inline yl_function::yl_function( const yl_function& p )
-    :   _funcobj( p._funcobj )
+    :   _function( p._function )
 {
     acquire();
 }
@@ -266,20 +311,20 @@ inline yl_function::yl_function( const yl_function& p )
 inline yl_function& yl_function::operator = ( const yl_function& p )
 {
     release();
-    _funcobj = p._funcobj;
+    _function = p._function;
     acquire();
     return *this;
 }
 
 inline yl_function::yl_function( yl_function&& p )
 {
-    _funcobj = p._funcobj;
-    p._funcobj = nullptr;
+    _function = p._function;
+    p._function = nullptr;
 }
 
 inline yl_function& yl_function::operator = ( yl_function&& p )
 {
-    std::swap( _funcobj, p._funcobj );
+    std::swap( _function, p._function );
     p.release();
     return *this;
 }
@@ -291,7 +336,7 @@ inline yl_function::~yl_function()
 
 inline yl_function::operator bool () const
 {
-    return _funcobj != nullptr;
+    return _function != nullptr;
 }
 
 

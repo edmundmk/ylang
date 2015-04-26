@@ -97,7 +97,7 @@ public:
     yl_cothread* alloc();
 
     void            push_frame( const yl_stackframe& frame );
-    yl_stackframe   pop_frame() const;
+    yl_stackframe   pop_frame();
 
     yl_tagval*      stack( size_t base, size_t count );
     yl_upval**      locup( size_t base, size_t count );
@@ -108,6 +108,11 @@ public:
     
     unsigned        get_locup_base() const;
     unsigned        get_iters_base() const;
+
+
+protected:
+
+    yl_cothread();
 
 
 private:

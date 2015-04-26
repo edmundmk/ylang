@@ -47,6 +47,7 @@ class yl_tagval
 {
 public:
 
+    yl_tagval();
     yl_tagval( const yl_valref& value );
     yl_tagval( double number );
     yl_tagval( yl_objkind kind, yl_heapobj* heapobj );
@@ -216,11 +217,11 @@ private:
 
 
 
-inline bool yl_is_singular( yl_heapobj* heapobj )
+inline yl_tagval::yl_tagval()
+    :   _kind( YLOBJ_NULL )
+    ,   _heapobj( yl_undef )
 {
-    return heapobj <= yl_true;
 }
-
 
 
 inline yl_tagval::yl_tagval( const yl_valref& value )
@@ -233,14 +234,10 @@ inline yl_tagval::yl_tagval( const yl_valref& value )
     else
     {
         _heapobj = value.as_heapobj();
-        if ( yl_is_singular( _heapobj ) )
-        {
-            _kind = YLOBJ_SINGULAR;
-        }
-        else
-        {
+        if ( _heapobj > yl_true )
             _kind = _heapobj->kind();
-        }
+        else
+            _kind = (yl_objkind)std::min( (uintptr_t)_heapobj, (uintptr_t)2 );
     }
 }
 

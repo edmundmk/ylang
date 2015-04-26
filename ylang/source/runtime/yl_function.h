@@ -22,21 +22,52 @@ class yl_upval;
 
 
 
-
 /*
-    An instance of a function.
+    Base for ylang functions.
 */
 
-class yl_funcobj : public yl_heapobj
+class yl_funcbase : public yl_heapobj
+{
+public:
+
+    void acquire();
+    void release();
+    
+    
+protected:
+
+    explicit yl_funcbase( yl_objkind kind );
+
+    uint8_t _refcount;
+
+};
+
+
+
+/*
+    A native thunk.
+*/
+
+typedef void (*yl_thunk_function)( yl_callframe& xf );
+
+struct yl_thunk : public yl_funcbase
+{
+    yl_thunk_function _thunk;
+};
+
+
+
+/*
+    A bytecode function.
+*/
+
+class yl_funcobj : public yl_funcbase
 {
 public:
 
     static yl_function  make_function( yl_funcobj* funcobj );
     static yl_funcobj*  alloc( yl_program* program );
 
-    void                acquire();
-    void                release();
-    
     yl_program*         program();
     
     void                set_upval( size_t index, yl_upval* upval );
@@ -48,12 +79,10 @@ private:
     explicit yl_funcobj( yl_program* program );
 
     uint8_t                     _upcount;
-    uint8_t                     _refcount;
     yl_heapref< yl_program >    _program;
     yl_heapref< yl_upval >      _upval[ 0 ];
 
 };
-
 
 
 
