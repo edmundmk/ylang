@@ -1231,13 +1231,13 @@ void ygen_emit::make_program( ygen_program* p )
         p->debugspans.size()
     );
     
-    p->program->_upcount        = p->ssafunc->upcount;
-    p->program->_paramcount     = p->ssafunc->paramcount;
-    p->program->_stackcount     = p->stackcount;
-    p->program->_localupcount   = p->localupcount;
-    p->program->_itercount      = p->itercount;
-    p->program->_varargs        = p->ssafunc->varargs;
-    p->program->_coroutine      = p->ssafunc->coroutine;
+    p->program->_upcount    = p->ssafunc->upcount;
+    p->program->_paramcount = p->ssafunc->paramcount;
+    p->program->_stackcount = p->stackcount;
+    p->program->_locupcount = p->localupcount;
+    p->program->_iterscount = p->itercount;
+    p->program->_varargs    = p->ssafunc->varargs;
+    p->program->_coroutine  = p->ssafunc->coroutine;
     
 }
 

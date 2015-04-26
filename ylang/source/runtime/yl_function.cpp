@@ -13,20 +13,45 @@
 
 void yl_function::acquire()
 {
-    if ( _funcobj )
+    if ( _function )
     {
-        _funcobj->acquire();
+        _function->acquire();
     }
 }
 
 void yl_function::release()
 {
-    if ( _funcobj )
+    if ( _function )
     {
-        _funcobj->release();
+        _function->release();
     }
-    _funcobj = nullptr;
+    _function = nullptr;
 }
+
+
+
+
+void yl_funcbase::acquire()
+{
+    assert( _refcount < 255 );
+    _refcount += 1;
+    if ( _refcount == 1 )
+    {
+        // TODO: add to root set.
+    }
+}
+
+void yl_funcbase::release()
+{
+    assert( _refcount > 0 );
+    _refcount -= 1;
+    if ( _refcount == 0 )
+    {
+        // TODO: remove from root set.
+    }
+}
+
+
 
 
 
@@ -46,36 +71,13 @@ yl_funcobj* yl_funcobj::alloc( yl_program* program )
 
 
 yl_funcobj::yl_funcobj( yl_program* program )
-    :   yl_heapobj( YLOBJ_FUNCOBJ )
+    :   yl_funcbase( YLOBJ_FUNCOBJ )
     ,   _upcount( program->upcount() )
-    ,   _refcount( 0 )
     ,   _program( program )
 {
     for ( size_t i = 0; i < _upcount; ++i )
     {
         new ( _upval + i ) yl_heapref< yl_upval >();
-    }
-}
-
-
-
-void yl_funcobj::acquire()
-{
-    assert( _refcount < 255 );
-    _refcount += 1;
-    if ( _refcount == 1 )
-    {
-        // TODO: add to root set.
-    }
-}
-
-void yl_funcobj::release()
-{
-    assert( _refcount > 0 );
-    _refcount -= 1;
-    if ( _refcount == 0 )
-    {
-        // TODO: remove from root set.
     }
 }
 
@@ -212,7 +214,7 @@ void yl_program::print()
     printf( "    paramcount : %u\n", _paramcount );
     printf( "    upcount    : %u\n", _upcount );
     printf( "    stackcount : %u\n", _stackcount );
-    printf( "    itercount  : %u\n", _itercount );
+    printf( "    itercount  : %u\n", _iterscount );
     printf( "    varargs    : %s\n", _varargs ? "true" : "false" );
     printf( "    coroutine  : %s\n", _coroutine ? "true" : "false" );
 
