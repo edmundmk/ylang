@@ -63,12 +63,12 @@ static inline bool equal( const yl_tagval& a, const yl_tagval& b )
         yl_string* sa = (yl_string*)a.heapobj();
         yl_string* sb = (yl_string*)b.heapobj();
 
-        if ( sa->length() != sb->length() )
+        if ( sa->size() != sb->size() )
         {
             return false;
         }
         
-        return memcmp( sa->c_str(), sb->c_str(), sa->length() ) == 0;
+        return memcmp( sa->c_str(), sb->c_str(), sa->size() ) == 0;
     }
     
     return false;
@@ -79,13 +79,13 @@ static inline int compare_strings( const yl_tagval& a, const yl_tagval& b )
     yl_string* sa = (yl_string*)a.heapobj();
     yl_string* sb = (yl_string*)b.heapobj();
     
-    size_t common_length = std::min( sa->length(), sb->length() );
+    size_t common_length = std::min( sa->size(), sb->size() );
     int result = memcmp( sa->c_str(), sb->c_str(), common_length );
     if ( result == 0 )
     {
-        if ( sa->length() < sb->length() )
+        if ( sa->size() < sb->size() )
             return -1;
-        else if ( sa->length() == sb->length() )
+        else if ( sa->size() == sb->size() )
             return 0;
         else
             return 1;
@@ -338,6 +338,10 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         yl_heapobj* value = values[ b ].get().as_heapobj();
         assert( value->kind() == YLOBJ_STRING );
         s[ r ] = yl_current->get_global( (yl_string*)value );
+        if ( s[ r ].kind() == YLOBJ_UNDEF )
+        {
+            throw yl_exception( "unknown global" );
+        }
         break;
     }
     
@@ -879,19 +883,32 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
 
     case YL_OBJECT:
     {
-        s[ r ] = yl_current->new_object( s[ a ] );
+        yl_object* prototype;
+        if ( a != yl_opinst::NOVAL )
+        {
+            if ( !( s[ a ].kind() & YLOBJ_IS_OBJECT ) )
+            {
+                throw yl_exception( "cannot inherit from non-object value" );
+            }
+            prototype = (yl_object*)s[ a ].heapobj();
+        }
+        else
+        {
+            prototype = nullptr;
+        }
+        s[ r ] = yl_current->new_object( prototype );
         break;
     }
     
     case YL_ARRAY:
     {
-        s[ r ] = yl_current->new_array( c );
+        s[ r ] = yl_tagval( YLOBJ_ARRAY, yl_array::alloc( c ) );
         break;
     }
     
     case YL_TABLE:
     {
-        s[ r ] = yl_current->new_table( c );
+        s[ r ] = yl_tagval( YLOBJ_TABLE, yl_table::alloc( c ) );
         break;
     }
     

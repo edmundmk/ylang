@@ -13,6 +13,8 @@
 #include "ylang.h"
 #include "dlmalloc.h"
 #include <unordered_set>
+#include <unordered_map>
+#include <symkey.h>
 
 
 class yl_heapobj;
@@ -20,7 +22,9 @@ class yl_cothread;
 class yl_tagval;
 class yl_string;
 class yl_object;
+class yl_array;
 class yl_table;
+class yl_slot;
 
 
 
@@ -91,12 +95,14 @@ public:
     // Object model.
 
     yl_string*      symbol( yl_string* symbol );
-    
     yl_object*      superof( const yl_tagval& value );
+    yl_slot*        klassof( yl_object* prototype );
 
-    yl_tagval       new_object( const yl_tagval& prototype );
-    yl_tagval       new_array( size_t size_hint );
-    yl_tagval       new_table( size_t size_hint );
+    yl_object*      proto_object();
+    yl_object*      proto_array();
+    yl_object*      proto_table();
+
+    yl_tagval       new_object( yl_object* prototype );
 
 
     // Global table.
@@ -113,7 +119,16 @@ private:
 
     yl_cothread*    _cothread;
     
-    yl_table*       _global;
+    std::unordered_map< symkey, yl_string* > _symbols;
+    yl_object*      _proto_object;
+    yl_object*      _proto_array;
+    yl_object*      _proto_table;
+    yl_object*      _proto_bool;
+    yl_object*      _proto_number;
+    yl_object*      _proto_string;
+    yl_object*      _proto_funcobj;
+    yl_object*      _proto_cothread;
+    yl_table*       _globals;
 
 };
 

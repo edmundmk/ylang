@@ -44,6 +44,8 @@ class yl_object : public yl_heapobj
 {
 public:
 
+    static yl_object* alloc( yl_object* prototype );
+
     yl_object*  superof() const;
 
     yl_tagval   get_key( const yl_tagval& key ) const;

@@ -820,7 +820,6 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
     case YL_GE:
     case YL_LNOT:
     case YL_LXOR:
-    case YL_OBJECT:
     case YL_SUPER:
     case YL_INKEY:
     case YL_INDEX:
@@ -1035,6 +1034,18 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         p->ops.emplace_back( YL_SETUP, operand( op, 0 ), op->a, 0 );
         return 1;
     }
+    
+    case YL_OBJECT:
+    {
+        assert( op->result_count == 1 );
+        if ( op->r != yl_opinst::NOVAL )
+        {
+            unsigned a = op->operand_count ? operand( op, 0 ) : yl_opinst::NOVAL;
+            p->ops.emplace_back( (yl_opcode)op->opcode, op->r, a, 0 );
+            p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
+        }
+        return 1;
+    }
  
     case YL_CLOSE:
     {
@@ -1212,7 +1223,7 @@ void ygen_emit::make_string( ygen_string* s )
     s->string = yl_string::alloc( s->text, (unsigned)s->size );
     if ( s->iskey )
     {
-        s->string = yl_current->symbol( s->string );
+        s->string = s->string->symbol();
     }
 }
 

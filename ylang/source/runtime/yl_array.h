@@ -17,6 +17,9 @@ class yl_array : public yl_object
 {
 public:
 
+    static yl_array* alloc( size_t capacity );
+    static yl_array* alloc( yl_object* prototype );
+
     size_t      size() const;
 
     yl_tagval   at( size_t index ) const;

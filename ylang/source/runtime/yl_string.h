@@ -36,19 +36,23 @@ public:
 
     static yl_string*   concat( yl_string* a, yl_string* b );
     
+    yl_string*          symbol();
+    
     hash32_t            hash() const;
-    size_t              length() const;
+    size_t              size() const;
     const char*         c_str() const;
     
 
 private:
+
+    friend class yl_context_impl;
 
     explicit yl_string( unsigned length );
 
     bool                _is_symbol;
     mutable bool        _has_hash;
     mutable hash32_t    _hash;
-    unsigned            _length;
+    unsigned            _size;
     char                _s[];
 
 };
@@ -60,19 +64,32 @@ private:
 */
 
 
+inline yl_string* yl_string::symbol()
+{
+    if ( _is_symbol )
+    {
+        return this;
+    }
+    else
+    {
+        return yl_current->symbol( this );
+    }
+}
+
+
 inline hash32_t yl_string::hash() const
 {
     if ( ! _has_hash )
     {
-        _hash = hash32( _s, _length );
+        _hash = hash32( _s, _size );
         _has_hash = true;
     }
     return _hash;
 }
 
-inline size_t yl_string::length() const
+inline size_t yl_string::size() const
 {
-    return _length;
+    return _size;
 }
 
 inline const char* yl_string::c_str() const
