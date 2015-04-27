@@ -19,6 +19,7 @@ public:
 
     static const size_t END = (size_t)-1;
 
+    static yl_table* alloc( size_t size_hint );
 
     yl_tagval   get_index( const yl_tagval& key );
     void        set_index( const yl_tagval& key, const yl_tagval& value );

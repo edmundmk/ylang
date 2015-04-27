@@ -9,7 +9,7 @@
 #include "yl_context.h"
 #include <assert.h>
 #include "yl_heapobj.h"
-
+#include "yl_table.h"
 
 
 
@@ -31,16 +31,47 @@ __thread yl_context_impl* yl_current = nullptr;
 
 
 yl_context_impl::yl_context_impl()
-    :   _cothread( nullptr )
-    ,   _heap( create_mspace( 0, 0 ) )
+    :   _heap( create_mspace( 0, 0 ) )
     ,   _unmarked_colour( YL_YELLOW )
+    ,   _cothread( nullptr )
+    ,   _global( nullptr )
 {
     mspace_track_large_chunks( _heap, 1 );
+    _global = yl_table::alloc( 0 );
 }
 
 yl_context_impl::~yl_context_impl()
 {
     destroy_mspace( _heap );
+}
+
+
+void* yl_context_impl::malloc( size_t size )
+{
+    return mspace_malloc( _heap, size );
+}
+
+void yl_context_impl::write_barrier( yl_heapobj* object )
+{
+    // TODO.
+}
+
+void yl_context_impl::add_root( yl_heapobj* root )
+{
+    _roots.insert( root );
+}
+
+void yl_context_impl::remove_root( yl_heapobj* root )
+{
+    _roots.erase( root );
+}
+
+
+
+void yl_context_impl::set_cothread( yl_cothread* cothread )
+{
+    // TODO: interact with GC by 'unlocking' cothread.
+    _cothread = cothread;
 }
 
 
@@ -53,15 +84,20 @@ yl_string* yl_context_impl::symbol( yl_string* string )
 
 
 
-void* yl_context_impl::malloc( size_t size )
-{
-    return mspace_malloc( _heap, size );
-}
 
-void yl_context_impl::write_barrier( yl_heapobj* object )
-{
-    // TODO.
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

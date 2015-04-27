@@ -12,6 +12,7 @@
 
 #include "ylang.h"
 #include "dlmalloc.h"
+#include <unordered_set>
 
 
 class yl_heapobj;
@@ -19,6 +20,7 @@ class yl_cothread;
 class yl_tagval;
 class yl_string;
 class yl_object;
+class yl_table;
 
 
 
@@ -105,11 +107,13 @@ public:
 
 private:
 
-    yl_cothread*    _cothread;
-
     mspace          _heap;
     yl_mark_colour  _unmarked_colour;
+    std::unordered_set< yl_heapobj* > _roots;
 
+    yl_cothread*    _cothread;
+    
+    yl_table*       _global;
 
 };
 
@@ -149,6 +153,10 @@ inline yl_mark_colour yl_context_impl::unmarked_colour()
     return _unmarked_colour;
 }
 
+inline yl_cothread* yl_context_impl::get_cothread() const
+{
+    return _cothread;
+}
 
 
 

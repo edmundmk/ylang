@@ -206,7 +206,7 @@ void yl_iterator::open_vals( const yl_tagval& value )
     {
         _kind       = YLITER_TABLE;
         _table      = (yl_table*)value.heapobj();
-        _index      = _table->begin();
+        _index      = 0;
     }
     else if ( value.kind() == YLOBJ_COTHREAD )
     {
