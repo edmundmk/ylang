@@ -10,8 +10,12 @@
 #include "ylang.h"
 #include <stringf.h>
 #include "yl_interp.h"
+#include "yl_array.h"
+#include "yl_table.h"
 
 
+
+// ----- yl_exception
 
 
 yl_exception::yl_exception( const char* format, ... )
@@ -31,6 +35,7 @@ const char* yl_exception::what() const throw()
 
 
 
+// ----- yl_callframe
 
 
 yl_callframe::yl_callframe()
@@ -162,6 +167,9 @@ void yl_callframe::clear()
 
 
 
+// ---- yl_invoke
+
+
 void yl_invoke( yl_callframe& xf )
 {
     // Enter interpreter.
@@ -174,6 +182,190 @@ void yl_invoke( yl_callframe& xf )
 
 
 
+
+// ---- yl_iterator
+
+
+yl_iterator::yl_iterator()
+    :   _kind( YLITER_CLOSED )
+    ,   _object( nullptr )
+    ,   _index( 0 )
+{
+}
+
+void yl_iterator::open_vals( const yl_tagval& value )
+{
+    assert( _kind == YLITER_CLOSED );
+    if ( value.kind() == YLOBJ_ARRAY )
+    {
+        _kind       = YLITER_ARRAY;
+        _array      = (yl_array*)value.heapobj();
+        _index      = 0;
+    }
+    else if ( value.kind() == YLOBJ_TABLE )
+    {
+        _kind       = YLITER_TABLE;
+        _table      = (yl_table*)value.heapobj();
+        _index      = _table->begin();
+    }
+    else if ( value.kind() == YLOBJ_COTHREAD )
+    {
+        _kind       = YLITER_GENERATOR;
+        _generator  = (yl_cothread*)value.heapobj();
+    }
+    else
+    {
+        throw yl_exception( "cannot iterate over object with no elements" );
+    }
+}
+
+void yl_iterator::open_keys( const yl_tagval& value )
+{
+    assert( _kind == YLITER_CLOSED );
+    if ( value.kind() & YLOBJ_IS_OBJECT )
+    {
+        _kind       = YLITER_KEYS;
+        _object     = (yl_object*)value.heapobj();
+        _index      = 0;
+    }
+    else
+    {
+        throw yl_exception( "cannot iterate over unkeyable object" );
+    }
+}
+
+void yl_iterator::close()
+{
+    assert( _kind != YLITER_CLOSED );
+    _kind   = YLITER_CLOSED;
+    _object = nullptr;
+    _index  = 0;
+}
+
+
+bool yl_iterator::has_values()
+{
+    switch ( _kind )
+    {
+    case YLITER_KEYS:
+        // TODO.
+        return false;
+        
+    case YLITER_ARRAY:
+        return _index < _array->size();
+        
+    case YLITER_TABLE:
+        return _index != yl_table::END;
+        
+    case YLITER_GENERATOR:
+        // TODO.
+        return false;
+
+    default:
+        assert( ! "invalid iterator" );
+        return false;
+    }
+}
+
+void yl_iterator::next1( yl_tagval* r )
+{
+    switch ( _kind )
+    {
+    case YLITER_KEYS:
+    {
+        // TODO.
+        break;
+    }
+        
+    case YLITER_ARRAY:
+    {
+        *r = _array->at( _index );
+        _index += 1;
+        break;
+    }
+        
+    case YLITER_TABLE:
+    {
+        yl_tagval value;
+        _index = _table->next( _index, r, &value );
+        break;
+    }
+    
+    case YLITER_GENERATOR:
+    {
+        // TODO.
+        break;
+    }
+
+    default:
+    {
+        assert( ! "invalid iterator" );
+        *r = yl_tagval( YLOBJ_NULL, yl_null );
+        break;
+    }
+    
+    }
+}
+
+void yl_iterator::next2( yl_tagval* r, yl_tagval* b )
+{
+    switch ( _kind )
+    {
+    case YLITER_KEYS:
+    {
+        // TODO.
+        break;
+    }
+        
+    case YLITER_ARRAY:
+    {
+        *r = _array->at( _index );
+        *b = yl_tagval( YLOBJ_NULL, yl_null );
+        _index += 1;
+        break;
+    }
+        
+    case YLITER_TABLE:
+    {
+        _index = _table->next( _index, r, b );
+        break;
+    }
+    
+    case YLITER_GENERATOR:
+    {
+        // TODO.
+        break;
+    }
+
+    default:
+    {
+        assert( ! "invalid iterator" );
+        *r = yl_tagval( YLOBJ_NULL, yl_null );
+        *b = yl_tagval( YLOBJ_NULL, yl_null );
+        break;
+    }
+    
+    }
+}
+
+void yl_iterator::next( yl_cothread *t, unsigned r, unsigned b )
+{
+    switch ( _kind )
+    {
+    
+    
+    
+    }
+}
+
+
+
+
+
+
+
+
+// ----- yl_cothread
 
 
 yl_cothread* yl_cothread::alloc()
@@ -202,6 +394,10 @@ yl_stackframe yl_cothread::pop_frame()
 
 yl_tagval* yl_cothread::stack( size_t base, size_t count )
 {
+    if ( _stack.capacity() < base + count )
+    {
+        _stack.reserve( _stack.capacity() * 2 );
+    }
     if ( _stack.size() < base + count )
     {
         _stack.resize( base + count );
@@ -211,6 +407,10 @@ yl_tagval* yl_cothread::stack( size_t base, size_t count )
 
 yl_upval** yl_cothread::locup( size_t base, size_t count )
 {
+    if ( _locup.capacity() < base + count )
+    {
+        _locup.reserve( _stack.capacity() * 2 );
+    }
     if ( _locup.size() < base + count )
     {
         _locup.resize( base + count );
@@ -220,6 +420,10 @@ yl_upval** yl_cothread::locup( size_t base, size_t count )
 
 yl_iterator* yl_cothread::iters( size_t base, size_t count )
 {
+    if ( _iters.capacity() < base + count )
+    {
+        _iters.reserve( _stack.capacity() * 2 );
+    }
     if ( _iters.size() < base + count )
     {
         _iters.resize( base + count );

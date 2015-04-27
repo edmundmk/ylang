@@ -17,8 +17,14 @@ class yl_table : public yl_object
 {
 public:
 
-    yl_tagval   get_index( const yl_tagval& index );
-    void        set_index( const yl_tagval& index, const yl_tagval& value );
+    static const size_t END = (size_t)-1;
+
+
+    yl_tagval   get_index( const yl_tagval& key );
+    void        set_index( const yl_tagval& key, const yl_tagval& value );
+
+    size_t      begin();
+    size_t      next( size_t index, yl_tagval* key, yl_tagval* value );
 
 
 };

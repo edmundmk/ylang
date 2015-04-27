@@ -31,13 +31,19 @@ void yl_function::release()
 
 
 
+yl_funcbase::yl_funcbase( yl_objkind kind )
+    :   yl_heapobj( kind )
+{
+}
+
+
 void yl_funcbase::acquire()
 {
     assert( _refcount < 255 );
     _refcount += 1;
     if ( _refcount == 1 )
     {
-        // TODO: add to root set.
+        yl_current->add_root( this );
     }
 }
 
@@ -47,7 +53,7 @@ void yl_funcbase::release()
     _refcount -= 1;
     if ( _refcount == 0 )
     {
-        // TODO: remove from root set.
+        yl_current->remove_root( this );
     }
 }
 

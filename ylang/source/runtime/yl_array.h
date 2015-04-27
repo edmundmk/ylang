@@ -17,7 +17,7 @@ class yl_array : public yl_object
 {
 public:
 
-    size_t      length() const;
+    size_t      size() const;
 
     yl_tagval   at( size_t index ) const;
 

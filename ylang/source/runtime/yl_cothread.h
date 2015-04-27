@@ -48,6 +48,7 @@ struct yl_stackframe
 
 enum yl_iterkind
 {
+    YLITER_CLOSED,
     YLITER_KEYS,        // over the keys of an object
     YLITER_ARRAY,       // over the elements of an array
     YLITER_TABLE,       // over the key, value of a table
@@ -59,6 +60,8 @@ class yl_iterator
 {
 public:
 
+    yl_iterator();
+
     void open_vals( const yl_tagval& value );
     void open_keys( const yl_tagval& value );
     void close();
@@ -66,7 +69,7 @@ public:
     bool has_values();
     void next1( yl_tagval* r );
     void next2( yl_tagval* r, yl_tagval* b );
-    void next( yl_tagval* r, size_t b );
+    void next( yl_cothread* t, unsigned r, unsigned b );
 
 
 private:
@@ -79,7 +82,7 @@ private:
         yl_table*       _table;
         yl_cothread*    _generator;
     };
-    
+    size_t _index;
     
 };
 

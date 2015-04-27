@@ -72,8 +72,12 @@ public:
     // Garbage collection.
 
     void*           malloc( size_t size );
+
     yl_mark_colour  unmarked_colour();
     void            write_barrier( yl_heapobj* object );
+
+    void            add_root( yl_heapobj* root );
+    void            remove_root( yl_heapobj* root );
 
 
     // Execution context.

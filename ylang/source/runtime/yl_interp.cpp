@@ -826,7 +826,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_NEXT:
     {
-        iters[ a ].next( &s[ r ], b );
+        iters[ a ].next( t, fp + r, b );
         break;
     }
 
@@ -1107,11 +1107,11 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         unsigned count;
         if ( b != yl_opinst::MARK )
         {
-            count = std::min( b, (unsigned)array->length() );
+            count = std::min( b, (unsigned)array->size() );
         }
         else
         {
-            count = (unsigned)array->length();
+            count = (unsigned)array->size();
             s = t->stack( fp, r + count );
         }
         
