@@ -255,7 +255,8 @@ bool yl_iterator::has_values()
         return _index < _array->size();
         
     case YLITER_TABLE:
-        return _index != yl_table::END;
+        // TODO.
+        return false;
         
     case YLITER_GENERATOR:
         // TODO.
@@ -286,8 +287,7 @@ void yl_iterator::next1( yl_tagval* r )
         
     case YLITER_TABLE:
     {
-        yl_tagval value;
-        _index = _table->next( _index, r, &value );
+        // TODO.
         break;
     }
     
@@ -327,7 +327,7 @@ void yl_iterator::next2( yl_tagval* r, yl_tagval* b )
         
     case YLITER_TABLE:
     {
-        _index = _table->next( _index, r, b );
+        // TODO.
         break;
     }
     
@@ -350,10 +350,70 @@ void yl_iterator::next2( yl_tagval* r, yl_tagval* b )
 
 void yl_iterator::next( yl_cothread *t, unsigned r, unsigned b )
 {
+    if ( b == 0 )
+    {
+        return;
+    }
+
     switch ( _kind )
     {
+    case YLITER_KEYS:
+    {
+        // TODO.
+        break;
+    }
     
+    case YLITER_ARRAY:
+    {
+        yl_tagval v = _array->at( _index );
+        _index += 1;
     
+        if ( b != yl_opinst::MARK )
+        {
+            yl_tagval* s = t->stack( r, b );
+            s[ 0 ] = v;
+            for ( size_t i = 1; i < b; ++i )
+            {
+                s[ i ] = yl_tagval( YLOBJ_NULL, yl_null );
+            }
+        }
+        else
+        {
+            yl_tagval* s = t->stack( r, 1 );
+            s[ 0 ] = v;
+            t->set_mark( r + 1 );
+        }
+    }
+    
+    case YLITER_TABLE:
+    {
+        // TODO.
+        break;
+    }
+    
+    case YLITER_GENERATOR:
+    {
+        // TODO.
+        break;
+    }
+    
+    default:
+    {
+        assert( ! "invalid iterator" );
+        if ( b != yl_opinst::MARK )
+        {
+            yl_tagval* s = t->stack( r, b );
+            for ( size_t i = 0; i < b; ++i )
+            {
+                s[ i ] = yl_tagval( YLOBJ_NULL, yl_null );
+            }
+        }
+        else
+        {
+            t->set_mark( r );
+        }
+        break;
+    }
     
     }
 }
