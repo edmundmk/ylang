@@ -76,6 +76,7 @@ protected:
 
 private:
 
+    friend class yl_value;
     template < typename object_t > friend class yl_heapref;
 
     yl_objkind                      _kind;

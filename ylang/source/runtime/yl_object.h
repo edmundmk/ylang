@@ -53,6 +53,11 @@ public:
     void        del_key( const yl_tagval& key );
 
 
+protected:
+
+    explicit yl_object( yl_object* prototype );
+
+
 private:
 
     yl_heapref< yl_slot >       _klass;     // start of slot chain

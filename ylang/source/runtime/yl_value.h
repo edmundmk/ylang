@@ -31,7 +31,13 @@ static yl_heapobj* const yl_undef   = (yl_heapobj*)1;
 static yl_heapobj* const yl_false   = (yl_heapobj*)2;
 static yl_heapobj* const yl_true    = (yl_heapobj*)3;
 
-bool yl_is_singular( yl_heapobj* heapobj );
+
+
+/*
+    Check if a number is an integer.
+*/
+
+bool is_integer( double number );
 
 
 
@@ -216,6 +222,12 @@ private:
 */
 
 
+inline bool is_integer( double number )
+{
+    return number == (long)number;
+}
+
+
 
 inline yl_tagval::yl_tagval()
     :   _kind( YLOBJ_NULL )
@@ -295,7 +307,17 @@ inline void yl_value::set( const yl_tagval& value )
 
 inline void yl_value::set( double n )
 {
-    // TODO: perform write barrier.
+    yl_valref value = get();
+    if ( value.is_heapobj() )
+    {
+        yl_heapobj* object = value.as_heapobj();
+        yl_mark_colour colour =
+                    object->_colour.load( std::memory_order_relaxed );
+        if ( colour == yl_current->unmarked_colour() )
+        {
+            yl_current->write_barrier( value.as_heapobj() );
+        }
+    }
 
     if ( sizeof( uintptr_t ) == 8 )
     {
@@ -311,7 +333,17 @@ inline void yl_value::set( double n )
 
 inline void yl_value::set( yl_heapobj* o )
 {
-    // TODO: perform write barrier.
+    yl_valref value = get();
+    if ( value.is_heapobj() )
+    {
+        yl_heapobj* object = value.as_heapobj();
+        yl_mark_colour colour =
+                    object->_colour.load( std::memory_order_relaxed );
+        if ( colour == yl_current->unmarked_colour() )
+        {
+            yl_current->write_barrier( value.as_heapobj() );
+        }
+    }
 
     this->_value.store( (uintptr_t)o, std::memory_order_relaxed );
 }

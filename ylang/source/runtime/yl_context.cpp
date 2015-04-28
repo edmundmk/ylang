@@ -183,11 +183,11 @@ yl_tagval yl_context_impl::new_object( yl_object* prototype )
     }
     else if ( kind == YLOBJ_ARRAY )
     {
-        return yl_tagval( YLOBJ_ARRAY, yl_array::alloc( prototype ) );
+        return yl_tagval( YLOBJ_ARRAY, yl_array::alloc( prototype, 0 ) );
     }
     else if ( kind == YLOBJ_TABLE )
     {
-        return yl_tagval( YLOBJ_TABLE, yl_table::alloc( prototype ) );
+        return yl_tagval( YLOBJ_TABLE, yl_table::alloc( prototype, 0 ) );
     }
     
     return yl_tagval( YLOBJ_NULL, yl_null );
@@ -198,12 +198,12 @@ yl_tagval yl_context_impl::new_object( yl_object* prototype )
 
 yl_tagval yl_context_impl::get_global( yl_string* key )
 {
-    return _globals->get_index( yl_tagval( YLOBJ_STRING, key ) );
+    return _globals->get( yl_tagval( YLOBJ_STRING, key ) );
 }
 
 void yl_context_impl::set_global( yl_string* key, const yl_tagval& value )
 {
-    _globals->set_index( yl_tagval( YLOBJ_STRING, key ), value );
+    _globals->set( yl_tagval( YLOBJ_STRING, key ), value );
 }
 
 

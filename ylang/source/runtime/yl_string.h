@@ -32,7 +32,7 @@ class yl_string : public yl_heapobj
 public:
 
     static yl_string*   alloc( const char* string );
-    static yl_string*   alloc( const char* string, unsigned length );
+    static yl_string*   alloc( const char* string, size_t size );
 
     static yl_string*   concat( yl_string* a, yl_string* b );
     
@@ -47,7 +47,7 @@ private:
 
     friend class yl_context_impl;
 
-    explicit yl_string( unsigned length );
+    explicit yl_string( size_t size );
 
     bool                _is_symbol;
     mutable bool        _has_hash;

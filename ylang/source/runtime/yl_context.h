@@ -174,5 +174,22 @@ inline yl_cothread* yl_context_impl::get_cothread() const
 }
 
 
+inline yl_object* yl_context_impl::proto_object()
+{
+    return _proto_object;
+}
+
+inline yl_object* yl_context_impl::proto_array()
+{
+    return _proto_array;
+}
+
+inline yl_object* yl_context_impl::proto_table()
+{
+    return _proto_table;
+}
+
+
+
 
 #endif

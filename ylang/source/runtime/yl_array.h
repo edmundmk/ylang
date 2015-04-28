@@ -10,7 +10,11 @@
 #define YL_ARRAY_H
 
 
+#include <assert.h>
+#include <intmath.h>
 #include "yl_object.h"
+#include "yl_value.h"
+
 
 
 class yl_array : public yl_object
@@ -18,19 +22,95 @@ class yl_array : public yl_object
 public:
 
     static yl_array* alloc( size_t capacity );
-    static yl_array* alloc( yl_object* prototype );
+    static yl_array* alloc( yl_object* prototype, size_t capacity );
 
     size_t      size() const;
 
-    yl_tagval   at( size_t index ) const;
-
-    yl_tagval   get_index( const yl_tagval& index ) const;
-    void        set_index( const yl_tagval& index, const yl_tagval& value );
+    yl_tagval   get( size_t index ) const;
+    void        set( size_t index, const yl_tagval& value );
 
     void        append( const yl_tagval& value );
     void        extend( const yl_tagval* values, size_t count );
 
+    void        reserve( size_t capacity );
+
+
+protected:
+
+    yl_array( yl_object* prototype, size_t capacity );
+
+
+
+private:
+
+    yl_heapref< yl_valarray >   _elements;
+    size_t                      _size;
+
+
 };
 
 
+
+/*
+
+*/
+
+
+inline size_t yl_array::size() const
+{
+    return _size;
+}
+
+inline yl_tagval yl_array::get( size_t index ) const
+{
+    if ( index >= _size )
+    {
+        throw yl_exception( "invalid index" );
+    }
+    return _elements.get()->at( index ).get();
+}
+
+inline void yl_array::set( size_t index, const yl_tagval& value )
+{
+    if ( index >= _size )
+    {
+        throw yl_exception( "invalid index" );
+    }
+    _elements.get()->at( index ).set( value );
+}
+
+inline void yl_array::append( const yl_tagval& value )
+{
+    yl_valarray* elements = _elements.get();
+    if ( elements->size() <= _size + 1 )
+    {
+        reserve( elements->size() ? elements->size() * 2 : 8 );
+        elements = _elements.get();
+    }
+    elements->at( _size ).set( value );
+    _size += 1;
+}
+
+inline void yl_array::extend( const yl_tagval* values, size_t count )
+{
+    yl_valarray* elements = _elements.get();
+    if ( elements->size() <= _size + count )
+    {
+        reserve( ceil_pow2( _size + count ) );
+        elements = _elements.get();
+    }
+    for ( size_t i = 0; i < count; ++i )
+    {
+        elements->at( _size + i ).set( values[ i ] );
+    }
+    _size += count;
+}
+
+
 #endif
+
+
+
+
+
+
