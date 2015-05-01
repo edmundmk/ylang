@@ -87,34 +87,6 @@ private:
 
 
 /*
-    An upval.
-*/
-
-class yl_upval : public yl_heapobj
-{
-public:
-
-    static yl_upval* alloc( unsigned index );
-
-    void        close();
-
-    yl_tagval   get_value( yl_cothread* cothread );
-    void        set_value( yl_cothread* cothread, const yl_tagval& value );
-
-private:
-
-    explicit yl_upval( unsigned index );
-
-    bool        _open;
-    unsigned    _index;
-    yl_value    _value;
-
-};
-
-
-
-
-/*
     A compiled function.
 */
 
@@ -196,6 +168,10 @@ private:
 */
 
 
+#include "yl_cothread.h"
+
+
+
 inline yl_program* yl_funcobj::program()
 {
     return _program.get();
@@ -212,6 +188,7 @@ inline yl_upval* yl_funcobj::get_upval( size_t index )
     assert( index < _upcount );
     return _upval[ index ].get();
 }
+
 
 
 

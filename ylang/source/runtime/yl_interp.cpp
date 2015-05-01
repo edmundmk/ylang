@@ -870,7 +870,11 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         for ( size_t i = p->locupcount(); i-- > a; )
         {
-            locup[ i ]->close();
+            if ( locup[ i ] )
+            {
+                locup[ i ]->close( t );
+                locup[ i ] = nullptr;
+            }
         }
         
         for ( size_t i = p->iterscount(); i-- > b; )

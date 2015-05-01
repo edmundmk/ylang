@@ -90,23 +90,6 @@ yl_funcobj::yl_funcobj( yl_program* program )
 
 
 
-yl_upval* yl_upval::alloc( unsigned index )
-{
-    void* p = yl_current->malloc( sizeof( yl_upval ) );
-    return new ( p ) yl_upval( index );
-}
-
-yl_upval::yl_upval( unsigned index )
-    :   yl_heapobj( YLOBJ_UPVAL )
-    ,   _open( true )
-    ,   _index( index )
-{
-}
-
-
-
-
-
 yl_program* yl_program::alloc
 (
     uint16_t    valcount,

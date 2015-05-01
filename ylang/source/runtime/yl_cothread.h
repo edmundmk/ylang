@@ -41,6 +41,36 @@ struct yl_stackframe
 
 
 
+
+/*
+    An upval.
+*/
+
+class yl_upval : public yl_heapobj
+{
+public:
+
+    static yl_upval* alloc( unsigned index );
+
+    void        close( yl_cothread* cothread );
+
+    yl_tagval   get_value( yl_cothread* cothread ) const;
+    void        set_value( yl_cothread* cothread, const yl_tagval& value );
+
+private:
+
+    explicit yl_upval( unsigned index );
+
+    bool        _open;
+    unsigned    _index;
+    yl_value    _value;
+
+};
+
+
+
+
+
 /*
     An entry on the iterator stack.
 */
@@ -133,6 +163,42 @@ private:
 /*
 
 */
+
+
+inline void yl_upval::close( yl_cothread* cothread )
+{
+    assert( _open );
+    yl_tagval* s = cothread->stack( _index, 1 );
+    _value.set( s[ 0 ] );
+    _open = false;
+}
+
+inline yl_tagval yl_upval::get_value( yl_cothread* cothread ) const
+{
+    if ( _open )
+    {
+        yl_tagval* s = cothread->stack( _index, 1 );
+        return s[ 0 ];
+    }
+    else
+    {
+        return _value.get();
+    }
+}
+
+inline void yl_upval::set_value( yl_cothread* cothread, const yl_tagval& value )
+{
+    if ( _open )
+    {
+        yl_tagval* s = cothread->stack( _index, 1 );
+        s[ 0 ] = value;
+    }
+    else
+    {
+        _value.set( value );
+    }
+}
+
 
 
 inline void yl_cothread::set_mark( unsigned mark )

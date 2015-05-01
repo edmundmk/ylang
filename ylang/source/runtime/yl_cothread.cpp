@@ -183,6 +183,27 @@ void yl_invoke( yl_callframe& xf )
 
 
 
+// ---- yl_upval
+
+
+yl_upval* yl_upval::alloc( unsigned index )
+{
+    void* p = yl_current->malloc( sizeof( yl_upval ) );
+    return new ( p ) yl_upval( index );
+}
+
+yl_upval::yl_upval( unsigned index )
+    :   yl_heapobj( YLOBJ_UPVAL )
+    ,   _open( true )
+    ,   _index( index )
+{
+}
+
+
+
+
+
+
 // ---- yl_iterator
 
 
