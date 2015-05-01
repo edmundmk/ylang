@@ -112,7 +112,7 @@ yl_string* yl_context_impl::symbol( yl_string* string )
 
 
 
-yl_object* yl_context_impl::superof( const yl_tagval& value )
+yl_object* yl_context_impl::superof( const yl_value& value )
 {
     /*
         All values except null, undef, and the root object have a prototype.
@@ -155,7 +155,7 @@ yl_object* yl_context_impl::superof( const yl_tagval& value )
 }
 
 
-yl_tagval yl_context_impl::new_object( yl_object* prototype )
+yl_value yl_context_impl::new_object( yl_object* prototype )
 {
     /*
         Any object with the array prototype in its prototype chain is an array.
@@ -179,31 +179,31 @@ yl_tagval yl_context_impl::new_object( yl_object* prototype )
     
     if ( kind == YLOBJ_OBJECT )
     {
-        return yl_tagval( YLOBJ_OBJECT, yl_object::alloc( prototype ) );
+        return yl_value( YLOBJ_OBJECT, yl_object::alloc( prototype ) );
     }
     else if ( kind == YLOBJ_ARRAY )
     {
-        return yl_tagval( YLOBJ_ARRAY, yl_array::alloc( prototype, 0 ) );
+        return yl_value( YLOBJ_ARRAY, yl_array::alloc( prototype, 0 ) );
     }
     else if ( kind == YLOBJ_TABLE )
     {
-        return yl_tagval( YLOBJ_TABLE, yl_table::alloc( prototype, 0 ) );
+        return yl_value( YLOBJ_TABLE, yl_table::alloc( prototype, 0 ) );
     }
     
-    return yl_tagval( YLOBJ_NULL, yl_null );
+    return yl_value( YLOBJ_NULL, yl_null );
 }
 
 
 
 
-yl_tagval yl_context_impl::get_global( yl_string* key )
+yl_value yl_context_impl::get_global( yl_string* key )
 {
-    return _globals->get( yl_tagval( YLOBJ_STRING, key ) );
+    return _globals->get( yl_value( YLOBJ_STRING, key ) );
 }
 
-void yl_context_impl::set_global( yl_string* key, const yl_tagval& value )
+void yl_context_impl::set_global( yl_string* key, const yl_value& value )
 {
-    _globals->set( yl_tagval( YLOBJ_STRING, key ), value );
+    _globals->set( yl_value( YLOBJ_STRING, key ), value );
 }
 
 

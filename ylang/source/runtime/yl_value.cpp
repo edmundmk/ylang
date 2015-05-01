@@ -12,7 +12,7 @@
 
 yl_valarray* yl_valarray::alloc( size_t size )
 {
-    size_t s = sizeof( yl_valarray ) + sizeof( yl_value ) * size;
+    size_t s = sizeof( yl_valarray ) + sizeof( yl_valref ) * size;
     void* p = yl_current->malloc( s );
     return new ( p ) yl_valarray( size );
 }
@@ -24,7 +24,7 @@ yl_valarray::yl_valarray( size_t size )
 {
     for ( size_t i = 0; i < _size; ++i )
     {
-        new ( _elements + i ) yl_value();
+        new ( _elements + i ) yl_valref();
     }
 }
 
@@ -32,7 +32,7 @@ yl_valarray::~yl_valarray()
 {
     for ( size_t i = 0; i < _size; ++i )
     {
-        _elements[ i ].~yl_value();
+        _elements[ i ].~yl_valref();
     }
 }
 

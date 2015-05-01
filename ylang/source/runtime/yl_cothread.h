@@ -54,8 +54,8 @@ public:
 
     void        close( yl_cothread* cothread );
 
-    yl_tagval   get_value( yl_cothread* cothread ) const;
-    void        set_value( yl_cothread* cothread, const yl_tagval& value );
+    yl_value   get_value( yl_cothread* cothread ) const;
+    void        set_value( yl_cothread* cothread, const yl_value& value );
 
 private:
 
@@ -63,7 +63,7 @@ private:
 
     bool        _open;
     unsigned    _index;
-    yl_value    _value;
+    yl_valref    _value;
 
 };
 
@@ -92,13 +92,13 @@ public:
 
     yl_iterator();
 
-    void open_vals( const yl_tagval& value );
-    void open_keys( const yl_tagval& value );
+    void open_vals( const yl_value& value );
+    void open_keys( const yl_value& value );
     void close();
 
     bool has_values();
-    void next1( yl_tagval* r );
-    void next2( yl_tagval* r, yl_tagval* b );
+    void next1( yl_value* r );
+    void next2( yl_value* r, yl_value* b );
     void next( yl_cothread* t, unsigned r, unsigned b );
 
 
@@ -132,7 +132,7 @@ public:
     void            push_frame( const yl_stackframe& frame );
     yl_stackframe   pop_frame();
 
-    yl_tagval*      stack( size_t base, size_t count );
+    yl_value*      stack( size_t base, size_t count );
     yl_upval**      locup( size_t base, size_t count );
     yl_iterator*    iters( size_t base, size_t count );
     
@@ -151,7 +151,7 @@ protected:
 private:
 
     std::vector< yl_stackframe >    _frames;
-    std::vector< yl_tagval >        _stack;
+    std::vector< yl_value >        _stack;
     std::vector< yl_upval* >        _locup;
     std::vector< yl_iterator >      _iters;
     unsigned                        _mark;
@@ -168,16 +168,16 @@ private:
 inline void yl_upval::close( yl_cothread* cothread )
 {
     assert( _open );
-    yl_tagval* s = cothread->stack( _index, 1 );
+    yl_value* s = cothread->stack( _index, 1 );
     _value.set( s[ 0 ] );
     _open = false;
 }
 
-inline yl_tagval yl_upval::get_value( yl_cothread* cothread ) const
+inline yl_value yl_upval::get_value( yl_cothread* cothread ) const
 {
     if ( _open )
     {
-        yl_tagval* s = cothread->stack( _index, 1 );
+        yl_value* s = cothread->stack( _index, 1 );
         return s[ 0 ];
     }
     else
@@ -186,11 +186,11 @@ inline yl_tagval yl_upval::get_value( yl_cothread* cothread ) const
     }
 }
 
-inline void yl_upval::set_value( yl_cothread* cothread, const yl_tagval& value )
+inline void yl_upval::set_value( yl_cothread* cothread, const yl_value& value )
 {
     if ( _open )
     {
-        yl_tagval* s = cothread->stack( _index, 1 );
+        yl_value* s = cothread->stack( _index, 1 );
         s[ 0 ] = value;
     }
     else

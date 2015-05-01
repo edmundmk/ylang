@@ -71,7 +71,7 @@ yl_funcobj* yl_funcobj::alloc( yl_program* program )
 {
     uint8_t upcount = program->upcount();
     void* p = yl_current->malloc(
-        sizeof( yl_funcobj ) + sizeof( yl_heapref< yl_upval > ) * upcount );
+        sizeof( yl_funcobj ) + sizeof( yl_objref< yl_upval > ) * upcount );
     return new ( p ) yl_funcobj( program );
 }
 
@@ -83,7 +83,7 @@ yl_funcobj::yl_funcobj( yl_program* program )
 {
     for ( size_t i = 0; i < _upcount; ++i )
     {
-        new ( _upval + i ) yl_heapref< yl_upval >();
+        new ( _upval + i ) yl_objref< yl_upval >();
     }
 }
 
@@ -100,7 +100,7 @@ yl_program* yl_program::alloc
 )
 {
     size_t size = sizeof( yl_program );
-    size += sizeof( yl_value ) * valcount;
+    size += sizeof( yl_valref ) * valcount;
     size += sizeof( yl_opinst ) * opcount;
     size += sizeof( yl_xframe ) * xfcount;
     size += sizeof( yl_debugvar ) * dvcount;
@@ -130,10 +130,10 @@ yl_program::yl_program
     ,   _varargs( false )
     ,   _coroutine( false )
 {
-    yl_value* values = _values();
+    yl_valref* values = _values();
     for ( size_t i = 0; i < _valcount; ++i )
     {
-        new ( values + i ) yl_value();
+        new ( values + i ) yl_valref();
     }
     
     yl_opinst* ops = _ops();
@@ -163,10 +163,10 @@ yl_program::yl_program
 
 yl_program::~yl_program()
 {
-    yl_value* values = _values();
+    yl_valref* values = _values();
     for ( size_t i = 0; i < _valcount; ++i )
     {
-        values[ i ].~yl_value();
+        values[ i ].~yl_valref();
     }
     
     yl_opinst* ops = _ops();
@@ -262,9 +262,9 @@ void yl_program::print()
 }
 
 
-yl_value* yl_program::_values()
+yl_valref* yl_program::_values()
 {
-    return (yl_value*)( this + 1 );
+    return (yl_valref*)( this + 1 );
 }
 
 yl_opinst* yl_program::_ops()

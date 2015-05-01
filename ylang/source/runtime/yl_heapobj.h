@@ -16,7 +16,7 @@
 
 
 class yl_heapobj;
-template < typename object_t > class yl_heapref;
+template < typename object_t > class yl_objref;
 
 
 
@@ -49,7 +49,7 @@ enum yl_objkind : uint8_t
     YLOBJ_PROGRAM   = 0x0C,     // code for a single function
 
     // Internal
-    YLOBJ_VALARRAY  = 0x0D,     // fixed-size array of yl_values
+    YLOBJ_VALARRAY  = 0x0D,     // fixed-size array of yl_valrefs
     YLOBJ_SLOT      = 0x0E,     // node in an object's class tree
     YLOBJ_UPVAL     = 0x0F,     // implements function closures
 };
@@ -76,8 +76,8 @@ protected:
 
 private:
 
-    friend class yl_value;
-    template < typename object_t > friend class yl_heapref;
+    friend class yl_valref;
+    template < typename object_t > friend class yl_objref;
 
     yl_objkind                      _kind;
     std::atomic< yl_mark_colour >   _colour;
@@ -91,12 +91,12 @@ private:
 */
 
 template < typename object_t >
-class yl_heapref
+class yl_objref
 {
 public:
 
-    yl_heapref();
-    yl_heapref( object_t* p );
+    yl_objref();
+    yl_objref( object_t* p );
     
     void        set( object_t* p );
     object_t*   get() const;
@@ -104,8 +104,8 @@ public:
 
 private:
 
-    yl_heapref( const yl_heapref& ) = delete;
-    yl_heapref& operator = ( const yl_heapref& ) = delete;
+    yl_objref( const yl_objref& ) = delete;
+    yl_objref& operator = ( const yl_objref& ) = delete;
 
     std::atomic< object_t* > _p;
 
@@ -127,19 +127,19 @@ inline yl_objkind yl_heapobj::kind() const
 
 
 template < typename object_t >
-inline yl_heapref< object_t >::yl_heapref()
+inline yl_objref< object_t >::yl_objref()
     :   _p( nullptr )
 {
 }
 
 template < typename object_t >
-inline yl_heapref< object_t >::yl_heapref( object_t* p )
+inline yl_objref< object_t >::yl_objref( object_t* p )
     :   _p( p )
 {
 }
 
 template < typename object_t >
-inline void yl_heapref< object_t >::set( object_t* p )
+inline void yl_objref< object_t >::set( object_t* p )
 {
     object_t* object = _p.load( std::memory_order_relaxed );
     if ( object )
@@ -156,7 +156,7 @@ inline void yl_heapref< object_t >::set( object_t* p )
 }
 
 template < typename object_t >
-object_t* yl_heapref< object_t >::get() const
+object_t* yl_objref< object_t >::get() const
 {
     return _p.load( std::memory_order_relaxed );
 }

@@ -52,28 +52,28 @@ yl_callframe::~yl_callframe()
 
 void yl_callframe::push( std::nullptr_t )
 {
-    yl_tagval* s = _cothread->stack( _base, _size + 1 );
-    s[ _size ] = yl_tagval( YLOBJ_NULL, yl_null );
+    yl_value* s = _cothread->stack( _base, _size + 1 );
+    s[ _size ] = yl_value( YLOBJ_NULL, yl_null );
     _size += 1;
 }
 
 void yl_callframe::push( bool value )
 {
-    yl_tagval* s = _cothread->stack( _base, _size + 1 );
-    s[ _size ] = yl_tagval( YLOBJ_BOOL, value ? yl_true : yl_false );
+    yl_value* s = _cothread->stack( _base, _size + 1 );
+    s[ _size ] = yl_value( YLOBJ_BOOL, value ? yl_true : yl_false );
     _size += 1;
 }
 
 void yl_callframe::push( const char* value )
 {
-    yl_tagval* s = _cothread->stack( _base, _size + 1 );
-    s[ _size ] = yl_tagval( YLOBJ_STRING, yl_string::alloc( value ) );
+    yl_value* s = _cothread->stack( _base, _size + 1 );
+    s[ _size ] = yl_value( YLOBJ_STRING, yl_string::alloc( value ) );
     _size += 1;
 }
 
 void yl_callframe::push( double value )
 {
-    yl_tagval* s = _cothread->stack( _base, _size + 1 );
+    yl_value* s = _cothread->stack( _base, _size + 1 );
     s[ _size ] = value;
     _size += 1;
 }
@@ -85,8 +85,8 @@ void yl_callframe::push( yl_expose* value )
 
 void yl_callframe::push( const yl_function& function )
 {
-    yl_tagval* s = _cothread->stack( _base, _size + 1 );
-    s[ _size ] = yl_tagval( function._function->kind(), function._function );
+    yl_value* s = _cothread->stack( _base, _size + 1 );
+    s[ _size ] = yl_value( function._function->kind(), function._function );
     _size += 1;
 }
 
@@ -100,7 +100,7 @@ size_t yl_callframe::size() const
 yl_valkind yl_callframe::at( size_t index ) const
 {
     assert( index < _size );
-    yl_tagval* s = _cothread->stack( _base, _size );
+    yl_value* s = _cothread->stack( _base, _size );
     yl_objkind kind = s[ index ].kind();
     if ( kind <= YLOBJ_STRING )
         return (yl_valkind)kind;
@@ -113,7 +113,7 @@ yl_valkind yl_callframe::at( size_t index ) const
 
 bool yl_callframe::get_bool( size_t index ) const
 {
-    yl_tagval* s = _cothread->stack( _base, _size );
+    yl_value* s = _cothread->stack( _base, _size );
     if ( s[ index ].kind() != YLOBJ_BOOL )
     {
         throw yl_exception( "expected boolean" );
@@ -123,7 +123,7 @@ bool yl_callframe::get_bool( size_t index ) const
 
 double yl_callframe::get_number( size_t index ) const
 {
-    yl_tagval* s = _cothread->stack( _base, _size );
+    yl_value* s = _cothread->stack( _base, _size );
     if ( s[ index ].kind() != YLOBJ_NUMBER )
     {
         throw yl_exception( "expected number" );
@@ -133,7 +133,7 @@ double yl_callframe::get_number( size_t index ) const
 
 const char* yl_callframe::get_string( size_t index ) const
 {
-    yl_tagval* s = _cothread->stack( _base, _size );
+    yl_value* s = _cothread->stack( _base, _size );
     if ( s[ index ].kind() != YLOBJ_STRING )
     {
         throw yl_exception( "expected string" );
@@ -150,7 +150,7 @@ yl_expose* yl_callframe::get_expose( size_t index ) const
 
 yl_function yl_callframe::get_function( size_t index ) const
 {
-    yl_tagval* s = _cothread->stack( _base, _size );
+    yl_value* s = _cothread->stack( _base, _size );
     if ( s[ index ].kind() != YLOBJ_FUNCOBJ && s[ index ].kind() != YLOBJ_THUNK )
     {
         throw yl_exception( "expected function" );
@@ -214,7 +214,7 @@ yl_iterator::yl_iterator()
 {
 }
 
-void yl_iterator::open_vals( const yl_tagval& value )
+void yl_iterator::open_vals( const yl_value& value )
 {
     assert( _kind == YLITER_CLOSED );
     if ( value.kind() == YLOBJ_ARRAY )
@@ -240,7 +240,7 @@ void yl_iterator::open_vals( const yl_tagval& value )
     }
 }
 
-void yl_iterator::open_keys( const yl_tagval& value )
+void yl_iterator::open_keys( const yl_value& value )
 {
     assert( _kind == YLITER_CLOSED );
     if ( value.kind() & YLOBJ_IS_OBJECT )
@@ -289,7 +289,7 @@ bool yl_iterator::has_values()
     }
 }
 
-void yl_iterator::next1( yl_tagval* r )
+void yl_iterator::next1( yl_value* r )
 {
     switch ( _kind )
     {
@@ -321,14 +321,14 @@ void yl_iterator::next1( yl_tagval* r )
     default:
     {
         assert( ! "invalid iterator" );
-        *r = yl_tagval( YLOBJ_NULL, yl_null );
+        *r = yl_value( YLOBJ_NULL, yl_null );
         break;
     }
     
     }
 }
 
-void yl_iterator::next2( yl_tagval* r, yl_tagval* b )
+void yl_iterator::next2( yl_value* r, yl_value* b )
 {
     switch ( _kind )
     {
@@ -341,7 +341,7 @@ void yl_iterator::next2( yl_tagval* r, yl_tagval* b )
     case YLITER_ARRAY:
     {
         *r = _array->get( _index );
-        *b = yl_tagval( YLOBJ_NULL, yl_null );
+        *b = yl_value( YLOBJ_NULL, yl_null );
         _index += 1;
         break;
     }
@@ -361,8 +361,8 @@ void yl_iterator::next2( yl_tagval* r, yl_tagval* b )
     default:
     {
         assert( ! "invalid iterator" );
-        *r = yl_tagval( YLOBJ_NULL, yl_null );
-        *b = yl_tagval( YLOBJ_NULL, yl_null );
+        *r = yl_value( YLOBJ_NULL, yl_null );
+        *b = yl_value( YLOBJ_NULL, yl_null );
         break;
     }
     
@@ -386,21 +386,21 @@ void yl_iterator::next( yl_cothread *t, unsigned r, unsigned b )
     
     case YLITER_ARRAY:
     {
-        yl_tagval v = _array->get( _index );
+        yl_value v = _array->get( _index );
         _index += 1;
     
         if ( b != yl_opinst::MARK )
         {
-            yl_tagval* s = t->stack( r, b );
+            yl_value* s = t->stack( r, b );
             s[ 0 ] = v;
             for ( size_t i = 1; i < b; ++i )
             {
-                s[ i ] = yl_tagval( YLOBJ_NULL, yl_null );
+                s[ i ] = yl_value( YLOBJ_NULL, yl_null );
             }
         }
         else
         {
-            yl_tagval* s = t->stack( r, 1 );
+            yl_value* s = t->stack( r, 1 );
             s[ 0 ] = v;
             t->set_mark( r + 1 );
         }
@@ -423,10 +423,10 @@ void yl_iterator::next( yl_cothread *t, unsigned r, unsigned b )
         assert( ! "invalid iterator" );
         if ( b != yl_opinst::MARK )
         {
-            yl_tagval* s = t->stack( r, b );
+            yl_value* s = t->stack( r, b );
             for ( size_t i = 0; i < b; ++i )
             {
-                s[ i ] = yl_tagval( YLOBJ_NULL, yl_null );
+                s[ i ] = yl_value( YLOBJ_NULL, yl_null );
             }
         }
         else
@@ -473,7 +473,7 @@ yl_stackframe yl_cothread::pop_frame()
     return frame;
 }
 
-yl_tagval* yl_cothread::stack( size_t base, size_t count )
+yl_value* yl_cothread::stack( size_t base, size_t count )
 {
     if ( _stack.capacity() < base + count )
     {

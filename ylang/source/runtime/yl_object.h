@@ -48,9 +48,9 @@ public:
 
     yl_object*  superof() const;
 
-    yl_tagval   get_key( const yl_tagval& key ) const;
-    void        set_key( const yl_tagval& key, const yl_tagval& value );
-    void        del_key( const yl_tagval& key );
+    yl_value   get_key( const yl_value& key ) const;
+    void        set_key( const yl_value& key, const yl_value& value );
+    void        del_key( const yl_value& key );
 
 
 protected:
@@ -60,8 +60,8 @@ protected:
 
 private:
 
-    yl_heapref< yl_slot >       _klass;     // start of slot chain
-    yl_heapref< yl_valarray >   _slots;     // array of slot values
+    yl_objref< yl_slot >       _klass;     // start of slot chain
+    yl_objref< yl_valarray >   _slots;     // array of slot values
     
 };
 
@@ -101,8 +101,8 @@ private:
     };
 
 
-    yl_heapref< yl_heapobj >    _parent;    // parent slot, or prototype
-    yl_heapref< yl_string >     _symbol;    // symbol string
+    yl_objref< yl_heapobj >    _parent;    // parent slot, or prototype
+    yl_objref< yl_string >     _symbol;    // symbol string
     size_t                      _index;     // index into slot value array
     
     std::unique_ptr< shortcut_hash > _hash;

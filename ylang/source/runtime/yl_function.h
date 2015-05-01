@@ -79,8 +79,8 @@ private:
     explicit yl_funcobj( yl_program* program );
 
     uint8_t                     _upcount;
-    yl_heapref< yl_program >    _program;
-    yl_heapref< yl_upval >      _upval[ 0 ];
+    yl_objref< yl_program >    _program;
+    yl_objref< yl_upval >      _upval[ 0 ];
 
 };
 
@@ -118,7 +118,7 @@ public:
     unsigned                iterscount();
     
     size_t                  valcount();
-    const yl_value*         values();
+    const yl_valref*         values();
     
     size_t                  opcount();
     const yl_opinst*        ops();
@@ -143,7 +143,7 @@ private:
     size_t                  _dvcount;
     size_t                  _dscount;
     
-    yl_heapref< yl_string > _name;
+    yl_objref< yl_string > _name;
     
     uint8_t                 _upcount;
     uint8_t                 _paramcount;
@@ -153,7 +153,7 @@ private:
     bool                    _varargs;
     bool                    _coroutine;
 
-    yl_value*               _values();      // _values[ _valcount ]
+    yl_valref*               _values();      // _values[ _valcount ]
     yl_opinst*              _ops();         // _ops[ _opcount ]
     yl_xframe*              _xframes();     // _xframes[ _xfcount ]
     yl_debugvar*            _debugvars();   // _debugvars[ _dvcount ]
@@ -238,9 +238,9 @@ inline size_t yl_program::valcount()
     return _valcount;
 }
 
-inline const yl_value* yl_program::values()
+inline const yl_valref* yl_program::values()
 {
-    return (yl_value*)( this + 1 );
+    return (yl_valref*)( this + 1 );
 }
 
 inline size_t yl_program::opcount()

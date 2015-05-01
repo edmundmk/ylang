@@ -21,7 +21,7 @@
     Helpers.
 */
 
-static inline double cast_number( const yl_tagval& value )
+static inline double cast_number( const yl_value& value )
 {
     if ( value.kind() != YLOBJ_NUMBER )
     {
@@ -31,7 +31,7 @@ static inline double cast_number( const yl_tagval& value )
     return value.number();
 }
 
-static inline yl_string* cast_string( const yl_tagval& value )
+static inline yl_string* cast_string( const yl_value& value )
 {
     if ( value.kind() != YLOBJ_STRING )
     {
@@ -41,7 +41,7 @@ static inline yl_string* cast_string( const yl_tagval& value )
     return (yl_string*)value.heapobj();
 }
 
-static inline bool equal( const yl_tagval& a, const yl_tagval& b )
+static inline bool equal( const yl_value& a, const yl_value& b )
 {
     if ( a.kind() != b.kind() )
     {
@@ -74,7 +74,7 @@ static inline bool equal( const yl_tagval& a, const yl_tagval& b )
     return false;
 }
 
-static inline int compare_strings( const yl_tagval& a, const yl_tagval& b )
+static inline int compare_strings( const yl_value& a, const yl_value& b )
 {
     yl_string* sa = (yl_string*)a.heapobj();
     yl_string* sb = (yl_string*)b.heapobj();
@@ -94,7 +94,7 @@ static inline int compare_strings( const yl_tagval& a, const yl_tagval& b )
     return result;
 }
 
-static inline bool test( const yl_tagval& v )
+static inline bool test( const yl_value& v )
 {
     if ( v.kind() == YLOBJ_NUMBER )
     {
@@ -106,7 +106,7 @@ static inline bool test( const yl_tagval& v )
     }
 }
 
-static inline yl_object* superof( const yl_tagval& v )
+static inline yl_object* superof( const yl_value& v )
 {
     if ( v.kind() & YLOBJ_IS_OBJECT )
     {
@@ -119,7 +119,7 @@ static inline yl_object* superof( const yl_tagval& v )
     }
 }
 
-static inline yl_object* keyerof( const yl_tagval& v )
+static inline yl_object* keyerof( const yl_value& v )
 {
     if ( v.kind() & YLOBJ_IS_OBJECT )
     {
@@ -137,7 +137,7 @@ static inline yl_object* keyerof( const yl_tagval& v )
     Build stack frame for a function call.
 */
 
-static void reverse( yl_tagval* array, size_t size )
+static void reverse( yl_value* array, size_t size )
 {
     for ( size_t i = 0; i < size / 2; ++i )
     {
@@ -168,7 +168,7 @@ static unsigned build_frame( yl_cothread* t, unsigned sp, unsigned acount )
             sp + acount ->
     */
     
-    yl_tagval* stack = t->stack( sp, acount );
+    yl_value* stack = t->stack( sp, acount );
 
     if ( stack[ 0 ].kind() != YLOBJ_FUNCOBJ )
     {
@@ -225,7 +225,7 @@ static unsigned build_frame( yl_cothread* t, unsigned sp, unsigned acount )
         stack = t->stack( fp, 1 + paramcount );
         for ( unsigned arg = argcount; arg < paramcount; ++arg )
         {
-            stack[ 1 + arg ] = yl_tagval( YLOBJ_NULL, yl_null );
+            stack[ 1 + arg ] = yl_value( YLOBJ_NULL, yl_null );
         }
     }
 
@@ -249,7 +249,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     
     // Get function.
-    yl_tagval* s = t->stack( sp, 1 + acount );
+    yl_value* s = t->stack( sp, 1 + acount );
     if ( s[ 0 ].kind() != YLOBJ_FUNCOBJ )
     {
         throw yl_exception( "cannot call non-function" );
@@ -265,7 +265,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     // Get program.
     yl_funcobj*         f           = (yl_funcobj*)s[ 0 ].heapobj();
     yl_program*         p           = f->program();
-    const yl_value*     values      = p->values();
+    const yl_valref*     values      = p->values();
     const yl_opinst*    ops         = p->ops();
 
 
@@ -309,19 +309,19 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
 
     case YL_NULL:
     {
-        s[ r ] = yl_tagval( YLOBJ_NULL, yl_null );
+        s[ r ] = yl_value( YLOBJ_NULL, yl_null );
         break;
     }
     
     case YL_BOOL:
     {
-        s[ r ] = yl_tagval( YLOBJ_BOOL, a ? yl_true : yl_false );
+        s[ r ] = yl_value( YLOBJ_BOOL, a ? yl_true : yl_false );
         break;
     }
     
     case YL_NUMBER:
     {
-        s[ r ] = yl_tagval( values[ c ].get().as_number() );
+        s[ r ] = yl_value( values[ c ].get().as_number() );
         break;
     }
     
@@ -329,7 +329,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         yl_heapobj* value = values[ c ].get().as_heapobj();
         assert( value->kind() == YLOBJ_STRING );
-        s[ r ] = yl_tagval( YLOBJ_STRING, value );
+        s[ r ] = yl_value( YLOBJ_STRING, value );
         break;
     }
 
@@ -450,21 +450,21 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         yl_string* sa = cast_string( s[ a ] );
         yl_string* sb = cast_string( s[ b ] );
-        s[ r ] = yl_tagval( YLOBJ_STRING, yl_string::concat( sa, sb ) );
+        s[ r ] = yl_value( YLOBJ_STRING, yl_string::concat( sa, sb ) );
         break;
     }
     
     case YL_EQ:
     {
         bool isequal = equal( s[ a ], s[ b ] );
-        s[ r ] = yl_tagval( YLOBJ_BOOL, isequal ? yl_true : yl_false );
+        s[ r ] = yl_value( YLOBJ_BOOL, isequal ? yl_true : yl_false );
         break;
     }
     
     case YL_NE:
     {
         bool isequal = equal( s[ a ], s[ b ] );
-        s[ r ] = yl_tagval( YLOBJ_BOOL, isequal ? yl_false : yl_true );
+        s[ r ] = yl_value( YLOBJ_BOOL, isequal ? yl_false : yl_true );
         break;
     }
     
@@ -484,7 +484,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         {
             throw yl_exception( "type mismatch in comparison" );
         }
-        s[ r ] = yl_tagval( YLOBJ_BOOL, islt ? yl_true : yl_false );
+        s[ r ] = yl_value( YLOBJ_BOOL, islt ? yl_true : yl_false );
         break;
     }
     
@@ -504,7 +504,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         {
             throw yl_exception( "type mismatch in comparison" );
         }
-        s[ r ] = yl_tagval( YLOBJ_BOOL, isgt ? yl_true : yl_false );
+        s[ r ] = yl_value( YLOBJ_BOOL, isgt ? yl_true : yl_false );
         break;
     }
     
@@ -524,7 +524,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         {
             throw yl_exception( "type mismatch in comparison" );
         }
-        s[ r ] = yl_tagval( YLOBJ_BOOL, isle ? yl_true : yl_false );
+        s[ r ] = yl_value( YLOBJ_BOOL, isle ? yl_true : yl_false );
         break;
     }
     
@@ -544,21 +544,21 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         {
             throw yl_exception( "type mismatch in comparison" );
         }
-        s[ r ] = yl_tagval( YLOBJ_BOOL, isge ? yl_true : yl_false );
+        s[ r ] = yl_value( YLOBJ_BOOL, isge ? yl_true : yl_false );
         break;
     }
     
     case YL_LNOT:
     {
         bool istrue = test( s[ a ] );
-        s[ r ] = yl_tagval( YLOBJ_BOOL, istrue ? yl_false : yl_true );
+        s[ r ] = yl_value( YLOBJ_BOOL, istrue ? yl_false : yl_true );
         break;
     }
     
     case YL_LXOR:
     {
         bool result = test( s[ a ] ) != test( s[ b ] );
-        s[ r ] = yl_tagval( YLOBJ_BOOL, result ? yl_true : yl_false );
+        s[ r ] = yl_value( YLOBJ_BOOL, result ? yl_true : yl_false );
         break;
     }
 
@@ -601,7 +601,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             s = t->stack( fp, r + count );
         }
         
-        yl_tagval* varargs = t->stack( sp, fp - sp );
+        yl_value* varargs = t->stack( sp, fp - sp );
         for ( unsigned i = 0; i < count; ++i )
         {
             s[ r + i ] = varargs[ i ];
@@ -611,7 +611,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         {
             for ( unsigned i = count; i < b; ++i )
             {
-                s[ r + i ] = yl_tagval( YLOBJ_NULL, yl_null );
+                s[ r + i ] = yl_value( YLOBJ_NULL, yl_null );
             }
         }
         else
@@ -761,7 +761,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         {
             for ( unsigned i = count; i < rcount; ++i )
             {
-                s[ i ] = yl_tagval( YLOBJ_NULL, yl_null );
+                s[ i ] = yl_value( YLOBJ_NULL, yl_null );
             }
         }
         else
@@ -906,13 +906,13 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_ARRAY:
     {
-        s[ r ] = yl_tagval( YLOBJ_ARRAY, yl_array::alloc( c ) );
+        s[ r ] = yl_value( YLOBJ_ARRAY, yl_array::alloc( c ) );
         break;
     }
     
     case YL_TABLE:
     {
-        s[ r ] = yl_tagval( YLOBJ_TABLE, yl_table::alloc( c ) );
+        s[ r ] = yl_value( YLOBJ_TABLE, yl_table::alloc( c ) );
         break;
     }
     
@@ -920,9 +920,9 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         yl_object* object = superof( s[ a ] );
         if ( object )
-            s[ r ] = yl_tagval( object->kind(), object );
+            s[ r ] = yl_value( object->kind(), object );
         else
-            s[ r ] = yl_tagval( YLOBJ_NULL, yl_null );
+            s[ r ] = yl_value( YLOBJ_NULL, yl_null );
         break;
     }
     
@@ -930,7 +930,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         yl_heapobj* key = values[ b ].get().as_heapobj();
         assert( key->kind() == YLOBJ_STRING );
-        s[ r ] = keyerof( s[ a ] )->get_key( yl_tagval( YLOBJ_STRING, key ) );
+        s[ r ] = keyerof( s[ a ] )->get_key( yl_value( YLOBJ_STRING, key ) );
         if ( s[ r ].kind() == YLOBJ_UNDEF )
         {
             yl_string* s = (yl_string*)key;
@@ -984,7 +984,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             yl_object* object = (yl_object*)s[ r ].heapobj();
             yl_heapobj* key = values[ b ].get().as_heapobj();
             assert( key->kind() == YLOBJ_STRING );
-            object->set_key( yl_tagval( YLOBJ_STRING, key ), s[ a ] );
+            object->set_key( yl_value( YLOBJ_STRING, key ), s[ a ] );
         }
         else
         {
@@ -1038,7 +1038,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             yl_object* object = (yl_object*)s[ a ].heapobj();
             yl_heapobj* key = values[ b ].get().as_heapobj();
             assert( key->kind() == YLOBJ_STRING );
-            object->del_key( yl_tagval( YLOBJ_STRING, key ) );
+            object->del_key( yl_value( YLOBJ_STRING, key ) );
         }
         else
         {
@@ -1063,17 +1063,17 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_IN:
     {
-        yl_tagval value = keyerof( s[ a ] )->get_key( s[ b ] );
+        yl_value value = keyerof( s[ a ] )->get_key( s[ b ] );
         yl_heapobj* result = value.kind() != YLOBJ_UNDEF ? yl_true : yl_false;
-        s[ r ] = yl_tagval( YLOBJ_BOOL, result );
+        s[ r ] = yl_value( YLOBJ_BOOL, result );
         break;
     }
     
     case YL_IS:
     {
         bool result = false;
-        yl_tagval u = s[ a ];
-        yl_tagval proto = s[ b ];
+        yl_value u = s[ a ];
+        yl_value proto = s[ b ];
         while ( true )
         {
             if ( u.kind() == proto.kind() && u.heapobj() == proto.heapobj() )
@@ -1085,7 +1085,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             yl_object* object = superof( u );
             if ( object )
             {
-                u = yl_tagval( object->kind(), object );
+                u = yl_value( object->kind(), object );
             }
             else
             {
@@ -1093,7 +1093,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
                 break;
             }
         }
-        s[ r ] = yl_tagval( YLOBJ_BOOL, result ? yl_true : yl_false );
+        s[ r ] = yl_value( YLOBJ_BOOL, result ? yl_true : yl_false );
         break;
     }
 
@@ -1155,7 +1155,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         {
             for ( unsigned i = count; i < b; ++i )
             {
-                s[ r + i ] = yl_tagval( YLOBJ_NULL, yl_null );
+                s[ r + i ] = yl_value( YLOBJ_NULL, yl_null );
             }
         }
         else

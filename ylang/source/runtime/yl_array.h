@@ -26,11 +26,11 @@ public:
 
     size_t      size() const;
 
-    yl_tagval   get( size_t index ) const;
-    void        set( size_t index, const yl_tagval& value );
+    yl_value   get( size_t index ) const;
+    void        set( size_t index, const yl_value& value );
 
-    void        append( const yl_tagval& value );
-    void        extend( const yl_tagval* values, size_t count );
+    void        append( const yl_value& value );
+    void        extend( const yl_value* values, size_t count );
 
     void        reserve( size_t capacity );
 
@@ -43,7 +43,7 @@ protected:
 
 private:
 
-    yl_heapref< yl_valarray >   _elements;
+    yl_objref< yl_valarray >   _elements;
     size_t                      _size;
 
 
@@ -61,7 +61,7 @@ inline size_t yl_array::size() const
     return _size;
 }
 
-inline yl_tagval yl_array::get( size_t index ) const
+inline yl_value yl_array::get( size_t index ) const
 {
     if ( index >= _size )
     {
@@ -70,7 +70,7 @@ inline yl_tagval yl_array::get( size_t index ) const
     return _elements.get()->at( index ).get();
 }
 
-inline void yl_array::set( size_t index, const yl_tagval& value )
+inline void yl_array::set( size_t index, const yl_value& value )
 {
     if ( index >= _size )
     {
@@ -79,7 +79,7 @@ inline void yl_array::set( size_t index, const yl_tagval& value )
     _elements.get()->at( index ).set( value );
 }
 
-inline void yl_array::append( const yl_tagval& value )
+inline void yl_array::append( const yl_value& value )
 {
     yl_valarray* elements = _elements.get();
     if ( elements->size() <= _size + 1 )
@@ -91,7 +91,7 @@ inline void yl_array::append( const yl_tagval& value )
     _size += 1;
 }
 
-inline void yl_array::extend( const yl_tagval* values, size_t count )
+inline void yl_array::extend( const yl_value* values, size_t count )
 {
     yl_valarray* elements = _elements.get();
     if ( elements->size() <= _size + count )

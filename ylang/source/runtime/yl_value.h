@@ -16,9 +16,9 @@
 #include "yl_heapobj.h"
 
 
-class yl_tagval;
-class yl_value;
 class yl_valref;
+class yl_value;
+class yl_valarray;
 
 
 
@@ -42,42 +42,9 @@ bool is_integer( double number );
 
 
 
-/*
-    A yl_tagval is two pointers in size, but stores the object kind
-    explicitly, which means we don't have to disambiguate different kinds
-    of objects before using them.  Could be termed a 'fat value'.
-*/
-
-
-class yl_tagval
-{
-public:
-
-    yl_tagval();
-    yl_tagval( const yl_valref& value );
-    yl_tagval( double number );
-    yl_tagval( yl_objkind kind, yl_heapobj* heapobj );
-
-    yl_objkind      kind() const;
-    double          number() const;
-    yl_heapobj*     heapobj() const;
-
-
-private:
-
-    yl_objkind      _kind;
-    union
-    {
-        double      _number;
-        yl_heapobj* _heapobj;
-    };
-    
-};
-
-
 
 /*
-    A yl_value is pointer-sized and can hold any ylang type.  That means a
+    A yl_valref is pointer-sized and can hold any ylang type.  That means a
     heapobj reference, a number, null, true, false, or undef.  Accesses MUST
     be atomic to allow the garbage collector to run concurrently.
     
@@ -121,27 +88,58 @@ private:
     +zero     11111111111111111111111111111111 11111111111111111111111111111111
     -zero     01111111111111111111111111111111 11111111111111111111111111111111
  
+ 
+    A yl_valref::value is the result of reading a yl_valref.  It allows values
+    to be manipulated without multiple inadvertent atomic reads (which the
+    compiler can't coalesce).
+
 */
 
 
-class yl_value
+class yl_valref
 {
 public:
 
-    yl_value();
-    ~yl_value();
+    class value
+    {
+    public:
 
-    void            set( const yl_tagval& value );
-    void            set( double number );
-    void            set( yl_heapobj* heapobj );
+        bool            is_number() const;
+        bool            is_heapobj() const;
+        
+        double          as_number() const;
+        yl_heapobj*     as_heapobj() const;
 
-    yl_valref       get() const;
+
+    private:
+
+        friend class yl_valref;
+
+        explicit value( uintptr_t value );
+
+        union
+        {
+            uintptr_t                   _value;
+            yl_heapobj*                 _p;
+        };
+
+    };
+
+
+    yl_valref();
+    ~yl_valref();
+
+    void    set( const yl_value& value );
+    void    set( double number );
+    void    set( yl_heapobj* heapobj );
+
+    value   get() const;
 
 
 private:
 
-    yl_value( const yl_value& ) = delete;
-    yl_value& operator = ( const yl_value& ) = delete;
+    yl_valref( const yl_valref& ) = delete;
+    yl_valref& operator = ( const yl_valref& ) = delete;
 
 
     union
@@ -154,36 +152,38 @@ private:
 
 
 
+
+
 /*
-    A valref is the result of reading a yl_value.  It allows values to
-    be manipulated without multiple inadvertent atomic reads (which the
-    compiler can't coalesce).
+    A yl_value is currently two pointers in size, but stores the object kind
+    explicitly, which means we don't have to disambiguate different kinds
+    of objects before using them.  Could be termed a 'fat value'.
 */
 
 
-class yl_valref
+class yl_value
 {
 public:
 
-    bool            is_number() const;
-    bool            is_heapobj() const;
-    
-    double          as_number() const;
-    yl_heapobj*     as_heapobj() const;
+    yl_value();
+    yl_value( const yl_valref::value& value );
+    yl_value( double number );
+    yl_value( yl_objkind kind, yl_heapobj* heapobj );
+
+    yl_objkind      kind() const;
+    double          number() const;
+    yl_heapobj*     heapobj() const;
 
 
 private:
 
-    friend class yl_value;
-
-    explicit yl_valref( uintptr_t value );
-
+    yl_objkind      _kind;
     union
     {
-        uintptr_t                   _value;
-        yl_heapobj*                 _p;
+        double      _number;
+        yl_heapobj* _heapobj;
     };
-
+    
 };
 
 
@@ -201,8 +201,8 @@ public:
     ~yl_valarray();
     
     size_t          size() const;
-    const yl_value& at( size_t index ) const;
-    yl_value&       at( size_t index );
+    const yl_valref& at( size_t index ) const;
+    yl_valref&       at( size_t index );
 
 
 private:
@@ -210,7 +210,7 @@ private:
     explicit yl_valarray( size_t size );
 
     size_t          _size;
-    yl_value        _elements[ 0 ];
+    yl_valref        _elements[ 0 ];
 
 };
 
@@ -229,71 +229,17 @@ inline bool is_integer( double number )
 
 
 
-inline yl_tagval::yl_tagval()
-    :   _kind( YLOBJ_NULL )
-    ,   _heapobj( yl_undef )
-{
-}
 
-
-inline yl_tagval::yl_tagval( const yl_valref& value )
-{
-    if ( value.is_number() )
-    {
-        _kind    = YLOBJ_NUMBER;
-        _number  = value.as_number();
-    }
-    else
-    {
-        _heapobj = value.as_heapobj();
-        if ( _heapobj > yl_true )
-            _kind = _heapobj->kind();
-        else
-            _kind = (yl_objkind)std::min( (uintptr_t)_heapobj, (uintptr_t)2 );
-    }
-}
-
-
-inline yl_tagval::yl_tagval( double number )
-    :   _kind( YLOBJ_NUMBER )
-    ,   _number( number )
-{
-}
-
-inline yl_tagval::yl_tagval( yl_objkind kind, yl_heapobj* heapobj )
-    :   _kind( kind )
-    ,   _heapobj( heapobj )
-{
-}
-
-inline yl_objkind yl_tagval::kind() const
-{
-    return _kind;
-}
-
-inline double yl_tagval::number() const
-{
-    return _number;
-}
-
-inline yl_heapobj* yl_tagval::heapobj() const
-{
-    return _heapobj;
-}
-
-
-
-
-inline yl_value::yl_value()
+inline yl_valref::yl_valref()
     :   _value( 0 )
 {
 }
 
-inline yl_value::~yl_value()
+inline yl_valref::~yl_valref()
 {
 }
 
-inline void yl_value::set( const yl_tagval& value )
+inline void yl_valref::set( const yl_value& value )
 {
     if ( value.kind() == YLOBJ_NUMBER )
     {
@@ -305,9 +251,9 @@ inline void yl_value::set( const yl_tagval& value )
     }
 }
 
-inline void yl_value::set( double n )
+inline void yl_valref::set( double n )
 {
-    yl_valref value = get();
+    value value = get();
     if ( value.is_heapobj() )
     {
         yl_heapobj* object = value.as_heapobj();
@@ -331,9 +277,9 @@ inline void yl_value::set( double n )
     }
 }
 
-inline void yl_value::set( yl_heapobj* o )
+inline void yl_valref::set( yl_heapobj* o )
 {
-    yl_valref value = get();
+    value value = get();
     if ( value.is_heapobj() )
     {
         yl_heapobj* object = value.as_heapobj();
@@ -348,20 +294,20 @@ inline void yl_value::set( yl_heapobj* o )
     this->_value.store( (uintptr_t)o, std::memory_order_relaxed );
 }
 
-inline yl_valref yl_value::get() const
+inline yl_valref::value yl_valref::get() const
 {
-    return yl_valref( this->_value.load( std::memory_order_relaxed ) );
+    return value( this->_value.load( std::memory_order_relaxed ) );
 }
 
 
 
 
-inline yl_valref::yl_valref( uintptr_t value )
+inline yl_valref::value::value( uintptr_t value )
     :   _value( value )
 {
 }
 
-inline bool yl_valref::is_number() const
+inline bool yl_valref::value::is_number() const
 {
     if ( sizeof( uintptr_t ) == 8 )
     {
@@ -373,7 +319,7 @@ inline bool yl_valref::is_number() const
     }
 }
 
-inline bool yl_valref::is_heapobj() const
+inline bool yl_valref::value::is_heapobj() const
 {
     if ( sizeof( uintptr_t ) == 8 )
     {
@@ -385,7 +331,7 @@ inline bool yl_valref::is_heapobj() const
     }
 }
 
-inline double yl_valref::as_number() const
+inline double yl_valref::value::as_number() const
 {
     assert( is_number() );
     if ( sizeof( uintptr_t ) == 8 )
@@ -400,11 +346,72 @@ inline double yl_valref::as_number() const
     }
 }
 
-inline yl_heapobj* yl_valref::as_heapobj() const
+inline yl_heapobj* yl_valref::value::as_heapobj() const
 {
     assert( is_heapobj() );
     return (yl_heapobj*)_value;
 }
+
+
+
+
+
+inline yl_value::yl_value()
+    :   _kind( YLOBJ_NULL )
+    ,   _heapobj( yl_undef )
+{
+}
+
+
+inline yl_value::yl_value( const yl_valref::value& value )
+{
+    if ( value.is_number() )
+    {
+        _kind    = YLOBJ_NUMBER;
+        _number  = value.as_number();
+    }
+    else
+    {
+        _heapobj = value.as_heapobj();
+        if ( _heapobj > yl_true )
+            _kind = _heapobj->kind();
+        else
+            _kind = (yl_objkind)std::min( (uintptr_t)_heapobj, (uintptr_t)2 );
+    }
+}
+
+
+inline yl_value::yl_value( double number )
+    :   _kind( YLOBJ_NUMBER )
+    ,   _number( number )
+{
+}
+
+inline yl_value::yl_value( yl_objkind kind, yl_heapobj* heapobj )
+    :   _kind( kind )
+    ,   _heapobj( heapobj )
+{
+}
+
+inline yl_objkind yl_value::kind() const
+{
+    return _kind;
+}
+
+inline double yl_value::number() const
+{
+    return _number;
+}
+
+inline yl_heapobj* yl_value::heapobj() const
+{
+    return _heapobj;
+}
+
+
+
+
+
 
 
 
@@ -413,13 +420,13 @@ inline size_t yl_valarray::size() const
     return _size;
 }
 
-inline const yl_value& yl_valarray::at( size_t index ) const
+inline const yl_valref& yl_valarray::at( size_t index ) const
 {
     assert( index < _size );
     return _elements[ index ];
 }
 
-inline yl_value& yl_valarray::at( size_t index )
+inline yl_valref& yl_valarray::at( size_t index )
 {
     assert( index < _size );
     return _elements[ index ];

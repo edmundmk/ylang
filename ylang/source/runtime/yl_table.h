@@ -20,8 +20,8 @@ public:
     static yl_table* alloc( size_t capacity );
     static yl_table* alloc( yl_object* prototype, size_t capacity );
 
-    yl_tagval   get( const yl_tagval& key ) const;
-    void        set( const yl_tagval& key, const yl_tagval& value );
+    yl_value   get( const yl_value& key ) const;
+    void        set( const yl_value& key, const yl_value& value );
 
 };
 

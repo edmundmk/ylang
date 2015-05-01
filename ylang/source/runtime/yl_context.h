@@ -19,7 +19,7 @@
 
 class yl_heapobj;
 class yl_cothread;
-class yl_tagval;
+class yl_value;
 class yl_string;
 class yl_object;
 class yl_array;
@@ -95,20 +95,20 @@ public:
     // Object model.
 
     yl_string*      symbol( yl_string* symbol );
-    yl_object*      superof( const yl_tagval& value );
+    yl_object*      superof( const yl_value& value );
     yl_slot*        klassof( yl_object* prototype );
 
     yl_object*      proto_object();
     yl_object*      proto_array();
     yl_object*      proto_table();
 
-    yl_tagval       new_object( yl_object* prototype );
+    yl_value       new_object( yl_object* prototype );
 
 
     // Global table.
 
-    yl_tagval       get_global( yl_string* key );
-    void            set_global( yl_string* key, const yl_tagval& value );
+    yl_value       get_global( yl_string* key );
+    void            set_global( yl_string* key, const yl_value& value );
 
 
 private:

@@ -1257,7 +1257,7 @@ void ygen_emit::emit( ygen_program* p )
 {
     p->program->_name.set( m->strings.at( p->ssafunc->funcname )->string );
 
-    yl_value* values = p->program->_values();
+    yl_valref* values = p->program->_values();
     for ( size_t i = 0; i < p->values.size(); ++i )
     {
         const ygen_value& value = p->values.at( i );
