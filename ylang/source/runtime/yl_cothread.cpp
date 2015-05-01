@@ -301,7 +301,7 @@ void yl_iterator::next1( yl_value* r )
         
     case YLITER_ARRAY:
     {
-        *r = _array->get( _index );
+        *r = _array->get_index( _index );
         _index += 1;
         break;
     }
@@ -340,7 +340,7 @@ void yl_iterator::next2( yl_value* r, yl_value* b )
         
     case YLITER_ARRAY:
     {
-        *r = _array->get( _index );
+        *r = _array->get_index( _index );
         *b = yl_value( YLOBJ_NULL, yl_null );
         _index += 1;
         break;
@@ -386,7 +386,7 @@ void yl_iterator::next( yl_cothread *t, unsigned r, unsigned b )
     
     case YLITER_ARRAY:
     {
-        yl_value v = _array->get( _index );
+        yl_value v = _array->get_index( _index );
         _index += 1;
     
         if ( b != yl_opinst::MARK )

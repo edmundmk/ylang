@@ -198,12 +198,12 @@ yl_value yl_context_impl::new_object( yl_object* prototype )
 
 yl_value yl_context_impl::get_global( yl_string* key )
 {
-    return _globals->get( yl_value( YLOBJ_STRING, key ) );
+    return _globals->get_index( yl_value( YLOBJ_STRING, key ) );
 }
 
 void yl_context_impl::set_global( yl_string* key, const yl_value& value )
 {
-    _globals->set( yl_value( YLOBJ_STRING, key ), value );
+    _globals->set_index( yl_value( YLOBJ_STRING, key ), value );
 }
 
 

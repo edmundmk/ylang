@@ -26,8 +26,8 @@ public:
 
     size_t      size() const;
 
-    yl_value    get( size_t index ) const;
-    void        set( size_t index, const yl_value& value );
+    yl_value    get_index( size_t index ) const;
+    void        set_index( size_t index, const yl_value& value );
 
     void        append( const yl_value& value );
     void        extend( const yl_value* values, size_t count );
@@ -61,7 +61,7 @@ inline size_t yl_array::size() const
     return _size;
 }
 
-inline yl_value yl_array::get( size_t index ) const
+inline yl_value yl_array::get_index( size_t index ) const
 {
     if ( index >= _size )
     {
@@ -70,7 +70,7 @@ inline yl_value yl_array::get( size_t index ) const
     return _elements.get()->at( index ).get();
 }
 
-inline void yl_array::set( size_t index, const yl_value& value )
+inline void yl_array::set_index( size_t index, const yl_value& value )
 {
     if ( index >= _size )
     {

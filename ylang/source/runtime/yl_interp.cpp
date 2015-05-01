@@ -959,12 +959,12 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             {
                 throw yl_exception( "cannot index array with non-integer" );
             }
-            s[ r ] = array->get( (size_t)s[ b ].number() );
+            s[ r ] = array->get_index( (size_t)s[ b ].number() );
         }
         else if ( s[ a ].kind() == YLOBJ_TABLE )
         {
             yl_table* table = (yl_table*)s[ a ].heapobj();
-            s[ r ] = table->get( s[ b ] );
+            s[ r ] = table->get_index( s[ b ] );
         }
         else
         {
@@ -1017,12 +1017,12 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             {
                 throw yl_exception( "cannot index array with non-integer" );
             }
-            array->set( (size_t)s[ a ].number(), s[ b ] );
+            array->set_index( (size_t)s[ a ].number(), s[ b ] );
         }
         else if ( s[ r ].kind() == YLOBJ_TABLE )
         {
             yl_table* table = (yl_table*)s[ r ].heapobj();
-            table->set( s[ a ], s[ b ] );
+            table->set_index( s[ a ], s[ b ] );
         }
         else
         {
@@ -1148,7 +1148,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         
         for ( unsigned i = 0; i < count; ++i )
         {
-            s[ r + i ] = array->get( i );
+            s[ r + i ] = array->get_index( i );
         }
         
         if ( b != yl_opinst::MARK )

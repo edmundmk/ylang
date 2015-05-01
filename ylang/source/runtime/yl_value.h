@@ -200,17 +200,17 @@ public:
     static yl_valarray* alloc( size_t size );
     ~yl_valarray();
     
-    size_t          size() const;
-    const yl_valref& at( size_t index ) const;
-    yl_valref&       at( size_t index );
+    size_t              size() const;
+    const yl_valref&    at( size_t index ) const;
+    yl_valref&          at( size_t index );
 
 
 private:
 
     explicit yl_valarray( size_t size );
 
-    size_t          _size;
-    yl_valref        _elements[ 0 ];
+    size_t              _size;
+    yl_valref           _elements[ 0 ];
 
 };
 
