@@ -48,7 +48,7 @@ public:
 
     yl_object*  superof() const;
 
-    yl_value   get_key( const yl_value& key ) const;
+    yl_value    get_key( const yl_value& key ) const;
     void        set_key( const yl_value& key, const yl_value& value );
     void        del_key( const yl_value& key );
 
@@ -101,8 +101,8 @@ private:
     };
 
 
-    yl_objref< yl_heapobj >    _parent;    // parent slot, or prototype
-    yl_objref< yl_string >     _symbol;    // symbol string
+    yl_objref< yl_heapobj >     _parent;    // parent slot, or prototype
+    yl_objref< yl_string >      _symbol;    // symbol string
     size_t                      _index;     // index into slot value array
     
     std::unique_ptr< shortcut_hash > _hash;

@@ -102,12 +102,12 @@ public:
     yl_object*      proto_array();
     yl_object*      proto_table();
 
-    yl_value       new_object( yl_object* prototype );
+    yl_value        new_object( yl_object* prototype );
 
 
     // Global table.
 
-    yl_value       get_global( yl_string* key );
+    yl_value        get_global( yl_string* key );
     void            set_global( yl_string* key, const yl_value& value );
 
 

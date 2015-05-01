@@ -26,7 +26,7 @@ public:
 
     size_t      size() const;
 
-    yl_value   get( size_t index ) const;
+    yl_value    get( size_t index ) const;
     void        set( size_t index, const yl_value& value );
 
     void        append( const yl_value& value );
@@ -43,7 +43,7 @@ protected:
 
 private:
 
-    yl_objref< yl_valarray >   _elements;
+    yl_objref< yl_valarray >    _elements;
     size_t                      _size;
 
 

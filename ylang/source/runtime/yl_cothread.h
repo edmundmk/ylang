@@ -54,7 +54,7 @@ public:
 
     void        close( yl_cothread* cothread );
 
-    yl_value   get_value( yl_cothread* cothread ) const;
+    yl_value    get_value( yl_cothread* cothread ) const;
     void        set_value( yl_cothread* cothread, const yl_value& value );
 
 private:
@@ -63,7 +63,7 @@ private:
 
     bool        _open;
     unsigned    _index;
-    yl_valref    _value;
+    yl_valref   _value;
 
 };
 
@@ -132,7 +132,7 @@ public:
     void            push_frame( const yl_stackframe& frame );
     yl_stackframe   pop_frame();
 
-    yl_value*      stack( size_t base, size_t count );
+    yl_value*       stack( size_t base, size_t count );
     yl_upval**      locup( size_t base, size_t count );
     yl_iterator*    iters( size_t base, size_t count );
     
@@ -151,7 +151,7 @@ protected:
 private:
 
     std::vector< yl_stackframe >    _frames;
-    std::vector< yl_value >        _stack;
+    std::vector< yl_value >         _stack;
     std::vector< yl_upval* >        _locup;
     std::vector< yl_iterator >      _iters;
     unsigned                        _mark;
