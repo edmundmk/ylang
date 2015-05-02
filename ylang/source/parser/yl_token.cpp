@@ -104,8 +104,6 @@ void yl_token::debug_print()
     
     case YL_TOKEN_CONCATENATE:      kind_name = "CONCATENATE";      break;
 
-    case YL_TOKEN_RESPONDS:         kind_name = "RESPONDS";         break;
-    
     case YL_TOKEN_LSHIFT:           kind_name = "LSHIFT";           break;
     case YL_TOKEN_LRSHIFT:          kind_name = "LRSHIFT";          break;
     case YL_TOKEN_ARSHIFT:          kind_name = "ARSHIFT";          break;

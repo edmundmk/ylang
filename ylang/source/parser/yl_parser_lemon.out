@@ -26,8 +26,8 @@ State 1:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -261,8 +261,8 @@ State 2:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -496,8 +496,8 @@ State 3:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -731,8 +731,8 @@ State 4:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -967,8 +967,8 @@ State 5:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -1202,8 +1202,8 @@ State 6:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -1428,8 +1428,8 @@ State 7:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -1641,8 +1641,8 @@ State 8:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -1854,8 +1854,8 @@ State 9:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -2067,8 +2067,8 @@ State 10:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -2280,8 +2280,8 @@ State 11:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -2493,8 +2493,8 @@ State 12:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -2706,8 +2706,8 @@ State 13:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -2919,8 +2919,8 @@ State 14:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -3132,8 +3132,8 @@ State 15:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -3345,8 +3345,8 @@ State 16:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -3559,8 +3559,8 @@ State 17:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -3772,8 +3772,8 @@ State 18:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -3985,8 +3985,8 @@ State 19:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -4142,8 +4142,8 @@ State 20:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -4291,8 +4291,8 @@ State 21:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -4440,8 +4440,8 @@ State 22:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -4590,8 +4590,8 @@ State 23:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -4739,8 +4739,8 @@ State 24:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -4888,8 +4888,8 @@ State 25:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -5037,8 +5037,8 @@ State 26:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_new ::= NEW expr_index LPN * arg_list RPN
@@ -5183,8 +5183,8 @@ State 27:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -5328,8 +5328,8 @@ State 28:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -5475,8 +5475,8 @@ State 29:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -5620,8 +5620,8 @@ State 30:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -5768,8 +5768,8 @@ State 31:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -5913,8 +5913,8 @@ State 32:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -6057,8 +6057,8 @@ State 33:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -6202,8 +6202,8 @@ State 34:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_yield ::= YIELD LPN * arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
@@ -6348,8 +6348,8 @@ State 35:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -6492,8 +6492,8 @@ State 36:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -6638,8 +6638,8 @@ State 37:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -6782,8 +6782,8 @@ State 38:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -6925,8 +6925,8 @@ State 39:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -7066,8 +7066,8 @@ State 40:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -7202,8 +7202,8 @@ State 41:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -7338,8 +7338,8 @@ State 42:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -7474,8 +7474,8 @@ State 43:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -7612,8 +7612,8 @@ State 44:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -7743,8 +7743,8 @@ State 45:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -7877,8 +7877,8 @@ State 46:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -8008,8 +8008,8 @@ State 47:
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
           expr_index ::= expr_index LSQ * expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -8138,8 +8138,8 @@ State 48:
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= expr_index PERIOD LSQ * expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -8265,9 +8265,9 @@ State 49:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
-          expr_index ::= expr_index RESPONDS LSQ * expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
+          expr_index ::= expr_index EACHKEY LSQ * expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -8393,8 +8393,8 @@ State 50:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -8521,8 +8521,8 @@ State 51:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -8651,8 +8651,8 @@ State 52:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -8779,8 +8779,8 @@ State 53:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -8907,8 +8907,8 @@ State 54:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -9035,8 +9035,8 @@ State 55:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -9163,8 +9163,8 @@ State 56:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -9291,8 +9291,8 @@ State 57:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -9419,8 +9419,8 @@ State 58:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -9547,8 +9547,8 @@ State 59:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -9675,8 +9675,8 @@ State 60:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -9803,8 +9803,8 @@ State 61:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -9931,8 +9931,8 @@ State 62:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -10059,8 +10059,8 @@ State 63:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -10188,8 +10188,8 @@ State 64:
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
           expr_index ::= expr_index LSQ * expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -10315,8 +10315,8 @@ State 65:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -10416,8 +10416,8 @@ State 66:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -10514,8 +10514,8 @@ State 67:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -10609,8 +10609,8 @@ State 68:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -10701,8 +10701,8 @@ State 69:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -10790,8 +10790,8 @@ State 70:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -10876,8 +10876,8 @@ State 71:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -10959,8 +10959,8 @@ State 72:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -11039,8 +11039,8 @@ State 73:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -11114,8 +11114,8 @@ State 74:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -11189,8 +11189,8 @@ State 75:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -11264,8 +11264,8 @@ State 76:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -11335,8 +11335,8 @@ State 77:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -11406,8 +11406,8 @@ State 78:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -11471,8 +11471,8 @@ State 79:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -11536,8 +11536,8 @@ State 80:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -11601,8 +11601,8 @@ State 81:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -11666,8 +11666,8 @@ State 82:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -11731,8 +11731,8 @@ State 83:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -11796,8 +11796,8 @@ State 84:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -11861,8 +11861,8 @@ State 85:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -11926,8 +11926,8 @@ State 86:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -11991,8 +11991,8 @@ State 87:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -12118,8 +12118,8 @@ State 90:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -12159,8 +12159,8 @@ State 91:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -12194,8 +12194,8 @@ State 92:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -12230,8 +12230,8 @@ State 93:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -12264,8 +12264,8 @@ State 94:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_yield ::= * YIELD LPN arg_list RPN
           expr_new ::= * NEW expr_index LPN arg_list RPN
           expr_postfix ::= * expr_yield
@@ -12485,6 +12485,7 @@ State 106:
                          COMMA shift  41
                          COLON shift  57
                         ASSIGN shift  380
+                       EACHKEY shift  56
                      MULASSIGN shift  379
                      DIVASSIGN shift  375
                      MODASSIGN shift  373
@@ -12497,7 +12498,6 @@ State 106:
                   BITANDASSIGN shift  370
                   BITXORASSIGN shift  371
                    BITORASSIGN shift  372
-                       EACHKEY shift  56
                      assign_op shift  27
                      {default} reduce 123
 
@@ -12626,8 +12626,8 @@ State 111:
           expr_index ::= * expr_index PERIOD IDENTIFIER
           expr_index ::= * expr_index PERIOD LSQ expr_value RSQ
           expr_index ::= * expr_index LSQ expr_value RSQ
-          expr_index ::= * expr_index RESPONDS IDENTIFIER
-          expr_index ::= * expr_index RESPONDS LSQ expr_value RSQ
+          expr_index ::= * expr_index EACHKEY IDENTIFIER
+          expr_index ::= * expr_index EACHKEY LSQ expr_value RSQ
           expr_new ::= NEW * expr_index LPN arg_list RPN
 
                            LPN shift  32
@@ -12746,8 +12746,8 @@ State 123:
           expr_index ::= expr_index * PERIOD IDENTIFIER
           expr_index ::= expr_index * PERIOD LSQ expr_value RSQ
           expr_index ::= expr_index * LSQ expr_value RSQ
-          expr_index ::= expr_index * RESPONDS IDENTIFIER
-          expr_index ::= expr_index * RESPONDS LSQ expr_value RSQ
+          expr_index ::= expr_index * EACHKEY IDENTIFIER
+          expr_index ::= expr_index * EACHKEY LSQ expr_value RSQ
           expr_postfix ::= expr_index * LPN arg_list RPN
      (44) expr_simple ::= expr_index *
           expr_simple ::= expr_index * LPN arg_list RPN YIELD
@@ -12758,7 +12758,8 @@ State 123:
                       ELLIPSIS shift  339
                         PERIOD shift  138
                            LSQ shift  47
-                      RESPONDS shift  145
+                       EACHKEY shift  145
+                       EACHKEY reduce 44  ** Parsing conflict **
                      {default} reduce 44
 
 State 124:
@@ -12794,21 +12795,21 @@ State 126:
           expr_index ::= expr_index * PERIOD IDENTIFIER
           expr_index ::= expr_index * PERIOD LSQ expr_value RSQ
           expr_index ::= expr_index * LSQ expr_value RSQ
-          expr_index ::= expr_index * RESPONDS IDENTIFIER
-          expr_index ::= expr_index * RESPONDS LSQ expr_value RSQ
+          expr_index ::= expr_index * EACHKEY IDENTIFIER
+          expr_index ::= expr_index * EACHKEY LSQ expr_value RSQ
           expr_new ::= NEW expr_index * LPN arg_list RPN
 
                            LPN shift  26
                         PERIOD shift  138
                            LSQ shift  64
-                      RESPONDS shift  145
+                       EACHKEY shift  145
 
 State 127:
           expr_index ::= expr_index * PERIOD IDENTIFIER
           expr_index ::= expr_index * PERIOD LSQ expr_value RSQ
           expr_index ::= expr_index * LSQ expr_value RSQ
-          expr_index ::= expr_index * RESPONDS IDENTIFIER
-          expr_index ::= expr_index * RESPONDS LSQ expr_value RSQ
+          expr_index ::= expr_index * EACHKEY IDENTIFIER
+          expr_index ::= expr_index * EACHKEY LSQ expr_value RSQ
           expr_postfix ::= expr_index * LPN arg_list RPN
      (44) expr_simple ::= expr_index *
           expr_simple ::= expr_index * LPN arg_list RPN YIELD
@@ -12816,7 +12817,8 @@ State 127:
                            LPN shift  30
                         PERIOD shift  138
                            LSQ shift  64
-                      RESPONDS shift  145
+                       EACHKEY shift  145
+                       EACHKEY reduce 44  ** Parsing conflict **
                      {default} reduce 44
 
 State 128:
@@ -12992,8 +12994,8 @@ State 144:
                            LSQ shift  53
 
 State 145:
-          expr_index ::= expr_index RESPONDS * IDENTIFIER
-          expr_index ::= expr_index RESPONDS * LSQ expr_value RSQ
+          expr_index ::= expr_index EACHKEY * IDENTIFIER
+          expr_index ::= expr_index EACHKEY * LSQ expr_value RSQ
 
                     IDENTIFIER shift  384
                            LSQ shift  49
@@ -13085,7 +13087,7 @@ State 159:
                            RPN shift  412
 
 State 160:
-          expr_index ::= expr_index RESPONDS LSQ expr_value * RSQ
+          expr_index ::= expr_index EACHKEY LSQ expr_value * RSQ
 
                            RSQ shift  362
 
@@ -14174,7 +14176,7 @@ State 361:
                      {default} reduce 37
 
 State 362:
-     (34) expr_index ::= expr_index RESPONDS LSQ expr_value RSQ *
+     (34) expr_index ::= expr_index EACHKEY LSQ expr_value RSQ *
 
                      {default} reduce 34
 
@@ -14284,7 +14286,7 @@ State 383:
                      {default} reduce 153
 
 State 384:
-     (33) expr_index ::= expr_index RESPONDS IDENTIFIER *
+     (33) expr_index ::= expr_index EACHKEY IDENTIFIER *
 
                      {default} reduce 33
 
@@ -14458,7 +14460,7 @@ Symbols:
    20: SUPEROF
    21: LSQ
    22: RSQ
-   23: RESPONDS
+   23: EACHKEY
    24: NEW
    25: NULL
    26: TRUE
@@ -14516,80 +14518,79 @@ Symbols:
    78: SWITCH
    79: DO
    80: FOR
-   81: EACHKEY
-   82: USING
-   83: error:
-   84: name: IDENTIFIER
-   85: param_list: <lambda> IDENTIFIER ELLIPSIS
-   86: arg_list: <lambda> YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
-   87: object_scope: DEF
-   88: newobj_scope: COLON
-   89: func_scope: DEF
-   90: newf_scope: PERIOD CARET
-   91: compare_op: EQUAL NOTEQUAL LESS GREATER LESSEQUAL GREATEREQUAL IS NOTIS
-   92: assign_op: ASSIGN MULASSIGN DIVASSIGN MODASSIGN INTDIVASSIGN ADDASSIGN SUBASSIGN LSHIFTASSIGN LRSHIFTASSIGN ARSHIFTASSIGN BITANDASSIGN BITXORASSIGN BITORASSIGN
-   93: value_lbody: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
-   94: value_list: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
-   95: keyval_lbody: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
-   96: keyval_list: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
-   97: stmt_block: LBR
-   98: stmt_reblock: LBR
-   99: stmt_if: IF
-  100: stmt_switch: SWITCH
-  101: stmt_while: WHILE
-  102: stmt_do: DO
-  103: stmt_doblock: DO
-  104: scope_for: FOR
-  105: stmt_foreach: FOR
-  106: stmt_for: FOR
-  107: stmt_using: USING
-  108: try_block: TRY
-  109: try_catch: TRY
-  110: scope_catch: CATCH
-  111: stmt_catch: CATCH
-  112: token_yield: YIELD
-  113: script: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR DEF COLON SEMICOLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
-  114: stmt_list: <lambda> IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR DEF COLON SEMICOLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
-  115: name_list: IDENTIFIER
-  116: qual_name: IDENTIFIER
-  117: decl_object: DEF
-  118: object_decls: <lambda> DEF SEMICOLON VAR
-  119: expr_simple: YIELD LPN IDENTIFIER SUPEROF NEW
-  120: object_decl: DEF SEMICOLON VAR
-  121: decl_proto: DEF
-  122: decl_func: DEF
-  123: decl_var: VAR
-  124: expr_list: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
-  125: expr_index: LPN IDENTIFIER SUPEROF
-  126: expr_assign: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
-  127: expr_value: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
-  128: expr_yield: YIELD
-  129: expr_new: NEW
-  130: expr_postfix: YIELD LPN IDENTIFIER SUPEROF NEW
-  131: expr_literal: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING
-  132: expr_suffix: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING
-  133: expr_unary: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
-  134: expr_mul: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
-  135: expr_add: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
-  136: expr_shift: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
-  137: expr_bitand: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
-  138: expr_bitxor: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
-  139: expr_bitor: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
-  140: expr_concat: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
-  141: expr_compare: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
-  142: expr_and: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
-  143: expr_xor: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
-  144: expr_or: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
-  145: expr_nolbr: YIELD LPN IDENTIFIER PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
-  146: expr_lbody: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
-  147: expr_final: YIELD LPN IDENTIFIER ELLIPSIS SUPEROF NEW
-  148: sexpr_lbody: YIELD LPN IDENTIFIER PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
-  149: sexpr_list: YIELD LPN IDENTIFIER ELLIPSIS PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
-  150: sexpr_assign: YIELD LPN IDENTIFIER ELLIPSIS PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
-  151: condition: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
-  152: stmt: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
-  153: stmt_common: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
-  154: stmt_reuse: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
-  155: stmt_try: TRY
-  156: for_cond: <lambda> YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
-  157: for_expr: <lambda> YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+   81: USING
+   82: error:
+   83: name: IDENTIFIER
+   84: param_list: <lambda> IDENTIFIER ELLIPSIS
+   85: arg_list: <lambda> YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+   86: object_scope: DEF
+   87: newobj_scope: COLON
+   88: func_scope: DEF
+   89: newf_scope: PERIOD CARET
+   90: compare_op: EQUAL NOTEQUAL LESS GREATER LESSEQUAL GREATEREQUAL IS NOTIS
+   91: assign_op: ASSIGN MULASSIGN DIVASSIGN MODASSIGN INTDIVASSIGN ADDASSIGN SUBASSIGN LSHIFTASSIGN LRSHIFTASSIGN ARSHIFTASSIGN BITANDASSIGN BITXORASSIGN BITORASSIGN
+   92: value_lbody: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+   93: value_list: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+   94: keyval_lbody: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+   95: keyval_list: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+   96: stmt_block: LBR
+   97: stmt_reblock: LBR
+   98: stmt_if: IF
+   99: stmt_switch: SWITCH
+  100: stmt_while: WHILE
+  101: stmt_do: DO
+  102: stmt_doblock: DO
+  103: scope_for: FOR
+  104: stmt_foreach: FOR
+  105: stmt_for: FOR
+  106: stmt_using: USING
+  107: try_block: TRY
+  108: try_catch: TRY
+  109: scope_catch: CATCH
+  110: stmt_catch: CATCH
+  111: token_yield: YIELD
+  112: script: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR DEF COLON SEMICOLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
+  113: stmt_list: <lambda> IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR DEF COLON SEMICOLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
+  114: name_list: IDENTIFIER
+  115: qual_name: IDENTIFIER
+  116: decl_object: DEF
+  117: object_decls: <lambda> DEF SEMICOLON VAR
+  118: expr_simple: YIELD LPN IDENTIFIER SUPEROF NEW
+  119: object_decl: DEF SEMICOLON VAR
+  120: decl_proto: DEF
+  121: decl_func: DEF
+  122: decl_var: VAR
+  123: expr_list: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  124: expr_index: LPN IDENTIFIER SUPEROF
+  125: expr_assign: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  126: expr_value: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  127: expr_yield: YIELD
+  128: expr_new: NEW
+  129: expr_postfix: YIELD LPN IDENTIFIER SUPEROF NEW
+  130: expr_literal: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING
+  131: expr_suffix: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING
+  132: expr_unary: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
+  133: expr_mul: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
+  134: expr_add: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
+  135: expr_shift: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
+  136: expr_bitand: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
+  137: expr_bitxor: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
+  138: expr_bitor: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
+  139: expr_concat: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
+  140: expr_compare: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
+  141: expr_and: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
+  142: expr_xor: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
+  143: expr_or: YIELD LPN IDENTIFIER SUPEROF NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE
+  144: expr_nolbr: YIELD LPN IDENTIFIER PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  145: expr_lbody: YIELD LPN IDENTIFIER PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  146: expr_final: YIELD LPN IDENTIFIER ELLIPSIS SUPEROF NEW
+  147: sexpr_lbody: YIELD LPN IDENTIFIER PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  148: sexpr_list: YIELD LPN IDENTIFIER ELLIPSIS PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  149: sexpr_assign: YIELD LPN IDENTIFIER ELLIPSIS PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  150: condition: YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  151: stmt: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
+  152: stmt_common: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
+  153: stmt_reuse: IF TRY YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET WHILE DELETE CASE DEFAULT CONTINUE BREAK RETURN THROW SWITCH DO FOR USING
+  154: stmt_try: TRY
+  155: for_cond: <lambda> YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON VAR SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET
+  156: for_expr: <lambda> YIELD LPN IDENTIFIER ELLIPSIS PERIOD LBR COLON SUPEROF LSQ NEW NULL TRUE FALSE NUMBER STRING INCREMENT DECREMENT PLUS MINUS XMARK TILDE CARET

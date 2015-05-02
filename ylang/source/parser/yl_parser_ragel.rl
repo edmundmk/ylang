@@ -214,8 +214,6 @@ void  XecParseFree( void* p, void (*free)( void* ) );
 
         |   '..'   >ts %{ MTOKEN( YL_TOKEN_CONCATENATE, sloc, "..", 2 ); }
 
-        |   '::'   >ts %{ MTOKEN( YL_TOKEN_RESPONDS, sloc, "::", 2 ); }
-
         |   '<<'   >ts %{ MTOKEN( YL_TOKEN_LSHIFT, sloc, "<<", 2 ); }
         |   '>>'   >ts %{ MTOKEN( YL_TOKEN_LRSHIFT, sloc, ">>", 2 ); }
         |   '~>>'  >ts %{ MTOKEN( YL_TOKEN_ARSHIFT, sloc, "~>>", 3 ); }
