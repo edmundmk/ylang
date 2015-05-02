@@ -49,6 +49,10 @@ public:
         { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
     return_t visit( yl_expr_index* node, arguments_t ... arguments )
         { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
+    return_t visit( yl_expr_responds* node, arguments_t ... arguments )
+        { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
+    return_t visit( yl_expr_inresponds* node, arguments_t ... arguments )
+        { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
     return_t visit( yl_expr_preop* node, arguments_t ... arguments )
         { return ( (visitor_t*)this )->fallback( node, arguments ... ); }
     return_t visit( yl_expr_postop* node, arguments_t ... arguments )
@@ -156,6 +160,8 @@ return_t yl_ast_visitor< visitor_t, return_t, arguments_t ... >::
         &visitor_t::template dispatch< yl_expr_key >,
         &visitor_t::template dispatch< yl_expr_inkey >,
         &visitor_t::template dispatch< yl_expr_index >,
+        &visitor_t::template dispatch< yl_expr_responds >,
+        &visitor_t::template dispatch< yl_expr_inresponds >,
         &visitor_t::template dispatch< yl_expr_preop >,
         &visitor_t::template dispatch< yl_expr_postop >,
         &visitor_t::template dispatch< yl_expr_unary >,

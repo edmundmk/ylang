@@ -823,7 +823,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
     case YL_SUPER:
     case YL_INKEY:
     case YL_INDEX:
-    case YL_IN:
+    case YL_RESPONDS:
     case YL_IS:
     {
         assert( op->result_count == 1 );

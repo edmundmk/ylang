@@ -61,8 +61,6 @@ const char* yl_operator_name( yl_ast_opkind op )
     case YL_ASTOP_GREATER:          return ">";
     case YL_ASTOP_LESSEQUAL:        return "<=";
     case YL_ASTOP_GREATEREQUAL:     return ">=";
-    case YL_ASTOP_IN:               return "in";
-    case YL_ASTOP_NOTIN:            return "!in";
     case YL_ASTOP_IS:               return "is";
     case YL_ASTOP_NOTIS:            return "!is";
     
@@ -104,6 +102,8 @@ public:
     void visit( yl_expr_key* node, int indent );
     void visit( yl_expr_inkey* node, int indent );
     void visit( yl_expr_index* node, int indent );
+    void visit( yl_expr_responds* node, int indent );
+    void visit( yl_expr_inresponds* node, int indent );
     void visit( yl_expr_preop* node, int indent );
     void visit( yl_expr_postop* node, int indent );
     void visit( yl_expr_unary* node, int indent );
@@ -320,6 +320,20 @@ void yl_ast_printer::visit( yl_expr_index* node, int indent )
     printf( "%*sindex:\n", indent, "" );
     visit( node->object, indent + INDENT );
     visit( node->index, indent + INDENT );
+}
+
+void yl_ast_printer::visit( yl_expr_responds* node, int indent )
+{
+    printf( "%*sresponds:\n", indent, "" );
+    visit( node->object, indent + INDENT );
+    printf( "%*s'%s'\n", indent + INDENT, "", node->key );
+}
+
+void yl_ast_printer::visit( yl_expr_inresponds* node, int indent )
+{
+    printf( "%*sinresponds:\n", indent, "" );
+    visit( node->object, indent + INDENT );
+    visit( node->key, indent + INDENT );
 }
 
 void yl_ast_printer::visit( yl_expr_preop* node, int indent ) 

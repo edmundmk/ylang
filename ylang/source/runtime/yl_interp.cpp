@@ -998,6 +998,14 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         break;
     }
     
+    case YL_RESPONDS:
+    {
+        yl_value value = keyerof( s[ a ] )->get_key( s[ b ] );
+        yl_heapobj* result = value.kind() != YLOBJ_UNDEF ? yl_true : yl_false;
+        s[ r ] = yl_value( YLOBJ_BOOL, result );
+        break;
+    }
+    
     case YL_DELKEY:
     {
         if ( s[ a ].kind() & YLOBJ_IS_OBJECT )
@@ -1025,14 +1033,6 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         {
             throw yl_exception( "unkeyable object" );
         }
-        break;
-    }
-    
-    case YL_IN:
-    {
-        yl_value value = keyerof( s[ a ] )->get_key( s[ b ] );
-        yl_heapobj* result = value.kind() != YLOBJ_UNDEF ? yl_true : yl_false;
-        s[ r ] = yl_value( YLOBJ_BOOL, result );
         break;
     }
     

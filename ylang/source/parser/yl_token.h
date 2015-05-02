@@ -82,6 +82,8 @@ enum yl_token_kind
     
     YL_TOKEN_CONCATENATE   = LEMON_CONCATENATE,
     
+    YL_TOKEN_RESPONDS      = LEMON_RESPONDS,
+    
     YL_TOKEN_LSHIFT        = LEMON_LSHIFT,
     YL_TOKEN_LRSHIFT       = LEMON_LRSHIFT,
     YL_TOKEN_ARSHIFT       = LEMON_ARSHIFT,
@@ -90,8 +92,6 @@ enum yl_token_kind
     YL_TOKEN_LESSEQUAL     = LEMON_LESSEQUAL,
     YL_TOKEN_EQUAL         = LEMON_EQUAL,
     YL_TOKEN_GREATEREQUAL  = LEMON_GREATEREQUAL,
-    YL_TOKEN_IN            = LEMON_IN,
-    YL_TOKEN_NOTIN         = LEMON_NOTIN,
     YL_TOKEN_IS            = LEMON_IS,
     YL_TOKEN_NOTIS         = LEMON_NOTIS,
     
@@ -170,6 +170,8 @@ enum yl_token_kind
 
 #undef LEMON_CONCATENATE
 
+#undef LEMON_RESPONDS
+
 #undef LEMON_INCREMENT
 #undef LEMON_DECREMENT
     
@@ -181,8 +183,6 @@ enum yl_token_kind
 #undef LEMON_LESSEQUAL
 #undef LEMON_EQUAL
 #undef LEMON_GREATEREQUAL
-#undef LEMON_IN
-#undef LEMON_NOTIN
 #undef LEMON_IS
 #undef LEMON_NOTIS
     

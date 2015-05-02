@@ -147,10 +147,10 @@ enum yl_opcode
     YL_SETKEY,       // r.b = a, where b is a key index
     YL_SETINKEY,     // r.[ a ] = b
     YL_SETINDEX,     // r[ a ] = b
+    YL_RESPONDS,     // r = a::b
     YL_DELKEY,       // delete a.b, where b is a key index
     YL_DELINKEY,     // delete a.[ b ]
     
-    YL_IN,           // r = ( a in b )
     YL_IS,           // r = ( a is b )
 
     YL_APPEND,       // append r to (array)a

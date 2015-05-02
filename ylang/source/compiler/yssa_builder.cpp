@@ -1435,6 +1435,34 @@ int yssa_builder::visit( yl_expr_index* node, int count )
     return 1;
 }
 
+int yssa_builder::visit( yl_expr_responds* node, int count )
+{
+    size_t length = strlen( node->key );
+    char* string = (char*)module->alloc.malloc( length + 1 );
+    memcpy( string, node->key, length );
+    string[ length ] = '\0';
+
+    yssa_opinst* key = op( node->sloc, YL_STRING, 0, 1 );
+    key->string = new ( module->alloc ) yssa_string( string, length );
+
+    size_t operands = push( node->object, 1 );
+    yssa_opinst* o = op( node->sloc, YL_RESPONDS, 2, 1 );
+    pop( operands, 1, o->operand );
+    o->operand[ 1 ] = key;
+    push_op( o );
+    return 1;
+}
+
+int yssa_builder::visit( yl_expr_inresponds* node, int count )
+{
+    size_t operands = push( node->object, 1 );
+    push( node->key, 1 );
+    yssa_opinst* o = op( node->sloc, YL_RESPONDS, 2, 1 );
+    pop( operands, 2, o->operand );
+    push_op( o );
+    return 1;
+}
+
 int yssa_builder::visit( yl_expr_preop* node, int count )
 {
     size_t lvalue = push_lvalue( node->lvalue );            // lv
@@ -1664,14 +1692,6 @@ int yssa_builder::visit( yl_expr_compare* node, int count )
             opcode = YL_GE;
             break;
             
-        case YL_ASTOP_IN:
-            opcode = YL_IN;
-            break;
-            
-        case YL_ASTOP_NOTIN:
-            opcode = YL_IN;
-            break;
-            
         case YL_ASTOP_IS:
             opcode = YL_IS;
             break;
@@ -1691,7 +1711,7 @@ int yssa_builder::visit( yl_expr_compare* node, int count )
         
         yssa_opinst* b = o->operand[ 1 ];
         
-        if ( opkind == YL_ASTOP_NOTIN || opkind == YL_ASTOP_NOTIS )
+        if ( opkind == YL_ASTOP_NOTIS )
         {
             o = op( node->sloc, YL_LNOT, 1, 1 );
             pop( index, 1, o->operand );

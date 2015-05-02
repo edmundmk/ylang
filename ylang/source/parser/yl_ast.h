@@ -64,6 +64,8 @@ enum yl_ast_node_kind
     YL_EXPR_KEY,
     YL_EXPR_INKEY,
     YL_EXPR_INDEX,
+    YL_EXPR_RESPONDS,
+    YL_EXPR_INRESPONDS,
 
     // Operators.
     YL_EXPR_PREOP,     // not valid on expression lists
@@ -169,8 +171,6 @@ enum yl_ast_opkind
     YL_ASTOP_GREATER,
     YL_ASTOP_LESSEQUAL,
     YL_ASTOP_GREATEREQUAL,
-    YL_ASTOP_IN,
-    YL_ASTOP_NOTIN,
     YL_ASTOP_IS,
     YL_ASTOP_NOTIS,
     
@@ -457,6 +457,24 @@ struct yl_expr_index : public yl_ast_node
 
     yl_ast_node*        object;
     yl_ast_node*        index;
+};
+
+
+struct yl_expr_responds : public yl_ast_node
+{
+    yl_expr_responds( int sloc, yl_ast_node* object, const char* key );
+
+    yl_ast_node*        object;
+    const char*         key;
+};
+
+
+struct yl_expr_inresponds : public yl_ast_node
+{
+    yl_expr_inresponds( int sloc, yl_ast_node* object, yl_ast_node* key );
+    
+    yl_ast_node*        object;
+    yl_ast_node*        key;
 };
 
 

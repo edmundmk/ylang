@@ -214,6 +214,8 @@ void  XecParseFree( void* p, void (*free)( void* ) );
 
         |   '..'   >ts %{ MTOKEN( YL_TOKEN_CONCATENATE, sloc, "..", 2 ); }
 
+        |   '::'   >ts %{ MTOKEN( YL_TOKEN_RESPONDS, sloc, "::", 2 ); }
+
         |   '<<'   >ts %{ MTOKEN( YL_TOKEN_LSHIFT, sloc, "<<", 2 ); }
         |   '>>'   >ts %{ MTOKEN( YL_TOKEN_LRSHIFT, sloc, ">>", 2 ); }
         |   '~>>'  >ts %{ MTOKEN( YL_TOKEN_ARSHIFT, sloc, "~>>", 3 ); }
@@ -222,7 +224,6 @@ void  XecParseFree( void* p, void (*free)( void* ) );
         |   '<='   >ts %{ MTOKEN( YL_TOKEN_LESSEQUAL, sloc, "<=", 2 ); }
         |   '=='   >ts %{ MTOKEN( YL_TOKEN_EQUAL, sloc, "==", 2 ); }
         |   '>='   >ts %{ MTOKEN( YL_TOKEN_GREATEREQUAL, sloc, ">=", 2 ); }
-        |   '!in'  >ts %{ MTOKEN( YL_TOKEN_NOTIN, sloc, "!in", 3 ); }
         |   '!is'  >ts %{ MTOKEN( YL_TOKEN_NOTIS, sloc, "!is", 3 ); }
 
         |   '%='   >ts %{ MTOKEN( YL_TOKEN_MODASSIGN, sloc, "%=", 2 ); }
@@ -308,7 +309,6 @@ struct yl_keywords
         emplace( symkey( "var" ),       YL_KEYWORD_VAR );
         emplace( symkey( "while" ),     YL_KEYWORD_WHILE );
         emplace( symkey( "yield" ),     YL_KEYWORD_YIELD );
-        emplace( symkey( "in" ),        YL_TOKEN_IN );
         emplace( symkey( "is" ),        YL_TOKEN_IS );
     }
     

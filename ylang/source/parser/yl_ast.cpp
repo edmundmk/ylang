@@ -208,6 +208,23 @@ yl_expr_index::yl_expr_index(
 }
 
 
+yl_expr_responds::yl_expr_responds(
+                int sloc, yl_ast_node* object, const char* key )
+    :   yl_ast_node( YL_EXPR_RESPONDS, sloc )
+    ,   object( object )
+    ,   key( key )
+{
+}
+
+yl_expr_inresponds::yl_expr_inresponds(
+                int sloc, yl_ast_node* object, yl_ast_node* key )
+    :   yl_ast_node( YL_EXPR_INRESPONDS, sloc )
+    ,   object( object )
+    ,   key( key )
+{
+}
+
+
 yl_expr_preop::yl_expr_preop(
                 int sloc, yl_ast_opkind opkind, yl_ast_node* lvalue )
     :   yl_ast_node( YL_EXPR_PREOP, sloc )

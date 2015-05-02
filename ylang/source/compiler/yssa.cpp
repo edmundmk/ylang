@@ -340,10 +340,10 @@ public:
         add( YL_SETKEY,     "setkey %k" );
         add( YL_SETINKEY,   "setinkey" );
         add( YL_SETINDEX,   "setindex" );
+        add( YL_RESPONDS,   "responds" );
         add( YL_DELKEY,     "delkey %k" );
         add( YL_DELINKEY,   "delinkey" );
     
-        add( YL_IN,         "in" );
         add( YL_IS,         "is" );
 
         add( YL_APPEND,     "append" );

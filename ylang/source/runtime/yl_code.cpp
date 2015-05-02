@@ -128,10 +128,10 @@ public:
         add( YL_SETKEY,     "setkey %r, %a, $%b" );
         add( YL_SETINKEY,   "setinkey %r, %a, %b" );
         add( YL_SETINDEX,   "setindex %r, %a, %b" );
+        add( YL_RESPONDS,   "responds %r, %a, %b" );
         add( YL_DELKEY,     "delkey %a, $%b" );
         add( YL_DELINKEY,   "delinkey %a, %b" );
     
-        add( YL_IN,         "in %r, %a, %b" );
         add( YL_IS,         "is %r, %a, %b" );
 
         add( YL_APPEND,     "append %r, %a" );

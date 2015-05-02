@@ -352,6 +352,16 @@ expr_index(x)   ::= expr_index(expr) LSQ expr_value(index) RSQ .
                 {
                     x = p->alloc< yl_expr_index >( expr->sloc, expr, index );
                 }
+expr_index(x)   ::= expr_index(expr) RESPONDS IDENTIFIER(token) .
+                {
+                    const char* key = token->text;
+                    x = p->alloc< yl_expr_responds >( expr->sloc, expr, key );
+                    p->destroy( token );
+                }
+expr_index(x)   ::= expr_index(expr) RESPONDS LSQ expr_value(key) RSQ .
+                {
+                    x = p->alloc< yl_expr_inresponds >( expr->sloc, expr, key );
+                }
 
 expr_yield(x)   ::= YIELD(token) LPN /* conflict */ arg_list(args) RPN .
                 {
@@ -668,14 +678,6 @@ compare_op(x)   ::= LESSEQUAL(token) .
 compare_op(x)   ::= GREATEREQUAL(token) .
                 {
                     x = make_token_op( token, YL_ASTOP_GREATEREQUAL );
-                }
-compare_op(x)   ::= IN(token) .
-                {
-                    x = make_token_op( token, YL_ASTOP_IN );
-                }
-compare_op(x)   ::= NOTIN(token) .
-                {
-                    x = make_token_op( token, YL_ASTOP_NOTIN );
                 }
 compare_op(x)   ::= IS(token) .
                 {

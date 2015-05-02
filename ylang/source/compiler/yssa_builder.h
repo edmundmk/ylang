@@ -156,6 +156,8 @@ private:
     int visit( yl_expr_key* node, int count );
     int visit( yl_expr_inkey* node, int count );
     int visit( yl_expr_index* node, int count );
+    int visit( yl_expr_responds* node, int count );
+    int visit( yl_expr_inresponds* node, int count );
     int visit( yl_expr_preop* node, int count );
     int visit( yl_expr_postop* node, int count );
     int visit( yl_expr_unary* node, int count );
