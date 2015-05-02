@@ -897,7 +897,8 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         yl_heapobj* key = values[ b ].get().as_heapobj();
         assert( key->kind() == YLOBJ_STRING );
-        s[ r ] = keyerof( s[ a ] )->get_key( yl_value( YLOBJ_STRING, key ) );
+        yl_string* string = (yl_string*)key;
+        s[ r ] = keyerof( s[ a ] )->get_key( string );
         if ( s[ r ].kind() == YLOBJ_UNDEF )
         {
             yl_string* s = (yl_string*)key;
@@ -908,7 +909,12 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_INKEY:
     {
-        s[ r ] = keyerof( s[ a ] )->get_key( s[ b ] );
+        if ( s[ b ].kind() != YLOBJ_STRING )
+        {
+            throw yl_exception( "object index must be a string" );
+        }
+        yl_string* string = (yl_string*)s[ b ].heapobj();
+        s[ r ] = keyerof( s[ a ] )->get_key( string->symbol() );
         if ( s[ r ].kind() == YLOBJ_UNDEF )
         {
             throw yl_exception( "key not found" );
@@ -921,25 +927,29 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         if ( s[ a ].kind() == YLOBJ_ARRAY )
         {
             yl_array* array = (yl_array*)s[ a ].heapobj();
-            if ( s[ b ].kind() != YLOBJ_NUMBER
-                    || ! is_integer( s[ b ].number() ) )
+            if ( s[ b ].kind() != YLOBJ_NUMBER )
             {
                 throw yl_exception( "cannot index array with non-integer" );
             }
-            s[ r ] = array->get_index( (size_t)s[ b ].number() );
+            double index = s[ b ].number();
+            if ( ! is_integer( index ) || index < 0 || index >= array->size() )
+            {
+                throw yl_exception( "invalid index" );
+            }
+            s[ r ] = array->get_index( (size_t)index );
         }
         else if ( s[ a ].kind() == YLOBJ_TABLE )
         {
             yl_table* table = (yl_table*)s[ a ].heapobj();
             s[ r ] = table->get_index( s[ b ] );
+            if ( s[ r ].kind() == YLOBJ_UNDEF )
+            {
+                throw yl_exception( "index not found" );
+            }
         }
         else
         {
             throw yl_exception( "unindexable object" );
-        }
-        if ( s[ r ].kind() == YLOBJ_UNDEF )
-        {
-            throw yl_exception( "index not found" );
         }
         break;
     }
@@ -951,7 +961,8 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             yl_object* object = (yl_object*)s[ r ].heapobj();
             yl_heapobj* key = values[ b ].get().as_heapobj();
             assert( key->kind() == YLOBJ_STRING );
-            object->set_key( yl_value( YLOBJ_STRING, key ), s[ a ] );
+            yl_string* string = (yl_string*)key;
+            object->set_key( string, s[ a ] );
         }
         else
         {
@@ -965,7 +976,12 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         if ( s[ r ].kind() & YLOBJ_IS_OBJECT )
         {
             yl_object* object = (yl_object*)s[ r ].heapobj();
-            object->set_key( s[ a ], s[ b ] );
+            if ( s[ a ].kind() != YLOBJ_STRING )
+            {
+                throw yl_exception( "object index must be a string" );
+            }
+            yl_string* string = (yl_string*)s[ a ].heapobj();
+            object->set_key( string->symbol(), s[ b ] );
         }
         else
         {
@@ -979,12 +995,16 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         if ( s[ r ].kind() == YLOBJ_ARRAY )
         {
             yl_array* array = (yl_array*)s[ r ].heapobj();
-            if ( s[ a ].kind() != YLOBJ_NUMBER
-                    || ! is_integer( s[ a ].number() ) )
+            if ( s[ b ].kind() != YLOBJ_NUMBER )
             {
                 throw yl_exception( "cannot index array with non-integer" );
             }
-            array->set_index( (size_t)s[ a ].number(), s[ b ] );
+            double index = s[ b ].number();
+            if ( ! is_integer( index ) || index < 0 || index >= array->size() )
+            {
+                throw yl_exception( "invalid index" );
+            }
+            array->set_index( (size_t)index, s[ b ] );
         }
         else if ( s[ r ].kind() == YLOBJ_TABLE )
         {
@@ -1000,7 +1020,12 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_RESPONDS:
     {
-        yl_value value = keyerof( s[ a ] )->get_key( s[ b ] );
+        if ( s[ b ].kind() != YLOBJ_STRING )
+        {
+            throw yl_exception( "object index must be a string" );
+        }
+        yl_string* string = (yl_string*)s[ b ].heapobj();
+        yl_value value = keyerof( s[ a ] )->get_key( string->symbol() );
         yl_heapobj* result = value.kind() != YLOBJ_UNDEF ? yl_true : yl_false;
         s[ r ] = yl_value( YLOBJ_BOOL, result );
         break;
@@ -1013,7 +1038,8 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             yl_object* object = (yl_object*)s[ a ].heapobj();
             yl_heapobj* key = values[ b ].get().as_heapobj();
             assert( key->kind() == YLOBJ_STRING );
-            object->del_key( yl_value( YLOBJ_STRING, key ) );
+            yl_string* string = (yl_string*)key;
+            object->del_key( string );
         }
         else
         {
@@ -1027,7 +1053,12 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         if ( s[ a ].kind() & YLOBJ_IS_OBJECT )
         {
             yl_object* object = (yl_object*)s[ a ].heapobj();
-            object->del_key( s[ b ] );
+            if ( s[ b ].kind() != YLOBJ_STRING )
+            {
+                throw yl_exception( "object index must be a string" );
+            }
+            yl_string* string = (yl_string*)s[ b ].heapobj();
+            object->del_key( string->symbol() );
         }
         else
         {

@@ -48,9 +48,9 @@ public:
 
     yl_object*  superof() const;
 
-    yl_value    get_key( const yl_value& key ) const;
-    void        set_key( const yl_value& key, const yl_value& value );
-    void        del_key( const yl_value& key );
+    yl_value    get_key( const yl_symbol& key ) const;
+    void        set_key( const yl_symbol& key, const yl_value& value );
+    void        del_key( const yl_symbol& key );
 
 
 protected:
@@ -100,7 +100,7 @@ private:
     struct shortcut_hash
     {
         yl_object* superof;
-        std::unordered_map< symkey, size_t > lookup;
+        std::unordered_map< yl_symbol, size_t > lookup;
     };
 
 

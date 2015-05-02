@@ -63,19 +63,13 @@ inline size_t yl_array::size() const
 
 inline yl_value yl_array::get_index( size_t index ) const
 {
-    if ( index >= _size )
-    {
-        throw yl_exception( "invalid index" );
-    }
+    assert( index < _size );
     return _elements.get()->at( index ).get();
 }
 
 inline void yl_array::set_index( size_t index, const yl_value& value )
 {
-    if ( index >= _size )
-    {
-        throw yl_exception( "invalid index" );
-    }
+    assert( index < _size );
     _elements.get()->at( index ).set( value );
 }
 

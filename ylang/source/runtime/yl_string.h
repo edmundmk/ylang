@@ -11,6 +11,7 @@
 
 
 #include <hash.h>
+#include <assert.h>
 #include "yl_heapobj.h"
 
 
@@ -46,6 +47,7 @@ public:
 private:
 
     friend class yl_context_impl;
+    friend class yl_symbol;
 
     explicit yl_string( size_t size );
 
@@ -56,6 +58,45 @@ private:
     char                _s[];
 
 };
+
+
+
+/*
+    A reference to a string used as a symbol.
+*/
+
+class yl_symbol
+{
+public:
+
+    yl_symbol( yl_string* string );
+
+
+private:
+
+    friend bool operator == ( const yl_symbol& a, const yl_symbol& b );
+    friend struct std::hash< yl_symbol >;
+
+    yl_string* _symbol;
+
+
+};
+
+
+bool operator == ( const yl_symbol& a, const yl_symbol& b );
+
+
+namespace std
+{
+
+template <> struct hash< yl_symbol >
+{
+    size_t operator () ( const yl_symbol& s ) const;
+};
+
+}
+
+
 
 
 
@@ -95,6 +136,24 @@ inline size_t yl_string::size() const
 inline const char* yl_string::c_str() const
 {
     return _s;
+}
+
+
+
+inline yl_symbol::yl_symbol( yl_string* string )
+    :   _symbol( string )
+{
+    assert( _symbol->_is_symbol );
+}
+
+inline bool operator == ( const yl_symbol& a, const yl_symbol& b )
+{
+    return a._symbol == b._symbol;
+}
+
+inline size_t std::hash< yl_symbol >::operator () ( const yl_symbol& s ) const
+{
+    return s._symbol->hash();
 }
 
 
