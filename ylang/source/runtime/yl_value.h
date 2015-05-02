@@ -267,13 +267,7 @@ inline void yl_valref::set( double n )
     value value = get();
     if ( value.is_heapobj() )
     {
-        yl_heapobj* object = value.as_heapobj();
-        yl_mark_colour colour =
-                    object->_colour.load( std::memory_order_relaxed );
-        if ( colour == yl_current->unmarked_colour() )
-        {
-            yl_current->write_barrier( value.as_heapobj() );
-        }
+        yl_current->write_barrier( value.as_heapobj() );
     }
 
     if ( sizeof( uintptr_t ) == 8 )
@@ -293,13 +287,7 @@ inline void yl_valref::set( yl_heapobj* o )
     value value = get();
     if ( value.is_heapobj() )
     {
-        yl_heapobj* object = value.as_heapobj();
-        yl_mark_colour colour =
-                    object->_colour.load( std::memory_order_relaxed );
-        if ( colour == yl_current->unmarked_colour() )
-        {
-            yl_current->write_barrier( value.as_heapobj() );
-        }
+        yl_current->write_barrier( value.as_heapobj() );
     }
 
     this->_value.store( (uintptr_t)o, std::memory_order_relaxed );

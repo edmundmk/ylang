@@ -15,6 +15,7 @@
 #include "yl_context.h"
 
 
+
 class yl_heapobj;
 template < typename object_t > class yl_objref;
 
@@ -77,8 +78,7 @@ protected:
 
 private:
 
-    friend class yl_valref;
-    template < typename object_t > friend class yl_objref;
+    friend class yl_context_impl;
 
     yl_objkind                      _kind;
     std::atomic< yl_mark_colour >   _colour;
@@ -119,7 +119,6 @@ private:
 */
 
 
-
 inline yl_objkind yl_heapobj::kind() const
 {
     return _kind;
@@ -143,16 +142,7 @@ template < typename object_t >
 inline void yl_objref< object_t >::set( object_t* p )
 {
     object_t* object = _p.load( std::memory_order_relaxed );
-    if ( object )
-    {
-        yl_mark_colour colour =
-                object->_colour.load( std::memory_order_relaxed );
-        if ( colour == yl_current->unmarked_colour() )
-        {
-            yl_current->write_barrier( object );
-        }
-    }
-    
+    yl_current->write_barrier( object );    
     _p.store( p, std::memory_order_relaxed );
 }
 
@@ -162,6 +152,24 @@ object_t* yl_objref< object_t >::get() const
     return _p.load( std::memory_order_relaxed );
 }
 
+
+
+
+inline void yl_context_impl::write_barrier( yl_heapobj* object )
+{
+    if ( ! object )
+    {
+        return;
+    }
+    
+    yl_mark_colour colour = object->_colour.load( std::memory_order_relaxed );
+    if ( colour != _unmarked_colour )
+    {
+        return;
+    }
+    
+    yl_current->write_barrier_mark( object );
+}
 
 
 

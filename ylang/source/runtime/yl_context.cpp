@@ -59,7 +59,7 @@ void* yl_context_impl::malloc( size_t size )
     return mspace_malloc( _heap, size );
 }
 
-void yl_context_impl::write_barrier( yl_heapobj* object )
+void yl_context_impl::write_barrier_mark( yl_heapobj* object )
 {
     // TODO.
 }

@@ -79,7 +79,6 @@ public:
 
     void*           malloc( size_t size );
 
-    yl_mark_colour  unmarked_colour();
     void            write_barrier( yl_heapobj* object );
 
     void            add_root( yl_heapobj* root );
@@ -112,6 +111,9 @@ public:
 
 
 private:
+
+    void            write_barrier_mark( yl_heapobj* object );
+    
 
     mspace          _heap;
     yl_mark_colour  _unmarked_colour;
@@ -162,11 +164,6 @@ public:
 
 */
 
-
-inline yl_mark_colour yl_context_impl::unmarked_colour()
-{
-    return _unmarked_colour;
-}
 
 inline yl_cothread* yl_context_impl::get_cothread() const
 {
