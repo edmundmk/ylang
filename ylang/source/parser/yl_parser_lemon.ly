@@ -352,13 +352,13 @@ expr_index(x)   ::= expr_index(expr) LSQ expr_value(index) RSQ .
                 {
                     x = p->alloc< yl_expr_index >( expr->sloc, expr, index );
                 }
-expr_index(x)   ::= expr_index(expr) EACHKEY IDENTIFIER(token) .
+expr_index(x)   ::= expr_index(expr) PERIOD EACHKEY IDENTIFIER(token) .
                 {
                     const char* key = token->text;
                     x = p->alloc< yl_expr_responds >( expr->sloc, expr, key );
                     p->destroy( token );
                 }
-expr_index(x)   ::= expr_index(expr) EACHKEY LSQ expr_value(key) RSQ .
+expr_index(x)   ::= expr_index(expr) PERIOD EACHKEY LSQ expr_value(key) RSQ .
                 {
                     x = p->alloc< yl_expr_inresponds >( expr->sloc, expr, key );
                 }
