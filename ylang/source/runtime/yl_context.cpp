@@ -46,9 +46,6 @@ yl_context_impl::yl_context_impl()
     ,   _globals( nullptr )
 {
     mspace_track_large_chunks( _heap, 1 );
-    
-    
-    _globals = yl_table::alloc( 16 );
 }
 
 yl_context_impl::~yl_context_impl()
@@ -155,6 +152,13 @@ yl_object* yl_context_impl::superof( const yl_value& value )
 }
 
 
+yl_slot* yl_context_impl::klassof( yl_object* prototype )
+{
+    // TODO.
+    return nullptr;
+}
+
+
 yl_value yl_context_impl::new_object( yl_object* prototype )
 {
     /*
@@ -198,11 +202,22 @@ yl_value yl_context_impl::new_object( yl_object* prototype )
 
 yl_value yl_context_impl::get_global( yl_string* key )
 {
-    return _globals->get_index( yl_value( YLOBJ_STRING, key ) );
+    if ( _globals )
+    {
+        return _globals->get_index( yl_value( YLOBJ_STRING, key ) );
+    }
+    else
+    {
+        return yl_value( YLOBJ_UNDEF, yl_undef );
+    }
 }
 
 void yl_context_impl::set_global( yl_string* key, const yl_value& value )
 {
+    if ( ! _globals )
+    {
+        _globals = yl_table::alloc( 16 );
+    }
     _globals->set_index( yl_value( YLOBJ_STRING, key ), value );
 }
 
