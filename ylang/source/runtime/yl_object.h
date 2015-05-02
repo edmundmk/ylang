@@ -94,9 +94,12 @@ public:
 
 private:
 
+    friend class yl_object;
+
+
     struct shortcut_hash
     {
-        yl_object* proto;
+        yl_object* superof;
         std::unordered_map< symkey, size_t > lookup;
     };
 

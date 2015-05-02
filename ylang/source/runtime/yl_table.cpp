@@ -259,7 +259,13 @@ void yl_table::rehash( size_t capacity )
         set_index( old_bucket.key.get(), old_bucket.value.get() );
     }
     
-    // Allow the old bucket list to be garbage collected.
+    /*
+        Allow the old bucket list to be garbage collected.  Note that
+        old_buckets won't be GCed in this function because if the GC is
+        initiated before (or at) the allocation of the new bucket list, the
+        old one will be marked, and a new GC cycle cannot be initiated until
+        the _next_ allocation after this function returns.
+    */
 }
 
 
