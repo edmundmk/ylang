@@ -41,39 +41,6 @@ static inline yl_string* cast_string( const yl_value& value )
     return (yl_string*)value.heapobj();
 }
 
-static inline bool equal( const yl_value& a, const yl_value& b )
-{
-    if ( a.kind() != b.kind() )
-    {
-        return false;
-    }
-    
-    if ( a.kind() == YLOBJ_NUMBER )
-    {
-        return a.number() == b.number();
-    }
-
-    if ( a.heapobj() == b.heapobj() )
-    {
-        return true;
-    }
-    
-    if ( a.kind() == YLOBJ_STRING )
-    {
-        yl_string* sa = (yl_string*)a.heapobj();
-        yl_string* sb = (yl_string*)b.heapobj();
-
-        if ( sa->size() != sb->size() )
-        {
-            return false;
-        }
-        
-        return memcmp( sa->c_str(), sb->c_str(), sa->size() ) == 0;
-    }
-    
-    return false;
-}
-
 static inline int compare_strings( const yl_value& a, const yl_value& b )
 {
     yl_string* sa = (yl_string*)a.heapobj();

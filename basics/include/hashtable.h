@@ -314,6 +314,8 @@ template < typename key_t, typename value_t >
 const typename hashtable< key_t, value_t >::keyval*
                 hashtable< key_t, value_t >::lookup( const key_t& key ) const
 {
+    if ( occupancy == 0 )
+        return nullptr;
     bucket* lookup = main_position( key );
     if ( lookup->next == bucket::EMPTY )
         return nullptr;

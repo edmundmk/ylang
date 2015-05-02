@@ -14,6 +14,7 @@
 #include <assert.h>
 #include <atomic>
 #include "yl_heapobj.h"
+#include "yl_string.h"
 
 
 class yl_valref;
@@ -185,6 +186,16 @@ private:
     };
     
 };
+
+
+
+/*
+    Hash values and check for equality.
+*/
+
+
+hash32_t hash( const yl_value& value );
+bool equal( const yl_value& a, const yl_value& b );
 
 
 
@@ -406,6 +417,61 @@ inline double yl_value::number() const
 inline yl_heapobj* yl_value::heapobj() const
 {
     return _heapobj;
+}
+
+
+
+
+inline hash32_t hash( const yl_value& value )
+{
+    if ( value.kind() == YLOBJ_STRING )
+    {
+        yl_string* string = (yl_string*)value.heapobj();
+        return string->hash();
+    }
+    else if ( value.kind() == YLOBJ_NUMBER )
+    {
+        double number = value.number();
+        return hash32( &number, sizeof( double ) );
+    }
+    else
+    {
+        yl_heapobj* heapobj = value.heapobj();
+        return hash32( &heapobj, sizeof( yl_heapobj* ) );
+    }
+}
+
+inline bool equal( const yl_value& a, const yl_value& b )
+{
+    if ( a.kind() != b.kind() )
+    {
+        return false;
+    }
+    
+    if ( a.kind() == YLOBJ_NUMBER )
+    {
+        return a.number() == b.number();
+    }
+
+    if ( a.heapobj() == b.heapobj() )
+    {
+        return true;
+    }
+    
+    if ( a.kind() == YLOBJ_STRING )
+    {
+        yl_string* sa = (yl_string*)a.heapobj();
+        yl_string* sb = (yl_string*)b.heapobj();
+
+        if ( sa->size() != sb->size() )
+        {
+            return false;
+        }
+        
+        return memcmp( sa->c_str(), sb->c_str(), sa->size() ) == 0;
+    }
+    
+    return false;
 }
 
 
