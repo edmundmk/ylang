@@ -9,6 +9,7 @@
 #include "yl_context.h"
 #include <assert.h>
 #include "yl_heapobj.h"
+#include "yl_cothread.h"
 #include "yl_array.h"
 #include "yl_table.h"
 
@@ -46,6 +47,18 @@ yl_context_impl::yl_context_impl()
     ,   _globals( nullptr )
 {
     mspace_track_large_chunks( _heap, 1 );
+    
+    yl_scope scope( this );
+    _cothread       = yl_cothread::alloc();
+    _proto_object   = yl_object::alloc( nullptr );
+    _proto_array    = yl_object::alloc( _proto_object );
+    _proto_table    = yl_object::alloc( _proto_object );
+    _proto_bool     = yl_object::alloc( _proto_object );
+    _proto_number   = yl_object::alloc( _proto_object );
+    _proto_string   = yl_object::alloc( _proto_object );
+    _proto_funcobj  = yl_object::alloc( _proto_object );
+    _proto_cothread = yl_object::alloc( _proto_object );
+    _globals        = yl_table::alloc( 16 );
 }
 
 yl_context_impl::~yl_context_impl()
@@ -202,22 +215,11 @@ yl_value yl_context_impl::new_object( yl_object* prototype )
 
 yl_value yl_context_impl::get_global( yl_string* key )
 {
-    if ( _globals )
-    {
-        return _globals->get_index( yl_value( YLOBJ_STRING, key ) );
-    }
-    else
-    {
-        return yl_value( YLOBJ_UNDEF, yl_undef );
-    }
+    return _globals->get_index( yl_value( YLOBJ_STRING, key ) );
 }
 
 void yl_context_impl::set_global( yl_string* key, const yl_value& value )
 {
-    if ( ! _globals )
-    {
-        _globals = yl_table::alloc( 16 );
-    }
     _globals->set_index( yl_value( YLOBJ_STRING, key ), value );
 }
 
@@ -257,6 +259,13 @@ yl_alloc_scope::~yl_alloc_scope()
 
 yl_scope::yl_scope( yl_context* context )
     :   _context( context->_impl.get() )
+    ,   _previous( yl_current )
+{
+    yl_current = _context;
+}
+
+yl_scope::yl_scope( yl_context_impl* context )
+    :   _context( context )
     ,   _previous( yl_current )
 {
     yl_current = _context;

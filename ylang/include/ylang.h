@@ -98,6 +98,10 @@ public:
 
 private:
 
+    friend class yl_context_impl;
+
+    explicit yl_scope( yl_context_impl* context );
+
     yl_context_impl* _context;
     yl_context_impl* _previous;
 

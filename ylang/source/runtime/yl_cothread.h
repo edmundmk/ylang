@@ -127,7 +127,7 @@ class yl_cothread : public yl_heapobj
 {
 public:
 
-    yl_cothread* alloc();
+    static yl_cothread* alloc();
 
     void            push_frame( const yl_stackframe& frame );
     yl_stackframe   pop_frame();
