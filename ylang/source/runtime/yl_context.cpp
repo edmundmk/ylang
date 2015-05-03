@@ -167,8 +167,18 @@ yl_object* yl_context_impl::superof( const yl_value& value )
 
 yl_slot* yl_context_impl::klassof( yl_object* prototype )
 {
-    // TODO.
-    return nullptr;
+    // TODO: Interact with garbage collector.  Objects used as prototypes
+    //      keep their klass alive.
+    
+    auto i = _klasses.find( prototype );
+    if ( i != _klasses.end() )
+    {
+        return i->second;
+    }
+    
+    yl_slot* klass = yl_slot::alloc( prototype );
+    _klasses.emplace( prototype, klass );
+    return klass;
 }
 
 

@@ -71,6 +71,7 @@ public:
 
     yl_symbol( yl_string* string );
 
+    yl_string* string() const;
 
 private:
 
@@ -144,6 +145,11 @@ inline yl_symbol::yl_symbol( yl_string* string )
     :   _symbol( string )
 {
     assert( _symbol->_is_symbol );
+}
+
+inline yl_string* yl_symbol::string() const
+{
+    return _symbol;
 }
 
 inline bool operator == ( const yl_symbol& a, const yl_symbol& b )

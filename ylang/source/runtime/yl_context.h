@@ -122,6 +122,7 @@ private:
     yl_cothread*    _cothread;
     
     std::unordered_map< symkey, yl_string* > _symbols;
+    std::unordered_map< yl_object*, yl_slot* > _klasses;
     yl_object*      _proto_object;
     yl_object*      _proto_array;
     yl_object*      _proto_table;

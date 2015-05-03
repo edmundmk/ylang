@@ -60,6 +60,9 @@ protected:
 
 private:
 
+    size_t      lookup( yl_slot* klass, const yl_symbol& key ) const;
+
+
     yl_objref< yl_slot >       _klass;     // start of slot chain
     yl_objref< yl_valarray >   _slots;     // array of slot values
     
@@ -91,17 +94,27 @@ class yl_slot : public yl_heapobj
 {
 public:
 
+    static yl_slot* alloc( yl_object* prototype );
+    static yl_slot* alloc( yl_slot* parent, yl_string* symbol );
+
 
 private:
 
     friend class yl_object;
 
 
+    static const size_t EMPTY_KLASS = (size_t)-1;
+    
+
     struct shortcut_hash
     {
         yl_object* superof;
         std::unordered_map< yl_symbol, size_t > lookup;
     };
+
+
+    explicit yl_slot( yl_object* prototype );
+    yl_slot( yl_slot* parent, yl_string* symbol );
 
 
     yl_objref< yl_heapobj >     _parent;    // parent slot, or prototype
