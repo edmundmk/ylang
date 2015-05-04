@@ -25,7 +25,7 @@ yl_array* yl_array::alloc( yl_object* prototype, size_t capacity )
 
 
 yl_array::yl_array( yl_object* prototype, size_t capacity )
-    :   yl_object( prototype )
+    :   yl_object( YLOBJ_ARRAY, prototype )
     ,   _elements( capacity ? yl_valarray::alloc( capacity ) : nullptr )
     ,   _length( 0 )
 {

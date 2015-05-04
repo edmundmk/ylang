@@ -79,7 +79,7 @@ yl_table* yl_table::alloc( yl_object* prototype, size_t capacity )
 
 
 yl_table::yl_table( yl_object* prototype, size_t capacity )
-    :   yl_object( prototype )
+    :   yl_object( YLOBJ_TABLE, prototype )
     ,   _occupancy( 0 )
     ,   _buckets( capacity ? yl_bucketlist::alloc( capacity ) : nullptr )
 {

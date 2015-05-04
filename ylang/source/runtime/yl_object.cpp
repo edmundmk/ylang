@@ -13,13 +13,13 @@
 yl_object* yl_object::alloc( yl_object* prototype )
 {
     void* p = yl_current->malloc( sizeof( yl_object ) );
-    return new ( p ) yl_object( prototype );
+    return new ( p ) yl_object( YLOBJ_OBJECT, prototype );
 }
 
 
 
-yl_object::yl_object( yl_object* prototype )
-    :   yl_heapobj( YLOBJ_OBJECT )
+yl_object::yl_object( yl_objkind kind, yl_object* prototype )
+    :   yl_heapobj( kind )
     ,   _klass( yl_current->klassof( prototype ) )
     ,   _slots( nullptr )
 {

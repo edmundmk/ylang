@@ -55,7 +55,7 @@ public:
 
 protected:
 
-    explicit yl_object( yl_object* prototype );
+    explicit yl_object( yl_objkind kind, yl_object* prototype );
 
 
 private:
