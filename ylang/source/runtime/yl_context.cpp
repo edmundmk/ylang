@@ -32,6 +32,13 @@ yl_context::~yl_context()
 __thread yl_context_impl* yl_current = nullptr;
 
 
+
+yl_context_impl* yl_context_impl::unwrap( yl_context* context )
+{
+    return context->_impl.get();
+}
+
+
 yl_context_impl::yl_context_impl()
     :   _heap( create_mspace( 0, 0 ) )
     ,   _unmarked_colour( YL_YELLOW )
@@ -237,6 +244,13 @@ void yl_context_impl::set_global( yl_string* key, const yl_value& value )
 
 
 
+void _yl_call_thunk( const char* name, yl_thunk_function thunk )
+{
+    yl_alloc_scope ascope;
+    yl_string*  key      = yl_string::alloc( name );
+    yl_thunk*   thunkobj = yl_thunk::alloc( thunk );
+    yl_current->set_global( key, yl_value( YLOBJ_THUNK, thunkobj ) );
+}
 
 
 
@@ -268,7 +282,7 @@ yl_alloc_scope::~yl_alloc_scope()
 
 
 yl_scope::yl_scope( yl_context* context )
-    :   _context( context->_impl.get() )
+    :   _context( yl_context_impl::unwrap( context ) )
     ,   _previous( yl_current )
 {
     yl_current = _context;

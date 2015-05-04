@@ -71,6 +71,8 @@ class yl_context_impl
 {
 public:
 
+    static yl_context_impl* unwrap( yl_context* context );
+
     yl_context_impl();
     ~yl_context_impl();
 

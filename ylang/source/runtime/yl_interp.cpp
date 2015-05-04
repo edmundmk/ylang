@@ -648,46 +648,74 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         //     If you call a cothread, then we pass a new set of parameters in.
         //     Ycalls are always real calls.
         
-        // Push current stack frame.
-        yl_stackframe frame;
-        frame.funcobj       = f;
-        frame.ip            = ip;
-        frame.sp            = sp;
-        frame.fp            = fp;
-        frame.locup_base    = locup_base;
-        frame.iters_base    = iters_base;
-        frame.rcount        = rcount;
-        t->push_frame( frame );
-
-        // This call requests b values.
-        rcount = b;
-
-        // Check function.
-        if ( s[ r ].kind() != YLOBJ_FUNCOBJ )
+        if ( s[ r ].kind() != YLOBJ_THUNK )
         {
-            throw yl_exception( "cannot call non-function" );
-        }
+            // Push current stack frame.
+            yl_stackframe frame;
+            frame.funcobj       = f;
+            frame.ip            = ip;
+            frame.sp            = sp;
+            frame.fp            = fp;
+            frame.locup_base    = locup_base;
+            frame.iters_base    = iters_base;
+            frame.rcount        = rcount;
+            t->push_frame( frame );
 
-        // Build new frame.
-        ip          = 0;
-        sp          = fp + r;
-        fp          = build_frame( t, sp, a );
-        locup_base  += p->locupcount();
-        iters_base  += p->iterscount();
-        
-        // Get function and program.
-        f           = (yl_funcobj*)s[ r ].heapobj();
-        p           = f->program();
-        values      = p->values();
-        ops         = p->ops();
-        
-        // Get stacks.
-        s           = t->stack( fp, p->stackcount() );
-        locup       = t->locup( locup_base, p->locupcount() );
-        iters       = t->iters( iters_base, p->iterscount() );
-     
-        // Increase call depth.
-        call_depth += 1;
+            // This call requests b values.
+            rcount = b;
+
+            // Check function.
+            if ( s[ r ].kind() != YLOBJ_FUNCOBJ )
+            {
+                throw yl_exception( "cannot call non-function" );
+            }
+
+            // Build new frame.
+            ip          = 0;
+            sp          = fp + r;
+            fp          = build_frame( t, sp, a );
+            locup_base  += p->locupcount();
+            iters_base  += p->iterscount();
+            
+            // Get function and program.
+            f           = (yl_funcobj*)s[ r ].heapobj();
+            p           = f->program();
+            values      = p->values();
+            ops         = p->ops();
+            
+            // Get stacks.
+            s           = t->stack( fp, p->stackcount() );
+            locup       = t->locup( locup_base, p->locupcount() );
+            iters       = t->iters( iters_base, p->iterscount() );
+         
+            // Increase call depth.
+            call_depth += 1;
+        }
+        else
+        {
+            // Native thunk.
+            yl_thunk* thunk = (yl_thunk*)s[ r ].heapobj();
+            yl_callframe xf( t, fp + r, a );
+            thunk->thunk()( xf );
+
+            // The thunk might have reallocated stacks.
+            s           = t->stack( fp, p->stackcount() );
+            locup       = t->locup( locup_base, p->locupcount() );
+            iters       = t->iters( iters_base, p->iterscount() );
+
+            // Fill missing results with null.
+            if ( b != yl_opinst::MARK )
+            {
+                for ( size_t i = xf.size(); i < b; ++i )
+                {
+                    s[ r + i ] = yl_value( YLOBJ_NULL, yl_null );
+                }
+            }
+            else
+            {
+                t->set_mark( fp + r + (unsigned)xf.size() );
+            }
+        }
         break;
     }
     

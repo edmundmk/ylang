@@ -74,7 +74,7 @@ public:
 
 private:
 
-    friend class yl_scope;
+    friend class yl_context_impl;
 
     std::unique_ptr< yl_context_impl > _impl;
 
@@ -160,21 +160,22 @@ private:
 
 
 /*
-    Attributes marking functions or methods exposed to ylang (ylfunc), or
-    entry points or callbacks to ylang (ylcall).
+    Attributes marking functions or methods exposed to ylang (ylcall), or
+    entry points or callbacks to ylang (ylevent).  Use ylname to give a
+    function a different name in ylang.
 
 */
 
 
 #ifdef __YMETAC__
 
-#define ylfunc  __attribute__(( annotate( "ylfunc"  ) ))
-#define ylcall  __attribute__(( annotate( "ylcall"  ) ))
+#define ylcall          __attribute__(( annotate( "ylcall" ) ))
+#define ylevent         __attribute__(( annotate( "ylevent" ) ))
 
 #else
 
-#define ylfunc
 #define ylcall
+#define ylevent
 
 #endif
 
@@ -228,7 +229,7 @@ public:
     ~yl_callframe();
 
     void            push( std::nullptr_t );
-    void            push( bool value );
+    void            push_bool( bool value );
     void            push( const char* value );
     void            push( double value );
     void            push( yl_expose* value );
@@ -248,7 +249,10 @@ public:
 
 private:
 
-    friend void yl_invoke( yl_callframe& xf );
+    friend void yl_invoke( yl_callframe& );
+    friend void yl_interp( yl_cothread*, unsigned, unsigned, unsigned );
+
+    yl_callframe( yl_cothread* cothread, unsigned base, unsigned size );
 
     yl_cothread*    _cothread;
     unsigned        _base;
@@ -264,6 +268,18 @@ private:
 */
 
 void yl_invoke( yl_callframe& xf );
+
+
+
+
+
+
+/*
+    Private API for the meta compiler.
+*/
+
+
+void _yl_call_thunk( const char*, void (*)( yl_callframe& ) );
 
 
 

@@ -45,6 +45,13 @@ yl_callframe::yl_callframe()
 {
 }
 
+yl_callframe::yl_callframe( yl_cothread* cothread, unsigned base, unsigned size )
+    :   _cothread( cothread )
+    ,   _base( base )
+    ,   _size( size )
+{
+}
+
 yl_callframe::~yl_callframe()
 {
 }
@@ -57,7 +64,7 @@ void yl_callframe::push( std::nullptr_t )
     _size += 1;
 }
 
-void yl_callframe::push( bool value )
+void yl_callframe::push_bool( bool value )
 {
     yl_value* s = _cothread->stack( _base, _size + 1 );
     s[ _size ] = yl_value( YLOBJ_BOOL, value ? yl_true : yl_false );

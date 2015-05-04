@@ -59,6 +59,25 @@ void yl_funcbase::release()
 
 
 
+yl_thunk* yl_thunk::alloc( yl_thunk_function thunk )
+{
+    void* p = yl_current->malloc( sizeof( yl_thunk ) );
+    return new ( p ) yl_thunk( thunk );
+}
+
+yl_thunk::yl_thunk( yl_thunk_function thunk )
+    :   yl_funcbase( YLOBJ_THUNK )
+    ,   _thunk( thunk )
+{
+}
+
+yl_thunk_function yl_thunk::thunk()
+{
+    return _thunk;
+}
+
+
+
 
 
 yl_function yl_funcobj::make_function( yl_funcobj* funcobj )
