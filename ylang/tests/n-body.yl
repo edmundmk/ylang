@@ -157,7 +157,7 @@ def offset_momentum( bodies )
 
 def main( n )
 {
-    n = atoi( n, 1000 );
+    n = n ? atoi( n ) : 1000;
     offset_momentum( bodies );
     printf( "%0.9f\n", energy( bodies ) );
     for ( var i = 0; i < n; ++i )

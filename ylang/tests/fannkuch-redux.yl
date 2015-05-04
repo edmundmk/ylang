@@ -77,7 +77,7 @@ def fannkuch( n )
 
 def main( n )
 {
-    n = atoi( n, 7 );
+    n = n ? atoi( n ) : 7;
     printf( "Pfannkuchen(%g) = %g\n", n, fannkuch( n ) );
     return 0;
 }
