@@ -1025,11 +1025,11 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         if ( s[ r ].kind() == YLOBJ_ARRAY )
         {
             yl_array* array = (yl_array*)s[ r ].heapobj();
-            if ( s[ b ].kind() != YLOBJ_NUMBER )
+            if ( s[ a ].kind() != YLOBJ_NUMBER )
             {
                 throw yl_exception( "cannot index array with non-integer" );
             }
-            double index = s[ b ].number();
+            double index = s[ a ].number();
             if ( ! is_integer( index ) || index < 0 || index >= array->length() )
             {
                 throw yl_exception( "invalid index" );
