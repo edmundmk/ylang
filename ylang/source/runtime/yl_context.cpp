@@ -12,6 +12,7 @@
 #include "yl_cothread.h"
 #include "yl_array.h"
 #include "yl_table.h"
+#include "yl_object.h"
 
 
 
@@ -65,7 +66,10 @@ yl_context_impl::yl_context_impl()
     _proto_string   = yl_object::alloc( _proto_object );
     _proto_funcobj  = yl_object::alloc( _proto_object );
     _proto_cothread = yl_object::alloc( _proto_object );
-    _globals        = yl_table::alloc( 16 );
+    _globals        = yl_object::alloc( _proto_object );
+    
+    yl_string* key = yl_string::alloc( "global" )->symbol();
+    _globals->set_key( key, yl_value( YLOBJ_OBJECT, _globals ) );
 }
 
 yl_context_impl::~yl_context_impl()
@@ -230,26 +234,15 @@ yl_value yl_context_impl::new_object( yl_object* prototype )
 
 
 
-yl_value yl_context_impl::get_global( yl_string* key )
-{
-    return _globals->get_index( yl_value( YLOBJ_STRING, key ) );
-}
-
-void yl_context_impl::set_global( yl_string* key, const yl_value& value )
-{
-    _globals->set_index( yl_value( YLOBJ_STRING, key ), value );
-}
-
-
 
 
 
 void _yl_call_thunk( const char* name, yl_thunk_function thunk )
 {
     yl_alloc_scope ascope;
-    yl_string*  key      = yl_string::alloc( name );
+    yl_string*  key      = yl_string::alloc( name )->symbol();
     yl_thunk*   thunkobj = yl_thunk::alloc( thunk );
-    yl_current->set_global( key, yl_value( YLOBJ_THUNK, thunkobj ) );
+    yl_current->globals()->set_key( key, yl_value( YLOBJ_THUNK, thunkobj ) );
 }
 
 

@@ -305,7 +305,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         yl_heapobj* value = values[ b ].get().as_heapobj();
         assert( value->kind() == YLOBJ_STRING );
         yl_string* key = (yl_string*)value;
-        s[ r ] = yl_current->get_global( key );
+        s[ r ] = yl_current->globals()->get_key( key );
         if ( s[ r ].kind() == YLOBJ_UNDEF )
         {
             throw yl_exception( "unknown global '%s'", key->c_str() );
@@ -317,7 +317,8 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         yl_heapobj* value = values[ b ].get().as_heapobj();
         assert( value->kind() == YLOBJ_STRING );
-        yl_current->set_global( (yl_string*)value, s[ r ] );
+        yl_string* key = (yl_string*)value;
+        yl_current->globals()->set_key( key, s[ r ] );
         break;
     }
 

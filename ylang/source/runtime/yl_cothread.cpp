@@ -106,7 +106,10 @@ size_t yl_callframe::size() const
 
 yl_valkind yl_callframe::at( size_t index ) const
 {
-    assert( index < _size );
+    if ( index >= _size )
+    {
+        throw yl_exception( "missing argument" );
+    }
     yl_value* s = _cothread->stack( _base, _size );
     yl_objkind kind = s[ index ].kind();
     if ( kind <= YLOBJ_STRING )
@@ -120,6 +123,10 @@ yl_valkind yl_callframe::at( size_t index ) const
 
 bool yl_callframe::get_bool( size_t index ) const
 {
+    if ( index >= _size )
+    {
+        throw yl_exception( "missing argument" );
+    }
     yl_value* s = _cothread->stack( _base, _size );
     if ( s[ index ].kind() != YLOBJ_BOOL )
     {
@@ -130,6 +137,10 @@ bool yl_callframe::get_bool( size_t index ) const
 
 double yl_callframe::get_number( size_t index ) const
 {
+    if ( index >= _size )
+    {
+        throw yl_exception( "missing argument" );
+    }
     yl_value* s = _cothread->stack( _base, _size );
     if ( s[ index ].kind() != YLOBJ_NUMBER )
     {
@@ -140,6 +151,10 @@ double yl_callframe::get_number( size_t index ) const
 
 const char* yl_callframe::get_string( size_t index ) const
 {
+    if ( index >= _size )
+    {
+        throw yl_exception( "missing argument" );
+    }
     yl_value* s = _cothread->stack( _base, _size );
     if ( s[ index ].kind() != YLOBJ_STRING )
     {
@@ -157,12 +172,30 @@ yl_expose* yl_callframe::get_expose( size_t index ) const
 
 yl_function yl_callframe::get_function( size_t index ) const
 {
+    if ( index >= _size )
+    {
+        throw yl_exception( "missing argument" );
+    }
     yl_value* s = _cothread->stack( _base, _size );
     if ( s[ index ].kind() != YLOBJ_FUNCOBJ && s[ index ].kind() != YLOBJ_THUNK )
     {
         throw yl_exception( "expected function" );
     }
     return yl_function( (yl_funcbase*)s[ index ].heapobj() );
+}
+
+yl_heapobj* yl_callframe::get_heapobj( size_t index ) const
+{
+    if ( index >= _size )
+    {
+        throw yl_exception( "missing argument" );
+    }
+    yl_value* s = _cothread->stack( _base, _size );
+    if ( s[ index ].kind() == YLOBJ_NUMBER )
+    {
+        throw yl_exception( "expected heapobj" );
+    }
+    return s[ index ].heapobj();
 }
 
 

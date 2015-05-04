@@ -108,8 +108,7 @@ public:
 
     // Global table.
 
-    yl_value        get_global( yl_string* key );
-    void            set_global( yl_string* key, const yl_value& value );
+    yl_object*      globals();
 
 
 private:
@@ -133,7 +132,7 @@ private:
     yl_object*      _proto_string;
     yl_object*      _proto_funcobj;
     yl_object*      _proto_cothread;
-    yl_table*       _globals;
+    yl_object*      _globals;
 
 };
 
@@ -187,6 +186,11 @@ inline yl_object* yl_context_impl::proto_array()
 inline yl_object* yl_context_impl::proto_table()
 {
     return _proto_table;
+}
+
+inline yl_object* yl_context_impl::globals()
+{
+    return _globals;
 }
 
 

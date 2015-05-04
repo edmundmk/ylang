@@ -27,6 +27,7 @@ class yl_callframe;
 class yl_context_impl;
 class yl_funcbase;
 class yl_cothread;
+class yl_heapobj;
 
 
 
@@ -243,6 +244,7 @@ public:
     const char*     get_string( size_t index ) const;
     yl_expose*      get_expose( size_t index ) const;
     yl_function     get_function( size_t index ) const;
+    yl_heapobj*     get_heapobj( size_t index ) const;
 
     void            clear();
 
