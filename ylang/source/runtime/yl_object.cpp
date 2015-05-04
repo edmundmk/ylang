@@ -214,7 +214,8 @@ notfound:
     }
     
     
-    // Assign value into new slot.
+    // Update klass and assign value into new slot.
+    _klass.set( new_klass );
     slots->at( new_klass->_index ).set( value );
 
 }

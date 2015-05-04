@@ -232,7 +232,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     // Get program.
     yl_funcobj*         f           = (yl_funcobj*)s[ 0 ].heapobj();
     yl_program*         p           = f->program();
-    const yl_valref*     values      = p->values();
+    const yl_valref*    values      = p->values();
     const yl_opinst*    ops         = p->ops();
 
 
@@ -304,10 +304,11 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         yl_heapobj* value = values[ b ].get().as_heapobj();
         assert( value->kind() == YLOBJ_STRING );
-        s[ r ] = yl_current->get_global( (yl_string*)value );
+        yl_string* key = (yl_string*)value;
+        s[ r ] = yl_current->get_global( key );
         if ( s[ r ].kind() == YLOBJ_UNDEF )
         {
-            throw yl_exception( "unknown global" );
+            throw yl_exception( "unknown global '%s'", key->c_str() );
         }
         break;
     }
@@ -635,6 +636,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             }
         }
         
+        s[ r ] = yl_value( YLOBJ_FUNCOBJ, funcobj );
         break;
     }
     
@@ -750,7 +752,6 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             rcount      = frame.rcount;
             
             // Get function and program.
-            f           = (yl_funcobj*)s[ r ].heapobj();
             p           = f->program();
             values      = p->values();
             ops         = p->ops();
