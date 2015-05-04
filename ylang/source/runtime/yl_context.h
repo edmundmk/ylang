@@ -130,7 +130,7 @@ private:
     yl_object*      _proto_bool;
     yl_object*      _proto_number;
     yl_object*      _proto_string;
-    yl_object*      _proto_funcobj;
+    yl_object*      _proto_function;
     yl_object*      _proto_cothread;
     yl_object*      _globals;
 

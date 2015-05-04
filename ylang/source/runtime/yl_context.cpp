@@ -50,7 +50,7 @@ yl_context_impl::yl_context_impl()
     ,   _proto_bool( nullptr )
     ,   _proto_number( nullptr )
     ,   _proto_string( nullptr )
-    ,   _proto_funcobj( nullptr )
+    ,   _proto_function( nullptr )
     ,   _proto_cothread( nullptr )
     ,   _globals( nullptr )
 {
@@ -69,13 +69,29 @@ yl_context_impl::yl_context_impl()
     _proto_bool     = yl_object::alloc( _proto_object );
     _proto_number   = yl_object::alloc( _proto_object );
     _proto_string   = yl_object::alloc( _proto_object );
-    _proto_funcobj  = yl_object::alloc( _proto_object );
+    _proto_function = yl_object::alloc( _proto_object );
     _proto_cothread = yl_object::alloc( _proto_object );
     
     // Globals.
     _globals        = yl_object::alloc( _proto_object );
-    yl_string* key = yl_string::alloc( "global" )->symbol();
-    _globals->set_key( key, yl_value( YLOBJ_OBJECT, _globals ) );
+    _globals->set_key( yl_string::alloc( "global" )->symbol(),
+                            yl_value( YLOBJ_OBJECT, _globals ) );
+    _globals->set_key( yl_string::alloc( "object" )->symbol(),
+                            yl_value( YLOBJ_OBJECT, _proto_object ) );
+    _globals->set_key( yl_string::alloc( "array" )->symbol(),
+                            yl_value( YLOBJ_OBJECT, _proto_array ) );
+    _globals->set_key( yl_string::alloc( "table" )->symbol(),
+                            yl_value( YLOBJ_OBJECT, _proto_table ) );
+    _globals->set_key( yl_string::alloc( "bool" )->symbol(),
+                            yl_value( YLOBJ_OBJECT, _proto_bool ) );
+    _globals->set_key( yl_string::alloc( "number" )->symbol(),
+                            yl_value( YLOBJ_OBJECT, _proto_number ) );
+    _globals->set_key( yl_string::alloc( "string" )->symbol(),
+                            yl_value( YLOBJ_OBJECT, _proto_string ) );
+    _globals->set_key( yl_string::alloc( "function" )->symbol(),
+                            yl_value( YLOBJ_OBJECT, _proto_function ) );
+    _globals->set_key( yl_string::alloc( "cothread" )->symbol(),
+                            yl_value( YLOBJ_OBJECT, _proto_cothread ) );
 }
 
 yl_context_impl::~yl_context_impl()
@@ -170,7 +186,7 @@ yl_object* yl_context_impl::superof( const yl_value& value )
 
     case YLOBJ_FUNCOBJ:
     case YLOBJ_THUNK:
-        return _proto_funcobj;
+        return _proto_function;
         
     case YLOBJ_COTHREAD:
         return _proto_cothread;
