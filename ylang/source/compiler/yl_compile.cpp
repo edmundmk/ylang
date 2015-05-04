@@ -46,7 +46,7 @@ yl_function yl_compile( const char* path, size_t paramc, const char* paramv[] )
     }
     
     yl_ast* ast = parser.get_ast();
-    yl_ast_print( ast );
+//    yl_ast_print( ast );
     
     
     // Construct SSA form.
@@ -69,7 +69,7 @@ yl_function yl_compile( const char* path, size_t paramc, const char* paramv[] )
         yssa_regalloc( module, function );
     }
         
-    yssa_print( module );
+//    yssa_print( module );
     
     yl_function function = yssa_codegen( module );
     return function;

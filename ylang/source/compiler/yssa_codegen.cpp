@@ -1308,8 +1308,6 @@ void ygen_emit::emit( ygen_program* p )
         debugspans[ i ] = p->debugspans.at( i );
     }
     
-    p->program->print();
-    printf( "\n" );
 }
 
 
