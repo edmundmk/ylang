@@ -57,17 +57,23 @@ yl_context_impl::yl_context_impl()
     mspace_track_large_chunks( _heap, 1 );
     
     yl_scope scope( this );
+    yl_alloc_scope alloc_scope;
+    
+    // Default cothread.
     _cothread       = yl_cothread::alloc();
+    
+    // Prototypes.
     _proto_object   = yl_object::alloc( nullptr );
-    _proto_array    = yl_object::alloc( _proto_object );
-    _proto_table    = yl_object::alloc( _proto_object );
+    _proto_array    = yl_array::make_prototype();
+    _proto_table    = yl_table::make_prototype();
     _proto_bool     = yl_object::alloc( _proto_object );
     _proto_number   = yl_object::alloc( _proto_object );
     _proto_string   = yl_object::alloc( _proto_object );
     _proto_funcobj  = yl_object::alloc( _proto_object );
     _proto_cothread = yl_object::alloc( _proto_object );
-    _globals        = yl_object::alloc( _proto_object );
     
+    // Globals.
+    _globals        = yl_object::alloc( _proto_object );
     yl_string* key = yl_string::alloc( "global" )->symbol();
     _globals->set_key( key, yl_value( YLOBJ_OBJECT, _globals ) );
 }

@@ -149,6 +149,25 @@ double yl_callframe::get_number( size_t index ) const
     return s[ index ].number();
 }
 
+int yl_callframe::get_integer( size_t index ) const
+{
+    if ( index >= _size )
+    {
+        throw yl_exception( "missing argument" );
+    }
+    yl_value* s = _cothread->stack( _base, _size );
+    if ( s[ index ].kind() != YLOBJ_NUMBER )
+    {
+        throw yl_exception( "expected integer" );
+    }
+    double number = s[ index ].number();
+    if ( ! is_integer( number ) || number < INT_MIN || number > INT_MAX )
+    {
+        throw yl_exception( "expected integer" );
+    }
+    return (int)number;
+}
+
 const char* yl_callframe::get_string( size_t index ) const
 {
     if ( index >= _size )
@@ -191,9 +210,10 @@ yl_heapobj* yl_callframe::get_heapobj( size_t index ) const
         throw yl_exception( "missing argument" );
     }
     yl_value* s = _cothread->stack( _base, _size );
-    if ( s[ index ].kind() == YLOBJ_NUMBER )
+    yl_objkind kind = s[ index ].kind();
+    if ( kind == YLOBJ_NUMBER || kind == YLOBJ_UNDEF || kind == YLOBJ_BOOL )
     {
-        throw yl_exception( "expected heapobj" );
+        return nullptr;
     }
     return s[ index ].heapobj();
 }
@@ -313,7 +333,7 @@ bool yl_iterator::has_values()
         return false;
         
     case YLITER_ARRAY:
-        return _index < _array->size();
+        return _index < _array->length();
         
     case YLITER_TABLE:
         // TODO.

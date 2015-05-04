@@ -64,8 +64,12 @@ public:
 
     typedef yl_bucketlist::bucket bucket;
 
+    static yl_object* make_prototype();
+
     static yl_table* alloc( size_t capacity );
     static yl_table* alloc( yl_object* prototype, size_t capacity );
+
+    size_t      length() const;
 
     yl_value    get_index( const yl_value& key ) const;
     void        set_index( const yl_value& key, const yl_value& value );
@@ -83,12 +87,26 @@ private:
     bucket* free_position( bucket* near );
     void    rehash( size_t capacity );
 
+    static yl_table* thunk_this( yl_callframe& xf );
+    static void thunk_length( yl_callframe& xf );
+
     size_t                      _occupancy;
     yl_objref< yl_bucketlist >  _buckets;
 
 
 };
 
+
+
+/*
+
+*/
+
+
+inline size_t yl_table::length() const
+{
+    return _occupancy;
+}
 
 
 

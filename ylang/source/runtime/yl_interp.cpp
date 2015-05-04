@@ -895,7 +895,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         }
         else
         {
-            prototype = nullptr;
+            prototype = yl_current->proto_object();
         }
         s[ r ] = yl_current->new_object( prototype );
         break;
@@ -962,7 +962,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
                 throw yl_exception( "cannot index array with non-integer" );
             }
             double index = s[ b ].number();
-            if ( ! is_integer( index ) || index < 0 || index >= array->size() )
+            if ( ! is_integer( index ) || index < 0 || index >= array->length() )
             {
                 throw yl_exception( "invalid index" );
             }
@@ -1030,7 +1030,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
                 throw yl_exception( "cannot index array with non-integer" );
             }
             double index = s[ b ].number();
-            if ( ! is_integer( index ) || index < 0 || index >= array->size() )
+            if ( ! is_integer( index ) || index < 0 || index >= array->length() )
             {
                 throw yl_exception( "invalid index" );
             }
@@ -1166,11 +1166,11 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         unsigned count;
         if ( b != yl_opinst::MARK )
         {
-            count = std::min( b, (unsigned)array->size() );
+            count = std::min( b, (unsigned)array->length() );
         }
         else
         {
-            count = (unsigned)array->size();
+            count = (unsigned)array->length();
             s = t->stack( fp, r + count );
         }
         

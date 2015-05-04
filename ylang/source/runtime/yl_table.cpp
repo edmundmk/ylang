@@ -8,6 +8,7 @@
 
 #include "yl_table.h"
 #include <intmath.h>
+#include "yl_function.h"
 
 
 static yl_bucketlist::bucket* EMPTY_BUCKET = (yl_bucketlist::bucket*)-1;
@@ -271,6 +272,30 @@ void yl_table::rehash( size_t capacity )
 
 
 
+yl_object* yl_table::make_prototype()
+{
+    yl_object* proto = yl_object::alloc( yl_current->proto_object() );
+    proto->set_key( yl_string::alloc( "length" )->symbol(),
+        yl_value( YLOBJ_THUNK, yl_thunk::alloc( &thunk_length ) ) );
+    return proto;
+}
+
+yl_table* yl_table::thunk_this( yl_callframe& xf )
+{
+    yl_heapobj* heapobj = xf.get_heapobj( 1 );
+    if ( ! heapobj || heapobj->kind() != YLOBJ_TABLE )
+    {
+        throw yl_exception( "expected table" );
+    }
+    return (yl_table*)heapobj;
+}
+
+void yl_table::thunk_length( yl_callframe& xf )
+{
+    yl_table* table = thunk_this( xf );
+    xf.clear();
+    xf.push( table->length() );
+}
 
 
 

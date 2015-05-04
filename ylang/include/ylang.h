@@ -241,6 +241,7 @@ public:
     yl_valkind      at( size_t index ) const;
     bool            get_bool( size_t index ) const;
     double          get_number( size_t index ) const;
+    int             get_integer( size_t index ) const;
     const char*     get_string( size_t index ) const;
     yl_expose*      get_expose( size_t index ) const;
     yl_function     get_function( size_t index ) const;

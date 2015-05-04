@@ -21,10 +21,12 @@ class yl_array : public yl_object
 {
 public:
 
+    static yl_object* make_prototype();
+
     static yl_array* alloc( size_t capacity );
     static yl_array* alloc( yl_object* prototype, size_t capacity );
 
-    size_t      size() const;
+    size_t      length() const;
 
     yl_value    get_index( size_t index ) const;
     void        set_index( size_t index, const yl_value& value );
@@ -33,6 +35,7 @@ public:
     void        extend( const yl_value* values, size_t count );
 
     void        reserve( size_t capacity );
+    void        resize( size_t length );
 
 
 protected:
@@ -40,11 +43,14 @@ protected:
     yl_array( yl_object* prototype, size_t capacity );
 
 
-
 private:
 
+    static yl_array* thunk_this( yl_callframe& xf );
+    static void thunk_length( yl_callframe& xf );
+    static void thunk_resize( yl_callframe& xf );
+
     yl_objref< yl_valarray >    _elements;
-    size_t                      _size;
+    size_t                      _length;
 
 
 };
@@ -56,48 +62,48 @@ private:
 */
 
 
-inline size_t yl_array::size() const
+inline size_t yl_array::length() const
 {
-    return _size;
+    return _length;
 }
 
 inline yl_value yl_array::get_index( size_t index ) const
 {
-    assert( index < _size );
+    assert( index < _length );
     return _elements.get()->at( index ).get();
 }
 
 inline void yl_array::set_index( size_t index, const yl_value& value )
 {
-    assert( index < _size );
+    assert( index < _length );
     _elements.get()->at( index ).set( value );
 }
 
 inline void yl_array::append( const yl_value& value )
 {
     yl_valarray* elements = _elements.get();
-    if ( elements->size() <= _size + 1 )
+    if ( elements->size() <= _length + 1 )
     {
         reserve( elements->size() ? elements->size() * 2 : 8 );
         elements = _elements.get();
     }
-    elements->at( _size ).set( value );
-    _size += 1;
+    elements->at( _length ).set( value );
+    _length += 1;
 }
 
 inline void yl_array::extend( const yl_value* values, size_t count )
 {
     yl_valarray* elements = _elements.get();
-    if ( elements->size() <= _size + count )
+    if ( elements->size() <= _length + count )
     {
-        reserve( ceil_pow2( _size + count ) );
+        reserve( ceil_pow2( _length + count ) );
         elements = _elements.get();
     }
     for ( size_t i = 0; i < count; ++i )
     {
-        elements->at( _size + i ).set( values[ i ] );
+        elements->at( _length + i ).set( values[ i ] );
     }
-    _size += count;
+    _length += count;
 }
 
 
