@@ -37,7 +37,8 @@ void yl_array::reserve( size_t capacity )
     capacity = std::max( capacity, _length );
 
     yl_valarray* elements = _elements.get();
-    if ( capacity == elements->size() )
+    size_t size = elements ? elements->size() : 0;
+    if ( capacity == size )
     {
         return;
     }
@@ -47,6 +48,8 @@ void yl_array::reserve( size_t capacity )
     {
         newelems->at( i ).set( elements->at( i ).get() );
     }
+    
+    _elements.set( newelems );
 }
 
 
