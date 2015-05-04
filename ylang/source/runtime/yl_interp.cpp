@@ -145,11 +145,11 @@ static unsigned build_frame( yl_cothread* t, unsigned sp, unsigned acount )
     yl_funcobj* f = (yl_funcobj*)stack[ 0 ].heapobj();
     yl_program* p = f->program();
     
-    unsigned argcount = acount - 1;
-    unsigned paramcount = p->paramcount();
+    // Get acount that the function was expecting (including function slot).
+    unsigned pcount = 1 + p->paramcount();
     
     unsigned fp;
-    if ( p->varargs() && argcount > paramcount )
+    if ( p->varargs() && acount > pcount )
     {
         /*
             We must preserve the additional arguments in case they are used:
@@ -168,10 +168,10 @@ static unsigned build_frame( yl_cothread* t, unsigned sp, unsigned acount )
             http://www.geeksforgeeks.org/program-for-array-rotation-continued-reversal-algorithm/
         */
 
-        fp = sp + ( argcount - paramcount );
-        reverse( stack, fp - sp );
-        reverse( stack + fp - sp, acount );
-        reverse( stack, fp + acount - sp );
+        fp = sp + ( acount - pcount );
+        reverse( stack, pcount );
+        reverse( stack + pcount, acount - pcount );
+        reverse( stack, acount );
         
     }
     else
@@ -183,16 +183,16 @@ static unsigned build_frame( yl_cothread* t, unsigned sp, unsigned acount )
         fp = sp;
     }
     
-    if ( argcount < paramcount )
+    if ( acount < pcount )
     {
         /*
             Set missing parameters to null.
         */
         
-        stack = t->stack( fp, 1 + paramcount );
-        for ( unsigned arg = argcount; arg < paramcount; ++arg )
+        stack = t->stack( fp, pcount );
+        for ( unsigned arg = acount; arg < pcount; ++arg )
         {
-            stack[ 1 + arg ] = yl_value( YLOBJ_NULL, yl_null );
+            stack[ arg ] = yl_value( YLOBJ_NULL, yl_null );
         }
     }
 
@@ -222,13 +222,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         throw yl_exception( "cannot call non-function" );
     }
     
-    // Build frame for this call.
-    unsigned            ip          = 0;
-    unsigned            fp          = build_frame( t, sp, acount );
-    unsigned            locup_base  = t->get_locup_base();
-    unsigned            iters_base  = t->get_iters_base();
-    
-    
+
     // Get program.
     yl_funcobj*         f           = (yl_funcobj*)s[ 0 ].heapobj();
     yl_program*         p           = f->program();
@@ -236,6 +230,13 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     const yl_opinst*    ops         = p->ops();
 
 
+    // Build frame for this call.
+    unsigned            ip          = 0;
+    unsigned            fp          = build_frame( t, sp, acount );
+    unsigned            locup_base  = t->get_locup_base();
+    unsigned            iters_base  = t->get_iters_base();
+    
+    
     // Get stacks.
                         s           = t->stack( fp, p->stackcount() );
     yl_upval**          locup       = t->locup( locup_base, p->locupcount() );
@@ -671,18 +672,18 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
                 throw yl_exception( "cannot call non-function" );
             }
 
+            // Get function and program.
+            f           = (yl_funcobj*)s[ r ].heapobj();
+            p           = f->program();
+            values      = p->values();
+            ops         = p->ops();
+            
             // Build new frame.
             ip          = 0;
             sp          = fp + r;
             fp          = build_frame( t, sp, a );
             locup_base  += p->locupcount();
             iters_base  += p->iterscount();
-            
-            // Get function and program.
-            f           = (yl_funcobj*)s[ r ].heapobj();
-            p           = f->program();
-            values      = p->values();
-            ops         = p->ops();
             
             // Get stacks.
             s           = t->stack( fp, p->stackcount() );
