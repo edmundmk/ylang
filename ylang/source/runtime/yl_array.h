@@ -29,9 +29,9 @@ public:
     size_t      length() const;
 
     yl_value    get_index( size_t index ) const;
-    void        set_index( size_t index, const yl_value& value );
+    void        set_index( size_t index, yl_value value );
 
-    void        append( const yl_value& value );
+    void        append( yl_value value );
     void        extend( const yl_value* values, size_t count );
 
     void        reserve( size_t capacity );
@@ -73,13 +73,13 @@ inline yl_value yl_array::get_index( size_t index ) const
     return _elements.get()->at( index ).get();
 }
 
-inline void yl_array::set_index( size_t index, const yl_value& value )
+inline void yl_array::set_index( size_t index, yl_value value )
 {
     assert( index < _length );
     _elements.get()->at( index ).set( value );
 }
 
-inline void yl_array::append( const yl_value& value )
+inline void yl_array::append( yl_value value )
 {
     yl_valarray* elements = _elements.get();
     if ( elements->size() <= _length + 1 )

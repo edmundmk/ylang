@@ -155,7 +155,7 @@ yl_string* yl_context_impl::symbol( yl_string* string )
 
 
 
-yl_object* yl_context_impl::superof( const yl_value& value )
+yl_object* yl_context_impl::superof( yl_value value )
 {
     /*
         All values except null, undef, and the root object have a prototype.

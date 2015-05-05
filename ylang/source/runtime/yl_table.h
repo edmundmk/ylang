@@ -71,8 +71,8 @@ public:
 
     size_t      length() const;
 
-    yl_value    get_index( const yl_value& key ) const;
-    void        set_index( const yl_value& key, const yl_value& value );
+    yl_value    get_index( yl_value key ) const;
+    void        set_index( yl_value key, yl_value value );
 
 
 protected:
@@ -82,8 +82,8 @@ protected:
 
 private:
 
-    bucket* lookup( const yl_value& key ) const;
-    bucket* main_position( const yl_value& key ) const;
+    bucket* lookup( yl_value key ) const;
+    bucket* main_position( yl_value key ) const;
     bucket* free_position( bucket* near );
     void    rehash( size_t capacity );
 

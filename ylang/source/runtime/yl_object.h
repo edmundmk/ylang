@@ -49,7 +49,7 @@ public:
     yl_object*  superof() const;
 
     yl_value    get_key( const yl_symbol& key ) const;
-    void        set_key( const yl_symbol& key, const yl_value& value );
+    void        set_key( const yl_symbol& key, yl_value value );
     void        del_key( const yl_symbol& key );
 
 

@@ -21,7 +21,7 @@
     Helpers.
 */
 
-static inline double cast_number( const yl_value& value )
+static inline double cast_number( yl_value value )
 {
     if ( ! value.is_number() )
     {
@@ -31,7 +31,7 @@ static inline double cast_number( const yl_value& value )
     return value.number();
 }
 
-static inline yl_string* cast_string( const yl_value& value )
+static inline yl_string* cast_string( yl_value value )
 {
     if ( ! value.is( YLOBJ_STRING ) )
     {
@@ -41,7 +41,7 @@ static inline yl_string* cast_string( const yl_value& value )
     return (yl_string*)value.heapobj();
 }
 
-static inline int compare_strings( const yl_value& a, const yl_value& b )
+static inline int compare_strings( yl_value a, yl_value b )
 {
     yl_string* sa = (yl_string*)a.heapobj();
     yl_string* sb = (yl_string*)b.heapobj();
@@ -61,7 +61,7 @@ static inline int compare_strings( const yl_value& a, const yl_value& b )
     return result;
 }
 
-static inline yl_object* superof( const yl_value& v )
+static inline yl_object* superof( yl_value v )
 {
     if ( v.is_object() )
     {
@@ -74,7 +74,7 @@ static inline yl_object* superof( const yl_value& v )
     }
 }
 
-static inline yl_object* keyerof( const yl_value& v )
+static inline yl_object* keyerof( yl_value v )
 {
     if ( v.is_object() )
     {

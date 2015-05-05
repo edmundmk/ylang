@@ -295,7 +295,7 @@ yl_iterator::yl_iterator()
 {
 }
 
-void yl_iterator::open_vals( const yl_value& value )
+void yl_iterator::open_vals( yl_value value )
 {
     assert( _kind == YLITER_CLOSED );
     if ( value.is( YLOBJ_ARRAY ) )
@@ -321,7 +321,7 @@ void yl_iterator::open_vals( const yl_value& value )
     }
 }
 
-void yl_iterator::open_keys( const yl_value& value )
+void yl_iterator::open_keys( yl_value value )
 {
     assert( _kind == YLITER_CLOSED );
     if ( value.is_object() )

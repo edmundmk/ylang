@@ -86,7 +86,7 @@ yl_table::yl_table( yl_object* prototype, size_t capacity )
 }
 
 
-yl_value yl_table::get_index( const yl_value& key ) const
+yl_value yl_table::get_index( yl_value key ) const
 {
     bucket* b = lookup( key );
     if ( b )
@@ -99,7 +99,7 @@ yl_value yl_table::get_index( const yl_value& key ) const
     }
 }
 
-void yl_table::set_index( const yl_value& key, const yl_value& value )
+void yl_table::set_index( yl_value key, yl_value value )
 {
     // Lookup in case key already exists.
     bucket* b = lookup( key );
@@ -179,7 +179,7 @@ void yl_table::set_index( const yl_value& key, const yl_value& value )
 }
 
 
-yl_bucketlist::bucket* yl_table::lookup( const yl_value& key ) const
+yl_bucketlist::bucket* yl_table::lookup( yl_value key ) const
 {
     // Check for value in main position.
     bucket* lookup = main_position( key );
@@ -202,7 +202,7 @@ yl_bucketlist::bucket* yl_table::lookup( const yl_value& key ) const
 }
 
 
-yl_bucketlist::bucket* yl_table::main_position( const yl_value& key ) const
+yl_bucketlist::bucket* yl_table::main_position( yl_value key ) const
 {
     yl_bucketlist* buckets = _buckets.get();
     if ( buckets && buckets->size() )

@@ -65,7 +65,7 @@ public:
     void        close( yl_cothread* cothread );
 
     yl_value    get_value( yl_cothread* cothread ) const;
-    void        set_value( yl_cothread* cothread, const yl_value& value );
+    void        set_value( yl_cothread* cothread, yl_value value );
 
 private:
 
@@ -102,8 +102,8 @@ public:
 
     yl_iterator();
 
-    void open_vals( const yl_value& value );
-    void open_keys( const yl_value& value );
+    void open_vals( yl_value value );
+    void open_keys( yl_value value );
     void close();
 
     bool has_values();
@@ -203,7 +203,7 @@ inline yl_value yl_upval::get_value( yl_cothread* cothread ) const
     }
 }
 
-inline void yl_upval::set_value( yl_cothread* cothread, const yl_value& value )
+inline void yl_upval::set_value( yl_cothread* cothread, yl_value value )
 {
     if ( _open )
     {

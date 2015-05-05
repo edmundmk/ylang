@@ -96,7 +96,7 @@ public:
     // Object model.
 
     yl_string*      symbol( yl_string* symbol );
-    yl_object*      superof( const yl_value& value );
+    yl_object*      superof( yl_value value );
     yl_slot*        klassof( yl_object* prototype );
 
     yl_object*      proto_object();

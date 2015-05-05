@@ -110,7 +110,7 @@ yl_value yl_object::get_key( const yl_symbol& key ) const
     return object->_slots.get()->at( index ).get();
 }
 
-void yl_object::set_key( const yl_symbol& key, const yl_value& value )
+void yl_object::set_key( const yl_symbol& key, yl_value value )
 {
     yl_slot* klass = _klass.get();
     
