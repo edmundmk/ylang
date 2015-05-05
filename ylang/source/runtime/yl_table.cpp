@@ -113,7 +113,9 @@ void yl_table::set_index( yl_value key, yl_value value )
     size_t capacity = buckets ? buckets->size() : 0;
     if ( _occupancy >= capacity - ( capacity >> 3 ) )
     {
-        rehash( _occupancy + ( _occupancy / 7 ) + 1  );
+        size_t new_capacity = _occupancy + _occupancy / 7 + 1;
+        assert( _occupancy < new_capacity - ( new_capacity >> 3 ) );
+        rehash( new_capacity );
     }
     
     // Occupancy will increase.
