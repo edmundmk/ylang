@@ -111,9 +111,9 @@ void yl_table::set_index( yl_value key, yl_value value )
     // Grow hash if necessary.
     yl_bucketlist* buckets = _buckets.get();
     size_t capacity = buckets ? buckets->size() : 0;
-    if ( _occupancy >= capacity - ( capacity >> 2 ) )
+    if ( _occupancy >= capacity - ( capacity >> 3 ) )
     {
-        rehash( _occupancy + 1 );
+        rehash( _occupancy + ( _occupancy / 7 ) + 1  );
     }
     
     // Occupancy will increase.

@@ -188,10 +188,12 @@ inline bool is_integer( double number )
 
 inline void yl_upval::close( yl_cothread* cothread )
 {
-    assert( _open );
-    yl_value* s = cothread->stack( _index, 1 );
-    _value.set( s[ 0 ] );
-    _open = false;
+    if ( _open )
+    {
+        yl_value* s = cothread->stack( _index, 1 );
+        _value.set( s[ 0 ] );
+        _open = false;
+    }
 }
 
 inline yl_value yl_upval::get_value( yl_cothread* cothread ) const

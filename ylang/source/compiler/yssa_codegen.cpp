@@ -1104,6 +1104,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
     case YL_SETINKEY:
     case YL_SETINDEX:
     {
+        assert( op->operand_count == 3 );
         unsigned r = operand( op, 0 );
         unsigned a = operand( op, 1 );
         unsigned b = operand( op, 2 );

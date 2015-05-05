@@ -2058,16 +2058,17 @@ int yssa_builder::visit( yl_new_table* node, int count )
     // Construct new table.
     yssa_opinst* o = op( node->sloc, YL_TABLE, 0, 1 );
     o->c = node->elements.size();
-    push_op( o );
+    size_t table = push_op( o );
     
     // Append each element.
     for ( size_t i = 0; i < node->elements.size(); ++i )
     {
         const yl_key_value& kv = node->elements.at( i );
-        size_t operands = push( kv.key, 1 );
+        size_t operands = push_op( peek( table, 0 ) );
+        push( kv.key, 1 );
         push( kv.value, 1 );
-        yssa_opinst* e = op( node->sloc, YL_SETINDEX, 2, 0 );
-        pop( operands, 2, e->operand );
+        yssa_opinst* e = op( node->sloc, YL_SETINDEX, 3, 0 );
+        pop( operands, 3, e->operand );
     }
     
     // table should still be on virtual stack

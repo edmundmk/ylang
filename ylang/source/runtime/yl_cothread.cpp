@@ -340,10 +340,12 @@ void yl_iterator::open_keys( yl_value value )
 
 void yl_iterator::close()
 {
-    assert( _kind != YLITER_CLOSED );
-    _kind   = YLITER_CLOSED;
-    _object = nullptr;
-    _index  = 0;
+    if ( _kind != YLITER_CLOSED )
+    {
+        _kind   = YLITER_CLOSED;
+        _object = nullptr;
+        _index  = 0;
+    }
 }
 
 
