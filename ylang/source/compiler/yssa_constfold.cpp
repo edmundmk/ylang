@@ -52,6 +52,7 @@ void yssa_constfold_op( yssa_module* module, yssa_opinst* op )
     for ( size_t i = 0; i < op->operand_count; ++i )
     {
         op->operand[ i ] = yssa_fold_refs( op->operand[ i ] );
+        assert( op->operand[ i ] );
     }
     
     

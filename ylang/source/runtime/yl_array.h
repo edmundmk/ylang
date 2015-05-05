@@ -84,7 +84,7 @@ inline void yl_array::append( yl_value value )
     yl_valarray* elements = _elements.get();
     if ( ! elements || elements->size() <= _length + 1 )
     {
-        reserve( elements->size() ? elements->size() * 2 : 8 );
+        reserve( elements && elements->size() ? elements->size() * 2 : 8 );
         elements = _elements.get();
     }
     elements->at( _length ).set( value );

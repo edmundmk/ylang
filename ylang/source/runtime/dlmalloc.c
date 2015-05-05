@@ -5938,7 +5938,7 @@ size_t mspace_set_footprint_limit(mspace msp, size_t bytes) {
   if (ok_magic(ms)) {
     if (bytes == 0)
       result = granularity_align(1); /* Use minimal size */
-    if (bytes == MAX_SIZE_T)
+    else if (bytes == MAX_SIZE_T)
       result = 0;                    /* disable */
     else
       result = granularity_align(bytes);

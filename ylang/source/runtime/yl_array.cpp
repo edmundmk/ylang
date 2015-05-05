@@ -44,6 +44,7 @@ void yl_array::reserve( size_t capacity )
     }
     
     yl_valarray* newelems = yl_valarray::alloc( capacity );
+    assert( elements || _length == 0 );
     for ( size_t i = 0; i < _length; ++i )
     {
         newelems->at( i ).set( elements->at( i ).get() );

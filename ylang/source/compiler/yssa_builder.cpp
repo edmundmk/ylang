@@ -632,7 +632,6 @@ int yssa_builder::visit( yl_stmt_foreach* node, int count )
     yssa_block* body_block = block;
     
     // Work out which opcode to use to request values.
-    opcode = YL_NOP;
     if ( node->lvalues.size() == 1 )
         opcode = YL_NEXT1;
     else if ( node->lvalues.size() == 2 )
@@ -1959,7 +1958,7 @@ int yssa_builder::visit( yl_new_new* node, int count )
     // Create object using prototype.
     yssa_opinst* o = op( node->sloc, YL_OBJECT, 1, 1 );
     pop( operand, 1, o->operand );
-    operand = push_op( o );
+    push_op( o );
     
     // Call 'this' method.
     yssa_opinst* m = op( node->sloc, YL_KEY, 1, 1 );
