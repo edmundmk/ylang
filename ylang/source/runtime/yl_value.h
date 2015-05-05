@@ -22,52 +22,9 @@ class yl_value;
 class yl_valarray;
 
 
-
 /*
-    Small integer pointers representing singleton objects.
-*/
-
-static yl_heapobj* const yl_null    = nullptr;
-static yl_heapobj* const yl_undef   = (yl_heapobj*)1;
-static yl_heapobj* const yl_false   = (yl_heapobj*)2;
-static yl_heapobj* const yl_true    = (yl_heapobj*)3;
-
-
-
-/*
-    Check if a number is an integer.
-*/
-
-bool is_integer( double number );
-
-
-
-
-
-/*
-    A yl_valref is pointer-sized and can hold any ylang type.  That means a
-    heapobj reference, a number, null, true, false, or undef.  Accesses MUST
-    be atomic to allow the garbage collector to run concurrently.
+    NaN-boxing:
     
-
-    On 32-bit:
-    
-        There is not enough space to store a double.  Instead numbers are
-        boxed.  Boxed numbers are not heapobjs and are not garbage collected.
-        Instead they are owned by the yl_value.
- 
-        We don't bother with the 'small integer' packing that some VMs do,
-        because values are stored unpacked on the stack and checking if a
-        number is an integer whenever it's stored is a pain.  We can make
-        allocation of boxed numbers very fast using a pool.
-
-        A value with the low bit clear points to a heapobj pointer.  A value
-        with the low bit set points to a boxed number.
-
-
-    On 64-bit:
-    
-        We use a NaN-boxing strategy which favours pointer representation.
         We assume that all pointers to GC objects fit in 48-bits.  Doubles
         have the following bit patterns:
 
@@ -76,90 +33,40 @@ bool is_integer( double number );
     snan      s111111111110zzzzzzzzzzzzzzzzzzz zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
     qnan      s111111111111zzzzzzzzzzzzzzzzzzz zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
 
-        If the top bits are zero, then it's a pointer.  Otherwise the number
-        can be recovered by inverting the entire value.
-    
-    pointer   0000000000000000pppppppppppppppp pppppppppppppppppppppppppppppppp
- 
-        False values:
+        Boxed values have the following general structure:
         
-    null      00000000000000000000000000000000 00000000000000000000000000000000
-    undef     00000000000000000000000000000000 00000000000000000000000000000001
-    false     00000000000000000000000000000000 00000000000000000000000000000010
-    +zero     11111111111111111111111111111111 11111111111111111111111111111111
-    -zero     01111111111111111111111111111111 11111111111111111111111111111111
+              111111111111tttthhhhhhhhhhhhhhhh llllllllllllllllllllllllllllllll
+
+        Where the tag is the objkind of the value, and the rest of the mantissa
+        is split between the high and low 32-bits.
+        
+        Tags:
  
- 
-    A yl_valref::value is the result of reading a yl_valref.  It allows values
-    to be manipulated without multiple inadvertent atomic reads (which the
-    compiler can't coalesce).
+                      11111111  object
+                      11111110  expose
+                      11111101  array
+                      11111100  table
+                      11111011  cothread
+                      11111010  program
+                      11111001
+                      11111000  qnan
+                      11110111  string
+                      11110110  funcobj
+                      11110101  thunkobj
+                      11110100  cothread
+                      11110011  program
+                      11110010
+                      11110001  null/undefined/false/true
+                      11110000  infinity
+
 
 */
 
 
-class yl_valref
-{
-public:
 
-    class value
-    {
-    public:
-
-        bool            is_number() const;
-        bool            is_heapobj() const;
-        
-        double          as_number() const;
-        yl_heapobj*     as_heapobj() const;
-
-
-    private:
-
-        friend class yl_valref;
-
-        explicit value( uintptr_t value );
-
-        union
-        {
-            uintptr_t                   _value;
-            yl_heapobj*                 _p;
-        };
-
-    };
-
-
-    yl_valref();
-    ~yl_valref();
-
-    void    set( const yl_value& value );
-    void    set( double number );
-    void    set( yl_heapobj* heapobj );
-
-    value   get() const;
-
-
-private:
-
-    yl_valref( const yl_valref& ) = delete;
-    yl_valref& operator = ( const yl_valref& ) = delete;
-
-
-    union
-    {
-        std::atomic< uintptr_t >    _value;
-        yl_heapobj*                 _p;
-    };
-
-};
-
-
-
-
-
-/*
-    A yl_value is currently two pointers in size, but stores the object kind
-    explicitly, which means we don't have to disambiguate different kinds
-    of objects before using them.  Could be termed a 'fat value'.
-*/
+enum yl_null_t  { yl_null   };
+enum yl_undef_t { yl_undef  };
+enum yl_bool_t  { yl_false = 0, yl_true = 1 };
 
 
 class yl_value
@@ -167,24 +74,74 @@ class yl_value
 public:
 
     yl_value();
-    yl_value( const yl_valref::value& value );
+    yl_value( yl_undef_t );
+    yl_value( yl_null_t );
+    yl_value( yl_bool_t );
     yl_value( double number );
     yl_value( yl_objkind kind, yl_heapobj* heapobj );
 
     yl_objkind      kind() const;
+
+    bool            is_null() const;
+    bool            is_undef() const;
+    bool            is_false() const;
+    bool            is_true() const;
+    
+    bool            is_number() const;
+    bool            is_heapobj() const;
+    
+    bool            is( yl_objkind kind ) const;
+    bool            is_object() const;
+
     double          number() const;
     yl_heapobj*     heapobj() const;
 
 
 private:
 
-    yl_objkind      _kind;
+    friend class yl_valref;
+    
+    friend hash32_t hash( yl_value v );
+    friend bool     equal( yl_value a, yl_value b );
+    friend bool     test( yl_value v );
+    
+    
+    static const uint64_t POS_ZERO          = UINT64_C( 0x0000000000000000 );
+    static const uint64_t NEG_ZERO          = UINT64_C( 0x8000000000000000 );
+
+    static const uint64_t POS_NAN           = UINT64_C( 0x7FF8000000000000 );
+    static const uint64_t NEG_INF           = UINT64_C( 0xFFF0000000000000 );
+    static const uint64_t NEG_NAN           = UINT64_C( 0xFFF8000000000000 );
+    
+    static const uint64_t VALUE_BOXED       = UINT64_C( 0xFF00000000000000 );
+    static const uint64_t VALUE_NULL        = UINT64_C( 0xFFF1000000000000 );
+    static const uint64_t VALUE_UNDEF       = UINT64_C( 0xFFF1000100000000 );
+    static const uint64_t VALUE_FALSE       = UINT64_C( 0xFFF1000200000000 );
+    static const uint64_t VALUE_TRUE        = UINT64_C( 0xFFF1000300000000 );
+    static const uint64_t FIRST_HEAPOBJ     = UINT64_C( 0xFFF2000000000000 );
+    static const uint64_t FIRST_OBJECT      = UINT64_C( 0xFFFC000000000000 );
+    
+    static const uint64_t TAG_BITS          = UINT64_C( 0x00FF000000000000 );
+    static const uint64_t POINTER_BITS      = UINT64_C( 0x0000FFFFFFFFFFFF );
+
+    static inline uint32_t HI( uint64_t x ) { return (uint32_t)( x >> 32 ); }
+    
+
+    explicit yl_value( uint64_t value );
+
+
     union
     {
+        uint64_t    _value;
         double      _number;
-        yl_heapobj* _heapobj;
+        struct
+        {
+            uint32_t    _hi;
+            uint32_t    _lo;
+        };
     };
-    
+
+
 };
 
 
@@ -194,8 +151,39 @@ private:
 */
 
 
-hash32_t hash( const yl_value& value );
-bool equal( const yl_value& a, const yl_value& b );
+hash32_t    hash( yl_value v );
+bool        equal( yl_value a, yl_value b );
+bool        test( yl_value v );
+
+
+
+
+/*
+    A valref is a value stored on the heap.  Accesses MUST be atomic in order
+    for garbage collection to work properly.
+*/
+
+
+class yl_valref
+{
+public:
+
+    yl_valref();
+    ~yl_valref();
+
+    void        set( yl_value value );
+    yl_value    get() const;
+
+
+private:
+
+    yl_valref( const yl_valref& ) = delete;
+    yl_valref& operator = ( const yl_valref& ) = delete;
+
+    std::atomic< uint64_t > _value;
+
+};
+
 
 
 
@@ -233,220 +221,204 @@ private:
 */
 
 
-inline bool is_integer( double number )
-{
-    return number == (long)number;
-}
 
-
-
-
-inline yl_valref::yl_valref()
-    :   _value( 0 )
-{
-}
-
-inline yl_valref::~yl_valref()
-{
-}
-
-inline void yl_valref::set( const yl_value& value )
-{
-    if ( value.kind() == YLOBJ_NUMBER )
-    {
-        set( value.number() );
-    }
-    else
-    {
-        set( value.heapobj() );
-    }
-}
-
-inline void yl_valref::set( double n )
-{
-    value value = get();
-    if ( value.is_heapobj() )
-    {
-        yl_current->write_barrier( value.as_heapobj() );
-    }
-
-    if ( sizeof( uintptr_t ) == 8 )
-    {
-        union { double n; uintptr_t v; } bits;
-        bits.n = n;
-        this->_value.store( ~bits.v, std::memory_order_relaxed );
-    }
-    else
-    {
-        assert( ! "uinmplemented for this architecture" );
-    }
-}
-
-inline void yl_valref::set( yl_heapobj* o )
-{
-    value value = get();
-    if ( value.is_heapobj() )
-    {
-        yl_current->write_barrier( value.as_heapobj() );
-    }
-
-    this->_value.store( (uintptr_t)o, std::memory_order_relaxed );
-}
-
-inline yl_valref::value yl_valref::get() const
-{
-    return value( this->_value.load( std::memory_order_relaxed ) );
-}
-
-
-
-
-inline yl_valref::value::value( uintptr_t value )
+inline yl_value::yl_value( uint64_t value )
     :   _value( value )
 {
 }
 
-inline bool yl_valref::value::is_number() const
-{
-    if ( sizeof( uintptr_t ) == 8 )
-    {
-        return ( _value & UINT64_C( 0xFFFF000000000000 ) ) != 0;
-    }
-    else
-    {
-        assert( ! "unimplemented for this architecture" );
-    }
-}
-
-inline bool yl_valref::value::is_heapobj() const
-{
-    if ( sizeof( uintptr_t ) == 8 )
-    {
-        return ( _value & UINT64_C( 0xFFFF000000000000 ) ) == 0;
-    }
-    else
-    {
-        assert( ! "unimplemented for this architecture" );
-    }
-}
-
-inline double yl_valref::value::as_number() const
-{
-    assert( is_number() );
-    if ( sizeof( uintptr_t ) == 8 )
-    {
-        union { uintptr_t v; double n; } bits;
-        bits.v = ~_value;
-        return bits.n;
-    }
-    else
-    {
-        assert( ! "unimplemented for this architecture" );
-    }
-}
-
-inline yl_heapobj* yl_valref::value::as_heapobj() const
-{
-    assert( is_heapobj() );
-    return (yl_heapobj*)_value;
-}
-
-
-
-
-
 inline yl_value::yl_value()
-    :   _kind( YLOBJ_NULL )
-    ,   _heapobj( yl_undef )
+    :   _value( VALUE_UNDEF )
 {
 }
 
-
-inline yl_value::yl_value( const yl_valref::value& value )
+inline yl_value::yl_value( yl_undef_t )
+    :   _value( VALUE_UNDEF )
 {
-    if ( value.is_number() )
-    {
-        _kind    = YLOBJ_NUMBER;
-        _number  = value.as_number();
-    }
-    else
-    {
-        _heapobj = value.as_heapobj();
-        if ( _heapobj > yl_true )
-            _kind = _heapobj->kind();
-        else
-            _kind = (yl_objkind)std::min( (uintptr_t)_heapobj, (uintptr_t)2 );
-    }
 }
 
+inline yl_value::yl_value( yl_null_t )
+    :   _value( VALUE_NULL )
+{
+}
+
+inline yl_value::yl_value( yl_bool_t truefalse )
+    :   _value( truefalse ? VALUE_TRUE : VALUE_FALSE )
+{
+}
 
 inline yl_value::yl_value( double number )
-    :   _kind( YLOBJ_NUMBER )
-    ,   _number( number )
+    :   _number( number )
 {
+    assert( ! isnan( number ) || _value == POS_NAN || _value == NEG_NAN );
 }
 
 inline yl_value::yl_value( yl_objkind kind, yl_heapobj* heapobj )
-    :   _kind( kind )
-    ,   _heapobj( heapobj )
+    :   _value( VALUE_BOXED | (uint64_t)kind << 48 | (uint64_t)heapobj )
 {
+    assert( (uintptr_t)heapobj <= UINT64_C( 0x0000FFFFFFFFFFFF ) );
 }
+
 
 inline yl_objkind yl_value::kind() const
 {
-    return _kind;
+    if ( sizeof( uintptr_t ) == 8 )
+    {
+        return (yl_objkind)( _value >> 48 & 0xFF );
+    }
+    else
+    {
+        return (yl_objkind)( _hi >> 16 & 0xFF );
+    }
 }
+
+
+inline bool yl_value::is_null() const
+{
+    if ( sizeof( uintptr_t ) == 8 )
+    {
+        return _value == VALUE_NULL;
+    }
+    else
+    {
+        return _hi == HI( VALUE_NULL );
+    }
+}
+
+inline bool yl_value::is_undef() const
+{
+    if ( sizeof( uintptr_t ) == 8 )
+    {
+        return _value == VALUE_UNDEF;
+    }
+    else
+    {
+        return _hi == HI( VALUE_UNDEF );
+    }
+}
+
+inline bool yl_value::is_false() const
+{
+    if ( sizeof( uintptr_t ) == 8 )
+    {
+        return _value == VALUE_FALSE;
+    }
+    else
+    {
+        return _hi == HI( VALUE_FALSE );
+    }
+}
+
+inline bool yl_value::is_true() const
+{
+    if ( sizeof( uintptr_t ) == 8 )
+    {
+        return _value == VALUE_TRUE;
+    }
+    else
+    {
+        return _hi == HI( VALUE_TRUE );
+    }
+}
+
+inline bool yl_value::is_number() const
+{
+    if ( sizeof( uintptr_t ) == 8 )
+    {
+        return _value <= NEG_INF || _value == NEG_NAN;
+    }
+    else
+    {
+        return _hi <= HI( NEG_INF ) || _hi == HI( NEG_NAN );
+    }
+}
+
+
+inline bool yl_value::is_heapobj() const
+{
+    if ( sizeof( uintptr_t ) == 8 )
+    {
+        return _value >= FIRST_HEAPOBJ && _value != NEG_NAN;
+    }
+    else
+    {
+        return _hi >= HI( FIRST_HEAPOBJ ) && _hi != HI( NEG_NAN );
+    }
+}
+
+
+inline bool yl_value::is( yl_objkind kind ) const
+{
+    if ( sizeof( uintptr_t ) == 8 )
+    {
+        return ( _value & TAG_BITS ) == ( (uint64_t)kind << 48 );
+    }
+    else
+    {
+        return ( _hi & HI( TAG_BITS ) ) == ( (uint32_t)kind << 16 );
+    }
+}
+
+inline bool yl_value::is_object() const
+{
+    if ( sizeof( uintptr_t ) == 8 )
+    {
+        return _value >= FIRST_OBJECT;
+    }
+    else
+    {
+        return _hi >= HI( FIRST_OBJECT );
+    }
+}
+
 
 inline double yl_value::number() const
 {
     return _number;
 }
 
+
 inline yl_heapobj* yl_value::heapobj() const
 {
-    return _heapobj;
-}
-
-
-
-
-inline hash32_t hash( const yl_value& value )
-{
-    if ( value.kind() == YLOBJ_STRING )
+    if ( sizeof( uintptr_t ) == 8 )
     {
-        yl_string* string = (yl_string*)value.heapobj();
-        return string->hash();
-    }
-    else if ( value.kind() == YLOBJ_NUMBER )
-    {
-        double number = value.number();
-        return hash32( &number, sizeof( double ) );
+        return (yl_heapobj*)(uintptr_t)( _value & POINTER_BITS );
     }
     else
     {
-        yl_heapobj* heapobj = value.heapobj();
-        return hash32( &heapobj, sizeof( yl_heapobj* ) );
+        return (yl_heapobj*)(uintptr_t)_lo;
     }
 }
 
-inline bool equal( const yl_value& a, const yl_value& b )
-{
-    if ( a.kind() != b.kind() )
-    {
-        return false;
-    }
-    
-    if ( a.kind() == YLOBJ_NUMBER )
-    {
-        return a.number() == b.number();
-    }
 
-    if ( a.heapobj() == b.heapobj() )
+
+
+inline hash32_t hash( yl_value v )
+{
+    if ( v.is( YLOBJ_STRING ) )
+    {
+        yl_string* string = (yl_string*)v.heapobj();
+        return string->hash();
+    }
+    else
+    {
+        return hash32( &v._value, sizeof( uint64_t ) );
+    }
+}
+
+inline bool equal( yl_value a, yl_value b )
+{
+    if ( a._value == b._value )
     {
         return true;
     }
     
-    if ( a.kind() == YLOBJ_STRING )
+    if ( a.is_number() && b.is_number() && a.number() == b.number() )
+    {
+        return true;
+    }
+    
+    if ( a.is( YLOBJ_STRING ) && b.is( YLOBJ_STRING ) )
     {
         yl_string* sa = (yl_string*)a.heapobj();
         yl_string* sb = (yl_string*)b.heapobj();
@@ -463,6 +435,46 @@ inline bool equal( const yl_value& a, const yl_value& b )
 }
 
 
+inline bool test( yl_value v )
+{
+    return v._value != yl_value::POS_ZERO
+        && v._value != yl_value::NEG_ZERO
+        && (   v._value < yl_value::VALUE_NULL
+            || v._value > yl_value::VALUE_FALSE );
+}
+
+
+
+
+
+
+
+
+
+inline yl_valref::yl_valref()
+    :   _value( yl_value::VALUE_UNDEF )
+{
+}
+
+inline yl_valref::~yl_valref()
+{
+}
+
+inline void yl_valref::set( yl_value value )
+{
+    yl_value oldval = yl_value( _value.load( std::memory_order_relaxed ) );
+    if ( oldval.is_heapobj() )
+    {
+        yl_current->write_barrier( oldval.heapobj() );
+    }
+
+    _value.store( value._value, std::memory_order_relaxed );
+}
+
+inline yl_value yl_valref::get() const
+{
+    return yl_value( _value.load( std::memory_order_relaxed ) );
+}
 
 
 

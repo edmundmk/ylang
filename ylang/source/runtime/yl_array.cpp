@@ -68,7 +68,7 @@ void yl_array::resize( size_t length )
         
         for ( size_t i = _length; i < length; ++i )
         {
-            elements->at( i ).set( yl_value( YLOBJ_NULL, yl_null ) );
+            elements->at( i ).set( yl_null );
         }
         
         _length = length;
@@ -81,9 +81,9 @@ yl_object* yl_array::make_prototype()
 {
     yl_object* proto = yl_object::alloc( yl_current->proto_object() );
     proto->set_key( yl_string::alloc( "length" )->symbol(),
-        yl_value( YLOBJ_THUNK, yl_thunk::alloc( &thunk_length ) ) );
+        yl_value( YLOBJ_THUNKOBJ, yl_thunkobj::alloc( &thunk_length ) ) );
     proto->set_key( yl_string::alloc( "resize" )->symbol(),
-        yl_value( YLOBJ_THUNK, yl_thunk::alloc( &thunk_resize ) ) );
+        yl_value( YLOBJ_THUNKOBJ, yl_thunkobj::alloc( &thunk_resize ) ) );
     return proto;
 }
 

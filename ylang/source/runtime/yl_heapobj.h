@@ -29,33 +29,31 @@ template < typename object_t > class yl_objref;
 
 enum yl_objkind : uint8_t
 {
-    // Flags.
-    YLOBJ_IS_OBJECT     = 0x80,     // inherits from yl_object
+    // User-visible types (with tags that must match the NaN-boxing scheme).
+    YLOBJ_OBJECT        = 0xFF,     // object
+    YLOBJ_EXPOSE        = 0xFE,     // object for exposed native object
+    YLOBJ_ARRAY         = 0xFD,     // object derived from array prototype
+    YLOBJ_TABLE         = 0xFC,     // object derived from table prototype
+//                        0xFB,
+//                        0xFA,
+//                        0xF9,
+    YLOBJ_QNAN          = 0xF8,     // number: quiet NaN
+    YLOBJ_STRING        = 0xF7,     // string
+    YLOBJ_FUNCOBJ       = 0xF6,     // bytecode function
+    YLOBJ_THUNKOBJ      = 0xF5,     // native function
+    YLOBJ_COTHREAD      = 0xF4,     // ylang stack object/coroutine
+    YLOBJ_PROGRAM       = 0xF3,     // bytecode program (not user-visible)
+//                        0xF2,
+    YLOBJ_SINGULAR      = 0xF1,     // null/undefined/true/false
+    YLOBJ_INFINITY      = 0xF0,     // number: infinity
 
-    // User-visible
-    YLOBJ_NULL          = 0x00,     // null
-    YLOBJ_UNDEF         = 0x01,     // undefined (internal)
-    YLOBJ_BOOL          = 0x02,     // true or false
-    YLOBJ_NUMBER        = 0x03,     // number
-    YLOBJ_STRING        = 0x04,                     // string or symbol
-    YLOBJ_OBJECT        = YLOBJ_IS_OBJECT | 0x05,   // object
-    YLOBJ_NATIVE        = YLOBJ_IS_OBJECT | 0x06,   // yl_expose native object
-    YLOBJ_ARRAY         = YLOBJ_IS_OBJECT | 0x07,   // dynamic array
-    YLOBJ_TABLE         = YLOBJ_IS_OBJECT | 0x08,   // hashtable
-    YLOBJ_FUNCOBJ       = 0x09,                     // function
-    YLOBJ_THUNK         = 0x0A,                     // thunk to native function
-    YLOBJ_COTHREAD      = 0x0B,                     // coroutine with stack
+    // Not user-visible and never NaN-boxed.
+    YLOBJ_VALARRAY      = 0x01,     // fixed-size array of values
+    YLOBJ_BUCKETLIST    = 0x02,     // fixed-size array of table buckets
+    YLOBJ_SLOT          = 0x03,     // node in an object's class tree
+    YLOBJ_UPVAL         = 0x04,     // variable referenced from closure
     
-    // Compiled code
-    YLOBJ_PROGRAM       = 0x0C,     // code for a single function
-
-    // Internal
-    YLOBJ_VALARRAY      = 0x0D,     // fixed-size array of yl_valrefs
-    YLOBJ_BUCKETLIST    = 0x0E,     // fixed-size array of table buckets
-    YLOBJ_SLOT          = 0x0F,     // node in an object's class tree
-    YLOBJ_UPVAL         = 0x10,     // implements function closures
 };
-
 
 
 

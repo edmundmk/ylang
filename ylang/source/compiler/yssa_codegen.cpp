@@ -796,6 +796,19 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
     }
     
     case YL_MOV:
+    {
+        assert( op->result_count == 1 );
+        assert( op->operand_count == 1 );
+        if ( op->r != yl_opinst::NOVAL && op->r != op->operand[ 0 ]->r )
+        {
+            unsigned a = op->operand[ 0 ]->r;
+            assert( a != yl_opinst::NOVAL );
+            p->ops.emplace_back( (yl_opcode)op->opcode, op->r, a, 0 );
+            p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
+        }
+        return 1;
+    }
+    
     case YL_NULL:
     case YL_NEG:
     case YL_BITNOT:
@@ -1265,13 +1278,13 @@ void ygen_emit::emit( ygen_program* p )
         {
         case YGEN_KEY:
         case YGEN_STRING:
-            values[ i ].set( value.string->string );
+            values[ i ].set( yl_value( YLOBJ_STRING, value.string->string ) );
             break;
         case YGEN_NUMBER:
             values[ i ].set( value.number );
             break;
         case YGEN_PROGRAM:
-            values[ i ].set( value.program->program );
+            values[ i ].set( yl_value( YLOBJ_PROGRAM, value.program->program ) );
             break;
         }
     }
@@ -1307,6 +1320,10 @@ void ygen_emit::emit( ygen_program* p )
     {
         debugspans[ i ] = p->debugspans.at( i );
     }
+    
+    
+//    p->program->print();
+//    printf( "\n" );
     
 }
 

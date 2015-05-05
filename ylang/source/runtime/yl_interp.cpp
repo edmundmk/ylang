@@ -23,7 +23,7 @@
 
 static inline double cast_number( const yl_value& value )
 {
-    if ( value.kind() != YLOBJ_NUMBER )
+    if ( ! value.is_number() )
     {
         throw yl_exception( "expected number" );
     }
@@ -33,7 +33,7 @@ static inline double cast_number( const yl_value& value )
 
 static inline yl_string* cast_string( const yl_value& value )
 {
-    if ( value.kind() != YLOBJ_STRING )
+    if ( ! value.is( YLOBJ_STRING ) )
     {
         throw yl_exception( "expected string" );
     }
@@ -61,21 +61,9 @@ static inline int compare_strings( const yl_value& a, const yl_value& b )
     return result;
 }
 
-static inline bool test( const yl_value& v )
-{
-    if ( v.kind() == YLOBJ_NUMBER )
-    {
-        return v.number() != 0.0;
-    }
-    else
-    {
-        return v.heapobj() >= yl_true;
-    }
-}
-
 static inline yl_object* superof( const yl_value& v )
 {
-    if ( v.kind() & YLOBJ_IS_OBJECT )
+    if ( v.is_object() )
     {
         yl_object* object = (yl_object*)v.heapobj();
         return object->superof();
@@ -88,7 +76,7 @@ static inline yl_object* superof( const yl_value& v )
 
 static inline yl_object* keyerof( const yl_value& v )
 {
-    if ( v.kind() & YLOBJ_IS_OBJECT )
+    if ( v.is_object() )
     {
         return (yl_object*)v.heapobj();
     }
@@ -137,7 +125,7 @@ static unsigned build_frame( yl_cothread* t, unsigned sp, unsigned acount )
     
     yl_value* stack = t->stack( sp, acount );
 
-    if ( stack[ 0 ].kind() != YLOBJ_FUNCOBJ )
+    if ( ! stack[ 0 ].is( YLOBJ_FUNCOBJ ) )
     {
         throw yl_exception( "cannot call non-function" );
     }
@@ -192,7 +180,7 @@ static unsigned build_frame( yl_cothread* t, unsigned sp, unsigned acount )
         stack = t->stack( fp, pcount );
         for ( unsigned arg = acount; arg < pcount; ++arg )
         {
-            stack[ arg ] = yl_value( YLOBJ_NULL, yl_null );
+            stack[ arg ] = yl_null;
         }
     }
 
@@ -217,7 +205,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     // Get function.
     yl_value* s = t->stack( sp, 1 + acount );
-    if ( s[ 0 ].kind() != YLOBJ_FUNCOBJ )
+    if ( ! s[ 0 ].is( YLOBJ_FUNCOBJ ) )
     {
         throw yl_exception( "cannot call non-function" );
     }
@@ -277,37 +265,37 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
 
     case YL_NULL:
     {
-        s[ r ] = yl_value( YLOBJ_NULL, yl_null );
+        s[ r ] = yl_null;
         break;
     }
     
     case YL_BOOL:
     {
-        s[ r ] = yl_value( YLOBJ_BOOL, a ? yl_true : yl_false );
+        s[ r ] = a ? yl_true : yl_false;
         break;
     }
     
     case YL_NUMBER:
     {
-        s[ r ] = yl_value( values[ c ].get().as_number() );
+        s[ r ] = values[ c ].get();
+        assert( s[ r ].is_number() );
         break;
     }
     
     case YL_STRING:
     {
-        yl_heapobj* value = values[ c ].get().as_heapobj();
-        assert( value->kind() == YLOBJ_STRING );
-        s[ r ] = yl_value( YLOBJ_STRING, value );
+        s[ r ] = values[ c ].get();
+        assert( s[ r ].is( YLOBJ_STRING ) );
         break;
     }
 
     case YL_GLOBAL:
     {
-        yl_heapobj* value = values[ b ].get().as_heapobj();
-        assert( value->kind() == YLOBJ_STRING );
-        yl_string* key = (yl_string*)value;
+        yl_value value = values[ b ].get();
+        assert( value.is( YLOBJ_STRING ) );
+        yl_string* key = (yl_string*)value.heapobj();
         s[ r ] = yl_current->globals()->get_key( key );
-        if ( s[ r ].kind() == YLOBJ_UNDEF )
+        if ( s[ r ].is_undef() )
         {
             throw yl_exception( "unknown global '%s'", key->c_str() );
         }
@@ -316,9 +304,9 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_SETGLOBAL:
     {
-        yl_heapobj* value = values[ b ].get().as_heapobj();
-        assert( value->kind() == YLOBJ_STRING );
-        yl_string* key = (yl_string*)value;
+        yl_value value = values[ b ].get();
+        assert( value.is( YLOBJ_STRING ) );
+        yl_string* key = (yl_string*)value.heapobj();
         yl_current->globals()->set_key( key, s[ r ] );
         break;
     }
@@ -427,108 +415,104 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     case YL_EQ:
     {
         bool isequal = equal( s[ a ], s[ b ] );
-        s[ r ] = yl_value( YLOBJ_BOOL, isequal ? yl_true : yl_false );
+        s[ r ] = isequal ? yl_true : yl_false;
         break;
     }
     
     case YL_NE:
     {
         bool isequal = equal( s[ a ], s[ b ] );
-        s[ r ] = yl_value( YLOBJ_BOOL, isequal ? yl_false : yl_true );
+        s[ r ] = isequal ? yl_false : yl_true;
         break;
     }
     
     case YL_LT:
     {
         bool islt;
-        if ( s[ a ].kind() == s[ b ].kind() )
+        if ( s[ a ].is_number() && s[ b ].is_number() )
         {
-            if ( s[ a ].kind() == YLOBJ_NUMBER )
-                islt = ( s[ a ].number() < s[ b ].number() );
-            else if ( s[ a ].kind() == YLOBJ_STRING )
-                islt = ( compare_strings( s[ a ], s[ b ] ) < 0 );
-            else
-                throw yl_exception( "invalid type for comparison" );
+            islt = ( s[ a ].number() < s[ b ].number() );
+        }
+        else if ( s[ a ].is( YLOBJ_STRING ) && s[ b ].is( YLOBJ_STRING ) )
+        {
+            islt = ( compare_strings( s[ a ], s[ b ] ) < 0 );
         }
         else
         {
-            throw yl_exception( "type mismatch in comparison" );
+            throw yl_exception( "invalid type for comparison" );
         }
-        s[ r ] = yl_value( YLOBJ_BOOL, islt ? yl_true : yl_false );
+        s[ r ] = islt ? yl_true : yl_false;
         break;
     }
     
     case YL_GT:
     {
         bool isgt;
-        if ( s[ a ].kind() == s[ b ].kind() )
+        if ( s[ a ].is_number() && s[ b ].is_number() )
         {
-            if ( s[ a ].kind() == YLOBJ_NUMBER )
-                isgt = ( s[ a ].number() > s[ b ].number() );
-            else if ( s[ a ].kind() == YLOBJ_STRING )
-                isgt = ( compare_strings( s[ a ], s[ b ] ) > 0 );
-            else
-                throw yl_exception( "invalid type for comparison" );
+            isgt = ( s[ a ].number() > s[ b ].number() );
+        }
+        else if ( s[ a ].is( YLOBJ_STRING ) && s[ b ].is( YLOBJ_STRING ) )
+        {
+            isgt = ( compare_strings( s[ a ], s[ b ] ) > 0 );
         }
         else
         {
-            throw yl_exception( "type mismatch in comparison" );
+            throw yl_exception( "invalid type for comparison" );
         }
-        s[ r ] = yl_value( YLOBJ_BOOL, isgt ? yl_true : yl_false );
+        s[ r ] = isgt ? yl_true : yl_false;
         break;
     }
     
     case YL_LE:
     {
         bool isle;
-        if ( s[ a ].kind() == s[ b ].kind() )
+        if ( s[ a ].is_number() && s[ b ].is_number() )
         {
-            if ( s[ a ].kind() == YLOBJ_NUMBER )
-                isle = ( s[ a ].number() <= s[ b ].number() );
-            else if ( s[ a ].kind() == YLOBJ_STRING )
-                isle = ( compare_strings( s[ a ], s[ b ] ) <= 0 );
-            else
-                throw yl_exception( "invalid type for comparison" );
+            isle = ( s[ a ].number() <= s[ b ].number() );
+        }
+        else if ( s[ a ].is( YLOBJ_STRING ) && s[ b ].is( YLOBJ_STRING ) )
+        {
+            isle = ( compare_strings( s[ a ], s[ b ] ) <= 0 );
         }
         else
         {
-            throw yl_exception( "type mismatch in comparison" );
+            throw yl_exception( "invalid type for comparison" );
         }
-        s[ r ] = yl_value( YLOBJ_BOOL, isle ? yl_true : yl_false );
+        s[ r ] = isle ? yl_true : yl_false;
         break;
     }
     
     case YL_GE:
     {
         bool isge;
-        if ( s[ a ].kind() == s[ b ].kind() )
+        if ( s[ a ].is_number() && s[ b ].is_number() )
         {
-            if ( s[ a ].kind() == YLOBJ_NUMBER )
-                isge = ( s[ a ].number() >= s[ b ].number() );
-            else if ( s[ a ].kind() == YLOBJ_STRING )
-                isge = ( compare_strings( s[ a ], s[ b ] ) >= 0 );
-            else
-                throw yl_exception( "invalid type for comparison" );
+            isge = ( s[ a ].number() >= s[ b ].number() );
+        }
+        else if ( s[ a ].is( YLOBJ_STRING ) && s[ b ].is( YLOBJ_STRING ) )
+        {
+            isge = ( compare_strings( s[ a ], s[ b ] ) >= 0 );
         }
         else
         {
-            throw yl_exception( "type mismatch in comparison" );
+            throw yl_exception( "invalid type for comparison" );
         }
-        s[ r ] = yl_value( YLOBJ_BOOL, isge ? yl_true : yl_false );
+        s[ r ] = isge ? yl_true : yl_false;
         break;
     }
     
     case YL_LNOT:
     {
         bool istrue = test( s[ a ] );
-        s[ r ] = yl_value( YLOBJ_BOOL, istrue ? yl_false : yl_true );
+        s[ r ] = istrue ? yl_false : yl_true;
         break;
     }
     
     case YL_LXOR:
     {
         bool result = test( s[ a ] ) != test( s[ b ] );
-        s[ r ] = yl_value( YLOBJ_BOOL, result ? yl_true : yl_false );
+        s[ r ] = result ? yl_true : yl_false;
         break;
     }
 
@@ -581,7 +565,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         {
             for ( unsigned i = count; i < b; ++i )
             {
-                s[ r + i ] = yl_value( YLOBJ_NULL, yl_null );
+                s[ r + i ] = yl_null;
             }
         }
         else
@@ -595,9 +579,9 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     case YL_FUNCTION:
     {
         // Get program object.
-        yl_heapobj* progobj = values[ c ].get().as_heapobj();
-        assert( progobj->kind() == YLOBJ_PROGRAM );
-        yl_program* program = (yl_program*)progobj;
+        yl_value value = values[ c ].get();
+        assert( value.is( YLOBJ_PROGRAM ) );
+        yl_program* program = (yl_program*)value.heapobj();
         
         // Create funcobj.
         yl_funcobj* funcobj = yl_funcobj::alloc( program );
@@ -650,7 +634,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         //     If you call a cothread, then we pass a new set of parameters in.
         //     Ycalls are always real calls.
         
-        if ( s[ r ].kind() != YLOBJ_THUNK )
+        if ( s[ r ].is( YLOBJ_FUNCOBJ ) )
         {
             // Push current stack frame.
             yl_stackframe frame;
@@ -665,12 +649,6 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
 
             // This call requests b values.
             rcount = b;
-
-            // Check function.
-            if ( s[ r ].kind() != YLOBJ_FUNCOBJ )
-            {
-                throw yl_exception( "cannot call non-function" );
-            }
 
             // Get function and program.
             f           = (yl_funcobj*)s[ r ].heapobj();
@@ -693,12 +671,12 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             // Increase call depth.
             call_depth += 1;
         }
-        else
+        else if ( s[ r ].is( YLOBJ_THUNKOBJ ) )
         {
             // Native thunk.
-            yl_thunk* thunk = (yl_thunk*)s[ r ].heapobj();
+            yl_thunkobj* thunkobj = (yl_thunkobj*)s[ r ].heapobj();
             yl_callframe xf( t, fp + r, a );
-            thunk->thunk()( xf );
+            thunkobj->thunk()( xf );
 
             // The thunk might have reallocated stacks.
             s           = t->stack( fp, p->stackcount() );
@@ -710,13 +688,17 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             {
                 for ( size_t i = xf.size(); i < b; ++i )
                 {
-                    s[ r + i ] = yl_value( YLOBJ_NULL, yl_null );
+                    s[ r + i ] = yl_null;
                 }
             }
             else
             {
                 t->set_mark( fp + r + (unsigned)xf.size() );
             }
+        }
+        else
+        {
+            throw yl_exception( "attempt to call an uncallable object" );
         }
         break;
     }
@@ -760,7 +742,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         {
             for ( unsigned i = count; i < rcount; ++i )
             {
-                s[ i ] = yl_value( YLOBJ_NULL, yl_null );
+                s[ i ] = yl_null;
             }
         }
         else
@@ -888,7 +870,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         yl_object* prototype;
         if ( a != yl_opinst::NOVAL )
         {
-            if ( !( s[ a ].kind() & YLOBJ_IS_OBJECT ) )
+            if ( ! s[ a ].is_object() )
             {
                 throw yl_exception( "cannot inherit from non-object value" );
             }
@@ -920,60 +902,59 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         if ( object )
             s[ r ] = yl_value( object->kind(), object );
         else
-            s[ r ] = yl_value( YLOBJ_NULL, yl_null );
+            s[ r ] = yl_null;
         break;
     }
     
     case YL_KEY:
     {
-        yl_heapobj* key = values[ b ].get().as_heapobj();
-        assert( key->kind() == YLOBJ_STRING );
-        yl_string* string = (yl_string*)key;
+        yl_value value = values[ b ].get();
+        assert( value.is( YLOBJ_STRING ) );
+        yl_string* string = (yl_string*)value.heapobj();
         s[ r ] = keyerof( s[ a ] )->get_key( string );
-        if ( s[ r ].kind() == YLOBJ_UNDEF )
+        if ( s[ r ].is_undef() )
         {
-            yl_string* s = (yl_string*)key;
-            throw yl_exception( "key not found '%s'", s->c_str() );
+            throw yl_exception( "key not found '%s'", string->c_str() );
         }
         break;
     }
     
     case YL_INKEY:
     {
-        if ( s[ b ].kind() != YLOBJ_STRING )
+        if ( ! s[ b ].is( YLOBJ_STRING ) )
         {
             throw yl_exception( "object index must be a string" );
         }
         yl_string* string = (yl_string*)s[ b ].heapobj();
         s[ r ] = keyerof( s[ a ] )->get_key( string->symbol() );
-        if ( s[ r ].kind() == YLOBJ_UNDEF )
+        if ( s[ r ].is_undef() )
         {
-            throw yl_exception( "key not found" );
+            throw yl_exception( "key not found '%s'", string->c_str() );
         }
         break;
     }
     
     case YL_INDEX:
     {
-        if ( s[ a ].kind() == YLOBJ_ARRAY )
+        if ( s[ a ].is( YLOBJ_ARRAY ) )
         {
             yl_array* array = (yl_array*)s[ a ].heapobj();
-            if ( s[ b ].kind() != YLOBJ_NUMBER )
+            if ( ! s[ b ].is_number() )
             {
-                throw yl_exception( "cannot index array with non-integer" );
+                throw yl_exception( "invalid array index" );
             }
             double index = s[ b ].number();
             if ( ! is_integer( index ) || index < 0 || index >= array->length() )
             {
-                throw yl_exception( "invalid index" );
+                throw yl_exception( "invalid array index" );
             }
             s[ r ] = array->get_index( (size_t)index );
         }
-        else if ( s[ a ].kind() == YLOBJ_TABLE )
+        else if ( s[ a ].is( YLOBJ_TABLE ) )
         {
             yl_table* table = (yl_table*)s[ a ].heapobj();
             s[ r ] = table->get_index( s[ b ] );
-            if ( s[ r ].kind() == YLOBJ_UNDEF )
+            if ( s[ r ].is_undef() )
             {
                 throw yl_exception( "index not found" );
             }
@@ -987,12 +968,12 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_SETKEY:
     {
-        if ( s[ r ].kind() & YLOBJ_IS_OBJECT )
+        if ( s[ r ].is_object() )
         {
             yl_object* object = (yl_object*)s[ r ].heapobj();
-            yl_heapobj* key = values[ b ].get().as_heapobj();
-            assert( key->kind() == YLOBJ_STRING );
-            yl_string* string = (yl_string*)key;
+            yl_value value = values[ b ].get();
+            assert( value.is( YLOBJ_STRING ) );
+            yl_string* string = (yl_string*)value.heapobj();
             object->set_key( string, s[ a ] );
         }
         else
@@ -1004,10 +985,10 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_SETINKEY:
     {
-        if ( s[ r ].kind() & YLOBJ_IS_OBJECT )
+        if ( s[ r ].is_object() )
         {
             yl_object* object = (yl_object*)s[ r ].heapobj();
-            if ( s[ a ].kind() != YLOBJ_STRING )
+            if ( ! s[ a ].is( YLOBJ_STRING ) )
             {
                 throw yl_exception( "object index must be a string" );
             }
@@ -1023,21 +1004,21 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_SETINDEX:
     {
-        if ( s[ r ].kind() == YLOBJ_ARRAY )
+        if ( s[ r ].is( YLOBJ_ARRAY ) )
         {
             yl_array* array = (yl_array*)s[ r ].heapobj();
-            if ( s[ a ].kind() != YLOBJ_NUMBER )
+            if ( ! s[ a ].is_number() )
             {
-                throw yl_exception( "cannot index array with non-integer" );
+                throw yl_exception( "invalid array index" );
             }
             double index = s[ a ].number();
             if ( ! is_integer( index ) || index < 0 || index >= array->length() )
             {
-                throw yl_exception( "invalid index" );
+                throw yl_exception( "invalid array index" );
             }
             array->set_index( (size_t)index, s[ b ] );
         }
-        else if ( s[ r ].kind() == YLOBJ_TABLE )
+        else if ( s[ r ].is( YLOBJ_TABLE ) )
         {
             yl_table* table = (yl_table*)s[ r ].heapobj();
             table->set_index( s[ a ], s[ b ] );
@@ -1051,25 +1032,24 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_RESPONDS:
     {
-        if ( s[ b ].kind() != YLOBJ_STRING )
+        if ( ! s[ b ].is( YLOBJ_STRING ) )
         {
             throw yl_exception( "object index must be a string" );
         }
         yl_string* string = (yl_string*)s[ b ].heapobj();
         yl_value value = keyerof( s[ a ] )->get_key( string->symbol() );
-        yl_heapobj* result = value.kind() != YLOBJ_UNDEF ? yl_true : yl_false;
-        s[ r ] = yl_value( YLOBJ_BOOL, result );
+        s[ r ] = value.is_undef() ? yl_true : yl_false;
         break;
     }
     
     case YL_DELKEY:
     {
-        if ( s[ a ].kind() & YLOBJ_IS_OBJECT )
+        if ( s[ a ].is_object() )
         {
             yl_object* object = (yl_object*)s[ a ].heapobj();
-            yl_heapobj* key = values[ b ].get().as_heapobj();
-            assert( key->kind() == YLOBJ_STRING );
-            yl_string* string = (yl_string*)key;
+            yl_value value = values[ b ].get();
+            assert( value.is( YLOBJ_STRING ) );
+            yl_string* string = (yl_string*)value.heapobj();
             object->del_key( string );
         }
         else
@@ -1081,10 +1061,10 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_DELINKEY:
     {
-        if ( s[ a ].kind() & YLOBJ_IS_OBJECT )
+        if ( s[ a ].is_object() )
         {
             yl_object* object = (yl_object*)s[ a ].heapobj();
-            if ( s[ b ].kind() != YLOBJ_STRING )
+            if ( ! s[ b ].is( YLOBJ_STRING ) )
             {
                 throw yl_exception( "object index must be a string" );
             }
@@ -1101,34 +1081,29 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     case YL_IS:
     {
         bool result = false;
-        yl_value u = s[ a ];
-        yl_value proto = s[ b ];
-        while ( true )
+        if ( s[ b ].is_object() )
         {
-            if ( u.kind() == proto.kind() && u.heapobj() == proto.heapobj() )
+            yl_object* proto = (yl_object*)s[ b ].heapobj();
+            for ( yl_object* object = keyerof( s[ a ] );
+                            object != nullptr; object = object->superof() )
             {
-                result = true;
-                break;
-            }
-            
-            yl_object* object = superof( u );
-            if ( object )
-            {
-                u = yl_value( object->kind(), object );
-            }
-            else
-            {
-                result = false;
-                break;
+                if ( object == proto )
+                {
+                    result = true;
+                }
             }
         }
-        s[ r ] = yl_value( YLOBJ_BOOL, result ? yl_true : yl_false );
+        else
+        {
+            result = equal( s[ a ], s[ b ] );
+        }
+        s[ r ] = result ? yl_true : yl_false;
         break;
     }
 
     case YL_APPEND:
     {
-        if ( s[ a ].kind() == YLOBJ_ARRAY )
+        if ( s[ a ].is( YLOBJ_ARRAY ) )
         {
             yl_array* array = (yl_array*)s[ a ].heapobj();
             array->append( s[ r ] );
@@ -1142,7 +1117,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_EXTEND:
     {
-        if ( s[ b ].kind() != YLOBJ_ARRAY )
+        if ( s[ b ].is( YLOBJ_ARRAY ) )
         {
             throw yl_exception( "cannot extend non-array" );
         }
@@ -1158,7 +1133,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_UNPACK:
     {
-        if ( s[ b ].kind() != YLOBJ_ARRAY )
+        if ( s[ b ].is( YLOBJ_ARRAY ) )
         {
             throw yl_exception( "cannot unpack non-array" );
         }
@@ -1184,7 +1159,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         {
             for ( unsigned i = count; i < b; ++i )
             {
-                s[ r + i ] = yl_value( YLOBJ_NULL, yl_null );
+                s[ r + i ] = yl_null;
             }
         }
         else

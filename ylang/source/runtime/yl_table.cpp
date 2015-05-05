@@ -95,7 +95,7 @@ yl_value yl_table::get_index( const yl_value& key ) const
     }
     else
     {
-        return yl_value( YLOBJ_UNDEF, yl_undef );
+        return yl_undef;
     }
 }
 
@@ -276,7 +276,7 @@ yl_object* yl_table::make_prototype()
 {
     yl_object* proto = yl_object::alloc( yl_current->proto_object() );
     proto->set_key( yl_string::alloc( "length" )->symbol(),
-        yl_value( YLOBJ_THUNK, yl_thunk::alloc( &thunk_length ) ) );
+        yl_value( YLOBJ_THUNKOBJ, yl_thunkobj::alloc( &thunk_length ) ) );
     return proto;
 }
 

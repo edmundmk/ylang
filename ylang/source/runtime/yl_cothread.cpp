@@ -60,14 +60,14 @@ yl_callframe::~yl_callframe()
 void yl_callframe::push( std::nullptr_t )
 {
     yl_value* s = _cothread->stack( _base, _size + 1 );
-    s[ _size ] = yl_value( YLOBJ_NULL, yl_null );
+    s[ _size ] = yl_null;
     _size += 1;
 }
 
 void yl_callframe::push_bool( bool value )
 {
     yl_value* s = _cothread->stack( _base, _size + 1 );
-    s[ _size ] = yl_value( YLOBJ_BOOL, value ? yl_true : yl_false );
+    s[ _size ] = value ? yl_true : yl_false;
     _size += 1;
 }
 
@@ -111,14 +111,33 @@ yl_valkind yl_callframe::at( size_t index ) const
         throw yl_exception( "missing argument" );
     }
     yl_value* s = _cothread->stack( _base, _size );
-    yl_objkind kind = s[ index ].kind();
-    if ( kind <= YLOBJ_STRING )
-        return (yl_valkind)kind;
-    else if ( kind == YLOBJ_NATIVE )
+    if ( s[ index ].is_number() )
+    {
+        return YLVAL_NUMBER;
+    }
+    switch ( s[ index ].kind() )
+    {
+    case YLOBJ_EXPOSE:
         return YLVAL_EXPOSE;
-    else if ( kind == YLOBJ_FUNCOBJ || kind == YLOBJ_THUNK )
+        
+    case YLOBJ_STRING:
+        return YLVAL_STRING;
+        
+    case YLOBJ_FUNCOBJ:
+    case YLOBJ_THUNKOBJ:
         return YLVAL_FUNCTION;
-    return YLVAL_NULL;
+        
+    case YLOBJ_SINGULAR:
+        if ( s[ index ].is_true() || s[ index ].is_false() )
+            return YLVAL_BOOL;
+        else if ( s[ index ].is_null() )
+            return YLVAL_NULL;
+        else
+            return YLVAL_UNKNOWN;
+    
+    default:
+        return YLVAL_UNKNOWN;
+    }
 }
 
 bool yl_callframe::get_bool( size_t index ) const
@@ -128,11 +147,15 @@ bool yl_callframe::get_bool( size_t index ) const
         throw yl_exception( "missing argument" );
     }
     yl_value* s = _cothread->stack( _base, _size );
-    if ( s[ index ].kind() != YLOBJ_BOOL )
+    if ( s[ index ].is_true() )
     {
-        throw yl_exception( "expected boolean" );
+        return true;
     }
-    return s[ index ].heapobj() == yl_true;
+    else if ( s[ index ].is_false() )
+    {
+        return false;
+    }
+    throw yl_exception( "expected boolean" );
 }
 
 double yl_callframe::get_number( size_t index ) const
@@ -142,11 +165,11 @@ double yl_callframe::get_number( size_t index ) const
         throw yl_exception( "missing argument" );
     }
     yl_value* s = _cothread->stack( _base, _size );
-    if ( s[ index ].kind() != YLOBJ_NUMBER )
+    if ( s[ index ].is_number() )
     {
-        throw yl_exception( "expected number" );
+        return s[ index ].number();
     }
-    return s[ index ].number();
+    throw yl_exception( "expected number" );
 }
 
 int yl_callframe::get_integer( size_t index ) const
@@ -156,16 +179,15 @@ int yl_callframe::get_integer( size_t index ) const
         throw yl_exception( "missing argument" );
     }
     yl_value* s = _cothread->stack( _base, _size );
-    if ( s[ index ].kind() != YLOBJ_NUMBER )
+    if ( s[ index ].is_number() )
     {
-        throw yl_exception( "expected integer" );
+        double number = s[ index ].number();
+        if ( is_integer( number ) && number >= INT_MIN && number <= INT_MAX )
+        {
+            return (int)number;
+        }
     }
-    double number = s[ index ].number();
-    if ( ! is_integer( number ) || number < INT_MIN || number > INT_MAX )
-    {
-        throw yl_exception( "expected integer" );
-    }
-    return (int)number;
+    throw yl_exception( "expected integer" );
 }
 
 const char* yl_callframe::get_string( size_t index ) const
@@ -175,12 +197,12 @@ const char* yl_callframe::get_string( size_t index ) const
         throw yl_exception( "missing argument" );
     }
     yl_value* s = _cothread->stack( _base, _size );
-    if ( s[ index ].kind() != YLOBJ_STRING )
+    if ( s[ index ].is( YLOBJ_STRING ) )
     {
-        throw yl_exception( "expected string" );
+        yl_string* string = (yl_string*)s[ index ].heapobj();
+        return string->c_str();
     }
-    yl_string* string = (yl_string*)s[ index ].heapobj();
-    return string->c_str();
+    throw yl_exception( "expected string" );
 }
 
 yl_expose* yl_callframe::get_expose( size_t index ) const
@@ -196,11 +218,11 @@ yl_function yl_callframe::get_function( size_t index ) const
         throw yl_exception( "missing argument" );
     }
     yl_value* s = _cothread->stack( _base, _size );
-    if ( s[ index ].kind() != YLOBJ_FUNCOBJ && s[ index ].kind() != YLOBJ_THUNK )
+    if ( s[ index ].is( YLOBJ_FUNCOBJ ) || s[ index ].is( YLOBJ_THUNKOBJ ) )
     {
-        throw yl_exception( "expected function" );
+        return yl_function( (yl_funcbase*)s[ index ].heapobj() );
     }
-    return yl_function( (yl_funcbase*)s[ index ].heapobj() );
+    throw yl_exception( "expected function" );
 }
 
 yl_heapobj* yl_callframe::get_heapobj( size_t index ) const
@@ -210,12 +232,11 @@ yl_heapobj* yl_callframe::get_heapobj( size_t index ) const
         throw yl_exception( "missing argument" );
     }
     yl_value* s = _cothread->stack( _base, _size );
-    yl_objkind kind = s[ index ].kind();
-    if ( kind == YLOBJ_NUMBER || kind == YLOBJ_UNDEF || kind == YLOBJ_BOOL )
+    if ( s[ index ].is_heapobj() )
     {
-        return nullptr;
+        return s[ index ].heapobj();
     }
-    return s[ index ].heapobj();
+    return nullptr;
 }
 
 
@@ -277,19 +298,19 @@ yl_iterator::yl_iterator()
 void yl_iterator::open_vals( const yl_value& value )
 {
     assert( _kind == YLITER_CLOSED );
-    if ( value.kind() == YLOBJ_ARRAY )
+    if ( value.is( YLOBJ_ARRAY ) )
     {
         _kind       = YLITER_ARRAY;
         _array      = (yl_array*)value.heapobj();
         _index      = 0;
     }
-    else if ( value.kind() == YLOBJ_TABLE )
+    else if ( value.is( YLOBJ_TABLE ) )
     {
         _kind       = YLITER_TABLE;
         _table      = (yl_table*)value.heapobj();
         _index      = 0;
     }
-    else if ( value.kind() == YLOBJ_COTHREAD )
+    else if ( value.is( YLOBJ_COTHREAD ) )
     {
         _kind       = YLITER_GENERATOR;
         _generator  = (yl_cothread*)value.heapobj();
@@ -303,7 +324,7 @@ void yl_iterator::open_vals( const yl_value& value )
 void yl_iterator::open_keys( const yl_value& value )
 {
     assert( _kind == YLITER_CLOSED );
-    if ( value.kind() & YLOBJ_IS_OBJECT )
+    if ( value.is_object() )
     {
         _kind       = YLITER_KEYS;
         _object     = (yl_object*)value.heapobj();
@@ -381,7 +402,7 @@ void yl_iterator::next1( yl_value* r )
     default:
     {
         assert( ! "invalid iterator" );
-        *r = yl_value( YLOBJ_NULL, yl_null );
+        *r = yl_null;
         break;
     }
     
@@ -401,7 +422,7 @@ void yl_iterator::next2( yl_value* r, yl_value* b )
     case YLITER_ARRAY:
     {
         *r = _array->get_index( _index );
-        *b = yl_value( YLOBJ_NULL, yl_null );
+        *b = yl_null;
         _index += 1;
         break;
     }
@@ -421,8 +442,8 @@ void yl_iterator::next2( yl_value* r, yl_value* b )
     default:
     {
         assert( ! "invalid iterator" );
-        *r = yl_value( YLOBJ_NULL, yl_null );
-        *b = yl_value( YLOBJ_NULL, yl_null );
+        *r = yl_null;
+        *b = yl_null;
         break;
     }
     
@@ -455,7 +476,7 @@ void yl_iterator::next( yl_cothread *t, unsigned r, unsigned b )
             s[ 0 ] = v;
             for ( size_t i = 1; i < b; ++i )
             {
-                s[ i ] = yl_value( YLOBJ_NULL, yl_null );
+                s[ i ] = yl_null;
             }
         }
         else
@@ -486,7 +507,7 @@ void yl_iterator::next( yl_cothread *t, unsigned r, unsigned b )
             yl_value* s = t->stack( r, b );
             for ( size_t i = 0; i < b; ++i )
             {
-                s[ i ] = yl_value( YLOBJ_NULL, yl_null );
+                s[ i ] = yl_null;
             }
         }
         else

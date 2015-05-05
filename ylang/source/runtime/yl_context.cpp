@@ -162,35 +162,36 @@ yl_object* yl_context_impl::superof( const yl_value& value )
         All prototypes are objects.  The prototypes of non-object values are
         built-in to the context.
     */
-
+  
+    if ( value.is_number() )
+    {
+        return _proto_number;
+    }
+    
     switch ( value.kind() )
     {
-    case YLOBJ_NULL:
-    case YLOBJ_UNDEF:
-        return nullptr;
-        
-    case YLOBJ_BOOL:
-        return _proto_bool;
-        
-    case YLOBJ_NUMBER:
-        return _proto_number;
-        
-    case YLOBJ_STRING:
-        return _proto_string;
-        
     case YLOBJ_OBJECT:
-    case YLOBJ_NATIVE:
+    case YLOBJ_EXPOSE:
     case YLOBJ_ARRAY:
     case YLOBJ_TABLE:
         return ( (yl_object*)value.heapobj() )->superof();
 
+    case YLOBJ_STRING:
+        return _proto_string;
+
     case YLOBJ_FUNCOBJ:
-    case YLOBJ_THUNK:
+    case YLOBJ_THUNKOBJ:
         return _proto_function;
-        
+
     case YLOBJ_COTHREAD:
         return _proto_cothread;
 
+    case YLOBJ_SINGULAR:
+        if ( value.is_true() || value.is_false() )
+            return _proto_bool;
+        else
+            return nullptr;
+        
     default:
         assert( ! "invalid value in superof()" );
         return nullptr;
@@ -250,7 +251,7 @@ yl_value yl_context_impl::new_object( yl_object* prototype )
         return yl_value( YLOBJ_TABLE, yl_table::alloc( prototype, 0 ) );
     }
     
-    return yl_value( YLOBJ_NULL, yl_null );
+    return yl_null;
 }
 
 
@@ -262,9 +263,9 @@ yl_value yl_context_impl::new_object( yl_object* prototype )
 void _yl_call_thunk( const char* name, yl_thunk_function thunk )
 {
     yl_alloc_scope ascope;
-    yl_string*  key      = yl_string::alloc( name )->symbol();
-    yl_thunk*   thunkobj = yl_thunk::alloc( thunk );
-    yl_current->globals()->set_key( key, yl_value( YLOBJ_THUNK, thunkobj ) );
+    yl_string* key = yl_string::alloc( name )->symbol();
+    yl_thunkobj* thunkobj = yl_thunkobj::alloc( thunk );
+    yl_current->globals()->set_key( key, yl_value( YLOBJ_THUNKOBJ, thunkobj ) );
 }
 
 

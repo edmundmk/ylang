@@ -28,27 +28,21 @@ yl_object::yl_object( yl_objkind kind, yl_object* prototype )
 
 yl_object* yl_object::superof() const
 {
-    yl_slot* klass = _klass.get();
+    yl_slot* slot = _klass.get();
     while ( true )
     {
-        if ( klass->_hash )
+        if ( slot->_hash )
         {
-            return klass->_hash->superof;
+            return slot->_hash->superof;
         }
         
-        yl_heapobj* parent = klass->_parent.get();
-        if ( ! parent )
+        if ( slot->_index != yl_slot::EMPTY_KLASS )
         {
-            return nullptr;
-        }
-        if ( parent->kind() & YLOBJ_IS_OBJECT )
-        {
-            return (yl_object*)parent;
+            slot = (yl_slot*)slot->_parent.get();
         }
         else
         {
-            assert( parent->kind() == YLOBJ_SLOT );
-            klass = (yl_slot*)parent;
+            return (yl_object*)slot->_parent.get();
         }
     }
 }
@@ -78,7 +72,7 @@ yl_value yl_object::get_key( const yl_symbol& key ) const
             }
             else
             {
-                return yl_value( YLOBJ_UNDEF, yl_undef );
+                return yl_undef;
             }
         }
         
@@ -103,13 +97,12 @@ yl_value yl_object::get_key( const yl_symbol& key ) const
             yl_heapobj* prototype = slot->_parent.get();
             if ( prototype )
             {
-                assert( prototype->kind() & YLOBJ_IS_OBJECT );
                 object = (yl_object*)prototype;
                 slot  = object->_klass.get();
             }
             else
             {
-                return yl_value( YLOBJ_UNDEF, yl_undef );
+                return yl_undef;
             }
         }
     }
@@ -275,7 +268,7 @@ void yl_object::del_key( const yl_symbol& key )
         }
     }
     
-    _slots.get()->at( index ).set( yl_value( YLOBJ_UNDEF, yl_undef ) );
+    _slots.get()->at( index ).set( yl_undef );
 }
 
 

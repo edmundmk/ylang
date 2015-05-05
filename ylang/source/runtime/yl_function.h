@@ -50,18 +50,18 @@ protected:
 
 typedef void (*yl_thunk_function)( yl_callframe& xf );
 
-class yl_thunk : public yl_funcbase
+class yl_thunkobj : public yl_funcbase
 {
 public:
 
-    static yl_thunk* alloc( yl_thunk_function thunk );
+    static yl_thunkobj* alloc( yl_thunk_function thunk );
 
     yl_thunk_function thunk();
 
 
 private:
 
-    explicit yl_thunk( yl_thunk_function thunk );
+    explicit yl_thunkobj( yl_thunk_function thunk );
 
 
     yl_thunk_function _thunk;

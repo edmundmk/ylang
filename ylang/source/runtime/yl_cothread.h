@@ -22,6 +22,16 @@ class yl_cothread;
 
 
 
+
+/*
+    Check if a number is an integer.
+*/
+
+bool is_integer( double number );
+
+
+
+
 /*
     A stack frame.
 */
@@ -163,6 +173,13 @@ private:
 /*
 
 */
+
+
+
+inline bool is_integer( double number )
+{
+    return number == (long)number;
+}
 
 
 inline void yl_upval::close( yl_cothread* cothread )
