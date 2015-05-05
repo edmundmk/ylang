@@ -1133,12 +1133,12 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_UNPACK:
     {
-        if ( ! s[ b ].is( YLOBJ_ARRAY ) )
+        if ( ! s[ a ].is( YLOBJ_ARRAY ) )
         {
             throw yl_exception( "cannot unpack non-array" );
         }
         
-        yl_array* array = (yl_array*)s[ b ].heapobj();
+        yl_array* array = (yl_array*)s[ a ].heapobj();
         unsigned count;
         if ( b != yl_opinst::MARK )
         {

@@ -86,7 +86,7 @@ assert( mapping.length() == 200 );
 
 
 assert( 5 is number );
-assert( true is boolean );
+assert( true is bool );
 assert( "hello" is string );
 
 
@@ -133,7 +133,7 @@ assert( superof( base ) == object );
 assert( superof( assert ) == function );
 assert( superof( function ) == object );
 assert( superof( object ) == null );
-assert( superof( false ) == boolean );
+assert( superof( false ) == bool );
 assert( superof( 532 ) == number );
 assert( superof( "goodbye" ) == string );
 assert( superof( number ) == object );

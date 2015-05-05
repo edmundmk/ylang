@@ -254,10 +254,13 @@ void yl_table::rehash( size_t capacity )
     _buckets.set( yl_bucketlist::alloc( capacity ) );
     
     // Reinsert elements.
-    for ( size_t i = 0; i < old_buckets->size(); ++i )
+    if ( old_buckets )
     {
-        const bucket& old_bucket = old_buckets->at( i );
-        set_index( old_bucket.key.get(), old_bucket.value.get() );
+        for ( size_t i = 0; i < old_buckets->size(); ++i )
+        {
+            const bucket& old_bucket = old_buckets->at( i );
+            set_index( old_bucket.key.get(), old_bucket.value.get() );
+        }
     }
     
     /*

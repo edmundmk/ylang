@@ -395,13 +395,14 @@ void ygen_emit::codegen_function( yssa_function* function )
                 // Upgrade to key, in case value was used earlier as string.
                 ygen_value& value = p->values.at( i->second );
                 value.kind = YGEN_KEY;
+                value.string->iskey = true;
             }
             else
             {
                 size_t index = p->values.size();
                 ygen_value value;
-                value.kind      = YGEN_KEY;
-                value.string    = add_string( k );
+                value.kind = YGEN_KEY;
+                value.string = add_string( k );
                 value.string->iskey = true;
                 p->values.push_back( value );
                 p->strvals.emplace( k, index );

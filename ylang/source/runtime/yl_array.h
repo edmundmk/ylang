@@ -82,7 +82,7 @@ inline void yl_array::set_index( size_t index, yl_value value )
 inline void yl_array::append( yl_value value )
 {
     yl_valarray* elements = _elements.get();
-    if ( elements->size() <= _length + 1 )
+    if ( ! elements || elements->size() <= _length + 1 )
     {
         reserve( elements->size() ? elements->size() * 2 : 8 );
         elements = _elements.get();
@@ -94,7 +94,7 @@ inline void yl_array::append( yl_value value )
 inline void yl_array::extend( const yl_value* values, size_t count )
 {
     yl_valarray* elements = _elements.get();
-    if ( elements->size() <= _length + count )
+    if ( ! elements || elements->size() <= _length + count )
     {
         reserve( ceil_pow2( _length + count ) );
         elements = _elements.get();
