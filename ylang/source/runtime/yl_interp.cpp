@@ -204,7 +204,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     
     // Get function.
-    yl_value* s = t->stack( sp, 1 + acount );
+    yl_value* s = t->stack( sp, acount );
     if ( ! s[ 0 ].is( YLOBJ_FUNCOBJ ) )
     {
         throw yl_exception( "cannot call non-function" );
@@ -1117,7 +1117,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_EXTEND:
     {
-        if ( s[ b ].is( YLOBJ_ARRAY ) )
+        if ( ! s[ b ].is( YLOBJ_ARRAY ) )
         {
             throw yl_exception( "cannot extend non-array" );
         }
@@ -1133,7 +1133,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_UNPACK:
     {
-        if ( s[ b ].is( YLOBJ_ARRAY ) )
+        if ( ! s[ b ].is( YLOBJ_ARRAY ) )
         {
             throw yl_exception( "cannot unpack non-array" );
         }

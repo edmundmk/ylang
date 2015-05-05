@@ -982,6 +982,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
             p->ops.emplace_back( YL_NEXT1, op->r, op->a );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
+        return 1;
     }
     
     case YL_NEXT2:
@@ -1018,6 +1019,8 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
             }
         }
         
+        assert( r != yl_opinst::NOVAL );
+        assert( b != yl_opinst::NOVAL );
         p->ops.emplace_back( YL_NEXT2, r, op->a, b );
         p->stackcount = std::max( p->stackcount, (size_t)r + 1 );
         p->stackcount = std::max( p->stackcount, (size_t)b + 1 );
@@ -1322,8 +1325,8 @@ void ygen_emit::emit( ygen_program* p )
     }
     
     
-//    p->program->print();
-//    printf( "\n" );
+    p->program->print();
+    printf( "\n" );
     
 }
 
