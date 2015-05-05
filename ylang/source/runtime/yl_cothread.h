@@ -19,6 +19,7 @@ class yl_object;
 class yl_array;
 class yl_table;
 class yl_cothread;
+class yl_bucketlist;
 
 
 
@@ -114,12 +115,15 @@ public:
 
 private:
 
+    void next_bucket();
+
+
     yl_iterkind _kind;
     union
     {
         yl_object*      _object;
         yl_array*       _array;
-        yl_table*       _table;
+        yl_bucketlist*  _buckets;
         yl_cothread*    _generator;
     };
     size_t _index;

@@ -13,7 +13,6 @@
 #include "yl_object.h"
 
 
-
 /*
     A fixed-size array of hash buckets.
 */
@@ -52,6 +51,12 @@ private:
 };
 
 
+static yl_bucketlist::bucket* const YL_EMPTY_BUCKET =
+                (yl_bucketlist::bucket*)-1;
+
+
+
+
 
 /*
     A hash table.
@@ -81,6 +86,8 @@ protected:
 
 
 private:
+
+    friend class yl_iterator;
 
     bucket* lookup( yl_value key ) const;
     bucket* main_position( yl_value key ) const;

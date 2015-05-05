@@ -306,9 +306,11 @@ void yl_iterator::open_vals( yl_value value )
     }
     else if ( value.is( YLOBJ_TABLE ) )
     {
+        yl_table* table = (yl_table*)value.heapobj();
         _kind       = YLITER_TABLE;
-        _table      = (yl_table*)value.heapobj();
-        _index      = 0;
+        _buckets    = table->_buckets.get();
+        _index      = -1;
+        next_bucket();
     }
     else if ( value.is( YLOBJ_COTHREAD ) )
     {
@@ -357,8 +359,7 @@ bool yl_iterator::has_values()
         return _index < _array->length();
         
     case YLITER_TABLE:
-        // TODO.
-        return false;
+        return _buckets && _index < _buckets->size();
         
     case YLITER_GENERATOR:
         // TODO.
@@ -389,7 +390,8 @@ void yl_iterator::next1( yl_value* r )
         
     case YLITER_TABLE:
     {
-        // TODO.
+        *r = _buckets->at( _index ).key.get();
+        next_bucket();
         break;
     }
     
@@ -429,7 +431,10 @@ void yl_iterator::next2( yl_value* r, yl_value* b )
         
     case YLITER_TABLE:
     {
-        // TODO.
+        yl_bucketlist::bucket& bucket = _buckets->at( _index );
+        *r = bucket.key.get();
+        *b = bucket.value.get();
+        next_bucket();
         break;
     }
     
@@ -452,10 +457,10 @@ void yl_iterator::next2( yl_value* r, yl_value* b )
 
 void yl_iterator::next( yl_cothread *t, unsigned r, unsigned b )
 {
-    if ( b == 0 )
-    {
-        return;
-    }
+    // Get values.
+    yl_value values[ 2 ];
+    yl_value* v = values;
+    size_t vcount = 0;
 
     switch ( _kind )
     {
@@ -467,29 +472,19 @@ void yl_iterator::next( yl_cothread *t, unsigned r, unsigned b )
     
     case YLITER_ARRAY:
     {
-        yl_value v = _array->get_index( _index );
+        v[ 0 ] = _array->get_index( _index );
         _index += 1;
-    
-        if ( b != yl_opinst::MARK )
-        {
-            yl_value* s = t->stack( r, b );
-            s[ 0 ] = v;
-            for ( size_t i = 1; i < b; ++i )
-            {
-                s[ i ] = yl_null;
-            }
-        }
-        else
-        {
-            yl_value* s = t->stack( r, 1 );
-            s[ 0 ] = v;
-            t->set_mark( r + 1 );
-        }
+        vcount = 1;
+        break;
     }
     
     case YLITER_TABLE:
     {
-        // TODO.
+        yl_bucketlist::bucket& bucket = _buckets->at( _index );
+        v[ 0 ] = bucket.key.get();
+        v[ 1 ] = bucket.value.get();
+        next_bucket();
+        vcount = 2;
         break;
     }
     
@@ -502,24 +497,50 @@ void yl_iterator::next( yl_cothread *t, unsigned r, unsigned b )
     default:
     {
         assert( ! "invalid iterator" );
-        if ( b != yl_opinst::MARK )
-        {
-            yl_value* s = t->stack( r, b );
-            for ( size_t i = 0; i < b; ++i )
-            {
-                s[ i ] = yl_null;
-            }
-        }
-        else
-        {
-            t->set_mark( r );
-        }
         break;
     }
     
     }
+
+    // Place them appropriately on the stack.
+    size_t rcount = b != yl_opinst::MARK ? b : vcount;
+    size_t count = std::min( rcount, vcount );
+
+    yl_value* s = t->stack( r, rcount );
+    for ( size_t i = 0; i < count; ++i )
+    {
+        s[ i ] = v[ i ];
+    }
+    for ( size_t i = count; i < rcount; ++i )
+    {
+        s[ i ] = yl_null;
+    }
+
+    if ( b == yl_opinst::MARK )
+    {
+        t->set_mark( r + (unsigned)rcount );
+    }
+
 }
 
+
+void yl_iterator::next_bucket()
+{
+    if ( ! _buckets )
+    {
+        return;
+    }
+    
+    while ( _index < _buckets->size() )
+    {
+        _index += 1;
+        
+        if ( _buckets->at( _index ).next != YL_EMPTY_BUCKET )
+        {
+            break;
+        }
+    }
+}
 
 
 

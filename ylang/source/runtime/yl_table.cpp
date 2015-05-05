@@ -11,12 +11,11 @@
 #include "yl_function.h"
 
 
-static yl_bucketlist::bucket* EMPTY_BUCKET = (yl_bucketlist::bucket*)-1;
 
 
 
 yl_bucketlist::bucket::bucket()
-    :   next( EMPTY_BUCKET )
+    :   next( YL_EMPTY_BUCKET )
 {
 }
 
@@ -122,7 +121,7 @@ void yl_table::set_index( yl_value key, yl_value value )
     
     // Check if element can be placed in its main position.
     bucket* insert = main_position( key );
-    if ( insert->next == EMPTY_BUCKET )
+    if ( insert->next == YL_EMPTY_BUCKET )
     {
         insert->key.set( key );
         insert->value.set( value );
@@ -135,11 +134,11 @@ void yl_table::set_index( yl_value key, yl_value value )
     
     // The only way that the occupying element is blocking us is if its main
     // position is occupied, either by itself or another element.
-    assert( cuckoo->next != EMPTY_BUCKET );
+    assert( cuckoo->next != YL_EMPTY_BUCKET );
     
     // Find free bucket near the main position of the occupying element.
     bucket* free = free_position( cuckoo );
-    assert( free->next == EMPTY_BUCKET );
+    assert( free->next == YL_EMPTY_BUCKET );
     
     if ( cuckoo == insert )
     {
@@ -183,7 +182,7 @@ yl_bucketlist::bucket* yl_table::lookup( yl_value key ) const
 {
     // Check for value in main position.
     bucket* lookup = main_position( key );
-    if ( lookup && lookup->next == EMPTY_BUCKET )
+    if ( lookup && lookup->next == YL_EMPTY_BUCKET )
     {
         return nullptr;
     }
@@ -224,7 +223,7 @@ yl_bucketlist::bucket* yl_table::free_position( bucket* near )
 
     for ( bucket* free = near + 1; free < end; ++free )
     {
-        if ( free->next == EMPTY_BUCKET )
+        if ( free->next == YL_EMPTY_BUCKET )
         {
             return free;
         }
@@ -232,7 +231,7 @@ yl_bucketlist::bucket* yl_table::free_position( bucket* near )
     
     for ( bucket* free = near - 1; free >= begin; --free )
     {
-        if ( free->next == EMPTY_BUCKET )
+        if ( free->next == YL_EMPTY_BUCKET )
         {
             return free;
         }

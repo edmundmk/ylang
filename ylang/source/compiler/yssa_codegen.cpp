@@ -550,19 +550,19 @@ void ygen_emit::codegen_function( yssa_function* function )
             if ( block->next == next_block )
             {
                 size_t index = p->ops.size();
-                p->ops.emplace_back( YL_JMPF, r, (signed)0 );
+                p->ops.emplace_back( jmpf, r, (signed)0 );
                 jumps.emplace_back( index, block->fail->lstart );
             }
             else if ( block->fail == next_block )
             {
                 size_t index = p->ops.size();
-                p->ops.emplace_back( YL_JMPT, r, (signed)0 );
+                p->ops.emplace_back( jmpt, r, (signed)0 );
                 jumps.emplace_back( index, block->next->lstart );
             }
             else
             {
                 size_t index = p->ops.size();
-                p->ops.emplace_back( YL_JMPT, r, (signed)0 );
+                p->ops.emplace_back( jmpt, r, (signed)0 );
                 jumps.emplace_back( index, block->next->lstart );
                 index = p->ops.size();
                 p->ops.emplace_back( YL_JMP, 0, (signed)0 );
@@ -1326,8 +1326,8 @@ void ygen_emit::emit( ygen_program* p )
     }
     
     
-    p->program->print();
-    printf( "\n" );
+//    p->program->print();
+//    printf( "\n" );
     
 }
 
