@@ -309,7 +309,7 @@ void yl_iterator::open_vals( yl_value value )
         yl_table* table = (yl_table*)value.heapobj();
         _kind       = YLITER_TABLE;
         _buckets    = table->_buckets.get();
-        _index      = -1;
+        _index      = 0;
         next_bucket();
     }
     else if ( value.is( YLOBJ_COTHREAD ) )
@@ -393,6 +393,7 @@ void yl_iterator::next1( yl_value* r )
     case YLITER_TABLE:
     {
         *r = _buckets->at( _index ).key.get();
+        _index += 1;
         next_bucket();
         break;
     }
@@ -436,6 +437,7 @@ void yl_iterator::next2( yl_value* r, yl_value* b )
         yl_bucketlist::bucket& bucket = _buckets->at( _index );
         *r = bucket.key.get();
         *b = bucket.value.get();
+        _index += 1;
         next_bucket();
         break;
     }
@@ -485,6 +487,7 @@ void yl_iterator::next( yl_cothread *t, unsigned r, unsigned b )
         yl_bucketlist::bucket& bucket = _buckets->at( _index );
         v[ 0 ] = bucket.key.get();
         v[ 1 ] = bucket.value.get();
+        _index += 1;
         next_bucket();
         vcount = 2;
         break;
@@ -535,12 +538,12 @@ void yl_iterator::next_bucket()
     
     while ( _index < _buckets->size() )
     {
-        _index += 1;
-        
         if ( _buckets->at( _index ).next != YL_EMPTY_BUCKET )
         {
             break;
         }
+        
+        _index += 1;
     }
 }
 

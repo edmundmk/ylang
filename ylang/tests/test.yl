@@ -93,17 +93,14 @@ assert( "hello" is string );
 var list = [ "a", "b", "c" ];
 for ( var item : list )
 {
-    printf( item );
-    printf( "\n" );
+    printf( "%s\n", item );
 }
 
 
 var map = { "p" : 4, "q" : 9, "zz" : 324, "ii" : 0.5 };
 for ( var key, value : map )
 {
-    printf( key );
-    printf( " : " );
-    printf( "%g\n", value );
+    printf( "%s : %g\n", key, value );
 }
 
 
