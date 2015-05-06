@@ -126,7 +126,11 @@ private:
         yl_bucketlist*  _buckets;
         yl_cothread*    _generator;
     };
-    size_t _index;
+    union
+    {
+        size_t          _index;
+        yl_slot*        _slot;
+    };
     
 };
 

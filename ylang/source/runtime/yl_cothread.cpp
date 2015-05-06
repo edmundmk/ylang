@@ -330,7 +330,7 @@ void yl_iterator::open_keys( yl_value value )
     {
         _kind       = YLITER_KEYS;
         _object     = (yl_object*)value.heapobj();
-        _index      = 0;
+        _slot       = _object->_klass.get();
     }
     else
     {
@@ -354,8 +354,7 @@ bool yl_iterator::has_values()
     switch ( _kind )
     {
     case YLITER_KEYS:
-        // TODO.
-        return false;
+        return _slot->_index != yl_slot::EMPTY_KLASS;
         
     case YLITER_ARRAY:
         return _index < _array->length();
@@ -379,7 +378,7 @@ void yl_iterator::next1( yl_value* r )
     {
     case YLITER_KEYS:
     {
-        // TODO.
+        *r = yl_value( YLOBJ_STRING, _slot->_symbol.get() );
         break;
     }
         
@@ -420,7 +419,10 @@ void yl_iterator::next2( yl_value* r, yl_value* b )
     {
     case YLITER_KEYS:
     {
-        // TODO.
+        *r = yl_value( YLOBJ_STRING, _slot->_symbol.get() );
+        *b = _object->_slots.get()->at( _slot->_index ).get();
+        assert( _slot->_index != yl_slot::EMPTY_KLASS );
+        _slot = (yl_slot*)_slot->_parent.get();
         break;
     }
         
@@ -470,7 +472,11 @@ void yl_iterator::next( yl_cothread *t, unsigned r, unsigned b )
     {
     case YLITER_KEYS:
     {
-        // TODO.
+        v[ 0 ] = yl_value( YLOBJ_STRING, _slot->_symbol.get() );
+        v[ 1 ] = _object->_slots.get()->at( _slot->_index ).get();
+        assert( _slot->_index != yl_slot::EMPTY_KLASS );
+        _slot = (yl_slot*)_slot->_parent.get();
+        vcount = 2;
         break;
     }
     

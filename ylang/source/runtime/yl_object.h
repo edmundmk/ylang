@@ -60,7 +60,9 @@ protected:
 
 private:
 
-    size_t      lookup( yl_slot* klass, const yl_symbol& key ) const;
+    friend class yl_iterator;
+
+    size_t lookup( yl_slot* klass, const yl_symbol& key ) const;
 
 
     yl_objref< yl_slot >       _klass;     // start of slot chain
@@ -101,6 +103,7 @@ public:
 private:
 
     friend class yl_object;
+    friend class yl_iterator;
 
 
     static const size_t EMPTY_KLASS = (size_t)-1;
