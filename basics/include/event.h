@@ -62,9 +62,10 @@ template < typename ... arguments_t >
 inline void event< arguments_t ... >::
                 operator() ( arguments_t ... arguments ) const
 {
-    for ( auto i = subscribers.begin(); i != subscribers.end(); ++i )
+    for ( auto i = subscribers.begin(); i != subscribers.end(); )
     {
         const delegate_type& subscriber = *i;
+        i++;
         subscriber( arguments ... );
     }
 }
