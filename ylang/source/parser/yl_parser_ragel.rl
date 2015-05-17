@@ -242,6 +242,7 @@ void  XecParseFree( void* p, void (*free)( void* ) );
         |   '||'   >ts %{ MTOKEN( YL_TOKEN_LOGICOR, sloc, "||", 2 ); }
         
         |   '::'   >ts %{ MTOKEN( YL_TOKEN_EACHKEY, sloc, "::", 2 ); }
+        |   '.&'   >ts %{ MTOKEN( YL_TOKEN_HASKEY, sloc, ".&", 2 ); }
         |   '...'  >ts %{ MTOKEN( YL_TOKEN_ELLIPSIS, sloc, "...", 3 ); }
 
     )**

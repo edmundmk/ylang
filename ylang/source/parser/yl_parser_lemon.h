@@ -20,7 +20,7 @@
 #define LEMON_SUPEROF                        20
 #define LEMON_LSQ                            21
 #define LEMON_RSQ                            22
-#define LEMON_EACHKEY                        23
+#define LEMON_HASKEY                         23
 #define LEMON_NEW                            24
 #define LEMON_NULL                           25
 #define LEMON_TRUE                           26
@@ -78,4 +78,5 @@
 #define LEMON_SWITCH                         78
 #define LEMON_DO                             79
 #define LEMON_FOR                            80
-#define LEMON_USING                          81
+#define LEMON_EACHKEY                        81
+#define LEMON_USING                          82

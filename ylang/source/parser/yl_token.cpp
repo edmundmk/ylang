@@ -133,6 +133,7 @@ void yl_token::debug_print()
     case YL_TOKEN_LOGICOR:          kind_name = "LOGICOR";          break;
     
     case YL_TOKEN_EACHKEY:          kind_name = "EACHKEY";          break;
+    case YL_TOKEN_HASKEY:           kind_name = "HASKEY";           break;
     case YL_TOKEN_ELLIPSIS:         kind_name = "ELLIPSIS";         break;
     }
     
