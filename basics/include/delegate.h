@@ -42,7 +42,7 @@ public:
     bool operator == ( const delegate& b ) const;
     bool operator != ( const delegate& b ) const;
     
-    return_t operator () ( arguments_t&& ... arguments );
+    return_t operator () ( arguments_t ... arguments ) const;
 
 
 private:
@@ -162,12 +162,12 @@ bool delegate< return_t( arguments_t ... ) >::
     
 template < typename return_t, typename ... arguments_t >
 return_t delegate< return_t( arguments_t ... ) >::
-                operator () ( arguments_t&& ... arguments )
+                operator () ( arguments_t ... arguments ) const
 {
     if ( target )
-        return ( target->*method )( std::forward< arguments_t >( arguments ) ... );
+        return ( target->*method )( arguments ... );
     else
-        return function( std::forward< arguments_t >( arguments ) ... );
+        return function( arguments ... );
 }
 
 
