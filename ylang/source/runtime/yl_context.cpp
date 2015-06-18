@@ -73,25 +73,16 @@ yl_context_impl::yl_context_impl()
     _proto_cothread = yl_object::alloc( _proto_object );
     
     // Globals.
-    _globals        = yl_object::alloc( _proto_object );
-    _globals->set_key( yl_string::alloc( "global" )->symbol(),
-                            yl_value( YLOBJ_OBJECT, _globals ) );
-    _globals->set_key( yl_string::alloc( "object" )->symbol(),
-                            yl_value( YLOBJ_OBJECT, _proto_object ) );
-    _globals->set_key( yl_string::alloc( "array" )->symbol(),
-                            yl_value( YLOBJ_OBJECT, _proto_array ) );
-    _globals->set_key( yl_string::alloc( "table" )->symbol(),
-                            yl_value( YLOBJ_OBJECT, _proto_table ) );
-    _globals->set_key( yl_string::alloc( "bool" )->symbol(),
-                            yl_value( YLOBJ_OBJECT, _proto_bool ) );
-    _globals->set_key( yl_string::alloc( "number" )->symbol(),
-                            yl_value( YLOBJ_OBJECT, _proto_number ) );
-    _globals->set_key( yl_string::alloc( "string" )->symbol(),
-                            yl_value( YLOBJ_OBJECT, _proto_string ) );
-    _globals->set_key( yl_string::alloc( "function" )->symbol(),
-                            yl_value( YLOBJ_OBJECT, _proto_function ) );
-    _globals->set_key( yl_string::alloc( "cothread" )->symbol(),
-                            yl_value( YLOBJ_OBJECT, _proto_cothread ) );
+    _globals = yl_object::alloc( _proto_object );
+    set_global( "global", yl_value( YLOBJ_OBJECT, _globals ) );
+    set_global( "object", yl_value( YLOBJ_OBJECT, _proto_object ) );
+    set_global( "array", yl_value( YLOBJ_OBJECT, _proto_array ) );
+    set_global( "table", yl_value( YLOBJ_OBJECT, _proto_table ) );
+    set_global( "bool", yl_value( YLOBJ_OBJECT, _proto_bool ) );
+    set_global( "number", yl_value( YLOBJ_OBJECT, _proto_number ) );
+    set_global( "string", yl_value( YLOBJ_OBJECT, _proto_string ) );
+    set_global( "function", yl_value( YLOBJ_OBJECT, _proto_function ) );
+    set_global( "cothread", yl_value( YLOBJ_OBJECT, _proto_cothread ) );
 }
 
 yl_context_impl::~yl_context_impl()
@@ -255,6 +246,13 @@ yl_value yl_context_impl::new_object( yl_object* prototype )
 }
 
 
+void yl_context_impl::set_global( const char* name, yl_value value )
+{
+    yl_string* key = yl_string::alloc( name )->symbol();
+    _globals->set_key( key, value );
+}
+
+
 
 
 
@@ -263,9 +261,8 @@ yl_value yl_context_impl::new_object( yl_object* prototype )
 void _yl_call_thunk( const char* name, yl_thunk_function thunk )
 {
     yl_alloc_scope ascope;
-    yl_string* key = yl_string::alloc( name )->symbol();
     yl_thunkobj* thunkobj = yl_thunkobj::alloc( thunk );
-    yl_current->globals()->set_key( key, yl_value( YLOBJ_THUNKOBJ, thunkobj ) );
+    yl_current->set_global( name, yl_value( YLOBJ_THUNKOBJ, thunkobj ) );
 }
 
 

@@ -109,6 +109,7 @@ public:
     // Global table.
 
     yl_object*      globals();
+    void            set_global( const char* name, yl_value value );
 
 
 private:

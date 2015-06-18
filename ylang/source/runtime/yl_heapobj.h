@@ -166,7 +166,7 @@ inline void yl_context_impl::write_barrier( yl_heapobj* object )
         return;
     }
     
-    yl_current->write_barrier_mark( object );
+    write_barrier_mark( object );
 }
 
 
