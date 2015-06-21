@@ -111,9 +111,23 @@ bool yl_gcheap::collect()
     // Update epoch.
     std::swap( _unmarked, _marked );
     
-    // Perform stack/root marking on the main thread.
+    // Mark stack references.
+    for ( const auto& stackref : _stackrefs )
+    {
+        mark( (yl_gcobject*)( *stackref ) );
+    }
     
+    // Mark roots.
+    for ( const auto& root : _roots )
+    {
+        mark( root );
+    }
     
+    // Eager marking.
+    for ( const auto& eager : _eager )
+    {
+        mark_object( eager );
+    }
     
     // Weak objects can be resurrected from this point until the end of
     // the mark phase - after that they are irrevocably dead.
@@ -137,7 +151,7 @@ void yl_gcheap::set_oolref( yl_gcobject* object, yl_gcobject* ool )
     
     // If there was a previous value for the oolref, write barrier it
     // just like any other reference.
-    if ( object->check_flags( YL_GCFLAG_OOLREF ) )
+    if ( object->check_gcflags( YL_GCFLAG_OOLREF ) )
     {
         write_barrier( _oolrefs.at( object ) );
     }
@@ -148,13 +162,13 @@ void yl_gcheap::set_oolref( yl_gcobject* object, yl_gcobject* ool )
     // Mark the object as having an oolref.  It doesn't matter if the
     // GC doesn't pick this up until the next epoch (after the next
     // handshake), as ool must be live in this epoch already.
-    object->set_flags( YL_GCFLAG_OOLREF );
+    object->set_gcflags( YL_GCFLAG_OOLREF );
 
 }
 
 yl_gcobject* yl_gcheap::get_oolref( yl_gcobject* object )
 {
-    if ( object->check_flags( YL_GCFLAG_OOLREF ) )
+    if ( object->check_gcflags( YL_GCFLAG_OOLREF ) )
     {
         return _oolrefs.at( object );
     }
@@ -180,7 +194,7 @@ yl_gcobject* yl_gcheap::weak_create( yl_gcobject* weak )
     // Set weak flag.  The object must be live, so it will not be swept
     // until at least the next GC epoch (when this flag will be visible
     // to the GC due to the handshake).
-    weak->set_flags( YL_GCFLAG_WEAK );
+    weak->set_gcflags( YL_GCFLAG_WEAK );
 
     return weak;
 }
@@ -197,23 +211,31 @@ void yl_gcheap::weak_unlock()
 
 void yl_gcheap::eager_lock( yl_gcobject* object )
 {
-    //  ***** ARRGGH *****
-
-
-
+    // Set to be marked at the next handshake.
     _eager.insert( object );
     
-    // If the GC is not running then the object will be eagerly marked
-    // at the next handshake.
-    if ( check_state( IDLE ) )
+    // Check colour.
+    yl_gcheader* gcheader = &object->_gcheader;
+    yl_gccolour colour = gcheader->colour.load( std::memory_order_relaxed );
+    if ( YL_LIKELY( colour == _marked ) )
         return;
-    
-    // Otherwise we need to write barrier every reference before it is
-    // updated by the client code.
+
+    // If the object is unmarked or grey both then we need to mark it now.
+    std::lock_guard< std::mutex > lock( _grey_mutex );
+
+    // Call eager_mark routine.
     uint8_t index = yl_kind_to_index( object->kind() );
     const yl_gctype& type = _types.at( index );
     type.eager_mark( this, object );
+            
+    // Mark oolref.
+    if ( object->check_gcflags( YL_GCFLAG_OOLREF ) )
+    {
+        eager_mark( _oolrefs.at( object ) );
+    }
     
+    // Colour it marked.
+    gcheader->colour.store( _marked, std::memory_order_relaxed );
 }
 
 void yl_gcheap::eager_unlock( yl_gcobject* object )
@@ -274,29 +296,23 @@ void yl_gcheap::collect_thread()
 
 
 
+
 void yl_gcheap::write_barrier_impl( yl_gcobject* object )
 {
     std::lock_guard< std::mutex > lock( _grey_mutex );
-
-    // Update colour.
-    yl_gcheader* gcheader = &object->_gcheader;
-    gcheader->colour.store( _marked, std::memory_order_relaxed );
-    
-    // Add object to grey list.
-    if ( ! object->check_flags( YL_GCFLAG_LEAF ) )
-        _grey_list.push_back( object );
+    eager_mark_impl( object );
 }
 
 
 bool yl_gcheap::weak_obtain_impl( yl_gcobject* object )
 {
     assert( _weak_locked );
-    assert( object->check_flags( YL_GCFLAG_WEAK ) );
+    assert( object->check_gcflags( YL_GCFLAG_WEAK ) );
 
     // Check colour.
     yl_gcheader* gcheader = &object->_gcheader;
     yl_gccolour colour = gcheader->colour.load( std::memory_order_relaxed );
-    if ( colour == _marked )
+    if ( YL_LIKELY( colour != _unmarked ) )
         return true;
 
 
@@ -308,24 +324,20 @@ bool yl_gcheap::weak_obtain_impl( yl_gcobject* object )
         no longer be resurrected.
     */
     
-    if ( object->check_flags( YL_GCFLAG_LEAF ) )
+    std::lock_guard< std::mutex > lock( _grey_mutex );
+
+    if ( ! object->check_gcflags( YL_GCFLAG_LEAF ) )
     {
-        // Update colour.
-        yl_gcheader* gcheader = &object->_gcheader;
-        gcheader->colour.store( _marked, std::memory_order_relaxed );
+        if ( _can_resurrect )
+        {
+            gcheader->colour.store( YL_GCCOLOUR_GREY, std::memory_order_relaxed );
+            _grey_list.push_back( object );
+            return true;
+        }
     }
     else
     {
-        std::lock_guard< std::mutex > lock( _grey_mutex );
-        if ( _can_resurrect )
-        {
-            // Update colour.
-            yl_gcheader* gcheader = &object->_gcheader;
-            gcheader->colour.store( _marked, std::memory_order_relaxed );
-            
-            // Add object to grey list.
-            _grey_list.push_back( object );
-        }
+        gcheader->colour.store( _marked, std::memory_order_relaxed );
     }
 
     return false;
@@ -334,15 +346,32 @@ bool yl_gcheap::weak_obtain_impl( yl_gcobject* object )
 
 void yl_gcheap::mark_impl( yl_gcobject* object )
 {
-    // Update colour.
     yl_gcheader* gcheader = &object->_gcheader;
-    gcheader->colour.store( _marked, std::memory_order_relaxed );
-    
-    // Add object to mark list.
-    if ( ! object->check_flags( YL_GCFLAG_LEAF ) )
+    if ( ! object->check_gcflags( YL_GCFLAG_LEAF ) )
+    {
+        gcheader->colour.store( YL_GCCOLOUR_GREY, std::memory_order_relaxed );
         _mark_list.push_back( object );
+    }
+    else
+    {
+        gcheader->colour.store( _marked, std::memory_order_relaxed );
+    }
 }
 
+
+void yl_gcheap::eager_mark_impl( yl_gcobject* object )
+{
+    yl_gcheader* gcheader = &object->_gcheader;
+    if ( ! object->check_gcflags( YL_GCFLAG_LEAF ) )
+    {
+        gcheader->colour.store( YL_GCCOLOUR_GREY, std::memory_order_relaxed );
+        _grey_list.push_back( object );
+    }
+    else
+    {
+        gcheader->colour.store( _marked, std::memory_order_relaxed );
+    }
+}
 
 
 
@@ -369,20 +398,18 @@ void yl_gcheap::collect_mark()
         {
             yl_gcobject* object = _mark_list.back();
             _mark_list.pop_back();
-            
-            // Call mark routine.
-            uint8_t index = yl_kind_to_index( object->kind() );
-            const yl_gctype& type = _types.at( index );
-            if ( type.mark )
-            {
-                type.mark( this, object );
-            }
-            
-            // Mark oolref.
-            if ( object->check_flags( YL_GCFLAG_OOLREF ) )
-            {
-                mark( _oolrefs.at( object ) );
-            }
+
+            // Check if we've marked this object already.
+            yl_gcheader* gcheader = &object->_gcheader;
+            yl_gccolour colour = gcheader->colour.load( std::memory_order_relaxed );
+            if ( YL_UNLIKELY( colour == _marked ) )
+                continue;
+
+            // Should have been marked grey when it was added to the list.
+            assert( colour == YL_GCCOLOUR_GREY );
+
+            // Mark the object.
+            mark_object( object );
         }
     
     
@@ -399,6 +426,28 @@ void yl_gcheap::collect_mark()
             break;
         }
     }
+}
+
+
+void yl_gcheap::mark_object( yl_gcobject* object )
+{
+    // Call mark routine.
+    uint8_t index = yl_kind_to_index( object->kind() );
+    const yl_gctype& type = _types.at( index );
+    if ( type.mark )
+    {
+        type.mark( this, object );
+    }
+    
+    // Mark oolref.
+    if ( object->check_gcflags( YL_GCFLAG_OOLREF ) )
+    {
+        mark( _oolrefs.at( object ) );
+    }
+    
+    // Mark as marked.
+    yl_gcheader* gcheader = &object->_gcheader;
+    gcheader->colour.store( _marked, std::memory_order_relaxed );
 }
 
 
@@ -435,9 +484,11 @@ void yl_gcheap::collect_sweep()
         // Check colour.
         yl_gcheader* gcheader = &object->_gcheader;
         yl_gccolour colour = gcheader->colour.load( std::memory_order_relaxed );
-        if ( YL_LIKELY( colour != _unmarked ) )
+        if ( YL_LIKELY( colour == _marked ) )
             continue;
 
+        // All grey objects should have been marked.
+        assert( colour != YL_GCCOLOUR_GREY );
 
         // Sweep object.
         uint8_t index = yl_kind_to_index( object->kind() );
@@ -447,17 +498,18 @@ void yl_gcheap::collect_sweep()
         // Call object destructor.
         if ( type.destroy )
         {
-            if ( object->check_flags( YL_GCFLAG_WEAK ) )
+            if ( object->check_gcflags( YL_GCFLAG_WEAK ) )
             {
                 // Must hold weak lock during destructor.
                 std::unique_lock< std::mutex > lock( _weak_mutex );
                 
                 // Check for resurrection.
                 colour = gcheader->colour.load( std::memory_order_relaxed );
-                if ( colour != _unmarked )
+                if ( colour == _marked )
                 {
                     // Only leaf objects can resurrect during sweep.
-                    assert( object->check_flags( YL_GCFLAG_LEAF ) );
+                    assert( colour != YL_GCCOLOUR_GREY );
+                    assert( object->check_gcflags( YL_GCFLAG_LEAF ) );
                     continue;
                 }
                 
@@ -472,7 +524,7 @@ void yl_gcheap::collect_sweep()
         
 
         // Destroy oolref.
-        if ( object->check_flags( YL_GCFLAG_OOLREF ) )
+        if ( object->check_gcflags( YL_GCFLAG_OOLREF ) )
         {
             std::lock_guard< std::mutex > lock( _oolref_mutex );
             _oolrefs.erase( object );

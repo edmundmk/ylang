@@ -37,8 +37,11 @@ template < typename object_t > class yl_stackref;
 
 
 #ifdef __GNUC__
-#define YL_LIKELY( condition ) __builtin_expect( condition, 1 )
-#define YL_UNLIKELY( condition ) __builtin_expect( condition, 0 )
+#define YL_LIKELY( condition )      __builtin_expect( condition, 1 )
+#define YL_UNLIKELY( condition )    __builtin_expect( condition, 0 )
+#else
+#define YL_LIKELY( condition )      ( condition )
+#define YL_UNLIKELY( condition )    ( condition )
 #endif
 
 
@@ -87,6 +90,7 @@ extern __thread yl_gcheap* yl_current_gcheap;
 
 enum yl_gccolour : uint8_t
 {
+    YL_GCCOLOUR_GREY,
     YL_GCCOLOUR_PURPLE,
     YL_GCCOLOUR_ORANGE,
 };
@@ -94,7 +98,8 @@ enum yl_gccolour : uint8_t
 
 
 /*
-    Per-object flags.
+    Per-object flags.  Updated ONLY from the mutator thread.  GC thread must
+    restrict itself to checking them only.
 */
 
 enum yl_gcflags : uint8_t
@@ -228,9 +233,9 @@ public:
         at the start of a collection or when the eagerly marked object is
         locked.  Updating references without locking the object is invalid.
         
-        Objects supporting eager marking must implement both mark(), called
-        when the object is locked, and eager_mark(), called when the object
-        is unlocked.
+        Objects supporting eager marking must implement both mark(), which
+        should call mark() for all references, and eager_mark(), which should
+        call eager_mark() for all references.
     */
     
     void eager_lock( yl_gcobject* eager );
@@ -268,8 +273,11 @@ private:
     void write_barrier_impl( yl_gcobject* object );
     bool weak_obtain_impl( yl_gcobject* object );
     void mark_impl( yl_gcobject* object );
+    void eager_mark_impl( yl_gcobject* object );
     
     void collect_mark();
+    void mark_object( yl_gcobject* object );
+    
     void collect_sweep();
 
 
@@ -334,8 +342,9 @@ protected:
 
     explicit yl_gcobject( uint8_t kind, uint8_t gcflags = 0 );
 
-    void    set_flags( uint8_t flags );
-    uint8_t check_flags( uint8_t flags );
+    void set_gcflags( uint8_t flags );
+    void clear_gcflags( uint8_t flags );
+    uint8_t check_gcflags( uint8_t flags );
 
 
 private:
@@ -427,7 +436,7 @@ inline void yl_gcheap::write_barrier( yl_gcobject* object )
     
     // Check colour.
     yl_gccolour colour = gcheader->colour.load( std::memory_order_relaxed );
-    if ( YL_LIKELY( colour == _marked ) )
+    if ( YL_LIKELY( colour != _unmarked ) )
         return;
 
     // Perform main work of write barrier.
@@ -456,11 +465,26 @@ inline void yl_gcheap::mark( yl_gcobject* object )
     // Check colour.
     yl_gcheader* gcheader = &object->_gcheader;
     yl_gccolour colour = gcheader->colour.load( std::memory_order_relaxed );
-    if ( YL_LIKELY( colour == _marked ) )
+    if ( YL_LIKELY( colour != _unmarked ) )
         return;
 
     // Perform main work of marking.
     mark_impl( object );
+}
+
+inline void yl_gcheap::eager_mark( yl_gcobject* object )
+{
+    if ( ! object )
+        return;
+    
+    // Check colour.
+    yl_gcheader* gcheader = &object->_gcheader;
+    yl_gccolour colour = gcheader->colour.load( std::memory_order_relaxed );
+    if ( YL_LIKELY( colour != _unmarked ) )
+        return;
+
+    // Perform main work of marking.
+    eager_mark_impl( object );
 }
 
 
