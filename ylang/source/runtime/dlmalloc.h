@@ -618,6 +618,7 @@ size_t mspace_set_footprint_limit(mspace msp, size_t bytes);
 void mspace_inspect_all(mspace msp, 
                         void(*handler)(void *, void *, size_t, void*),
                         void* arg);
+void* mspace_next(mspace msp, void* mem);
 #endif  /* MSPACES */
 
 #ifdef __cplusplus

@@ -11,8 +11,10 @@
 		4B24D8B81AD160E900A83A4C /* yl_function.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B24D8B61AD160E900A83A4C /* yl_function.cpp */; };
 		4B24D8B91AD160E900A83A4C /* yl_function.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B24D8B71AD160E900A83A4C /* yl_function.h */; };
 		4B24D8BB1AD1DE0500A83A4C /* yl_code.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B24D8BA1AD1DE0500A83A4C /* yl_code.cpp */; };
-		4B24D8BE1AD4018E00A83A4C /* dlmalloc.c in Sources */ = {isa = PBXBuildFile; fileRef = 4B24D8BC1AD4018E00A83A4C /* dlmalloc.c */; };
-		4B24D8BF1AD4018E00A83A4C /* dlmalloc.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B24D8BD1AD4018E00A83A4C /* dlmalloc.h */; };
+		4B311BDC1B340402002D818B /* yl_gcheap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B311BDA1B340402002D818B /* yl_gcheap.cpp */; };
+		4B311BDD1B340402002D818B /* yl_gcheap.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B311BDB1B340402002D818B /* yl_gcheap.h */; };
+		4B311C021B370949002D818B /* dlmalloc.c in Sources */ = {isa = PBXBuildFile; fileRef = 4B311C001B370949002D818B /* dlmalloc.c */; };
+		4B311C031B370949002D818B /* dlmalloc.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B311C011B370949002D818B /* dlmalloc.h */; };
 		4B4176F21AA3849C00C014EB /* yl_code.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4176F11AA3849C00C014EB /* yl_code.h */; };
 		4B4231531AC407C70065BDAF /* yssa_constfold.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B4231511AC407C70065BDAF /* yssa_constfold.cpp */; };
 		4B4231541AC407C70065BDAF /* yssa_constfold.h in Headers */ = {isa = PBXBuildFile; fileRef = 4B4231521AC407C70065BDAF /* yssa_constfold.h */; };
@@ -84,8 +86,10 @@
 		4B24D8B61AD160E900A83A4C /* yl_function.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = yl_function.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		4B24D8B71AD160E900A83A4C /* yl_function.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = yl_function.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		4B24D8BA1AD1DE0500A83A4C /* yl_code.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_code.cpp; sourceTree = "<group>"; };
-		4B24D8BC1AD4018E00A83A4C /* dlmalloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dlmalloc.c; sourceTree = "<group>"; };
-		4B24D8BD1AD4018E00A83A4C /* dlmalloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dlmalloc.h; sourceTree = "<group>"; };
+		4B311BDA1B340402002D818B /* yl_gcheap.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_gcheap.cpp; sourceTree = "<group>"; };
+		4B311BDB1B340402002D818B /* yl_gcheap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_gcheap.h; sourceTree = "<group>"; };
+		4B311C001B370949002D818B /* dlmalloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dlmalloc.c; sourceTree = "<group>"; };
+		4B311C011B370949002D818B /* dlmalloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dlmalloc.h; sourceTree = "<group>"; };
 		4B4176F11AA3849C00C014EB /* yl_code.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = yl_code.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		4B4176F41AA5033100C014EB /* yl_value.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = yl_value.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		4B4176F51AA503DD00C014EB /* yl_object.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = yl_object.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
@@ -160,8 +164,8 @@
 		4B4176D31AA3820600C014EB /* runtime */ = {
 			isa = PBXGroup;
 			children = (
-				4B24D8BC1AD4018E00A83A4C /* dlmalloc.c */,
-				4B24D8BD1AD4018E00A83A4C /* dlmalloc.h */,
+				4B311C001B370949002D818B /* dlmalloc.c */,
+				4B311C011B370949002D818B /* dlmalloc.h */,
 				DB5B1FF71AE70B9500701000 /* yl_array.cpp */,
 				DB5B1FF81AE70B9500701000 /* yl_array.h */,
 				4B24D8BA1AD1DE0500A83A4C /* yl_code.cpp */,
@@ -170,6 +174,8 @@
 				4B4E55591ADC41CA00C276A2 /* yl_context.h */,
 				DB5B1FEA1ADDB2B200701000 /* yl_cothread.cpp */,
 				DB5B1FEB1ADDB2B200701000 /* yl_cothread.h */,
+				4B311BDA1B340402002D818B /* yl_gcheap.cpp */,
+				4B311BDB1B340402002D818B /* yl_gcheap.h */,
 				DB55C7AB1AD32CD500BD6C17 /* yl_heapobj.cpp */,
 				4B4176F61AA5040300C014EB /* yl_heapobj.h */,
 				DB5B1FE61ADDB13A00701000 /* yl_interp.cpp */,
@@ -299,10 +305,11 @@
 				4B4231611AC82E2B0065BDAF /* yssa_liveness.h in Headers */,
 				DB55C7AA1AD1A1C400BD6C17 /* yssa_codegen.h in Headers */,
 				4B4231581AC4D9950065BDAF /* yssa_analyze.h in Headers */,
-				4B24D8BF1AD4018E00A83A4C /* dlmalloc.h in Headers */,
+				4B311BDD1B340402002D818B /* yl_gcheap.h in Headers */,
 				DB5B1FE91ADDB13A00701000 /* yl_interp.h in Headers */,
 				DB5B1FF61AE70A0400701000 /* yl_table.h in Headers */,
 				4B6FDAB41AA654AE001096B0 /* yl_parser_lemon.h in Headers */,
+				4B311C031B370949002D818B /* dlmalloc.h in Headers */,
 				4B6FDAB61AA654AE001096B0 /* yl_token.h in Headers */,
 				4B6FDAB11AA654AE001096B0 /* yl_diagnostics.h in Headers */,
 				4B24D8B91AD160E900A83A4C /* yl_function.h in Headers */,
@@ -382,7 +389,6 @@
 				4B4231571AC4D9950065BDAF /* yssa_analyze.cpp in Sources */,
 				4B4E555B1ADC665800C276A2 /* yl_object.cpp in Sources */,
 				4B6FDAB51AA654AE001096B0 /* yl_token.cpp in Sources */,
-				4B24D8BE1AD4018E00A83A4C /* dlmalloc.c in Sources */,
 				DB5B1FE81ADDB13A00701000 /* yl_interp.cpp in Sources */,
 				4B6FDE851AA855C0001096B0 /* yssa.cpp in Sources */,
 				4B6FDAAA1AA654AE001096B0 /* yl_ast.cpp in Sources */,
@@ -391,6 +397,8 @@
 				4B4231601AC82E2B0065BDAF /* yssa_liveness.cpp in Sources */,
 				4B6FDAB21AA654AE001096B0 /* yl_parser.cpp in Sources */,
 				4B24D8B51AD156CA00A83A4C /* yl_value.cpp in Sources */,
+				4B311C021B370949002D818B /* dlmalloc.c in Sources */,
+				4B311BDC1B340402002D818B /* yl_gcheap.cpp in Sources */,
 				4B6FDAAC1AA654AE001096B0 /* yl_ast_print.cpp in Sources */,
 				4B6FDAB01AA654AE001096B0 /* yl_diagnostics.cpp in Sources */,
 				4B6FDE881AA8F1E6001096B0 /* yssa_builder.cpp in Sources */,

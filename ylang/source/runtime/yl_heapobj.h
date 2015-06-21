@@ -23,15 +23,14 @@ template < typename object_t > class yl_objref;
 
 
 /*
-    List of all ylang object types.  Note that this must match
-    the object types from yl_valkind.
+    List of all ylang object types.
 */
 
 enum yl_objkind : uint8_t
 {
     // User-visible types (with tags that must match the NaN-boxing scheme).
     YLOBJ_OBJECT        = 0xFF,     // object
-    YLOBJ_EXPOSE        = 0xFE,     // object for exposed native object
+    YLOBJ_EXPOBJ        = 0xFE,     // object for exposed native object
     YLOBJ_ARRAY         = 0xFD,     // object derived from array prototype
     YLOBJ_TABLE         = 0xFC,     // object derived from table prototype
 //                        0xFB,
@@ -121,7 +120,6 @@ inline yl_objkind yl_heapobj::kind() const
 {
     return _kind;
 }
-
 
 
 template < typename object_t >

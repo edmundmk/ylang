@@ -117,7 +117,7 @@ yl_valkind yl_callframe::at( size_t index ) const
     }
     switch ( s[ index ].kind() )
     {
-    case YLOBJ_EXPOSE:
+    case YLOBJ_EXPOBJ:
         return YLVAL_EXPOSE;
         
     case YLOBJ_STRING:

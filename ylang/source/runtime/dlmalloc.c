@@ -5973,6 +5973,69 @@ int mspace_mallopt(int param_number, int value) {
   return change_mparam(param_number, value);
 }
 
+
+/*
+  Return the allocated chunk that is after the chunk passed in.
+*/
+
+void* mspace_next(mspace msp, void* mem)
+{
+  mstate ms = (mstate)msp;
+  if (!ok_magic(ms)){
+    USAGE_ERROR_ACTION(ms, ms);
+    return 0;
+  }
+
+  if (!PREACTION(ms)) {
+    mchunkptr q;
+    if (mem != 0) {
+      /* Start with chunk after the one we were given */
+      mchunkptr p = mem2chunk(mem);
+      check_inuse_chunk(ms, p);
+      q = next_chunk(p);
+    }
+    else {
+      /* Start with first chunk of first segment */
+      msegmentptr s = &ms->seg;
+      q = align_as_chunk(s->base);
+    }
+
+    /* Walk heap until we find an inuse chunk */
+    for (;;) {
+      if (q->head != FENCEPOST_HEAD) {
+        if (is_inuse(q)) {
+          mem = chunk2mem(q);
+          goto postaction;
+        }
+        else {
+          q = next_chunk(q);
+          continue;
+        }
+      }
+      else {
+        /* Reached end of this segment, continue search with next */
+        msegmentptr s = segment_holding(ms, (char*)q);
+        if (s->next) {
+          q = align_as_chunk(s->next->base);
+          continue;
+        }
+        else {
+          mem = 0;
+          goto postaction;
+        }
+      }
+    }
+    
+postaction:
+    POSTACTION(ms);
+    return mem;
+  }
+  
+  return 0;
+}
+
+
+
 #endif /* MSPACES */
 
 

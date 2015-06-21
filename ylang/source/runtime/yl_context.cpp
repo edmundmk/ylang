@@ -162,7 +162,7 @@ yl_object* yl_context_impl::superof( yl_value value )
     switch ( value.kind() )
     {
     case YLOBJ_OBJECT:
-    case YLOBJ_EXPOSE:
+    case YLOBJ_EXPOBJ:
     case YLOBJ_ARRAY:
     case YLOBJ_TABLE:
         return ( (yl_object*)value.heapobj() )->superof();

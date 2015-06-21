@@ -62,7 +62,9 @@ private:
 
 
 /*
-    A reference to a string used as a symbol.
+    A reference to a string used as a symbol.  Note that these references
+    are not GC-visible - the associated string must be reachable through
+    normal references.
 */
 
 class yl_symbol
