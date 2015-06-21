@@ -1,0 +1,155 @@
+
+
+
+if bytes < MAX_SMALL_REQUEST
+
+
+    find actual size we want to allocate (round up, etc.)
+    find small bin index
+    check small bin map
+
+    if either the small bin or the next size up have chunks:
+        index is the index of the selected small bin.
+
+        b is smallbin header
+        p is selected chunk
+
+        unlink chunk from bin.
+
+        set_inuse_and_pinuse( p )
+
+        done
+
+    if size is larger than the designated victim chunk:
+
+        if there are any chunks in any small bin larger than the request:
+
+            find index of this small bin.
+
+            b is smallbin header
+            p is selected chunk
+
+            unlink chunk from bin.
+
+            rsize (remainder size) is size of chunk minus alloc size.
+
+            if there's not enough space remaining to make a chunk:
+
+                set_inuse_and_pinuse( p )
+
+            else
+
+                set_size_and_pinuse_of_inuse_chunk( p )
+                r is remainder chunk
+                set_size_and_pinuse_of_free_chunk( r )
+                replace designated victim chunk with r
+
+            done
+
+        else /* still larger than designated victim chunk */
+
+            if treemap and tmalloc_small( )
+                done
+
+else
+
+    if treemap and tmalloc_large
+        done
+
+
+if size <= designated victim size
+
+    p is dv chunk
+    rsize is difference between designated victim chunk and alloc size.
+
+    if there's enough space remaining to make a chunk:
+
+        r is remainder chunk
+        dv = r, dvsize = rsize
+        set_size_and_pinuse_of_free_chunk( r )
+        set_size_and_pinuse_of_inuse_chunk( p )
+
+    else
+
+        clear dv
+        set_inuse_and_pinuse( p )
+
+    done
+
+
+else if size < topsize
+
+    p is top chunk
+    r is remainder of top chunk after p is allocated
+
+    set pinuse of r (done manually)
+    set_size_and_pinuse_of_inuse_chunk( p )
+
+    done
+
+
+
+sys_alloc
+
+    IGNORED mmap_alloc large chunks directly
+    IGNORED morecore to sbrk more space
+    call mmap( the size rounded up in 64k chunks)
+    IGNORED morecore for noncontiguous
+
+    tbase is base of newly allocated memory
+    tsize is size of newly allocated memory
+
+
+
+
+
+    find segment before this one
+    if it exists and it's the segment containing the top segment
+
+        increase size of bordering segment.
+        reinitialize top chunk.
+            (!! DANGER !!)
+
+
+    otherwise find segment after this one
+    if it exists
+
+        increase size of bordering segment
+            (!! DANGER !!)
+        prepend_alloc()
+
+
+
+
+        done
+
+    otherwise
+        add_segment
+            (!! DANGER !!)
+
+
+
+    allocate from top segment
+
+        p is top chunk
+        r is remainder of top chunk after p is allocated
+
+        set pinuse of r (done manually)
+        set_size_and_pinuse_of_inuse_chunk( p )
+
+        done
+
+
+
+right let's try this differently.
+
+
+
+
+
+
+
+
+
+
+
