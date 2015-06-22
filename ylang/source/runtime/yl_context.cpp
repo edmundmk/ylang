@@ -73,6 +73,7 @@ yl_context_impl::yl_context_impl()
     eager_lock( _cothread );
     
     // Prototypes.
+    _root_klass     = yl_slot::alloc( nullptr ).incref();
     _proto_object   = yl_object::alloc( nullptr ).incref();
     _proto_array    = yl_array::make_prototype().incref();
     _proto_table    = yl_table::make_prototype().incref();
@@ -205,6 +206,11 @@ yl_object* yl_context_impl::superof( yl_value value )
 
 yl_slot* yl_context_impl::klassof( yl_object* prototype )
 {
+    if ( ! prototype )
+    {
+        return _root_klass;
+    }
+
     yl_gcobject* klass = get_oolref( prototype );
     if ( klass )
     {

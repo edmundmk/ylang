@@ -232,7 +232,8 @@ notfound:
             }
         }
         
-        _slots.set( new_slots.get() );
+        slots = new_slots.get();
+        _slots.set( slots );
     }
     
     

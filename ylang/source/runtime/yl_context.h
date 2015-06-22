@@ -119,6 +119,7 @@ private:
     
     std::unordered_map< symkey, yl_string* > _symbols;
     
+    yl_slot*        _root_klass;
     yl_object*      _proto_object;
     yl_object*      _proto_array;
     yl_object*      _proto_table;

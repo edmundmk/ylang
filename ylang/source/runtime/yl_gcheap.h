@@ -635,7 +635,19 @@ inline yl_stackref< object_t >::~yl_stackref()
 {
     anypointer_t* pp = yl_current_gcheap->_stackrefs.back();
     yl_current_gcheap->_stackrefs.pop_back();
-    assert( pp == (anypointer_t*)&_p );
+    
+    /*
+        In the case where a return value is copied from a local variable the
+        perfect stack order of constructors/destructors may be broken - the
+        return value is constructed before the local variables are destroyed.
+    */
+    if ( YL_UNLIKELY( pp != (anypointer_t*)&_p ) )
+    {
+        anypointer_t* qq = yl_current_gcheap->_stackrefs.back();
+        yl_current_gcheap->_stackrefs.pop_back();
+        assert( qq == (anypointer_t*)&_p );
+        yl_current_gcheap->_stackrefs.push_back( pp );
+    }
 }
 
 

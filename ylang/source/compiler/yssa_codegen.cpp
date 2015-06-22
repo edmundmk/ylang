@@ -1250,7 +1250,7 @@ void ygen_emit::make_string( ygen_string* s )
     yl_stackref< yl_string > string = yl_string::alloc( s->text, s->size );
     if ( s->iskey )
     {
-        s->string = s->string->symbol().incref();
+        s->string = string->symbol().incref();
     }
     else
     {
