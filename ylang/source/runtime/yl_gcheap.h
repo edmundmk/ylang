@@ -104,9 +104,11 @@ enum yl_gccolour : uint8_t
 
 enum yl_gcflags : uint8_t
 {
-    YL_GCFLAG_LEAF      = 0x01,
-    YL_GCFLAG_OOLREF    = 0x02,
-    YL_GCFLAG_WEAK      = 0x04,
+    YL_GCFLAG_LEAF      = ( 1 << 0 ),
+    YL_GCFLAG_OOLREF    = ( 1 << 1 ),
+    YL_GCFLAG_WEAK      = ( 1 << 2 ),
+    YL_GCFLAG_USER1     = ( 1 << 4 ),
+    YL_GCFLAG_USER2     = ( 1 << 5 ),
 };
 
 
@@ -119,7 +121,7 @@ struct yl_gcheader
 {
     std::atomic< yl_gcheader* >     prev;       // previous object in heap.
     std::atomic< yl_gccolour >      colour;     // mark colour.
-    std::atomic< uint8_t >          gcflags;    // flags.
+    mutable std::atomic< uint8_t >  gcflags;    // flags.
     uint8_t                         kind;       // object kind.
     uint8_t                         refcount;   // nonzero for root objects.
 };
@@ -132,9 +134,9 @@ struct yl_gcheader
 
 struct yl_gctype
 {
+    void (*destroy)( yl_gcheap* heap, yl_gcobject* object );
     void (*mark)( yl_gcheap* heap, yl_gcobject* object );
     void (*eager_mark)( yl_gcheap* heap, yl_gcobject* object );
-    void (*destroy)( yl_gcheap* heap, yl_gcobject* object );
 };
 
 
@@ -221,8 +223,8 @@ public:
     */
     
     void weak_lock();
-    yl_gcobject* weak_create( yl_gcobject* weak );
-    template < typename object_t > yl_stackref< object_t > weak_obtain( yl_gcobject* weak );
+    template < typename object_t > object_t* weak_create( object_t* weak );
+    template < typename object_t > yl_stackref< object_t > weak_obtain( object_t* weak );
     void weak_unlock();
     
     
@@ -255,6 +257,9 @@ public:
     
 private:
 
+    friend class yl_gcobject;
+    template < typename object_t > friend class yl_stackref;
+
     static const size_t COLLECT_THRESHOLD = 32 * 1024;
     
     enum collect_state
@@ -263,6 +268,8 @@ private:
         COLLECT     = 0x02,
         QUIT        = 0x08,
     };
+    
+    void weak_create_impl( yl_gcobject* object );
     
     bool check_state( unsigned state );
     bool update_state( unsigned current, collect_state update );
@@ -342,17 +349,19 @@ protected:
 
     explicit yl_gcobject( uint8_t kind, uint8_t gcflags = 0 );
 
-    void set_gcflags( uint8_t flags );
-    void clear_gcflags( uint8_t flags );
-    uint8_t check_gcflags( uint8_t flags );
+    void set_gcflags( uint8_t flags ) const;
+    void clear_gcflags( uint8_t flags ) const;
+    uint8_t check_gcflags( uint8_t flags ) const;
 
 
 private:
 
     friend class yl_gcheap;
+    
     yl_gcheader _gcheader;
 
 };
+
 
 
 
@@ -368,9 +377,11 @@ public:
     yl_heapref();
     yl_heapref( object_t* p );
     
+    void        mark() const;
+    
     void        set( object_t* p );
     object_t*   get() const;
-    
+
     
 private:
 
@@ -394,7 +405,15 @@ public:
 
     yl_stackref();
     yl_stackref( object_t* p );
+    yl_stackref( const yl_stackref& p );
+    template < typename derived_t > yl_stackref( const yl_stackref< derived_t >& p );
     ~yl_stackref();
+    
+    explicit operator bool () const;
+    object_t* operator -> () const;
+    object_t* get() const;
+    
+    object_t* incref() const;
     
     
 private:
@@ -427,6 +446,10 @@ inline uint8_t yl_kind_to_index( uint8_t kind )
 
 
 
+/*
+    yl_gcheap
+*/
+
 inline void yl_gcheap::write_barrier( yl_gcobject* object )
 {
     if ( ! object )
@@ -444,7 +467,14 @@ inline void yl_gcheap::write_barrier( yl_gcobject* object )
 }
 
 template < typename object_t >
-inline yl_stackref< object_t > yl_gcheap::weak_obtain( yl_gcobject* object )
+inline object_t* yl_gcheap::weak_create( object_t* object )
+{
+    weak_create_impl( object );
+    return object;
+}
+
+template < typename object_t >
+inline yl_stackref< object_t > yl_gcheap::weak_obtain( object_t* object )
 {
     // Check if weak object can be resurrected.
     if ( weak_obtain_impl( object ) )
@@ -488,6 +518,127 @@ inline void yl_gcheap::eager_mark( yl_gcobject* object )
 }
 
 
+
+/*
+    yl_gcobject
+*/
+
+inline uint8_t yl_gcobject::kind() const
+{
+    return _gcheader.kind;
+}
+
+inline uint8_t yl_gcobject::check_gcflags( uint8_t flags ) const
+{
+    uint8_t gcflags = _gcheader.gcflags.load( std::memory_order_relaxed );
+    return gcflags & flags;
+}
+
+
+
+/*
+    yl_heapref
+*/
+
+template < typename object_t >
+inline yl_heapref< object_t >::yl_heapref()
+    :   _p( nullptr )
+{
+}
+
+template < typename object_t >
+inline yl_heapref< object_t >::yl_heapref( object_t* p )
+    :   _p( p )
+{
+}
+
+template < typename object_t >
+inline void yl_heapref< object_t >::set( object_t* p )
+{
+    yl_current_gcheap->write_barrier( _p.load( std::memory_order_relaxed ) );
+    _p.store( p, std::memory_order_relaxed );
+}
+
+template < typename object_t >
+inline object_t* yl_heapref< object_t >::get() const
+{
+    return _p.load( std::memory_order_relaxed );
+}
+
+template < typename object_t >
+inline void yl_heapref< object_t >::mark() const
+{
+    yl_current_gcheap->mark( _p.load( yl_memory_order_mark ) );
+}
+
+
+
+/*
+    yl_stackref
+*/
+
+template < typename object_t >
+inline yl_stackref< object_t >::yl_stackref()
+    :   _p( nullptr )
+{
+    yl_current_gcheap->_stackrefs.push_back( (anypointer_t*)&_p );
+}
+
+template < typename object_t >
+inline yl_stackref< object_t >::yl_stackref( object_t* p )
+    :   _p( p )
+{
+    yl_current_gcheap->_stackrefs.push_back( (anypointer_t*)&_p );
+}
+
+template < typename object_t >
+inline yl_stackref< object_t >::yl_stackref( const yl_stackref& p )
+    :   _p( p._p )
+{
+    yl_current_gcheap->_stackrefs.push_back( (anypointer_t*)&_p );
+}
+
+template < typename object_t >
+template < typename derived_t >
+inline yl_stackref< object_t >::yl_stackref( const yl_stackref< derived_t >& p )
+    :   _p( p.get() )
+{
+    yl_current_gcheap->_stackrefs.push_back( (anypointer_t*)&_p );
+}
+
+template < typename object_t >
+inline yl_stackref< object_t >::~yl_stackref()
+{
+    anypointer_t* pp = yl_current_gcheap->_stackrefs.back();
+    yl_current_gcheap->_stackrefs.pop_back();
+    assert( pp == (anypointer_t*)&_p );
+}
+
+
+template < typename object_t >
+inline yl_stackref< object_t >::operator bool () const
+{
+    return _p != nullptr;
+}
+
+template < typename object_t >
+object_t* yl_stackref< object_t >::operator -> () const
+{
+    return _p;
+}
+
+template < typename object_t >
+object_t* yl_stackref< object_t >::get() const
+{
+    return _p;
+}
+
+template < typename object_t >
+object_t* yl_stackref< object_t >::incref() const
+{
+    _p->incref();
+    return _p;
+}
 
 
 

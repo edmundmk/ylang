@@ -19,16 +19,16 @@ yl_bucketlist::bucket::bucket()
 {
 }
 
-yl_bucketlist* yl_bucketlist::alloc( size_t size )
+yl_stackref< yl_bucketlist > yl_bucketlist::alloc( size_t size )
 {
     size_t s = sizeof( yl_bucketlist ) + sizeof( bucket ) * size;
-    void* p = yl_current->malloc( s );
+    void* p = yl_current->allocate( s );
     return new ( p ) yl_bucketlist( size );
 }
 
 
 yl_bucketlist::yl_bucketlist( size_t size )
-    :   yl_heapobj( YLOBJ_BUCKETLIST )
+    :   yl_gcobject( YLOBJ_BUCKETLIST )
     ,   _size( size )
 {
     for ( size_t i = 0; i < _size; ++i )
@@ -65,14 +65,14 @@ yl_bucketlist::bucket& yl_bucketlist::at( size_t index )
 
 
 
-yl_table* yl_table::alloc( size_t capacity )
+yl_stackref< yl_table > yl_table::alloc( size_t capacity )
 {
     return alloc( yl_current->proto_table(), capacity );
 }
 
-yl_table* yl_table::alloc( yl_object* prototype, size_t capacity )
+yl_stackref< yl_table > yl_table::alloc( yl_object* prototype, size_t capacity )
 {
-    void* p = yl_current->malloc( sizeof( yl_table ) );
+    void* p = yl_current->allocate( sizeof( yl_table ) );
     return new ( p ) yl_table( prototype, capacity );
 }
 
@@ -80,7 +80,7 @@ yl_table* yl_table::alloc( yl_object* prototype, size_t capacity )
 yl_table::yl_table( yl_object* prototype, size_t capacity )
     :   yl_object( YLOBJ_TABLE, prototype )
     ,   _occupancy( 0 )
-    ,   _buckets( capacity ? yl_bucketlist::alloc( capacity ) : nullptr )
+    ,   _buckets( capacity ? yl_bucketlist::alloc( capacity ).get() : nullptr )
 {
 }
 
@@ -252,7 +252,7 @@ void yl_table::rehash( size_t capacity )
     // Allocate new bucket list.
     capacity = ceil_pow2( std::max( _occupancy, capacity ) );
     _occupancy = 0;
-    _buckets.set( yl_bucketlist::alloc( capacity ) );
+    _buckets.set( yl_bucketlist::alloc( capacity ).get() );
     
     // Reinsert elements.
     if ( old_buckets )
@@ -276,22 +276,25 @@ void yl_table::rehash( size_t capacity )
 
 
 
-yl_object* yl_table::make_prototype()
+yl_stackref< yl_object > yl_table::make_prototype()
 {
-    yl_object* proto = yl_object::alloc( yl_current->proto_object() );
-    proto->set_key( yl_string::alloc( "length" )->symbol(),
-        yl_value( YLOBJ_THUNKOBJ, yl_thunkobj::alloc( &thunk_length ) ) );
+    yl_stackref< yl_object > proto = yl_object::alloc( yl_current->proto_object() );
+    proto->set_key
+    (
+        yl_string::alloc( "length" )->symbol().get(),
+        yl_value( YLOBJ_THUNKOBJ, yl_thunkobj::alloc( &thunk_length ).get() )
+    );
     return proto;
 }
 
 yl_table* yl_table::thunk_this( yl_callframe& xf )
 {
-    yl_heapobj* heapobj = xf.get_heapobj( 1 );
-    if ( ! heapobj || heapobj->kind() != YLOBJ_TABLE )
+    yl_gcobject* gcobject = xf.get_gcobject( 1 );
+    if ( ! gcobject || gcobject->kind() != YLOBJ_TABLE )
     {
         throw yl_exception( "expected table" );
     }
-    return (yl_table*)heapobj;
+    return (yl_table*)gcobject;
 }
 
 void yl_table::thunk_length( yl_callframe& xf )

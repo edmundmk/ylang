@@ -38,13 +38,13 @@ static inline yl_string* cast_string( yl_value value )
         throw yl_exception( "expected string" );
     }
     
-    return (yl_string*)value.heapobj();
+    return (yl_string*)value.gcobject();
 }
 
 static inline int compare_strings( yl_value a, yl_value b )
 {
-    yl_string* sa = (yl_string*)a.heapobj();
-    yl_string* sb = (yl_string*)b.heapobj();
+    yl_string* sa = (yl_string*)a.gcobject();
+    yl_string* sb = (yl_string*)b.gcobject();
     
     size_t common_length = std::min( sa->size(), sb->size() );
     int result = memcmp( sa->c_str(), sb->c_str(), common_length );
@@ -65,7 +65,7 @@ static inline yl_object* superof( yl_value v )
 {
     if ( v.is_object() )
     {
-        yl_object* object = (yl_object*)v.heapobj();
+        yl_object* object = (yl_object*)v.gcobject();
         return object->superof();
     }
     else
@@ -78,7 +78,7 @@ static inline yl_object* keyerof( yl_value v )
 {
     if ( v.is_object() )
     {
-        return (yl_object*)v.heapobj();
+        return (yl_object*)v.gcobject();
     }
     else
     {
@@ -130,7 +130,7 @@ static unsigned build_frame( yl_cothread* t, unsigned sp, unsigned acount )
         throw yl_exception( "cannot call non-function" );
     }
 
-    yl_funcobj* f = (yl_funcobj*)stack[ 0 ].heapobj();
+    yl_funcobj* f = (yl_funcobj*)stack[ 0 ].gcobject();
     yl_program* p = f->program();
     
     // Get acount that the function was expecting (including function slot).
@@ -212,7 +212,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
 
     // Get program.
-    yl_funcobj*         f           = (yl_funcobj*)s[ 0 ].heapobj();
+    yl_funcobj*         f           = (yl_funcobj*)s[ 0 ].gcobject();
     yl_program*         p           = f->program();
     const yl_valref*    values      = p->values();
     const yl_opinst*    ops         = p->ops();
@@ -293,7 +293,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         yl_value value = values[ b ].get();
         assert( value.is( YLOBJ_STRING ) );
-        yl_string* key = (yl_string*)value.heapobj();
+        yl_string* key = (yl_string*)value.gcobject();
         s[ r ] = yl_current->globals()->get_key( key );
         if ( s[ r ].is_undef() )
         {
@@ -306,7 +306,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         yl_value value = values[ b ].get();
         assert( value.is( YLOBJ_STRING ) );
-        yl_string* key = (yl_string*)value.heapobj();
+        yl_string* key = (yl_string*)value.gcobject();
         yl_current->globals()->set_key( key, s[ r ] );
         break;
     }
@@ -581,10 +581,10 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         // Get program object.
         yl_value value = values[ c ].get();
         assert( value.is( YLOBJ_PROGRAM ) );
-        yl_program* program = (yl_program*)value.heapobj();
+        yl_program* program = (yl_program*)value.gcobject();
         
         // Create funcobj.
-        yl_funcobj* funcobj = yl_funcobj::alloc( program );
+        yl_stackref< yl_funcobj > funcobj = yl_funcobj::alloc( program );
 
         // Add upvals.
         for ( size_t i = 0; i < program->upcount(); ++i )
@@ -602,7 +602,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             {
                 if ( ! locup[ a ] )
                 {
-                    locup[ a ] = yl_upval::alloc( fp + b );
+                    locup[ a ] = yl_upval::alloc( fp + b ).get();
                 }
                 funcobj->set_upval( r, locup[ a ] );
                 break;
@@ -622,7 +622,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             }
         }
         
-        s[ r ] = yl_value( YLOBJ_FUNCOBJ, funcobj );
+        s[ r ] = yl_value( YLOBJ_FUNCOBJ, funcobj.get() );
         break;
     }
     
@@ -651,7 +651,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             rcount = b;
 
             // Get function and program.
-            f           = (yl_funcobj*)s[ r ].heapobj();
+            f           = (yl_funcobj*)s[ r ].gcobject();
             p           = f->program();
             values      = p->values();
             ops         = p->ops();
@@ -674,7 +674,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         else if ( s[ r ].is( YLOBJ_THUNKOBJ ) )
         {
             // Native thunk.
-            yl_thunkobj* thunkobj = (yl_thunkobj*)s[ r ].heapobj();
+            yl_thunkobj* thunkobj = (yl_thunkobj*)s[ r ].gcobject();
             yl_callframe xf( t, fp + r, a );
             thunkobj->thunk()( xf );
 
@@ -874,25 +874,26 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             {
                 throw yl_exception( "cannot inherit from non-object value" );
             }
-            prototype = (yl_object*)s[ a ].heapobj();
+            prototype = (yl_object*)s[ a ].gcobject();
         }
         else
         {
             prototype = yl_current->proto_object();
         }
-        s[ r ] = yl_current->new_object( prototype );
+        yl_stackref< yl_object > object = yl_current->new_object( prototype );
+        s[ r ] = yl_value( object->kind(), object.get() );
         break;
     }
     
     case YL_ARRAY:
     {
-        s[ r ] = yl_value( YLOBJ_ARRAY, yl_array::alloc( c ) );
+        s[ r ] = yl_value( YLOBJ_ARRAY, yl_array::alloc( c ).get() );
         break;
     }
     
     case YL_TABLE:
     {
-        s[ r ] = yl_value( YLOBJ_TABLE, yl_table::alloc( c ) );
+        s[ r ] = yl_value( YLOBJ_TABLE, yl_table::alloc( c ).get() );
         break;
     }
     
@@ -910,7 +911,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         yl_value value = values[ b ].get();
         assert( value.is( YLOBJ_STRING ) );
-        yl_string* string = (yl_string*)value.heapobj();
+        yl_string* string = (yl_string*)value.gcobject();
         s[ r ] = keyerof( s[ a ] )->get_key( string );
         if ( s[ r ].is_undef() )
         {
@@ -925,8 +926,8 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         {
             throw yl_exception( "object index must be a string" );
         }
-        yl_string* string = (yl_string*)s[ b ].heapobj();
-        s[ r ] = keyerof( s[ a ] )->get_key( string->symbol() );
+        yl_string* string = (yl_string*)s[ b ].gcobject();
+        s[ r ] = keyerof( s[ a ] )->get_key( string->symbol().get() );
         if ( s[ r ].is_undef() )
         {
             throw yl_exception( "key not found '%s'", string->c_str() );
@@ -938,7 +939,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         if ( s[ a ].is( YLOBJ_ARRAY ) )
         {
-            yl_array* array = (yl_array*)s[ a ].heapobj();
+            yl_array* array = (yl_array*)s[ a ].gcobject();
             if ( ! s[ b ].is_number() )
             {
                 throw yl_exception( "invalid array index" );
@@ -952,7 +953,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         }
         else if ( s[ a ].is( YLOBJ_TABLE ) )
         {
-            yl_table* table = (yl_table*)s[ a ].heapobj();
+            yl_table* table = (yl_table*)s[ a ].gcobject();
             s[ r ] = table->get_index( s[ b ] );
             if ( s[ r ].is_undef() )
             {
@@ -970,10 +971,10 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         if ( s[ r ].is_object() )
         {
-            yl_object* object = (yl_object*)s[ r ].heapobj();
+            yl_object* object = (yl_object*)s[ r ].gcobject();
             yl_value value = values[ b ].get();
             assert( value.is( YLOBJ_STRING ) );
-            yl_string* string = (yl_string*)value.heapobj();
+            yl_string* string = (yl_string*)value.gcobject();
             object->set_key( string, s[ a ] );
         }
         else
@@ -987,13 +988,13 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         if ( s[ r ].is_object() )
         {
-            yl_object* object = (yl_object*)s[ r ].heapobj();
+            yl_object* object = (yl_object*)s[ r ].gcobject();
             if ( ! s[ a ].is( YLOBJ_STRING ) )
             {
                 throw yl_exception( "object index must be a string" );
             }
-            yl_string* string = (yl_string*)s[ a ].heapobj();
-            object->set_key( string->symbol(), s[ b ] );
+            yl_string* string = (yl_string*)s[ a ].gcobject();
+            object->set_key( string->symbol().get(), s[ b ] );
         }
         else
         {
@@ -1006,7 +1007,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         if ( s[ r ].is( YLOBJ_ARRAY ) )
         {
-            yl_array* array = (yl_array*)s[ r ].heapobj();
+            yl_array* array = (yl_array*)s[ r ].gcobject();
             if ( ! s[ a ].is_number() )
             {
                 throw yl_exception( "invalid array index" );
@@ -1020,7 +1021,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         }
         else if ( s[ r ].is( YLOBJ_TABLE ) )
         {
-            yl_table* table = (yl_table*)s[ r ].heapobj();
+            yl_table* table = (yl_table*)s[ r ].gcobject();
             table->set_index( s[ a ], s[ b ] );
         }
         else
@@ -1036,8 +1037,8 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         {
             throw yl_exception( "object index must be a string" );
         }
-        yl_string* string = (yl_string*)s[ b ].heapobj();
-        yl_value value = keyerof( s[ a ] )->get_key( string->symbol() );
+        yl_string* string = (yl_string*)s[ b ].gcobject();
+        yl_value value = keyerof( s[ a ] )->get_key( string->symbol().get() );
         s[ r ] = value.is_undef() ? yl_true : yl_false;
         break;
     }
@@ -1046,10 +1047,10 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         if ( s[ a ].is_object() )
         {
-            yl_object* object = (yl_object*)s[ a ].heapobj();
+            yl_object* object = (yl_object*)s[ a ].gcobject();
             yl_value value = values[ b ].get();
             assert( value.is( YLOBJ_STRING ) );
-            yl_string* string = (yl_string*)value.heapobj();
+            yl_string* string = (yl_string*)value.gcobject();
             object->del_key( string );
         }
         else
@@ -1063,13 +1064,13 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         if ( s[ a ].is_object() )
         {
-            yl_object* object = (yl_object*)s[ a ].heapobj();
+            yl_object* object = (yl_object*)s[ a ].gcobject();
             if ( ! s[ b ].is( YLOBJ_STRING ) )
             {
                 throw yl_exception( "object index must be a string" );
             }
-            yl_string* string = (yl_string*)s[ b ].heapobj();
-            object->del_key( string->symbol() );
+            yl_string* string = (yl_string*)s[ b ].gcobject();
+            object->del_key( string->symbol().get() );
         }
         else
         {
@@ -1083,7 +1084,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         bool result = false;
         if ( s[ b ].is_object() )
         {
-            yl_object* proto = (yl_object*)s[ b ].heapobj();
+            yl_object* proto = (yl_object*)s[ b ].gcobject();
             for ( yl_object* object = keyerof( s[ a ] );
                             object != nullptr; object = object->superof() )
             {
@@ -1105,7 +1106,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         if ( s[ a ].is( YLOBJ_ARRAY ) )
         {
-            yl_array* array = (yl_array*)s[ a ].heapobj();
+            yl_array* array = (yl_array*)s[ a ].gcobject();
             array->append( s[ r ] );
         }
         else
@@ -1122,7 +1123,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             throw yl_exception( "cannot extend non-array" );
         }
 
-        yl_array* array = (yl_array*)s[ b ].heapobj();
+        yl_array* array = (yl_array*)s[ b ].gcobject();
         if ( a == yl_opinst::MARK )
         {
             a = t->get_mark() - r;
@@ -1138,7 +1139,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             throw yl_exception( "cannot unpack non-array" );
         }
         
-        yl_array* array = (yl_array*)s[ a ].heapobj();
+        yl_array* array = (yl_array*)s[ a ].gcobject();
         unsigned count;
         if ( b != yl_opinst::MARK )
         {

@@ -12,7 +12,7 @@
 
 #include <unordered_map>
 #include <symkey.h>
-#include "yl_heapobj.h"
+#include "yl_context.h"
 #include "yl_value.h"
 #include "yl_string.h"
 
@@ -40,11 +40,11 @@ class yl_slot;
 */
 
 
-class yl_object : public yl_heapobj
+class yl_object : public yl_gcobject
 {
 public:
 
-    static yl_object* alloc( yl_object* prototype );
+    static yl_stackref< yl_object > alloc( yl_object* prototype );
 
     yl_object*  superof() const;
 
@@ -64,9 +64,8 @@ private:
 
     size_t lookup( yl_slot* klass, const yl_symbol& key ) const;
 
-
-    yl_objref< yl_slot >       _klass;     // start of slot chain
-    yl_objref< yl_valarray >   _slots;     // array of slot values
+    yl_heapref< yl_slot >       _klass;     // start of slot chain
+    yl_heapref< yl_valarray >   _slots;     // array of slot values
     
 };
 
@@ -92,12 +91,12 @@ private:
 */
 
 
-class yl_slot : public yl_heapobj
+class yl_slot : public yl_gcobject
 {
 public:
 
-    static yl_slot* alloc( yl_object* prototype );
-    static yl_slot* alloc( yl_slot* parent, yl_string* symbol );
+    static yl_stackref< yl_slot > alloc( yl_object* prototype );
+    static yl_stackref< yl_slot > alloc( yl_slot* parent, yl_string* symbol );
 
 
 private:
@@ -105,9 +104,7 @@ private:
     friend class yl_object;
     friend class yl_iterator;
 
-
     static const size_t EMPTY_KLASS = (size_t)-1;
-    
 
     struct shortcut_hash
     {
@@ -120,8 +117,8 @@ private:
     yl_slot( yl_slot* parent, yl_string* symbol );
 
 
-    yl_objref< yl_heapobj >     _parent;    // parent slot, or prototype
-    yl_objref< yl_string >      _symbol;    // symbol string
+    yl_heapref< yl_gcobject >   _parent;    // parent slot, or prototype
+    yl_heapref< yl_string >     _symbol;    // symbol string
     size_t                      _index;     // index into slot value array
     
     std::unique_ptr< shortcut_hash > _hash;

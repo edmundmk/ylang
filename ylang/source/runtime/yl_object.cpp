@@ -10,16 +10,16 @@
 
 
 
-yl_object* yl_object::alloc( yl_object* prototype )
+yl_stackref< yl_object > yl_object::alloc( yl_object* prototype )
 {
-    void* p = yl_current->malloc( sizeof( yl_object ) );
+    void* p = yl_current->allocate( sizeof( yl_object ) );
     return new ( p ) yl_object( YLOBJ_OBJECT, prototype );
 }
 
 
 
 yl_object::yl_object( yl_objkind kind, yl_object* prototype )
-    :   yl_heapobj( kind )
+    :   yl_gcobject( kind )
     ,   _klass( yl_current->klassof( prototype ) )
     ,   _slots( nullptr )
 {
@@ -87,14 +87,14 @@ yl_value yl_object::get_key( const yl_symbol& key ) const
             }
             
             // Check parent slot.
-            yl_heapobj* parent = slot->_parent.get();
+            yl_gcobject* parent = slot->_parent.get();
             assert( parent->kind() == YLOBJ_SLOT );
             slot = (yl_slot*)parent;
         }
         else
         {
             // Continue lookup in prototype.
-            yl_heapobj* prototype = slot->_parent.get();
+            yl_gcobject* prototype = slot->_parent.get();
             if ( prototype )
             {
                 object = (yl_object*)prototype;
@@ -146,7 +146,7 @@ void yl_object::set_key( const yl_symbol& key, yl_value value )
             }
             
             // Check parent slot.
-            yl_heapobj* parent = slot->_parent.get();
+            yl_gcobject* parent = slot->_parent.get();
             assert( parent->kind() == YLOBJ_SLOT );
             slot = (yl_slot*)parent;
         }
@@ -165,7 +165,7 @@ notfound:
     // slot already exists.  Otherwise, create a new one.
     
     // TODO: interact with GC, which may be removing unused slots.
-    
+    /*
     yl_slot* new_klass = nullptr;
 
     for ( yl_slot* slot = klass->_head; slot; slot = slot->_next )
@@ -210,7 +210,8 @@ notfound:
     // Update klass and assign value into new slot.
     _klass.set( new_klass );
     slots->at( new_klass->_index ).set( value );
-
+    */
+    ;
 }
 
 void yl_object::del_key( const yl_symbol& key )
@@ -220,7 +221,7 @@ void yl_object::del_key( const yl_symbol& key )
     // Deleting the last-added property is easy.
     if ( klass->_index != yl_slot::EMPTY_KLASS && klass->_symbol.get() == key )
     {
-        yl_heapobj* parent = klass->_parent.get();
+        yl_gcobject* parent = klass->_parent.get();
         assert( parent->kind() == YLOBJ_SLOT );
         _klass.set( (yl_slot*)parent );
         return;
@@ -258,7 +259,7 @@ void yl_object::del_key( const yl_symbol& key )
             }
             
             // Check parent slot.
-            yl_heapobj* parent = slot->_parent.get();
+            yl_gcobject* parent = slot->_parent.get();
             assert( parent->kind() == YLOBJ_SLOT );
             slot = (yl_slot*)parent;
         }
@@ -276,22 +277,22 @@ void yl_object::del_key( const yl_symbol& key )
 
 
 
-yl_slot* yl_slot::alloc( yl_object* prototype )
+yl_stackref< yl_slot > yl_slot::alloc( yl_object* prototype )
 {
-    void* p = yl_current->malloc( sizeof( yl_slot ) );
+    void* p = yl_current->allocate( sizeof( yl_slot ) );
     return new ( p ) yl_slot( prototype );
 }
 
 
-yl_slot* yl_slot::alloc( yl_slot* parent, yl_string* symbol )
+yl_stackref< yl_slot > yl_slot::alloc( yl_slot* parent, yl_string* symbol )
 {
-    void* p = yl_current->malloc( sizeof( yl_slot ) );
+    void* p = yl_current->allocate( sizeof( yl_slot ) );
     return new ( p ) yl_slot( parent, symbol );
 }
 
 
 yl_slot::yl_slot( yl_object* prototype )
-    :   yl_heapobj( YLOBJ_SLOT )
+    :   yl_gcobject( YLOBJ_SLOT )
     ,   _parent( prototype )
     ,   _index( EMPTY_KLASS )
     ,   _head( nullptr )
@@ -301,7 +302,7 @@ yl_slot::yl_slot( yl_object* prototype )
 
 
 yl_slot::yl_slot( yl_slot* parent, yl_string* symbol )
-    :   yl_heapobj( YLOBJ_SLOT )
+    :   yl_gcobject( YLOBJ_SLOT )
     ,   _parent( parent )
     ,   _symbol( symbol )
     ,   _index( parent->_index + 1 )

@@ -18,7 +18,7 @@
 */
 
 
-class yl_bucketlist : public yl_heapobj
+class yl_bucketlist : public yl_gcobject
 {
 public:
 
@@ -32,7 +32,7 @@ public:
     };
 
 
-    static yl_bucketlist* alloc( size_t size );
+    static yl_stackref< yl_bucketlist > alloc( size_t size );
     ~yl_bucketlist();
     
     size_t          size() const;
@@ -69,10 +69,10 @@ public:
 
     typedef yl_bucketlist::bucket bucket;
 
-    static yl_object* make_prototype();
+    static yl_stackref< yl_object > make_prototype();
 
-    static yl_table* alloc( size_t capacity );
-    static yl_table* alloc( yl_object* prototype, size_t capacity );
+    static yl_stackref< yl_table > alloc( size_t capacity );
+    static yl_stackref< yl_table > alloc( yl_object* prototype, size_t capacity );
 
     size_t      length() const;
 
@@ -98,7 +98,7 @@ private:
     static void thunk_length( yl_callframe& xf );
 
     size_t                      _occupancy;
-    yl_objref< yl_bucketlist >  _buckets;
+    yl_heapref< yl_bucketlist > _buckets;
 
 
 };

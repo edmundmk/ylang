@@ -45,7 +45,6 @@
 		4B6FDE881AA8F1E6001096B0 /* yssa_builder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4B6FDE871AA8F1E6001096B0 /* yssa_builder.cpp */; };
 		DB55C7A91AD1A1C400BD6C17 /* yssa_codegen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB55C7A71AD1A1C400BD6C17 /* yssa_codegen.cpp */; };
 		DB55C7AA1AD1A1C400BD6C17 /* yssa_codegen.h in Headers */ = {isa = PBXBuildFile; fileRef = DB55C7A81AD1A1C400BD6C17 /* yssa_codegen.h */; };
-		DB55C7AC1AD32CD500BD6C17 /* yl_heapobj.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB55C7AB1AD32CD500BD6C17 /* yl_heapobj.cpp */; };
 		DB5B1FE81ADDB13A00701000 /* yl_interp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB5B1FE61ADDB13A00701000 /* yl_interp.cpp */; };
 		DB5B1FE91ADDB13A00701000 /* yl_interp.h in Headers */ = {isa = PBXBuildFile; fileRef = DB5B1FE71ADDB13A00701000 /* yl_interp.h */; };
 		DB5B1FEC1ADDB2B200701000 /* yl_cothread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB5B1FEA1ADDB2B200701000 /* yl_cothread.cpp */; };
@@ -93,7 +92,6 @@
 		4B4176F11AA3849C00C014EB /* yl_code.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = yl_code.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		4B4176F41AA5033100C014EB /* yl_value.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = yl_value.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		4B4176F51AA503DD00C014EB /* yl_object.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = yl_object.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		4B4176F61AA5040300C014EB /* yl_heapobj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = yl_heapobj.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		4B4231491ABF39AC0065BDAF /* fannkuch-redux.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fannkuch-redux.lua"; sourceTree = "<group>"; };
 		4B42314A1ABF39AC0065BDAF /* fannkuch-redux.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = "fannkuch-redux.py"; sourceTree = "<group>"; };
 		4B42314B1ABF39AC0065BDAF /* fannkuch-redux.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fannkuch-redux.yl"; sourceTree = "<group>"; };
@@ -138,7 +136,6 @@
 		4BCF3D521A856FF500B9AB3A /* libylang.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libylang.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB55C7A71AD1A1C400BD6C17 /* yssa_codegen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = yssa_codegen.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		DB55C7A81AD1A1C400BD6C17 /* yssa_codegen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yssa_codegen.h; sourceTree = "<group>"; };
-		DB55C7AB1AD32CD500BD6C17 /* yl_heapobj.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_heapobj.cpp; sourceTree = "<group>"; };
 		DB5B1FE61ADDB13A00701000 /* yl_interp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = yl_interp.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		DB5B1FE71ADDB13A00701000 /* yl_interp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yl_interp.h; sourceTree = "<group>"; };
 		DB5B1FEA1ADDB2B200701000 /* yl_cothread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = yl_cothread.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -176,8 +173,6 @@
 				DB5B1FEB1ADDB2B200701000 /* yl_cothread.h */,
 				4B311BDA1B340402002D818B /* yl_gcheap.cpp */,
 				4B311BDB1B340402002D818B /* yl_gcheap.h */,
-				DB55C7AB1AD32CD500BD6C17 /* yl_heapobj.cpp */,
-				4B4176F61AA5040300C014EB /* yl_heapobj.h */,
 				DB5B1FE61ADDB13A00701000 /* yl_interp.cpp */,
 				DB5B1FE71ADDB13A00701000 /* yl_interp.h */,
 				4B4E555A1ADC665800C276A2 /* yl_object.cpp */,
@@ -402,7 +397,6 @@
 				4B6FDAAC1AA654AE001096B0 /* yl_ast_print.cpp in Sources */,
 				4B6FDAB01AA654AE001096B0 /* yl_diagnostics.cpp in Sources */,
 				4B6FDE881AA8F1E6001096B0 /* yssa_builder.cpp in Sources */,
-				DB55C7AC1AD32CD500BD6C17 /* yl_heapobj.cpp in Sources */,
 				4B6FDE801AA7A0B7001096B0 /* yl_compile.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

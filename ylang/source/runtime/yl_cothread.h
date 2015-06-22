@@ -11,7 +11,7 @@
 
 
 #include <vector>
-#include "yl_heapobj.h"
+#include "yl_context.h"
 #include "yl_function.h"
 
 
@@ -57,11 +57,11 @@ struct yl_stackframe
     An upval.
 */
 
-class yl_upval : public yl_heapobj
+class yl_upval : public yl_gcobject
 {
 public:
 
-    static yl_upval* alloc( unsigned index );
+    static yl_stackref< yl_upval > alloc( unsigned index );
 
     void        close( yl_cothread* cothread );
 
@@ -141,11 +141,11 @@ private:
 */
 
 
-class yl_cothread : public yl_heapobj
+class yl_cothread : public yl_gcobject
 {
 public:
 
-    static yl_cothread* alloc();
+    static yl_stackref< yl_cothread > alloc();
 
     void            push_frame( const yl_stackframe& frame );
     yl_stackframe   pop_frame();

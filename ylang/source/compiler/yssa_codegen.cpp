@@ -86,6 +86,9 @@ struct ygen_program
 
 struct ygen_string
 {
+    ygen_string( const char* text, size_t size );
+    ~ygen_string();
+
     yl_string*                  string;
 
     const char*                 text;
@@ -93,6 +96,22 @@ struct ygen_string
     bool                        iskey;
 };
 
+
+ygen_string::ygen_string( const char* text, size_t size )
+    :   string( nullptr )
+    ,   text( text )
+    ,   size( size )
+    ,   iskey( false )
+{
+}
+
+ygen_string::~ygen_string()
+{
+    if ( string )
+    {
+        string->decref();
+    }
+}
 
 
 
@@ -287,10 +306,6 @@ yl_function yssa_codegen( yssa_module* module )
     }
 
 
-    // Suppress garbage collection of created objects.
-    yl_alloc_scope alloc_scope;
-
-
     // Construct final heap objects.
     for ( const auto& s : m.strings )
     {
@@ -313,8 +328,8 @@ yl_function yssa_codegen( yssa_module* module )
     // Create invoke.
     yssa_function* ssafunc = module->functions.at( 0 ).get();
     yl_program* program = m.programs.at( ssafunc )->program;
-    yl_funcobj* funcobj = yl_funcobj::alloc( program );
-    return yl_funcobj::make_function( funcobj );
+    yl_stackref< yl_funcobj > funcobj = yl_funcobj::alloc( program );
+    return yl_funcobj::make_function( funcobj.get() );
 }
 
 
@@ -337,10 +352,8 @@ ygen_string* ygen_emit::add_string( symkey k )
     }
     else
     {
-        ygen_string_p string = std::make_unique< ygen_string >();
-        string->string = nullptr;
-        string->text = k.c_str();
-        string->size = k.size();
+        ygen_string_p string =
+                std::make_unique< ygen_string >( k.c_str(), k.size() );
         ygen_string* s = string.get();
         m->strings.emplace( k, std::move( string ) );
         return s;
@@ -1238,10 +1251,14 @@ void ygen_emit::make_string( ygen_string* s )
     if ( s->string )
         return;
     
-    s->string = yl_string::alloc( s->text, (unsigned)s->size );
+    yl_stackref< yl_string > string = yl_string::alloc( s->text, s->size );
     if ( s->iskey )
     {
-        s->string = s->string->symbol();
+        s->string = s->string->symbol().incref();
+    }
+    else
+    {
+        s->string = string.incref();
     }
 }
 

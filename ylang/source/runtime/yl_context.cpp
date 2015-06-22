@@ -8,7 +8,7 @@
 
 #include "yl_context.h"
 #include <assert.h>
-#include "yl_heapobj.h"
+#include "yl_context.h"
 #include "yl_cothread.h"
 #include "yl_array.h"
 #include "yl_table.h"
@@ -30,8 +30,6 @@ yl_context::~yl_context()
 
 
 
-__thread yl_context_impl* yl_current = nullptr;
-
 
 
 yl_context_impl* yl_context_impl::unwrap( yl_context* context )
@@ -41,9 +39,7 @@ yl_context_impl* yl_context_impl::unwrap( yl_context* context )
 
 
 yl_context_impl::yl_context_impl()
-    :   _heap( create_mspace( 0, 0 ) )
-    ,   _unmarked_colour( YL_YELLOW )
-    ,   _cothread( nullptr )
+    :   _cothread( nullptr )
     ,   _proto_object( nullptr )
     ,   _proto_array( nullptr )
     ,   _proto_table( nullptr )
@@ -54,26 +50,27 @@ yl_context_impl::yl_context_impl()
     ,   _proto_cothread( nullptr )
     ,   _globals( nullptr )
 {
-    mspace_track_large_chunks( _heap, 1 );
-    
+    // Register GC types.
+
+
+    // Initialize context.
     yl_scope scope( this );
-    yl_alloc_scope alloc_scope;
     
     // Default cothread.
-    _cothread       = yl_cothread::alloc();
+    _cothread       = yl_cothread::alloc().incref();
     
     // Prototypes.
-    _proto_object   = yl_object::alloc( nullptr );
-    _proto_array    = yl_array::make_prototype();
-    _proto_table    = yl_table::make_prototype();
-    _proto_bool     = yl_object::alloc( _proto_object );
-    _proto_number   = yl_object::alloc( _proto_object );
-    _proto_string   = yl_object::alloc( _proto_object );
-    _proto_function = yl_object::alloc( _proto_object );
-    _proto_cothread = yl_object::alloc( _proto_object );
+    _proto_object   = yl_object::alloc( nullptr ).incref();
+    _proto_array    = yl_array::make_prototype().incref();
+    _proto_table    = yl_table::make_prototype().incref();
+    _proto_bool     = yl_object::alloc( _proto_object ).incref();
+    _proto_number   = yl_object::alloc( _proto_object ).incref();
+    _proto_string   = yl_object::alloc( _proto_object ).incref();
+    _proto_function = yl_object::alloc( _proto_object ).incref();
+    _proto_cothread = yl_object::alloc( _proto_object ).incref();
     
     // Globals.
-    _globals = yl_object::alloc( _proto_object );
+    _globals = yl_object::alloc( _proto_object ).incref();
     set_global( "global", yl_value( YLOBJ_OBJECT, _globals ) );
     set_global( "object", yl_value( YLOBJ_OBJECT, _proto_object ) );
     set_global( "array", yl_value( YLOBJ_OBJECT, _proto_array ) );
@@ -87,29 +84,8 @@ yl_context_impl::yl_context_impl()
 
 yl_context_impl::~yl_context_impl()
 {
-    destroy_mspace( _heap );
 }
 
-
-void* yl_context_impl::malloc( size_t size )
-{
-    return mspace_malloc( _heap, size );
-}
-
-void yl_context_impl::write_barrier_mark( yl_heapobj* object )
-{
-    // TODO.
-}
-
-void yl_context_impl::add_root( yl_heapobj* root )
-{
-    _roots.insert( root );
-}
-
-void yl_context_impl::remove_root( yl_heapobj* root )
-{
-    _roots.erase( root );
-}
 
 
 
@@ -121,26 +97,32 @@ void yl_context_impl::set_cothread( yl_cothread* cothread )
 
 
 
-yl_string* yl_context_impl::symbol( yl_string* string )
+yl_stackref< yl_string > yl_context_impl::symbol( yl_string* string )
 {
     // Check if the string is already a symbol.
-    if ( string->_is_symbol )
+    if ( string->check_gcflags( yl_string::SYMBOL ) )
     {
         return string;
     }
+
+    weak_lock();
 
     // Check if we already have an equivalent symbol.
     symkey key( string->hash(), string->c_str(), string->size() );
     auto i = _symbols.find( key );
     if ( i != _symbols.end() )
     {
-        // TODO: interact with GC as this might ressurect this symbol.
-        return i->second;
+        yl_stackref< yl_string > result = weak_obtain( i->second );
+        weak_unlock();
+        return result;
     }
 
     // Otherwise, promote the string to a symbol.
-    string->_is_symbol = true;
-    _symbols.emplace( key, string );
+    string->set_gcflags( yl_string::SYMBOL );
+    _symbols.emplace( key, weak_create( string ) );
+    
+    weak_unlock();
+    
     return string;
 }
 
@@ -165,7 +147,7 @@ yl_object* yl_context_impl::superof( yl_value value )
     case YLOBJ_EXPOBJ:
     case YLOBJ_ARRAY:
     case YLOBJ_TABLE:
-        return ( (yl_object*)value.heapobj() )->superof();
+        return ( (yl_object*)value.gcobject() )->superof();
 
     case YLOBJ_STRING:
         return _proto_string;
@@ -192,22 +174,20 @@ yl_object* yl_context_impl::superof( yl_value value )
 
 yl_slot* yl_context_impl::klassof( yl_object* prototype )
 {
-    // TODO: Interact with garbage collector.  Objects used as prototypes
-    //      keep their klass alive.
-    
-    auto i = _klasses.find( prototype );
-    if ( i != _klasses.end() )
+    yl_gcobject* klass = get_oolref( prototype );
+    if ( klass )
     {
-        return i->second;
+        assert( klass->kind() == YLOBJ_SLOT );
+        return (yl_slot*)klass;
     }
-    
-    yl_slot* klass = yl_slot::alloc( prototype );
-    _klasses.emplace( prototype, klass );
-    return klass;
+
+    yl_stackref< yl_slot > newklass = yl_slot::alloc( prototype );
+    set_oolref( prototype, newklass.get() );
+    return newklass.get();
 }
 
 
-yl_value yl_context_impl::new_object( yl_object* prototype )
+yl_stackref< yl_object > yl_context_impl::new_object( yl_object* prototype )
 {
     /*
         Any object with the array prototype in its prototype chain is an array.
@@ -231,25 +211,25 @@ yl_value yl_context_impl::new_object( yl_object* prototype )
     
     if ( kind == YLOBJ_OBJECT )
     {
-        return yl_value( YLOBJ_OBJECT, yl_object::alloc( prototype ) );
+        return yl_object::alloc( prototype );
     }
     else if ( kind == YLOBJ_ARRAY )
     {
-        return yl_value( YLOBJ_ARRAY, yl_array::alloc( prototype, 0 ) );
+        return yl_array::alloc( prototype, 0 );
     }
     else if ( kind == YLOBJ_TABLE )
     {
-        return yl_value( YLOBJ_TABLE, yl_table::alloc( prototype, 0 ) );
+        return yl_table::alloc( prototype, 0 );
     }
     
-    return yl_null;
+    throw yl_exception( "invalid prototype object" );
 }
 
 
 void yl_context_impl::set_global( const char* name, yl_value value )
 {
-    yl_string* key = yl_string::alloc( name )->symbol();
-    _globals->set_key( key, value );
+    yl_stackref< yl_string > key = yl_string::alloc( name )->symbol();
+    _globals->set_key( key.get(), value );
 }
 
 
@@ -260,9 +240,8 @@ void yl_context_impl::set_global( const char* name, yl_value value )
 
 void _yl_call_thunk( const char* name, yl_thunk_function thunk )
 {
-    yl_alloc_scope ascope;
-    yl_thunkobj* thunkobj = yl_thunkobj::alloc( thunk );
-    yl_current->set_global( name, yl_value( YLOBJ_THUNKOBJ, thunkobj ) );
+    yl_stackref< yl_thunkobj > thunkobj = yl_thunkobj::alloc( thunk );
+    yl_current->set_global( name, yl_value( YLOBJ_THUNKOBJ, thunkobj.get() ) );
 }
 
 
@@ -270,25 +249,6 @@ void _yl_call_thunk( const char* name, yl_thunk_function thunk )
 
 
 
-
-
-
-
-
-
-
-
-
-
-yl_alloc_scope::yl_alloc_scope()
-{
-    // TODO.
-}
-
-yl_alloc_scope::~yl_alloc_scope()
-{
-    // TODO.
-}
 
 
 
@@ -298,20 +258,20 @@ yl_scope::yl_scope( yl_context* context )
     :   _context( yl_context_impl::unwrap( context ) )
     ,   _previous( yl_current )
 {
-    yl_current = _context;
+    yl_current_gcheap = _context;
 }
 
 yl_scope::yl_scope( yl_context_impl* context )
     :   _context( context )
     ,   _previous( yl_current )
 {
-    yl_current = _context;
+    yl_current_gcheap = _context;
 }
 
 yl_scope::~yl_scope()
 {
-    assert( yl_current == _context );
-    yl_current = _previous;
+    assert( yl_current_gcheap == _context );
+    yl_current_gcheap = _previous;
 }
 
 

@@ -69,14 +69,13 @@ void* yl_gcheap::allocate( size_t size )
     gcheader->refcount  = 0;
     
     // Link it into the alloc list.
-    yl_gcheader* prev;
     if ( next )
     {
         yl_gcheader* gcnext = (yl_gcheader*)next;
-        prev = gcnext->prev.load( std::memory_order_relaxed );
+        yl_gcheader* gcprev = gcnext->prev.load( std::memory_order_relaxed );
         
         // Update alloc list atomically, as GC thread does not lock.
-        gcheader->prev.store( prev, std::memory_order_relaxed );
+        gcheader->prev.store( gcprev, std::memory_order_relaxed );
         gcnext->prev.store( gcheader, std::memory_order_release );
     }
     else
@@ -187,18 +186,6 @@ void yl_gcheap::weak_lock()
     _weak_locked = true;
 }
 
-yl_gcobject* yl_gcheap::weak_create( yl_gcobject* weak )
-{
-    assert( _weak_locked );
-    
-    // Set weak flag.  The object must be live, so it will not be swept
-    // until at least the next GC epoch (when this flag will be visible
-    // to the GC due to the handshake).
-    weak->set_gcflags( YL_GCFLAG_WEAK );
-
-    return weak;
-}
-
 void yl_gcheap::weak_unlock()
 {
     assert( _weak_locked );
@@ -226,7 +213,10 @@ void yl_gcheap::eager_lock( yl_gcobject* object )
     // Call eager_mark routine.
     uint8_t index = yl_kind_to_index( object->kind() );
     const yl_gctype& type = _types.at( index );
-    type.eager_mark( this, object );
+    if ( type.eager_mark )
+    {
+        type.eager_mark( this, object );
+    }
             
     // Mark oolref.
     if ( object->check_gcflags( YL_GCFLAG_OOLREF ) )
@@ -243,6 +233,20 @@ void yl_gcheap::eager_unlock( yl_gcobject* object )
     _eager.erase( object );
 }
 
+
+
+
+
+void yl_gcheap::weak_create_impl( yl_gcobject* weak )
+{
+    assert( _weak_locked );
+    
+    // Set weak flag.  The object must be live, so it will not be swept
+    // until at least the next GC epoch (when this flag will be visible
+    // to the GC due to the handshake).
+    weak->set_gcflags( YL_GCFLAG_WEAK );
+
+}
 
 
 
@@ -415,7 +419,7 @@ void yl_gcheap::collect_mark()
     
         // Move objects from the mark list to the grey list.
         std::lock_guard< std::mutex > lock( _grey_mutex );
-        swap( _grey_list, _mark_list );
+        _grey_list.swap( _mark_list );
         
         
         // If the mark is empty then we're done.
@@ -537,12 +541,17 @@ void yl_gcheap::collect_sweep()
         
         // Remove object from the alloc list.
         void* next = mspace_next( _alloc, object );
+        yl_gcheader* gcprev = gcheader->prev.load( std::memory_order_relaxed );
         if ( next )
         {
-            
+            yl_gcheader* gcnext = (yl_gcheader*)next;
+            assert( gcnext->prev.load( std::memory_order_relaxed ) == gcheader );
+            gcnext->prev.store( gcprev, std::memory_order_relaxed );
         }
         else
         {
+            assert( _alloc_list.load( std::memory_order_relaxed ) == gcheader );
+            _alloc_list.store( gcprev, std::memory_order_relaxed );
         }
         
         
@@ -550,6 +559,59 @@ void yl_gcheap::collect_sweep()
         mspace_free( _alloc, object );
     }
 }
+
+
+
+
+yl_gcobject::yl_gcobject( uint8_t kind, uint8_t gcflags )
+{
+    assert( _gcheader.colour.load( std::memory_order_relaxed ) == yl_current_gcheap->_marked );
+    assert( _gcheader.gcflags.load( std::memory_order_relaxed ) == 0 );
+    assert( _gcheader.kind == 0 );
+    assert( _gcheader.refcount == 0 );
+    
+    _gcheader.gcflags.store( gcflags, std::memory_order_relaxed );
+    _gcheader.kind = kind;
+}
+
+void yl_gcobject::incref()
+{
+    assert( _gcheader.refcount < 0xFF );
+    _gcheader.refcount += 1;
+    if ( _gcheader.refcount == 1 )
+    {
+        yl_current_gcheap->_roots.insert( this );
+    }
+}
+
+void yl_gcobject::decref()
+{
+    assert( _gcheader.refcount > 0 );
+    _gcheader.refcount -= 1;
+    if ( _gcheader.refcount == 0 )
+    {
+        yl_current_gcheap->_roots.erase( this );
+    }
+}
+
+
+inline void yl_gcobject::set_gcflags( uint8_t flags ) const
+{
+    // This operation is not atomic.
+    uint8_t gcflags = _gcheader.gcflags.load( std::memory_order_relaxed );
+    _gcheader.gcflags.store( gcflags | flags, std::memory_order_relaxed );
+}
+
+inline void yl_gcobject::clear_gcflags( uint8_t flags ) const
+{
+    // This operation is not atomic.
+    uint8_t gcflags = _gcheader.gcflags.load( std::memory_order_relaxed );
+    _gcheader.gcflags.store( gcflags & ~flags, std::memory_order_relaxed );
+}
+
+
+
+
 
 
 

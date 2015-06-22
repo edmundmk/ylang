@@ -124,12 +124,6 @@ private:
 };
 
 
-template < typename element_t, size_t segsize, typename allocator_t >
-void swap( seglist< element_t, segsize, allocator_t >& a, seglist< element_t, segsize, allocator_t >& b );
-
-
-
-
 
 
 template < typename element_t, size_t segsize, typename allocator_t >

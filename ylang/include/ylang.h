@@ -25,9 +25,8 @@ class yl_callframe;
 
 
 class yl_context_impl;
-class yl_funcbase;
+class yl_gcobject;
 class yl_cothread;
-class yl_heapobj;
 
 
 
@@ -148,12 +147,12 @@ private:
     friend class yl_funcobj;
     friend class yl_callframe;
 
-    explicit yl_function( yl_funcbase* function );
+    explicit yl_function( yl_gcobject* function );
 
     void acquire();
     void release();
 
-    yl_funcbase* _function;
+    yl_gcobject* _function;
 
 };
 
@@ -245,7 +244,7 @@ public:
     const char*     get_string( size_t index ) const;
     yl_expose*      get_expose( size_t index ) const;
     yl_function     get_function( size_t index ) const;
-    yl_heapobj*     get_heapobj( size_t index ) const;
+    yl_gcobject*    get_gcobject( size_t index ) const;
 
     void            clear();
 
@@ -303,7 +302,7 @@ inline yl_function yl_compile( const char* path, arguments_t ... arguments )
 
 
 
-inline yl_function::yl_function( yl_funcbase* function )
+inline yl_function::yl_function( yl_gcobject* function )
     :   _function( function )
 {
     acquire();

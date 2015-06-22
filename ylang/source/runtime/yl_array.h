@@ -21,10 +21,10 @@ class yl_array : public yl_object
 {
 public:
 
-    static yl_object* make_prototype();
+    static yl_stackref< yl_object > make_prototype();
 
-    static yl_array* alloc( size_t capacity );
-    static yl_array* alloc( yl_object* prototype, size_t capacity );
+    static yl_stackref< yl_array > alloc( size_t capacity );
+    static yl_stackref< yl_array > alloc( yl_object* prototype, size_t capacity );
 
     size_t      length() const;
 
@@ -49,7 +49,7 @@ private:
     static void thunk_length( yl_callframe& xf );
     static void thunk_resize( yl_callframe& xf );
 
-    yl_objref< yl_valarray >    _elements;
+    yl_heapref< yl_valarray >   _elements;
     size_t                      _length;
 
 

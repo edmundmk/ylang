@@ -11,7 +11,7 @@
 
 #include <vector>
 #include "yl_code.h"
-#include "yl_heapobj.h"
+#include "yl_context.h"
 #include "yl_value.h"
 
 
@@ -22,27 +22,6 @@ class yl_upval;
 
 
 
-/*
-    Base for ylang functions.
-*/
-
-class yl_funcbase : public yl_heapobj
-{
-public:
-
-    void acquire();
-    void release();
-    
-    
-protected:
-
-    explicit yl_funcbase( yl_objkind kind );
-
-    uint8_t _refcount;
-
-};
-
-
 
 /*
     A native thunk.
@@ -50,11 +29,11 @@ protected:
 
 typedef void (*yl_thunk_function)( yl_callframe& xf );
 
-class yl_thunkobj : public yl_funcbase
+class yl_thunkobj : public yl_gcobject
 {
 public:
 
-    static yl_thunkobj* alloc( yl_thunk_function thunk );
+    static yl_stackref< yl_thunkobj > alloc( yl_thunk_function thunk );
 
     yl_thunk_function thunk();
 
@@ -63,9 +42,7 @@ private:
 
     explicit yl_thunkobj( yl_thunk_function thunk );
 
-
     yl_thunk_function _thunk;
-
 
 };
 
@@ -75,12 +52,12 @@ private:
     A bytecode function.
 */
 
-class yl_funcobj : public yl_funcbase
+class yl_funcobj : public yl_gcobject
 {
 public:
 
     static yl_function  make_function( yl_funcobj* funcobj );
-    static yl_funcobj*  alloc( yl_program* program );
+    static yl_stackref< yl_funcobj > alloc( yl_program* program );
 
     yl_program*         program();
     
@@ -92,9 +69,9 @@ private:
 
     explicit yl_funcobj( yl_program* program );
 
-    uint8_t                 _upcount;
-    yl_objref< yl_program > _program;
-    yl_objref< yl_upval >   _upval[ 0 ];
+    unsigned                    _upcount;
+    yl_heapref< yl_program >    _program;
+    yl_heapref< yl_upval >      _upval[ 0 ];
 
 };
 
@@ -104,7 +81,7 @@ private:
     A compiled function.
 */
 
-class yl_program : public yl_heapobj
+class yl_program : public yl_gcobject
 {
 public:
 
@@ -157,7 +134,7 @@ private:
     size_t                  _dvcount;
     size_t                  _dscount;
     
-    yl_objref< yl_string >  _name;
+    yl_heapref< yl_string > _name;
     
     uint8_t                 _upcount;
     uint8_t                 _paramcount;

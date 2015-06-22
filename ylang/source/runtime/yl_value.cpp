@@ -10,16 +10,16 @@
 
 
 
-yl_valarray* yl_valarray::alloc( size_t size )
+yl_stackref< yl_valarray > yl_valarray::alloc( size_t size )
 {
     size_t s = sizeof( yl_valarray ) + sizeof( yl_valref ) * size;
-    void* p = yl_current->malloc( s );
+    void* p = yl_current->allocate( s );
     return new ( p ) yl_valarray( size );
 }
 
 
 yl_valarray::yl_valarray( size_t size )
-    :   yl_heapobj( YLOBJ_VALARRAY )
+    :   yl_gcobject( YLOBJ_VALARRAY )
     ,   _size( size )
 {
     for ( size_t i = 0; i < _size; ++i )

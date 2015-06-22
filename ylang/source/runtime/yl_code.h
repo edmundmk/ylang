@@ -11,7 +11,7 @@
 
 
 #include <string>
-#include "yl_heapobj.h"
+#include "yl_context.h"
 #include "yl_string.h"
 
 
@@ -250,7 +250,7 @@ struct yl_debugvar
 {
     static const unsigned UPVAL = 0x8000;
 
-    yl_objref< yl_string > name;    // Name.
+    yl_heapref< yl_string > name;   // Name.
     unsigned    r;                  // Register or upval index.
 };
 

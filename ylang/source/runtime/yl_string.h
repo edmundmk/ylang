@@ -12,7 +12,7 @@
 
 #include <hash.h>
 #include <assert.h>
-#include "yl_heapobj.h"
+#include "yl_context.h"
 
 
 
@@ -28,16 +28,16 @@
  
 */
 
-class yl_string : public yl_heapobj
+class yl_string : public yl_gcobject
 {
 public:
 
-    static yl_string*   alloc( const char* string );
-    static yl_string*   alloc( const char* string, size_t size );
+    static yl_stackref< yl_string > alloc( const char* string );
+    static yl_stackref< yl_string > alloc( const char* string, size_t size );
 
     static yl_string*   concat( yl_string* a, yl_string* b );
     
-    yl_string*          symbol();
+    yl_stackref< yl_string > symbol();
     
     hash32_t            hash() const;
     size_t              size() const;
@@ -48,13 +48,17 @@ private:
 
     friend class yl_context_impl;
     friend class yl_symbol;
+    
+    enum
+    {
+        HASH    = YL_GCFLAG_USER1,
+        SYMBOL  = YL_GCFLAG_USER2,
+    };
 
     explicit yl_string( size_t size );
 
-    bool                _is_symbol;
-    mutable bool        _has_hash;
     mutable hash32_t    _hash;
-    unsigned            _size;
+    size_t              _size;
     char                _s[];
 
 };
@@ -108,9 +112,13 @@ template <> struct hash< yl_symbol >
 */
 
 
-inline yl_string* yl_string::symbol()
+/*
+    yl_string
+*/
+
+inline yl_stackref< yl_string > yl_string::symbol()
 {
-    if ( _is_symbol )
+    if ( check_gcflags( SYMBOL ) )
     {
         return this;
     }
@@ -123,10 +131,10 @@ inline yl_string* yl_string::symbol()
 
 inline hash32_t yl_string::hash() const
 {
-    if ( ! _has_hash )
+    if ( ! check_gcflags( HASH ) )
     {
         _hash = hash32( _s, _size );
-        _has_hash = true;
+        set_gcflags( HASH );
     }
     return _hash;
 }
@@ -142,11 +150,14 @@ inline const char* yl_string::c_str() const
 }
 
 
+/*
+    yl_symbol
+*/
 
 inline yl_symbol::yl_symbol( yl_string* string )
     :   _symbol( string )
 {
-    assert( _symbol->_is_symbol );
+    assert( _symbol->check_gcflags( yl_string::SYMBOL ) );
 }
 
 inline yl_string* yl_symbol::string() const

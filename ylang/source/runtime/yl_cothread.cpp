@@ -14,8 +14,9 @@
 #include "yl_table.h"
 
 
-
-// ----- yl_exception
+/*
+    yl_exception
+*/
 
 
 yl_exception::yl_exception( const char* format, ... )
@@ -35,7 +36,9 @@ const char* yl_exception::what() const throw()
 
 
 
-// ----- yl_callframe
+/*
+    yl_callframe
+*/
 
 
 yl_callframe::yl_callframe()
@@ -74,7 +77,7 @@ void yl_callframe::push_bool( bool value )
 void yl_callframe::push( const char* value )
 {
     yl_value* s = _cothread->stack( _base, _size + 1 );
-    s[ _size ] = yl_value( YLOBJ_STRING, yl_string::alloc( value ) );
+    s[ _size ] = yl_value( YLOBJ_STRING, yl_string::alloc( value ).get() );
     _size += 1;
 }
 
@@ -199,7 +202,7 @@ const char* yl_callframe::get_string( size_t index ) const
     yl_value* s = _cothread->stack( _base, _size );
     if ( s[ index ].is( YLOBJ_STRING ) )
     {
-        yl_string* string = (yl_string*)s[ index ].heapobj();
+        yl_string* string = (yl_string*)s[ index ].gcobject();
         return string->c_str();
     }
     throw yl_exception( "expected string" );
@@ -220,21 +223,21 @@ yl_function yl_callframe::get_function( size_t index ) const
     yl_value* s = _cothread->stack( _base, _size );
     if ( s[ index ].is( YLOBJ_FUNCOBJ ) || s[ index ].is( YLOBJ_THUNKOBJ ) )
     {
-        return yl_function( (yl_funcbase*)s[ index ].heapobj() );
+        return yl_function( s[ index ].gcobject() );
     }
     throw yl_exception( "expected function" );
 }
 
-yl_heapobj* yl_callframe::get_heapobj( size_t index ) const
+yl_gcobject* yl_callframe::get_gcobject( size_t index ) const
 {
     if ( index >= _size )
     {
         throw yl_exception( "missing argument" );
     }
     yl_value* s = _cothread->stack( _base, _size );
-    if ( s[ index ].is_heapobj() )
+    if ( s[ index ].is_gcobject() )
     {
-        return s[ index ].heapobj();
+        return s[ index ].gcobject();
     }
     return nullptr;
 }
@@ -248,7 +251,9 @@ void yl_callframe::clear()
 
 
 
-// ---- yl_invoke
+/*
+    yl_invoke
+*/
 
 
 void yl_invoke( yl_callframe& xf )
@@ -264,17 +269,18 @@ void yl_invoke( yl_callframe& xf )
 
 
 
-// ---- yl_upval
+/*
+    yl_upval
+*/
 
-
-yl_upval* yl_upval::alloc( unsigned index )
+yl_stackref< yl_upval > yl_upval::alloc( unsigned index )
 {
-    void* p = yl_current->malloc( sizeof( yl_upval ) );
+    void* p = yl_current->allocate( sizeof( yl_upval ) );
     return new ( p ) yl_upval( index );
 }
 
 yl_upval::yl_upval( unsigned index )
-    :   yl_heapobj( YLOBJ_UPVAL )
+    :   yl_gcobject( YLOBJ_UPVAL )
     ,   _open( true )
     ,   _index( index )
 {
@@ -285,8 +291,9 @@ yl_upval::yl_upval( unsigned index )
 
 
 
-// ---- yl_iterator
-
+/*
+    yl_iterator
+*/
 
 yl_iterator::yl_iterator()
     :   _kind( YLITER_CLOSED )
@@ -301,12 +308,12 @@ void yl_iterator::open_vals( yl_value value )
     if ( value.is( YLOBJ_ARRAY ) )
     {
         _kind       = YLITER_ARRAY;
-        _array      = (yl_array*)value.heapobj();
+        _array      = (yl_array*)value.gcobject();
         _index      = 0;
     }
     else if ( value.is( YLOBJ_TABLE ) )
     {
-        yl_table* table = (yl_table*)value.heapobj();
+        yl_table* table = (yl_table*)value.gcobject();
         _kind       = YLITER_TABLE;
         _buckets    = table->_buckets.get();
         _index      = 0;
@@ -315,7 +322,7 @@ void yl_iterator::open_vals( yl_value value )
     else if ( value.is( YLOBJ_COTHREAD ) )
     {
         _kind       = YLITER_GENERATOR;
-        _generator  = (yl_cothread*)value.heapobj();
+        _generator  = (yl_cothread*)value.gcobject();
     }
     else
     {
@@ -329,7 +336,7 @@ void yl_iterator::open_keys( yl_value value )
     if ( value.is_object() )
     {
         _kind       = YLITER_KEYS;
-        _object     = (yl_object*)value.heapobj();
+        _object     = (yl_object*)value.gcobject();
         _slot       = _object->_klass.get();
     }
     else
@@ -558,18 +565,19 @@ void yl_iterator::next_bucket()
 
 
 
+/*
+    yl_cothread
+*/
 
-// ----- yl_cothread
 
-
-yl_cothread* yl_cothread::alloc()
+yl_stackref< yl_cothread > yl_cothread::alloc()
 {
-    void* p = yl_current->malloc( sizeof( yl_cothread ) );
+    void* p = yl_current->allocate( sizeof( yl_cothread ) );
     return new ( p ) yl_cothread();
 }
 
 yl_cothread::yl_cothread()
-    :   yl_heapobj( YLOBJ_COTHREAD )
+    :   yl_gcobject( YLOBJ_COTHREAD )
 {
 }
 

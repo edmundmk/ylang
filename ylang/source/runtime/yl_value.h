@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include <atomic>
-#include "yl_heapobj.h"
+#include "yl_context.h"
 #include "yl_string.h"
 
 
@@ -78,7 +78,7 @@ public:
     yl_value( yl_null_t );
     yl_value( yl_bool_t );
     yl_value( double number );
-    yl_value( yl_objkind kind, yl_heapobj* heapobj );
+    yl_value( uint8_t kind, yl_gcobject* gcobject );
 
     yl_objkind      kind() const;
 
@@ -88,13 +88,13 @@ public:
     bool            is_true() const;
     
     bool            is_number() const;
-    bool            is_heapobj() const;
+    bool            is_gcobject() const;
     
     bool            is( yl_objkind kind ) const;
     bool            is_object() const;
 
     double          number() const;
-    yl_heapobj*     heapobj() const;
+    yl_gcobject*     gcobject() const;
 
 
 private:
@@ -118,7 +118,7 @@ private:
     static const uint64_t VALUE_UNDEF       = UINT64_C( 0xFFF1000100000000 );
     static const uint64_t VALUE_FALSE       = UINT64_C( 0xFFF1000200000000 );
     static const uint64_t VALUE_TRUE        = UINT64_C( 0xFFF1000300000000 );
-    static const uint64_t FIRST_HEAPOBJ     = UINT64_C( 0xFFF2000000000000 );
+    static const uint64_t FIRST_GCOBJECT    = UINT64_C( 0xFFF2000000000000 );
     static const uint64_t FIRST_OBJECT      = UINT64_C( 0xFFFC000000000000 );
     
     static const uint64_t TAG_BITS          = UINT64_C( 0x00FF000000000000 );
@@ -173,6 +173,8 @@ public:
 
     void        set( yl_value value );
     yl_value    get() const;
+    
+    void        mark() const;
 
 
 private:
@@ -192,11 +194,11 @@ private:
     Garbage-collected arrays of values.
 */
 
-class yl_valarray : public yl_heapobj
+class yl_valarray : public yl_gcobject
 {
 public:
 
-    static yl_valarray* alloc( size_t size );
+    static yl_stackref< yl_valarray > alloc( size_t size );
     ~yl_valarray();
     
     size_t              size() const;
@@ -221,6 +223,9 @@ private:
 */
 
 
+/*
+    yl_value
+*/
 
 inline yl_value::yl_value( uint64_t value )
     :   _value( value )
@@ -253,10 +258,10 @@ inline yl_value::yl_value( double number )
     assert( ! isnan( number ) || _value == POS_NAN || _value == NEG_NAN );
 }
 
-inline yl_value::yl_value( yl_objkind kind, yl_heapobj* heapobj )
-    :   _value( VALUE_BOXED | (uint64_t)kind << 48 | (uint64_t)heapobj )
+inline yl_value::yl_value( uint8_t kind, yl_gcobject* gcobject )
+    :   _value( VALUE_BOXED | (uint64_t)kind << 48 | (uint64_t)gcobject )
 {
-    assert( (uintptr_t)heapobj <= UINT64_C( 0x0000FFFFFFFFFFFF ) );
+    assert( (uintptr_t)gcobject <= UINT64_C( 0x0000FFFFFFFFFFFF ) );
 }
 
 
@@ -334,15 +339,15 @@ inline bool yl_value::is_number() const
 }
 
 
-inline bool yl_value::is_heapobj() const
+inline bool yl_value::is_gcobject() const
 {
     if ( sizeof( uintptr_t ) == 8 )
     {
-        return _value >= FIRST_HEAPOBJ && _value != NEG_NAN;
+        return _value >= FIRST_GCOBJECT && _value != NEG_NAN;
     }
     else
     {
-        return _hi >= HI( FIRST_HEAPOBJ ) && _hi != HI( NEG_NAN );
+        return _hi >= HI( FIRST_GCOBJECT ) && _hi != HI( NEG_NAN );
     }
 }
 
@@ -378,15 +383,15 @@ inline double yl_value::number() const
 }
 
 
-inline yl_heapobj* yl_value::heapobj() const
+inline yl_gcobject* yl_value::gcobject() const
 {
     if ( sizeof( uintptr_t ) == 8 )
     {
-        return (yl_heapobj*)(uintptr_t)( _value & POINTER_BITS );
+        return (yl_gcobject*)(uintptr_t)( _value & POINTER_BITS );
     }
     else
     {
-        return (yl_heapobj*)(uintptr_t)_lo;
+        return (yl_gcobject*)(uintptr_t)_lo;
     }
 }
 
@@ -397,7 +402,7 @@ inline hash32_t hash( yl_value v )
 {
     if ( v.is( YLOBJ_STRING ) )
     {
-        yl_string* string = (yl_string*)v.heapobj();
+        yl_string* string = (yl_string*)v.gcobject();
         return string->hash();
     }
     else
@@ -420,8 +425,8 @@ inline bool equal( yl_value a, yl_value b )
     
     if ( a.is( YLOBJ_STRING ) && b.is( YLOBJ_STRING ) )
     {
-        yl_string* sa = (yl_string*)a.heapobj();
-        yl_string* sb = (yl_string*)b.heapobj();
+        yl_string* sa = (yl_string*)a.gcobject();
+        yl_string* sb = (yl_string*)b.gcobject();
 
         if ( sa->size() != sb->size() )
         {
@@ -448,7 +453,9 @@ inline bool test( yl_value v )
 
 
 
-
+/*
+    yl_valref
+*/
 
 
 inline yl_valref::yl_valref()
@@ -463,9 +470,9 @@ inline yl_valref::~yl_valref()
 inline void yl_valref::set( yl_value value )
 {
     yl_value oldval = yl_value( _value.load( std::memory_order_relaxed ) );
-    if ( oldval.is_heapobj() )
+    if ( oldval.is_gcobject() )
     {
-        yl_current->write_barrier( oldval.heapobj() );
+        yl_current->write_barrier( oldval.gcobject() );
     }
 
     _value.store( value._value, std::memory_order_relaxed );
@@ -476,10 +483,21 @@ inline yl_value yl_valref::get() const
     return yl_value( _value.load( std::memory_order_relaxed ) );
 }
 
+inline void yl_valref::mark() const
+{
+    yl_value value = yl_value( _value.load( std::memory_order_relaxed ) );
+    if ( value.is_gcobject() )
+    {
+        yl_current->mark( value.gcobject() );
+    }
+}
 
 
 
 
+/*
+    yl_valarray
+*/
 
 inline size_t yl_valarray::size() const
 {

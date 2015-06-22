@@ -11,14 +11,14 @@
 
 
 
-yl_array* yl_array::alloc( size_t capacity )
+yl_stackref< yl_array > yl_array::alloc( size_t capacity )
 {
     return alloc( yl_current->proto_array(), capacity );
 }
 
-yl_array* yl_array::alloc( yl_object* prototype, size_t capacity )
+yl_stackref< yl_array > yl_array::alloc( yl_object* prototype, size_t capacity )
 {
-    void* p = yl_current->malloc( sizeof( yl_array ) );
+    void* p = yl_current->allocate( sizeof( yl_array ) );
     return new ( p ) yl_array( yl_current->proto_array(), capacity );
 }
 
@@ -26,7 +26,7 @@ yl_array* yl_array::alloc( yl_object* prototype, size_t capacity )
 
 yl_array::yl_array( yl_object* prototype, size_t capacity )
     :   yl_object( YLOBJ_ARRAY, prototype )
-    ,   _elements( capacity ? yl_valarray::alloc( capacity ) : nullptr )
+    ,   _elements( capacity ? yl_valarray::alloc( capacity ).get() : nullptr )
     ,   _length( 0 )
 {
 }
@@ -43,14 +43,14 @@ void yl_array::reserve( size_t capacity )
         return;
     }
     
-    yl_valarray* newelems = yl_valarray::alloc( capacity );
+    yl_stackref< yl_valarray > newelems = yl_valarray::alloc( capacity );
     assert( elements || _length == 0 );
     for ( size_t i = 0; i < _length; ++i )
     {
         newelems->at( i ).set( elements->at( i ).get() );
     }
     
-    _elements.set( newelems );
+    _elements.set( newelems.get() );
 }
 
 
@@ -78,25 +78,31 @@ void yl_array::resize( size_t length )
 
 
 
-yl_object* yl_array::make_prototype()
+yl_stackref< yl_object > yl_array::make_prototype()
 {
-    yl_object* proto = yl_object::alloc( yl_current->proto_object() );
-    proto->set_key( yl_string::alloc( "length" )->symbol(),
-        yl_value( YLOBJ_THUNKOBJ, yl_thunkobj::alloc( &thunk_length ) ) );
-    proto->set_key( yl_string::alloc( "resize" )->symbol(),
-        yl_value( YLOBJ_THUNKOBJ, yl_thunkobj::alloc( &thunk_resize ) ) );
+    yl_stackref< yl_object > proto = yl_object::alloc( yl_current->proto_object() );
+    proto->set_key
+    (
+        yl_string::alloc( "length" )->symbol().get(),
+        yl_value( YLOBJ_THUNKOBJ, yl_thunkobj::alloc( &thunk_length ).get() )
+    );
+    proto->set_key
+    (
+        yl_string::alloc( "resize" )->symbol().get(),
+        yl_value( YLOBJ_THUNKOBJ, yl_thunkobj::alloc( &thunk_resize ).get() )
+    );
     return proto;
 }
 
 
 yl_array* yl_array::thunk_this( yl_callframe& xf )
 {
-    yl_heapobj* heapobj = xf.get_heapobj( 1 );
-    if ( ! heapobj || heapobj->kind() != YLOBJ_ARRAY )
+    yl_gcobject* gcobject = xf.get_gcobject( 1 );
+    if ( ! gcobject || gcobject->kind() != YLOBJ_ARRAY )
     {
         throw yl_exception( "expected array" );
     }
-    return (yl_array*)heapobj;
+    return (yl_array*)gcobject;
 }
 
 void yl_array::thunk_length( yl_callframe& xf )
