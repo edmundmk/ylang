@@ -1,7 +1,26 @@
 
-garbage collector
+**garbage collector (somewhat done?)
+
+better stack top tracking
 coroutines
 exceptions/stack unwind - unwind through coroutine resumes
 debugger
+
+
+
+
+
+inline caching for YL_KEY and YL_SETKEY
+    when we do a lookup, we check if the klass is the same as the
+    previous time we did the lookup, and if it is, we know the
+    resulting index.  it's a kind of self-modifying code.
+
+threaded dispatch for interpreter switch.
+
+type inference so that doubles can be worked on without casting.  casts would
+be made explicit in the bytecode.
+
+
+
 
 

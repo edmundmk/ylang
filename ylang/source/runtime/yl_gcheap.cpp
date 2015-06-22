@@ -11,8 +11,8 @@
 
 
 #define GC_DEBUG_REPORT 1
-#define GC_DEBUG_SCRIBBLE 1
-#define GC_DEBUG_COLLECT_EVERY_TIME 1
+#define GC_DEBUG_SCRIBBLE 0
+#define GC_DEBUG_COLLECT_EVERY_TIME 0
 
 
 __thread yl_gcheap* yl_current_gcheap = nullptr;
@@ -375,7 +375,9 @@ bool yl_gcheap::weak_obtain_impl( yl_gcobject* object )
     }
     else
     {
+        // Leaf objects can always be resurrected.
         gcheader->colour.store( _marked, std::memory_order_relaxed );
+        return true;
     }
 
     return false;
@@ -541,7 +543,7 @@ void yl_gcheap::collect_sweep()
 
 #if GC_DEBUG_REPORT
     std::vector< std::pair< size_t, size_t > > report_counts;
-    report_counts.resize( _types.size() );
+    report_counts.resize( _types.size() + 1 );
 #endif
     
     yl_gcheader* alloc = _alloc_list.load( yl_memory_order_consume );
@@ -550,12 +552,13 @@ void yl_gcheap::collect_sweep()
         yl_gcobject* object = (yl_gcobject*)alloc;
         alloc = alloc->prev.load( yl_memory_order_consume );
         
-        // Get type.
+        // Get type index.
         uint8_t index = yl_kind_to_index( object->kind() );
-        yl_gctype* type = _types.at( index );
-
 #if GC_DEBUG_REPORT
-        report_counts[ index ].first += 1;
+        if ( index != yl_kind_to_index( 0 ) )
+            report_counts[ index ].first += 1;
+        else
+            report_counts[ _types.size() ].first += 1;
 #endif
         
         // Check colour.
@@ -565,6 +568,7 @@ void yl_gcheap::collect_sweep()
             continue;
 
 #if GC_DEBUG_REPORT
+        assert( index != yl_kind_to_index( 0 ) );
         report_counts[ index ].second += 1;
 #endif
 
@@ -575,6 +579,7 @@ void yl_gcheap::collect_sweep()
         assert( gcheader->refcount == 0 );
 
         // Call object destructor.
+        yl_gctype* type = _types.at( index );
         if ( type->destroy )
         {
             if ( object->check_gcflags( YL_GCFLAG_WEAK ) )
@@ -639,7 +644,7 @@ void yl_gcheap::collect_sweep()
     
 #if GC_DEBUG_REPORT
     printf( "GC : collect_sweep()\n" );
-    for ( size_t i = 0; i < report_counts.size(); ++i )
+    for ( size_t i = 0; i < _types.size(); ++i )
     {
         yl_gctype* type = _types.at( i );
         if ( type )
@@ -653,6 +658,13 @@ void yl_gcheap::collect_sweep()
             );
         }
     }
+    printf
+    (
+        "    %-10s : %zu / %zu\n",
+        "(newobjs)",
+        report_counts[ _types.size() ].first,
+        report_counts[ _types.size() ].second
+    );
 #endif
 }
 

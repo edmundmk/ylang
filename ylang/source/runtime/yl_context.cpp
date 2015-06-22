@@ -136,6 +136,10 @@ yl_stackref< yl_string > yl_context_impl::symbol( yl_string* string )
             weak_unlock();
             return result;
         }
+        else
+        {
+            assert( ! "unable to resurrect weak" );
+        }
     }
 
     // Otherwise, promote the string to a symbol.
