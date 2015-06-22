@@ -32,6 +32,8 @@ class yl_string : public yl_gcobject
 {
 public:
 
+    static yl_gctype gctype;
+
     static yl_stackref< yl_string > alloc( const char* string );
     static yl_stackref< yl_string > alloc( const char* string, size_t size );
 
@@ -56,6 +58,8 @@ private:
     };
 
     explicit yl_string( size_t size );
+    
+    static void destroy( yl_gcheap* heap, yl_gcobject* object );
 
     mutable hash32_t    _hash;
     size_t              _size;

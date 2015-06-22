@@ -42,7 +42,7 @@ yl_gcheap::~yl_gcheap()
 
 
 
-void yl_gcheap::register_type( uint8_t kind, const yl_gctype& type )
+void yl_gcheap::register_type( uint8_t kind, yl_gctype* type )
 {
     collect_wait();
     size_t index = yl_kind_to_index( kind );
@@ -198,9 +198,22 @@ void yl_gcheap::weak_unlock()
 
 void yl_gcheap::eager_lock( yl_gcobject* object )
 {
+    // Get type.
+    uint8_t index = yl_kind_to_index( object->kind() );
+    yl_gctype* type = _types.at( index );
+
+    assert( ! object->check_gcflags( YL_GCFLAG_EAGER ) );
+    assert( type->eager_mark );
+
     // Set to be marked at the next handshake.
     _eager.insert( object );
     
+    // Lock eager before marking.
+    std::lock_guard< std::mutex > lock_eager( _eager_mutex );
+
+    // Set as eagerly marked.
+    object->set_gcflags( YL_GCFLAG_EAGER );
+
     // Check colour.
     yl_gcheader* gcheader = &object->_gcheader;
     yl_gccolour colour = gcheader->colour.load( std::memory_order_relaxed );
@@ -208,14 +221,12 @@ void yl_gcheap::eager_lock( yl_gcobject* object )
         return;
 
     // If the object is unmarked or grey both then we need to mark it now.
-    std::lock_guard< std::mutex > lock( _grey_mutex );
+    std::lock_guard< std::mutex > lock_grey( _grey_mutex );
 
     // Call eager_mark routine.
-    uint8_t index = yl_kind_to_index( object->kind() );
-    const yl_gctype& type = _types.at( index );
-    if ( type.eager_mark )
+    if ( type->eager_mark )
     {
-        type.eager_mark( this, object );
+        type->eager_mark( this, object );
     }
             
     // Mark oolref.
@@ -230,7 +241,9 @@ void yl_gcheap::eager_lock( yl_gcobject* object )
 
 void yl_gcheap::eager_unlock( yl_gcobject* object )
 {
+    assert( object->check_gcflags( YL_GCFLAG_EAGER ) );
     _eager.erase( object );
+    object->clear_gcflags( YL_GCFLAG_EAGER );
 }
 
 
@@ -403,17 +416,43 @@ void yl_gcheap::collect_mark()
             yl_gcobject* object = _mark_list.back();
             _mark_list.pop_back();
 
-            // Check if we've marked this object already.
+            // Get type.
+            uint8_t index = yl_kind_to_index( object->kind() );
+            yl_gctype* type = _types.at( index );
+
             yl_gcheader* gcheader = &object->_gcheader;
-            yl_gccolour colour = gcheader->colour.load( std::memory_order_relaxed );
-            if ( YL_UNLIKELY( colour == _marked ) )
-                continue;
+            if ( ! type->eager_mark )
+            {
+                // Check if we've marked this object already.
+                yl_gccolour colour = gcheader->colour.load( std::memory_order_relaxed );
+                if ( YL_UNLIKELY( colour == _marked ) )
+                    continue;
 
-            // Should have been marked grey when it was added to the list.
-            assert( colour == YL_GCCOLOUR_GREY );
+                // Should have been marked grey when it was added to the list.
+                assert( colour == YL_GCCOLOUR_GREY );
 
-            // Mark the object.
-            mark_object( object );
+                // Mark the object.
+                mark_object( object );
+            }
+            else
+            {
+                // Lock eager during marking.
+                std::lock_guard< std::mutex > lock_eager( _eager_mutex );
+            
+                // Check colour.
+                yl_gccolour colour = gcheader->colour.load( std::memory_order_relaxed );
+                if ( YL_UNLIKELY( colour == _marked ) )
+                    continue;
+                
+                // Should have been marked grey when it was added to the list.
+                assert( colour == YL_GCCOLOUR_GREY );
+
+                // If it's unmarked then it must be unlocked.
+                assert( ! object->check_gcflags( YL_GCFLAG_EAGER ) );
+
+                // Mark it.
+                mark_object( object );
+            }
         }
     
     
@@ -437,10 +476,10 @@ void yl_gcheap::mark_object( yl_gcobject* object )
 {
     // Call mark routine.
     uint8_t index = yl_kind_to_index( object->kind() );
-    const yl_gctype& type = _types.at( index );
-    if ( type.mark )
+    yl_gctype* type = _types.at( index );
+    if ( type->mark )
     {
-        type.mark( this, object );
+        type->mark( this, object );
     }
     
     // Mark oolref.
@@ -496,11 +535,11 @@ void yl_gcheap::collect_sweep()
 
         // Sweep object.
         uint8_t index = yl_kind_to_index( object->kind() );
-        const yl_gctype& type = _types.at( index );
+        yl_gctype* type = _types.at( index );
 
 
         // Call object destructor.
-        if ( type.destroy )
+        if ( type->destroy )
         {
             if ( object->check_gcflags( YL_GCFLAG_WEAK ) )
             {
@@ -517,12 +556,12 @@ void yl_gcheap::collect_sweep()
                     continue;
                 }
                 
-                type.destroy( this, object );
+                type->destroy( this, object );
             }
             else
             {
                 // Just destroy.
-                type.destroy( this, object );
+                type->destroy( this, object );
             }
         }
         
@@ -592,21 +631,6 @@ void yl_gcobject::decref()
     {
         yl_current_gcheap->_roots.erase( this );
     }
-}
-
-
-inline void yl_gcobject::set_gcflags( uint8_t flags ) const
-{
-    // This operation is not atomic.
-    uint8_t gcflags = _gcheader.gcflags.load( std::memory_order_relaxed );
-    _gcheader.gcflags.store( gcflags | flags, std::memory_order_relaxed );
-}
-
-inline void yl_gcobject::clear_gcflags( uint8_t flags ) const
-{
-    // This operation is not atomic.
-    uint8_t gcflags = _gcheader.gcflags.load( std::memory_order_relaxed );
-    _gcheader.gcflags.store( gcflags & ~flags, std::memory_order_relaxed );
 }
 
 

@@ -9,6 +9,13 @@
 #include "yl_value.h"
 
 
+yl_gctype yl_valarray::gctype =
+{
+    &yl_valarray::destroy,
+    &yl_valarray::mark,
+    nullptr
+};
+
 
 yl_stackref< yl_valarray > yl_valarray::alloc( size_t size )
 {
@@ -36,6 +43,21 @@ yl_valarray::~yl_valarray()
     }
 }
 
+
+void yl_valarray::destroy( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_valarray* self = (yl_valarray*)object;
+    self->~yl_valarray();
+}
+
+void yl_valarray::mark( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_valarray* self = (yl_valarray*)object;
+    for ( size_t i = 0; i < self->_size; ++i )
+    {
+        self->_elements[ i ].mark( heap );
+    }
+}
 
 
 

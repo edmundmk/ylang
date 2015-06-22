@@ -51,13 +51,26 @@ yl_context_impl::yl_context_impl()
     ,   _globals( nullptr )
 {
     // Register GC types.
-
+    register_type( YLOBJ_OBJECT, &yl_object::gctype );
+//    register_type( YLOBJ_EXPOBJ, &yl_expobj::gctype );
+    register_type( YLOBJ_ARRAY, &yl_array::gctype );
+    register_type( YLOBJ_TABLE, &yl_table::gctype );
+    register_type( YLOBJ_STRING, &yl_string::gctype );
+    register_type( YLOBJ_FUNCOBJ, &yl_funcobj::gctype );
+    register_type( YLOBJ_THUNKOBJ, &yl_thunkobj::gctype );
+    register_type( YLOBJ_COTHREAD, &yl_cothread::gctype );
+    register_type( YLOBJ_PROGRAM, &yl_program::gctype );
+    register_type( YLOBJ_VALARRAY, &yl_valarray::gctype );
+    register_type( YLOBJ_BUCKETLIST, &yl_bucketlist::gctype );
+    register_type( YLOBJ_SLOT, &yl_slot::gctype );
+    register_type( YLOBJ_UPVAL, &yl_upval::gctype );
 
     // Initialize context.
     yl_scope scope( this );
     
     // Default cothread.
-    _cothread       = yl_cothread::alloc().incref();
+    _cothread = yl_cothread::alloc().incref();
+    eager_lock( _cothread );
     
     // Prototypes.
     _proto_object   = yl_object::alloc( nullptr ).incref();
@@ -91,20 +104,24 @@ yl_context_impl::~yl_context_impl()
 
 void yl_context_impl::set_cothread( yl_cothread* cothread )
 {
-    // TODO: interact with GC by 'unlocking' cothread.
+    if ( cothread == _cothread )
+        return;
+    
+    if ( _cothread )
+    {
+        eager_unlock( _cothread );
+    }
     _cothread = cothread;
+    if ( _cothread )
+    {
+        eager_lock( _cothread );
+    }
 }
 
 
 
 yl_stackref< yl_string > yl_context_impl::symbol( yl_string* string )
 {
-    // Check if the string is already a symbol.
-    if ( string->check_gcflags( yl_string::SYMBOL ) )
-    {
-        return string;
-    }
-
     weak_lock();
 
     // Check if we already have an equivalent symbol.
@@ -127,6 +144,17 @@ yl_stackref< yl_string > yl_context_impl::symbol( yl_string* string )
     weak_unlock();
     
     return string;
+}
+
+void yl_context_impl::destroy_symbol( yl_string* symbol )
+{
+    // Destroying a string used as a symbol.  GC should have locked the
+    // weak lock already.
+    
+    symkey key( symbol->hash(), symbol->c_str(), symbol->size() );
+    assert( _symbols.at( key ) == symbol );
+    _symbols.erase( key );
+    
 }
 
 
@@ -241,7 +269,7 @@ void yl_context_impl::set_global( const char* name, yl_value value )
 
 
 
-void _yl_call_thunk( const char* name, yl_thunk_function thunk )
+void _yl_global_function( const char* name, yl_thunk_function thunk )
 {
     yl_stackref< yl_thunkobj > thunkobj = yl_thunkobj::alloc( thunk );
     yl_current->set_global( name, yl_value( YLOBJ_THUNKOBJ, thunkobj.get() ) );

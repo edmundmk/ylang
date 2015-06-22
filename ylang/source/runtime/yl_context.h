@@ -54,10 +54,10 @@ enum yl_objkind : uint8_t
     YLOBJ_INFINITY      = 0xF0,     // number: infinity
 
     // Not user-visible and never NaN-boxed.
-    YLOBJ_VALARRAY      = 0x01,     // fixed-size array of values
-    YLOBJ_BUCKETLIST    = 0x02,     // fixed-size array of table buckets
-    YLOBJ_SLOT          = 0x03,     // node in an object's class tree
-    YLOBJ_UPVAL         = 0x04,     // variable referenced from closure
+    YLOBJ_VALARRAY      = 0xEF,     // fixed-size array of values
+    YLOBJ_BUCKETLIST    = 0xEE,     // fixed-size array of table buckets
+    YLOBJ_SLOT          = 0xED,     // node in an object's class tree
+    YLOBJ_UPVAL         = 0xEC,     // variable referenced from closure
     
 };
 
@@ -94,6 +94,8 @@ public:
     // Object model.
 
     yl_stackref< yl_string >    symbol( yl_string* symbol );
+    void                        destroy_symbol( yl_string* symbol );
+    
     yl_object*                  superof( yl_value value );
     yl_slot*                    klassof( yl_object* prototype );
 

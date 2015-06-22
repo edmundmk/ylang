@@ -171,11 +171,11 @@ public:
     yl_valref();
     ~yl_valref();
 
+    void        mark( yl_gcheap* heap ) const;
+
     void        set( yl_value value );
     yl_value    get() const;
     
-    void        mark() const;
-
 
 private:
 
@@ -198,6 +198,8 @@ class yl_valarray : public yl_gcobject
 {
 public:
 
+    static yl_gctype gctype;
+
     static yl_stackref< yl_valarray > alloc( size_t size );
     ~yl_valarray();
     
@@ -209,6 +211,9 @@ public:
 private:
 
     explicit yl_valarray( size_t size );
+    
+    static void destroy( yl_gcheap* heap, yl_gcobject* object );
+    static void mark( yl_gcheap* heap, yl_gcobject* object );
 
     size_t              _size;
     yl_valref           _elements[ 0 ];
@@ -483,12 +488,12 @@ inline yl_value yl_valref::get() const
     return yl_value( _value.load( std::memory_order_relaxed ) );
 }
 
-inline void yl_valref::mark() const
+inline void yl_valref::mark( yl_gcheap* heap ) const
 {
     yl_value value = yl_value( _value.load( std::memory_order_relaxed ) );
     if ( value.is_gcobject() )
     {
-        yl_current->mark( value.gcobject() );
+        heap->mark( value.gcobject() );
     }
 }
 

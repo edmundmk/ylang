@@ -61,6 +61,8 @@ class yl_upval : public yl_gcobject
 {
 public:
 
+    static yl_gctype gctype;
+
     static yl_stackref< yl_upval > alloc( unsigned index );
 
     void        close( yl_cothread* cothread );
@@ -70,9 +72,16 @@ public:
 
 private:
 
-    explicit yl_upval( unsigned index );
+    enum
+    {
+        OPEN = YL_GCFLAG_USER1,
+    };
 
-    bool        _open;
+    explicit yl_upval( unsigned index );
+    
+    static void destroy( yl_gcheap* heap, yl_gcobject* object );
+    static void mark( yl_gcheap* heap, yl_gcobject* object );
+
     unsigned    _index;
     yl_valref   _value;
 
@@ -102,6 +111,9 @@ class yl_iterator
 public:
 
     yl_iterator();
+
+    void mark( yl_gcheap* heap ) const;
+    void eager_mark( yl_gcheap* heap ) const;
 
     void open_vals( yl_value value );
     void open_keys( yl_value value );
@@ -145,6 +157,8 @@ class yl_cothread : public yl_gcobject
 {
 public:
 
+    static yl_gctype gctype;
+
     static yl_stackref< yl_cothread > alloc();
 
     void            push_frame( const yl_stackframe& frame );
@@ -165,6 +179,10 @@ protected:
 
     yl_cothread();
 
+    static void destroy( yl_gcheap* heap, yl_gcobject* object );
+    static void mark( yl_gcheap* heap, yl_gcobject* object );
+    static void eager_mark( yl_gcheap* heap, yl_gcobject* object );
+    
 
 private:
 
@@ -192,17 +210,17 @@ inline bool is_integer( double number )
 
 inline void yl_upval::close( yl_cothread* cothread )
 {
-    if ( _open )
+    if ( check_gcflags( OPEN ) )
     {
         yl_value* s = cothread->stack( _index, 1 );
         _value.set( s[ 0 ] );
-        _open = false;
+        clear_gcflags( OPEN );
     }
 }
 
 inline yl_value yl_upval::get_value( yl_cothread* cothread ) const
 {
-    if ( _open )
+    if ( check_gcflags( OPEN ) )
     {
         yl_value* s = cothread->stack( _index, 1 );
         return s[ 0 ];
@@ -215,7 +233,7 @@ inline yl_value yl_upval::get_value( yl_cothread* cothread ) const
 
 inline void yl_upval::set_value( yl_cothread* cothread, yl_value value )
 {
-    if ( _open )
+    if ( check_gcflags( OPEN ) )
     {
         yl_value* s = cothread->stack( _index, 1 );
         s[ 0 ] = value;

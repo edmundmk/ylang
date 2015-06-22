@@ -12,6 +12,15 @@
 
 
 
+yl_gctype yl_string::gctype =
+{
+    &yl_string::destroy,
+    nullptr,
+    nullptr,
+};
+
+
+
 yl_stackref< yl_string > yl_string::alloc( const char* string )
 {
     return alloc( string, strlen( string ) );
@@ -42,11 +51,23 @@ yl_string* yl_string::concat( yl_string* a, yl_string* b )
 
 
 yl_string::yl_string( size_t size )
-    :   yl_gcobject( YLOBJ_STRING )
+    :   yl_gcobject( YLOBJ_STRING, YL_GCFLAG_LEAF )
     ,   _hash( 0 )
     ,   _size( (uint32_t)size )
 {
 }
+
+
+void yl_string::destroy( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_string* self = (yl_string*)object;
+    if ( self->check_gcflags( SYMBOL ) )
+    {
+        yl_context_impl* context = (yl_context_impl*)heap;
+        context->destroy_symbol( self );
+    }
+}
+
 
 
 

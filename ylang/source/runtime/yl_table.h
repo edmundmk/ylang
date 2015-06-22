@@ -22,6 +22,8 @@ class yl_bucketlist : public yl_gcobject
 {
 public:
 
+    static yl_gctype gctype;
+
     struct bucket
     {
         bucket();
@@ -43,6 +45,9 @@ public:
 private:
 
     explicit yl_bucketlist( size_t size );
+    
+    static void destroy( yl_gcheap* heap, yl_gcobject* object );
+    static void mark( yl_gcheap* heap, yl_gcobject* object );
     
     size_t          _size;
     bucket          _elements[ 0 ];
@@ -67,6 +72,8 @@ class yl_table : public yl_object
 {
 public:
 
+    static yl_gctype gctype;
+
     typedef yl_bucketlist::bucket bucket;
 
     static yl_stackref< yl_object > make_prototype();
@@ -88,6 +95,9 @@ protected:
 private:
 
     friend class yl_iterator;
+    
+    static void destroy( yl_gcheap* heap, yl_gcobject* object );
+    static void mark( yl_gcheap* heap, yl_gcobject* object );
 
     bucket* lookup( yl_value key ) const;
     bucket* main_position( yl_value key ) const;

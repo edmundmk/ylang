@@ -10,6 +10,13 @@
 #include "yl_function.h"
 
 
+yl_gctype yl_array::gctype =
+{
+    &yl_array::destroy,
+    &yl_array::mark,
+    nullptr
+};
+
 
 yl_stackref< yl_array > yl_array::alloc( size_t capacity )
 {
@@ -29,6 +36,18 @@ yl_array::yl_array( yl_object* prototype, size_t capacity )
     ,   _elements( capacity ? yl_valarray::alloc( capacity ).get() : nullptr )
     ,   _length( 0 )
 {
+}
+
+void yl_array::destroy( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_array* self = (yl_array*)object;
+    self->~yl_array();
+}
+
+void yl_array::mark( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_array* self = (yl_array*)object;
+    self->_elements.mark( heap );
 }
 
 

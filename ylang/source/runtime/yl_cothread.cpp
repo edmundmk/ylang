@@ -273,6 +273,14 @@ void yl_invoke( yl_callframe& xf )
     yl_upval
 */
 
+yl_gctype yl_upval::gctype =
+{
+    &yl_upval::destroy,
+    &yl_upval::mark,
+    nullptr
+};
+
+
 yl_stackref< yl_upval > yl_upval::alloc( unsigned index )
 {
     void* p = yl_current->allocate( sizeof( yl_upval ) );
@@ -280,12 +288,22 @@ yl_stackref< yl_upval > yl_upval::alloc( unsigned index )
 }
 
 yl_upval::yl_upval( unsigned index )
-    :   yl_gcobject( YLOBJ_UPVAL )
-    ,   _open( true )
+    :   yl_gcobject( YLOBJ_UPVAL, OPEN )
     ,   _index( index )
 {
 }
 
+void yl_upval::destroy( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_upval* self = (yl_upval*)object;
+    self->~yl_upval();
+}
+
+void yl_upval::mark( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_upval* self = (yl_upval*)object;
+    self->_value.mark( heap );
+}
 
 
 
@@ -300,6 +318,60 @@ yl_iterator::yl_iterator()
     ,   _object( nullptr )
     ,   _index( 0 )
 {
+}
+
+void yl_iterator::mark( yl_gcheap* heap ) const
+{
+    switch ( _kind )
+    {
+    case YLITER_KEYS:
+        heap->mark( _object );
+        heap->mark( _slot );
+        break;
+        
+    case YLITER_ARRAY:
+        heap->mark( _array );
+        break;
+        
+    case YLITER_TABLE:
+        heap->mark( _buckets );
+        break;
+        
+    case YLITER_GENERATOR:
+        heap->mark( _generator );
+        break;
+
+    default:
+        assert( ! "invalid iterator" );
+        break;
+    }
+}
+
+void yl_iterator::eager_mark( yl_gcheap* heap ) const
+{
+    switch ( _kind )
+    {
+    case YLITER_KEYS:
+        heap->eager_mark( _object );
+        heap->eager_mark( _slot );
+        break;
+        
+    case YLITER_ARRAY:
+        heap->eager_mark( _array );
+        break;
+        
+    case YLITER_TABLE:
+        heap->eager_mark( _buckets );
+        break;
+        
+    case YLITER_GENERATOR:
+        heap->eager_mark( _generator );
+        break;
+
+    default:
+        assert( ! "invalid iterator" );
+        break;
+    }
 }
 
 void yl_iterator::open_vals( yl_value value )
@@ -570,6 +642,14 @@ void yl_iterator::next_bucket()
 */
 
 
+yl_gctype yl_cothread::gctype
+{
+    &yl_cothread::destroy,
+    &yl_cothread::mark,
+    &yl_cothread::eager_mark,
+};
+
+
 yl_stackref< yl_cothread > yl_cothread::alloc()
 {
     void* p = yl_current->allocate( sizeof( yl_cothread ) );
@@ -580,6 +660,72 @@ yl_cothread::yl_cothread()
     :   yl_gcobject( YLOBJ_COTHREAD )
 {
 }
+
+
+void yl_cothread::destroy( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_cothread* self = (yl_cothread*)object;
+    self->~yl_cothread();
+}
+
+void yl_cothread::mark( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_cothread* self = (yl_cothread*)object;
+    
+    for ( const auto& frame : self->_frames )
+    {
+        heap->mark( frame.funcobj );
+    }
+    
+    // TODO: have a better idea of the stack top.
+    for ( const auto& value : self->_stack )
+    {
+        if ( value.is_gcobject() )
+        {
+            heap->mark( value.gcobject() );
+        }
+    }
+    
+    for ( const auto& upval : self->_locup )
+    {
+        heap->mark( upval );
+    }
+    
+    for ( const auto& iterator : self->_iters )
+    {
+        iterator.mark( heap );
+    }
+}
+
+void yl_cothread::eager_mark( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_cothread* self = (yl_cothread*)object;
+    
+    for ( const auto& frame : self->_frames )
+    {
+        heap->eager_mark( frame.funcobj );
+    }
+    
+    // TODO: have a better idea of the stack top.
+    for ( const auto& value : self->_stack )
+    {
+        if ( value.is_gcobject() )
+        {
+            heap->eager_mark( value.gcobject() );
+        }
+    }
+    
+    for ( const auto& upval : self->_locup )
+    {
+        heap->eager_mark( upval );
+    }
+    
+    for ( const auto& iterator : self->_iters )
+    {
+        iterator.eager_mark( heap );
+    }
+}
+
 
 
 void yl_cothread::push_frame( const yl_stackframe& frame )

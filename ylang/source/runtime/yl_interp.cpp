@@ -195,8 +195,8 @@ static unsigned build_frame( yl_cothread* t, unsigned sp, unsigned acount )
 
 void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
 {
-    // Set current cothread.
-    yl_current->set_cothread( t );
+    // Ensure that the cothread is unlocked.
+    assert( yl_current->get_cothread() == t );
     
     
     // Remember call depth.

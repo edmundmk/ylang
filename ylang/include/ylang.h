@@ -281,7 +281,7 @@ void yl_invoke( yl_callframe& xf );
 */
 
 
-void _yl_call_thunk( const char*, void (*)( yl_callframe& ) );
+void _yl_global_function( const char*, void (*)( yl_callframe& ) );
 
 
 

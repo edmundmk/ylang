@@ -379,7 +379,6 @@ ygen_program* ygen_emit::add_program( yssa_function* function )
         program->itercount      = 0;
         ygen_program* p = program.get();
         m->programs.emplace( function, std::move( program ) );
-        add_string( function->funcname );
         return p;
     }
 }
@@ -643,7 +642,6 @@ void ygen_emit::codegen_function( yssa_function* function )
     // The first n debugvars are the names of upvals.
     for ( size_t i = 0; i < function->upnames.size(); ++i )
     {
-        add_string( function->upnames.at( i ) );
         p->debugvars.push_back( nullptr );
     }
     
@@ -664,8 +662,6 @@ void ygen_emit::codegen_function( yssa_function* function )
         {
             continue;
         }
-        
-        add_string( v->name );
         
         unsigned varindex = (unsigned)p->debugvars.size();
         p->debugvars.push_back( v );
@@ -1290,7 +1286,7 @@ void ygen_emit::make_program( ygen_program* p )
 
 void ygen_emit::emit( ygen_program* p )
 {
-    p->program->_name.set( m->strings.at( p->ssafunc->funcname )->string );
+    p->program->_name = p->ssafunc->funcname;
 
     yl_valref* values = p->program->_values();
     for ( size_t i = 0; i < p->values.size(); ++i )
@@ -1326,14 +1322,13 @@ void ygen_emit::emit( ygen_program* p )
     yl_debugvar* debugvars = p->program->_debugvars();
     for ( size_t i = 0; i < p->ssafunc->upnames.size(); ++i )
     {
-        const char* upname = p->ssafunc->upnames.at( i );
-        debugvars[ i ].name.set( m->strings.at( upname )->string );
+        debugvars[ i ].name = p->ssafunc->upnames.at( i );
         debugvars[ i ].r = (unsigned)i;
     }
     for ( size_t i = p->ssafunc->upnames.size(); i < p->debugvars.size(); ++i )
     {
         yssa_variable* variable = p->debugvars.at( i );
-        debugvars[ i ].name.set( m->strings.at( variable->name )->string );
+        debugvars[ i ].name = variable->name;
         debugvars[ i ].r = variable->r;
     }
     

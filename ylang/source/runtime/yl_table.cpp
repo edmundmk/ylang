@@ -12,6 +12,12 @@
 
 
 
+yl_gctype yl_bucketlist::gctype =
+{
+    &yl_bucketlist::destroy,
+    &yl_bucketlist::mark,
+    nullptr
+};
 
 
 yl_bucketlist::bucket::bucket()
@@ -45,6 +51,23 @@ yl_bucketlist::~yl_bucketlist()
     }
 }
 
+void yl_bucketlist::destroy( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_bucketlist* self = (yl_bucketlist*)object;
+    self->~yl_bucketlist();
+}
+
+void yl_bucketlist::mark( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_bucketlist* self = (yl_bucketlist*)object;
+    for ( size_t i = 0; i < self->_size; ++i )
+    {
+        bucket& bucket = self->_elements[ i ];
+        bucket.key.mark( heap );
+        bucket.value.mark( heap );
+    }
+}
+
 size_t yl_bucketlist::size() const
 {
     return _size;
@@ -65,6 +88,14 @@ yl_bucketlist::bucket& yl_bucketlist::at( size_t index )
 
 
 
+yl_gctype yl_table::gctype =
+{
+    &yl_table::destroy,
+    &yl_table::mark,
+    nullptr,
+};
+
+
 yl_stackref< yl_table > yl_table::alloc( size_t capacity )
 {
     return alloc( yl_current->proto_table(), capacity );
@@ -82,6 +113,18 @@ yl_table::yl_table( yl_object* prototype, size_t capacity )
     ,   _occupancy( 0 )
     ,   _buckets( capacity ? yl_bucketlist::alloc( capacity ).get() : nullptr )
 {
+}
+
+void yl_table::destroy( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_table* self = (yl_table*)object;
+    self->~yl_table();
+}
+
+void yl_table::mark( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_table* self = (yl_table*)object;
+    self->_buckets.mark( heap );
 }
 
 

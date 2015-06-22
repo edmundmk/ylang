@@ -107,6 +107,7 @@ enum yl_gcflags : uint8_t
     YL_GCFLAG_LEAF      = ( 1 << 0 ),
     YL_GCFLAG_OOLREF    = ( 1 << 1 ),
     YL_GCFLAG_WEAK      = ( 1 << 2 ),
+    YL_GCFLAG_EAGER     = ( 1 << 3 ),
     YL_GCFLAG_USER1     = ( 1 << 4 ),
     YL_GCFLAG_USER2     = ( 1 << 5 ),
 };
@@ -157,7 +158,7 @@ public:
         Register GC type.
     */
     
-    void register_type( uint8_t kind, const yl_gctype& type );
+    void register_type( uint8_t kind, yl_gctype* type );
     
     
     /*
@@ -229,15 +230,20 @@ public:
     
     
     /*
-        Eager marking avoids the cost of the write barrier for objects which
-        experience very frequent reference updates.  References are not marked
-        during the normal GC mark phase.  Instead references are marked either
-        at the start of a collection or when the eagerly marked object is
-        locked.  Updating references without locking the object is invalid.
+        Unlocked eager objects are immutable, but a locked eager object does
+        not need to invoke the write barrier for reference updates.
         
-        Objects supporting eager marking must implement both mark(), which
-        should call mark() for all references, and eager_mark(), which should
-        call eager_mark() for all references.
+        Locked eager objects are marked on the mutator thread using either the
+        mark() or the eager_mark() routine.  Unlocked eager objects are marked
+        on the GC thread using the mark() routine, as normal.  In either case
+        eager marking is protected by a mutex - the GC thread will not touch
+        locked eager objects at all, meaning the mark routines do not have to
+        be thread-safe with respect to the mutator.
+        
+        Locked eager objects are roots.
+     
+        Use eager marking to avoid the write barrier cost for objects such
+        as execution stacks where one instance has frequent reference updates.
     */
     
     void eager_lock( yl_gcobject* eager );
@@ -289,7 +295,7 @@ private:
 
 
     // Types.
-    std::vector< yl_gctype >    _types;
+    std::vector< yl_gctype* >   _types;
 
     // Allocator.
     std::mutex                  _alloc_mutex;
@@ -300,7 +306,6 @@ private:
     // Mutator state.
     seglist< anypointer_t* >    _stackrefs;
     std::unordered_set< yl_gcobject* > _roots;
-    std::unordered_set< yl_gcobject* > _eager;
     
     // Out-of-line references.
     std::mutex                  _oolref_mutex;
@@ -309,6 +314,10 @@ private:
     // Weak references.
     std::mutex                  _weak_mutex;
     bool                        _weak_locked;
+
+    // Eagerly marked.
+    std::mutex                  _eager_mutex;
+    std::unordered_set< yl_gcobject* > _eager;
     
     // Collector thread.
     std::mutex                  _collect_mutex;
@@ -377,7 +386,7 @@ public:
     yl_heapref();
     yl_heapref( object_t* p );
     
-    void        mark() const;
+    void        mark( yl_gcheap* heap ) const;
     
     void        set( object_t* p );
     object_t*   get() const;
@@ -528,6 +537,21 @@ inline uint8_t yl_gcobject::kind() const
     return _gcheader.kind;
 }
 
+
+inline void yl_gcobject::set_gcflags( uint8_t flags ) const
+{
+    // This operation is not atomic.
+    uint8_t gcflags = _gcheader.gcflags.load( std::memory_order_relaxed );
+    _gcheader.gcflags.store( gcflags | flags, std::memory_order_relaxed );
+}
+
+inline void yl_gcobject::clear_gcflags( uint8_t flags ) const
+{
+    // This operation is not atomic.
+    uint8_t gcflags = _gcheader.gcflags.load( std::memory_order_relaxed );
+    _gcheader.gcflags.store( gcflags & ~flags, std::memory_order_relaxed );
+}
+
 inline uint8_t yl_gcobject::check_gcflags( uint8_t flags ) const
 {
     uint8_t gcflags = _gcheader.gcflags.load( std::memory_order_relaxed );
@@ -566,9 +590,9 @@ inline object_t* yl_heapref< object_t >::get() const
 }
 
 template < typename object_t >
-inline void yl_heapref< object_t >::mark() const
+inline void yl_heapref< object_t >::mark( yl_gcheap* heap ) const
 {
-    yl_current_gcheap->mark( _p.load( yl_memory_order_mark ) );
+    heap->mark( _p.load( yl_memory_order_mark ) );
 }
 
 

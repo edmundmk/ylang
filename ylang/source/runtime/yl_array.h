@@ -21,6 +21,8 @@ class yl_array : public yl_object
 {
 public:
 
+    static yl_gctype gctype;
+
     static yl_stackref< yl_object > make_prototype();
 
     static yl_stackref< yl_array > alloc( size_t capacity );
@@ -44,6 +46,9 @@ protected:
 
 
 private:
+
+    static void destroy( yl_gcheap* heap, yl_gcobject* object );
+    static void mark( yl_gcheap* heap, yl_gcobject* object );
 
     static yl_array* thunk_this( yl_callframe& xf );
     static void thunk_length( yl_callframe& xf );
