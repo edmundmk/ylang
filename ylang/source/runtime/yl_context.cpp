@@ -113,8 +113,11 @@ yl_stackref< yl_string > yl_context_impl::symbol( yl_string* string )
     if ( i != _symbols.end() )
     {
         yl_stackref< yl_string > result = weak_obtain( i->second );
-        weak_unlock();
-        return result;
+        if ( result )
+        {
+            weak_unlock();
+            return result;
+        }
     }
 
     // Otherwise, promote the string to a symbol.
@@ -181,9 +184,9 @@ yl_slot* yl_context_impl::klassof( yl_object* prototype )
         return (yl_slot*)klass;
     }
 
-    yl_stackref< yl_slot > newklass = yl_slot::alloc( prototype );
-    set_oolref( prototype, newklass.get() );
-    return newklass.get();
+    yl_stackref< yl_slot > new_klass = yl_slot::alloc( prototype );
+    set_oolref( prototype, new_klass.get() );
+    return new_klass.get();
 }
 
 

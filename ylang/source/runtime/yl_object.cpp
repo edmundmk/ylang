@@ -163,18 +163,21 @@ notfound:
 
     // Need to add another slot with the key.  First check if an appropriate
     // slot already exists.  Otherwise, create a new one.
-    
-    // TODO: interact with GC, which may be removing unused slots.
-    /*
-    yl_slot* new_klass = nullptr;
+
+    yl_stackref< yl_slot > new_klass = nullptr;
+
+    yl_current->weak_lock();
 
     for ( yl_slot* slot = klass->_head; slot; slot = slot->_next )
     {
         assert( slot->_index != yl_slot::EMPTY_KLASS );
         if ( slot->_symbol.get() == key )
         {
-            new_klass = slot;
-            break;
+            new_klass = yl_current->weak_obtain( slot );
+            if ( new_klass )
+            {
+                break;
+            }
         }
     }
 
@@ -184,34 +187,34 @@ notfound:
         
         // Link new slot into the list of child slots from the current klass.
         new_klass->_next = klass->_head;
-        klass->_head = new_klass;
+        klass->_head = yl_current->weak_create( new_klass.get() );
     }
+    
+    yl_current->weak_unlock();
 
     
     // Increase size of slot array if required.
     yl_valarray* slots = _slots.get();
     if ( ! slots || slots->size() <= new_klass->_index )
     {
-        yl_valarray* old_slots = slots;
-        slots = yl_valarray::alloc( slots ? slots->size() * 2 : 4 );
+        yl_stackref< yl_valarray > new_slots =
+            yl_valarray::alloc( slots ? slots->size() * 2 : 4 );
         
-        if ( old_slots )
+        if ( slots )
         {
-            for ( size_t i = 0; i < old_slots->size(); ++i )
+            for ( size_t i = 0; i < slots->size(); ++i )
             {
-                slots->at( i ).set( old_slots->at( i ).get() );
+                new_slots->at( i ).set( slots->at( i ).get() );
             }
         }
         
-        _slots.set( slots );
+        _slots.set( new_slots.get() );
     }
     
     
     // Update klass and assign value into new slot.
-    _klass.set( new_klass );
+    _klass.set( new_klass.get() );
     slots->at( new_klass->_index ).set( value );
-    */
-    ;
 }
 
 void yl_object::del_key( const yl_symbol& key )
