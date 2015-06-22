@@ -96,7 +96,7 @@ public:
 
     static yl_gctype gctype;
 
-    static yl_program* alloc
+    static yl_stackref< yl_program > alloc
     (
         size_t valcount,
         size_t opcount,

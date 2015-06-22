@@ -12,6 +12,7 @@
 
 yl_gctype yl_array::gctype =
 {
+    "array",
     &yl_array::destroy,
     &yl_array::mark,
     nullptr
@@ -33,9 +34,14 @@ yl_stackref< yl_array > yl_array::alloc( yl_object* prototype, size_t capacity )
 
 yl_array::yl_array( yl_object* prototype, size_t capacity )
     :   yl_object( YLOBJ_ARRAY, prototype )
-    ,   _elements( capacity ? yl_valarray::alloc( capacity ).get() : nullptr )
+    ,   _elements( nullptr )
     ,   _length( 0 )
 {
+    if ( capacity )
+    {
+        yl_stackref< yl_array > self( this );
+        _elements.set( yl_valarray::alloc( capacity ).get() );
+    }
 }
 
 void yl_array::destroy( yl_gcheap* heap, yl_gcobject* object )

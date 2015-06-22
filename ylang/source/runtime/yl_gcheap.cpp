@@ -10,6 +10,10 @@
 #include "dlmalloc.h"
 
 
+#define GC_DEBUG_REPORT 1
+#define GC_DEBUG_SCRIBBLE 1
+#define GC_DEBUG_COLLECT_EVERY_TIME 1
+
 
 __thread yl_gcheap* yl_current_gcheap = nullptr;
 
@@ -54,6 +58,22 @@ void yl_gcheap::register_type( uint8_t kind, yl_gctype* type )
 
 void* yl_gcheap::allocate( size_t size )
 {
+    // Count how many bytes are allocated and kick off collections.  Must
+    // collect before we colour the new object, as collecting will change
+    // the object colours.
+    _alloc_bytes += size;
+    if ( _alloc_bytes >= COLLECT_THRESHOLD )
+    {
+        _alloc_bytes = 0;
+        collect();
+    }
+
+#if GC_DEBUG_COLLECT_EVERY_TIME
+    collect();
+    collect_wait();
+#endif
+    
+    // Allocate with the lock held.
     std::lock_guard< std::mutex > lock( _alloc_mutex );
 
     // Allocate new object.
@@ -89,14 +109,6 @@ void* yl_gcheap::allocate( size_t size )
     // is visible to the mark thread before any reference to it.
     std::atomic_thread_fence( std::memory_order_release );
     
-    // Count how many bytes are allocated and kick off collections.
-    _alloc_bytes += size;
-    if ( _alloc_bytes >= COLLECT_THRESHOLD )
-    {
-        _alloc_bytes = 0;
-        collect();
-    }
-    
     return p;
 }
 
@@ -109,6 +121,15 @@ bool yl_gcheap::collect()
 
     // Update epoch.
     std::swap( _unmarked, _marked );
+    
+#if GC_DEBUG_REPORT
+    printf( "GC : collect()\n" );
+    printf( "    unmarked   : %d\n", _unmarked );
+    printf( "    marked     : %d\n", _marked );
+    printf( "    stackrefs  : %zu\n", _stackrefs.size() );
+    printf( "    roots      : %zu\n", _roots.size() );
+    printf( "    eager      : %zu\n", _eager.size() );
+#endif
     
     // Mark stack references.
     for ( const auto& stackref : _stackrefs )
@@ -517,6 +538,11 @@ void yl_gcheap::collect_sweep()
         thread can add elements to the list.  Only this thread can remove
         them.
     */
+
+#if GC_DEBUG_REPORT
+    std::vector< std::pair< size_t, size_t > > report_counts;
+    report_counts.resize( _types.size() );
+#endif
     
     yl_gcheader* alloc = _alloc_list.load( yl_memory_order_consume );
     while ( alloc )
@@ -524,19 +550,29 @@ void yl_gcheap::collect_sweep()
         yl_gcobject* object = (yl_gcobject*)alloc;
         alloc = alloc->prev.load( yl_memory_order_consume );
         
+        // Get type.
+        uint8_t index = yl_kind_to_index( object->kind() );
+        yl_gctype* type = _types.at( index );
+
+#if GC_DEBUG_REPORT
+        report_counts[ index ].first += 1;
+#endif
+        
         // Check colour.
         yl_gcheader* gcheader = &object->_gcheader;
         yl_gccolour colour = gcheader->colour.load( std::memory_order_relaxed );
         if ( YL_LIKELY( colour == _marked ) )
             continue;
 
+#if GC_DEBUG_REPORT
+        report_counts[ index ].second += 1;
+#endif
+
         // All grey objects should have been marked.
         assert( colour != YL_GCCOLOUR_GREY );
-
-        // Sweep object.
-        uint8_t index = yl_kind_to_index( object->kind() );
-        yl_gctype* type = _types.at( index );
-
+        
+        // All roots should have been marked.
+        assert( gcheader->refcount == 0 );
 
         // Call object destructor.
         if ( type->destroy )
@@ -593,10 +629,31 @@ void yl_gcheap::collect_sweep()
             _alloc_list.store( gcprev, std::memory_order_relaxed );
         }
         
+#if GC_DEBUG_SCRIBBLE
+        memset( object, 0xDE, mspace_usable_size( object ) );
+#endif
         
         // Free the object.
         mspace_free( _alloc, object );
     }
+    
+#if GC_DEBUG_REPORT
+    printf( "GC : collect_sweep()\n" );
+    for ( size_t i = 0; i < report_counts.size(); ++i )
+    {
+        yl_gctype* type = _types.at( i );
+        if ( type )
+        {
+            printf
+            (
+                "    %-10s : %zu / %zu\n",
+                type->name,
+                report_counts[ i ].first,
+                report_counts[ i ].second
+            );
+        }
+    }
+#endif
 }
 
 

@@ -36,6 +36,7 @@ void yl_function::release()
 
 yl_gctype yl_thunkobj::gctype =
 {
+    "thunkobj",
     &yl_thunkobj::destroy,
     nullptr,
     nullptr
@@ -71,6 +72,7 @@ yl_thunk_function yl_thunkobj::thunk()
 
 yl_gctype yl_funcobj::gctype =
 {
+    "funcobj",
     &yl_funcobj::destroy,
     &yl_funcobj::mark,
     nullptr
@@ -125,13 +127,14 @@ void yl_funcobj::mark( yl_gcheap* heap, yl_gcobject* object )
 
 yl_gctype yl_program::gctype =
 {
+    "program",
     &yl_program::destroy,
     &yl_program::mark,
     nullptr
 };
 
 
-yl_program* yl_program::alloc
+yl_stackref< yl_program > yl_program::alloc
 (
     size_t valcount,
     size_t opcount,

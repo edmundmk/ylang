@@ -14,6 +14,7 @@
 
 yl_gctype yl_bucketlist::gctype =
 {
+    "bucketlist",
     &yl_bucketlist::destroy,
     &yl_bucketlist::mark,
     nullptr
@@ -90,6 +91,7 @@ yl_bucketlist::bucket& yl_bucketlist::at( size_t index )
 
 yl_gctype yl_table::gctype =
 {
+    "table",
     &yl_table::destroy,
     &yl_table::mark,
     nullptr,
@@ -111,8 +113,13 @@ yl_stackref< yl_table > yl_table::alloc( yl_object* prototype, size_t capacity )
 yl_table::yl_table( yl_object* prototype, size_t capacity )
     :   yl_object( YLOBJ_TABLE, prototype )
     ,   _occupancy( 0 )
-    ,   _buckets( capacity ? yl_bucketlist::alloc( capacity ).get() : nullptr )
+    ,   _buckets( nullptr )
 {
+    if ( capacity )
+    {
+        yl_stackref< yl_table > self( this );
+        _buckets.set( yl_bucketlist::alloc( capacity ).get() );
+    }
 }
 
 void yl_table::destroy( yl_gcheap* heap, yl_gcobject* object )

@@ -123,8 +123,8 @@ private:
     explicit yl_slot( yl_object* prototype );
     yl_slot( yl_slot* parent, yl_string* symbol );
 
-    void destroy( yl_gcheap* heap, yl_gcobject* object );
-    void mark( yl_gcheap* heap, yl_gcobject* object );
+    static void destroy( yl_gcheap* heap, yl_gcobject* object );
+    static void mark( yl_gcheap* heap, yl_gcobject* object );
 
     yl_heapref< yl_gcobject >   _parent;    // parent slot, or prototype
     yl_heapref< yl_string >     _symbol;    // symbol string

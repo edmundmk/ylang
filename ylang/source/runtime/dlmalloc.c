@@ -6002,7 +6002,7 @@ void* mspace_next(mspace msp, void* mem)
 
     /* Walk heap until we find an inuse chunk */
     for (;;) {
-      if (q->head != FENCEPOST_HEAD) {
+      if (q->head != FENCEPOST_HEAD && q != ms->top) {
         if (is_inuse(q)) {
           mem = chunk2mem(q);
           goto postaction;

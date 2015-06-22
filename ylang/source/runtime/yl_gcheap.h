@@ -135,6 +135,7 @@ struct yl_gcheader
 
 struct yl_gctype
 {
+    const char* name;
     void (*destroy)( yl_gcheap* heap, yl_gcobject* object );
     void (*mark)( yl_gcheap* heap, yl_gcobject* object );
     void (*eager_mark)( yl_gcheap* heap, yl_gcobject* object );

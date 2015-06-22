@@ -11,6 +11,7 @@
 
 yl_gctype yl_valarray::gctype =
 {
+    "valarray",
     &yl_valarray::destroy,
     &yl_valarray::mark,
     nullptr

@@ -275,6 +275,7 @@ void yl_invoke( yl_callframe& xf )
 
 yl_gctype yl_upval::gctype =
 {
+    "upval",
     &yl_upval::destroy,
     &yl_upval::mark,
     nullptr
@@ -642,8 +643,9 @@ void yl_iterator::next_bucket()
 */
 
 
-yl_gctype yl_cothread::gctype
+yl_gctype yl_cothread::gctype =
 {
+    "cothread",
     &yl_cothread::destroy,
     &yl_cothread::mark,
     &yl_cothread::eager_mark,

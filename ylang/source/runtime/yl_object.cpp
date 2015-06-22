@@ -12,6 +12,7 @@
 
 yl_gctype yl_object::gctype =
 {
+    "object",
     &yl_object::destroy,
     &yl_object::mark,
     nullptr,
@@ -29,9 +30,11 @@ yl_stackref< yl_object > yl_object::alloc( yl_object* prototype )
 
 yl_object::yl_object( yl_objkind kind, yl_object* prototype )
     :   yl_gcobject( kind )
-    ,   _klass( yl_current->klassof( prototype ) )
+    ,   _klass( nullptr )
     ,   _slots( nullptr )
 {
+    yl_stackref< yl_object > self( this );
+    _klass.set( yl_current->klassof( prototype ) );
 }
 
 
@@ -306,7 +309,10 @@ void yl_object::del_key( const yl_symbol& key )
 
 yl_gctype yl_slot::gctype =
 {
-    
+    "slot",
+    &yl_slot::destroy,
+    &yl_slot::mark,
+    nullptr
 };
 
 
@@ -323,40 +329,6 @@ yl_stackref< yl_slot > yl_slot::alloc( yl_slot* parent, yl_string* symbol )
     return new ( p ) yl_slot( parent, symbol );
 }
 
-
-void yl_slot::destroy( yl_gcheap* heap, yl_gcobject* object )
-{
-    yl_slot* self = (yl_slot*)object;
-
-    // Remove from list of parent.  GC should be holding the weak lock.
-    yl_gcobject* parent = self->_parent.get();
-    if ( parent && parent->kind() == YLOBJ_SLOT )
-    {
-        yl_slot* parent_klass = (yl_slot*)parent;
-        if ( parent_klass->_head == self )
-        {
-            parent_klass->_head = _next;
-        }
-        else for ( yl_slot* prev = _head; prev != nullptr; prev = prev->_next )
-        {
-            if ( prev->_next == self )
-            {
-                prev->_next = _next;
-                break;
-            }
-        }
-    }
-
-    // Destroy.
-    self->~yl_slot();
-}
-
-void yl_slot::mark( yl_gcheap* heap, yl_gcobject* object )
-{
-    yl_slot* self = (yl_slot*)object;
-    self->_parent.mark( heap );
-    self->_symbol.mark( heap );
-}
 
 
 yl_slot::yl_slot( yl_object* prototype )
@@ -377,6 +349,46 @@ yl_slot::yl_slot( yl_slot* parent, yl_string* symbol )
     ,   _head( nullptr )
     ,   _next( nullptr )
 {
+}
+
+
+
+void yl_slot::destroy( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_slot* self = (yl_slot*)object;
+
+    // Remove from list of parent.  GC should be holding the weak lock.
+    yl_gcobject* parent = self->_parent.get();
+    if ( parent && parent->kind() == YLOBJ_SLOT )
+    {
+        yl_slot* parent_klass = (yl_slot*)parent;
+        if ( parent_klass->_head == self )
+        {
+            parent_klass->_head = self->_next;
+        }
+        else
+        {
+            for ( yl_slot* prev = parent_klass->_head;
+                            prev != nullptr; prev = prev->_next )
+            {
+                if ( prev->_next == self )
+                {
+                    prev->_next = self->_next;
+                    break;
+                }
+            }
+        }
+    }
+
+    // Destroy.
+    self->~yl_slot();
+}
+
+void yl_slot::mark( yl_gcheap* heap, yl_gcobject* object )
+{
+    yl_slot* self = (yl_slot*)object;
+    self->_parent.mark( heap );
+    self->_symbol.mark( heap );
 }
 
 

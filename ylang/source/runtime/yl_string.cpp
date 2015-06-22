@@ -14,6 +14,7 @@
 
 yl_gctype yl_string::gctype =
 {
+    "string",
     &yl_string::destroy,
     nullptr,
     nullptr,

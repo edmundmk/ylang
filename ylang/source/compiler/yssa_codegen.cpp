@@ -65,6 +65,9 @@ struct ygen_module
 
 struct ygen_program
 {
+    explicit ygen_program( yssa_function* ssafunc );
+    ~ygen_program();
+
     yssa_function*              ssafunc;
     yl_program*                 program;
 
@@ -82,6 +85,24 @@ struct ygen_program
     size_t                      localupcount;
     size_t                      itercount;
 };
+
+ygen_program::ygen_program( yssa_function* ssafunc )
+    :   ssafunc( ssafunc )
+    ,   program( nullptr )
+    ,   stackcount( 0 )
+    ,   localupcount( 0 )
+    ,   itercount( 0 )
+{
+}
+
+ygen_program::~ygen_program()
+{
+    if ( program )
+    {
+        program->decref();
+    }
+}
+
 
 
 struct ygen_string
@@ -371,12 +392,8 @@ ygen_program* ygen_emit::add_program( yssa_function* function )
     }
     else
     {
-        ygen_program_p program = std::make_unique< ygen_program >();
-        program->ssafunc        = function;
-        program->program        = nullptr;
-        program->stackcount     = 0;
-        program->localupcount   = 0;
-        program->itercount      = 0;
+        ygen_program_p program =
+                std::make_unique< ygen_program >( function );
         ygen_program* p = program.get();
         m->programs.emplace( function, std::move( program ) );
         return p;
@@ -1247,7 +1264,8 @@ void ygen_emit::make_string( ygen_string* s )
     if ( s->string )
         return;
     
-    yl_stackref< yl_string > string = yl_string::alloc( s->text, s->size );
+    yl_stackref< yl_string > string =
+            yl_string::alloc( s->text, s->size );
     if ( s->iskey )
     {
         s->string = string->symbol().incref();
@@ -1264,7 +1282,7 @@ void ygen_emit::make_program( ygen_program* p )
     if ( p->program )
         return;
     
-    p->program = yl_program::alloc
+    yl_stackref< yl_program > program = yl_program::alloc
     (
         p->values.size(),
         p->ops.size(),
@@ -1273,6 +1291,7 @@ void ygen_emit::make_program( ygen_program* p )
         p->debugspans.size()
     );
     
+    p->program = program.incref();
     p->program->_upcount    = p->ssafunc->upcount;
     p->program->_paramcount = p->ssafunc->paramcount;
     p->program->_stackcount = p->stackcount;

@@ -234,6 +234,8 @@ yl_stackref< yl_object > yl_context_impl::new_object( yl_object* prototype )
     yl_objkind kind = YLOBJ_OBJECT;
     for ( yl_object* p = prototype; p != nullptr; p = p->superof() )
     {
+        assert( p->kind() >= YLOBJ_TABLE );
+
         if ( p == _proto_array )
         {
             kind = YLOBJ_ARRAY;
