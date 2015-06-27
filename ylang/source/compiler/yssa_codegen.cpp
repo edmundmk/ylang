@@ -12,6 +12,7 @@
 #include "yssa.h"
 #include "yl_string.h"
 #include "yl_function.h"
+#include "yl_program.h"
 
 
 struct ygen_module;

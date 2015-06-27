@@ -12,15 +12,17 @@
 
 #include <vector>
 #include "yl_context.h"
-#include "yl_function.h"
+#include "yl_iterator.h"
+#include "yl_value.h"
 
 
+class yl_funcobj;
 class yl_object;
 class yl_array;
 class yl_table;
 class yl_cothread;
 class yl_bucketlist;
-
+class yl_upval;
 
 
 
@@ -49,109 +51,6 @@ struct yl_stackframe
 };
 
 
-
-
-
-
-/*
-    An upval.
-*/
-
-class yl_upval : public yl_gcobject
-{
-public:
-
-    static yl_gctype gctype;
-
-    static yl_stackref< yl_upval > alloc( unsigned index );
-
-    void        close( yl_cothread* cothread );
-
-    yl_value    get_value( yl_cothread* cothread ) const;
-    void        set_value( yl_cothread* cothread, yl_value value );
-
-private:
-
-    enum
-    {
-        OPEN = YL_GCFLAG_USER1,
-    };
-
-    explicit yl_upval( unsigned index );
-    
-    static void destroy( yl_gcheap* heap, yl_gcobject* object );
-    static void mark( yl_gcheap* heap, yl_gcobject* object );
-
-    unsigned    _index;
-    yl_valref   _value;
-
-};
-
-
-
-
-
-/*
-    An entry on the iterator stack.
-*/
-
-
-enum yl_iterkind
-{
-    YLITER_CLOSED,
-    YLITER_KEYS,        // over the keys of an object
-    YLITER_ARRAY,       // over the elements of an array
-    YLITER_TABLE,       // over the key, value of a table
-    YLITER_GENERATOR,   // over values produced by a generator cothread
-};
-
-
-struct yl_iternext
-{
-    yl_value*   values;
-    unsigned    vcount;
-};
-
-
-class yl_iterator
-{
-public:
-
-    yl_iterator();
-
-    void mark( yl_gcheap* heap ) const;
-    void eager_mark( yl_gcheap* heap ) const;
-
-    void open_vals( yl_value value );
-    void open_keys( yl_value value );
-    void close();
-
-    bool has_values();
-    void next1( yl_value* r );
-    void next2( yl_value* r, yl_value* b );
-    yl_iternext next( yl_value vspace[ 2 ] );
-
-
-private:
-
-    void next_bucket();
-
-
-    yl_iterkind _kind;
-    union
-    {
-        yl_object*      _object;
-        yl_array*       _array;
-        yl_bucketlist*  _buckets;
-        yl_cothread*    _generator;
-    };
-    union
-    {
-        size_t          _index;
-        yl_slot*        _slot;
-    };
-    
-};
 
 
 
@@ -238,47 +137,6 @@ inline bool is_integer( double number )
 {
     return number == (long)number;
 }
-
-
-
-/*
-    yl_upval
-*/
-
-
-inline void yl_upval::close( yl_cothread* cothread )
-{
-    if ( check_gcflags( OPEN ) )
-    {
-        _value.set( cothread->_stack.at( _index ) );
-        clear_gcflags( OPEN );
-    }
-}
-
-inline yl_value yl_upval::get_value( yl_cothread* cothread ) const
-{
-    if ( check_gcflags( OPEN ) )
-    {
-        return cothread->_stack.at( _index );
-    }
-    else
-    {
-        return _value.get();
-    }
-}
-
-inline void yl_upval::set_value( yl_cothread* cothread, yl_value value )
-{
-    if ( check_gcflags( OPEN ) )
-    {
-        cothread->_stack.at( _index ) = value;
-    }
-    else
-    {
-        _value.set( value );
-    }
-}
-
 
 
 

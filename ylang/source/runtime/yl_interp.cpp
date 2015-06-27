@@ -14,6 +14,28 @@
 #include "yl_string.h"
 #include "yl_array.h"
 #include "yl_table.h"
+#include "yl_upval.h"
+#include "yl_function.h"
+#include "yl_program.h"
+
+
+
+
+
+/*
+    yl_invoke
+*/
+
+
+void yl_invoke( yl_callframe& xf )
+{
+    // Enter interpreter.
+    yl_interp( xf._cothread, xf._base, xf._size, yl_opinst::MARK );
+    
+    // Recover number of results and update callframe.
+    xf._size = xf._cothread->get_top() - xf._base;
+}
+
 
 
 

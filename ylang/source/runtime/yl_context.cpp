@@ -13,6 +13,8 @@
 #include "yl_array.h"
 #include "yl_table.h"
 #include "yl_object.h"
+#include "yl_upval.h"
+#include "yl_function.h"
 
 
 
