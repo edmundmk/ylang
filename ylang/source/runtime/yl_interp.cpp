@@ -101,12 +101,10 @@ static void reverse( yl_value* array, size_t size )
 }
 
 
-static unsigned build_frame( yl_cothread* t, unsigned sp, unsigned acount )
+static std::pair< yl_funcobj*, unsigned >
+            build_frame( yl_cothread* t, unsigned sp, unsigned acount )
 {
-    /*
-        If acount is MARK then the mark points after the last argument.
-    */
-    
+    // If acount is MARK then the mark points after the last argument.
     if ( acount == yl_opinst::MARK )
     {
         acount = t->get_mark() - sp;
@@ -123,14 +121,13 @@ static unsigned build_frame( yl_cothread* t, unsigned sp, unsigned acount )
             sp + acount ->
     */
     
-    yl_value* stack = t->stack( sp, acount );
-
-    if ( ! stack[ 0 ].is( YLOBJ_FUNCOBJ ) )
+    yl_value* s = t->stack_peek( sp, acount );
+    if ( ! s[ 0 ].is( YLOBJ_FUNCOBJ ) )
     {
         throw yl_exception( "cannot call non-function" );
     }
 
-    yl_funcobj* f = (yl_funcobj*)stack[ 0 ].gcobject();
+    yl_funcobj* f = (yl_funcobj*)s[ 0 ].gcobject();
     yl_program* p = f->program();
     
     // Get acount that the function was expecting (including function slot).
@@ -157,34 +154,31 @@ static unsigned build_frame( yl_cothread* t, unsigned sp, unsigned acount )
         */
 
         fp = sp + ( acount - pcount );
-        reverse( stack, pcount );
-        reverse( stack + pcount, acount - pcount );
-        reverse( stack, acount );
+        reverse( s, pcount );
+        reverse( s + pcount, acount - pcount );
+        reverse( s, acount );
         
     }
     else
     {
-        /*
-            There are no varargs, use the frame in-place.
-        */
-        
+        // There are no varargs, use the frame in-place.
         fp = sp;
     }
     
-    if ( acount < pcount )
+    
+    // Allocate stack.
+    s = t->stack_alloc( fp, p->stackcount() );
+
+
+    // Set missing parameters to null.
+    assert( pcount <= p->stackcount() );
+    for ( unsigned arg = acount; arg < pcount; ++arg )
     {
-        /*
-            Set missing parameters to null.
-        */
-        
-        stack = t->stack( fp, pcount );
-        for ( unsigned arg = acount; arg < pcount; ++arg )
-        {
-            stack[ arg ] = yl_null;
-        }
+        s[ arg ] = yl_null;
     }
 
-    return fp;
+
+    return std::make_pair( f, fp );
 }
 
 
@@ -203,35 +197,23 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     unsigned call_depth = 0;
     
     
-    // Get function.
-    yl_value* s = t->stack( sp, acount );
-    if ( ! s[ 0 ].is( YLOBJ_FUNCOBJ ) )
-    {
-        throw yl_exception( "cannot call non-function" );
-    }
-    
-
-    // Get program.
-    yl_funcobj*         f           = (yl_funcobj*)s[ 0 ].gcobject();
-    yl_program*         p           = f->program();
-    const yl_valref*    values      = p->values();
-    const yl_opinst*    ops         = p->ops();
-
-
     // Build frame for this call.
-    unsigned            ip          = 0;
-    unsigned            fp          = build_frame( t, sp, acount );
-    unsigned            locup_base  = t->get_locup_base();
-    unsigned            iters_base  = t->get_iters_base();
-    
+    auto ffp = build_frame( t, sp, acount );
+    yl_funcobj*         f       = ffp.first;
+    unsigned            fp      = ffp.second;
+    yl_program*         p       = f->program();
+    const yl_valref*    values  = p->values();
+    const yl_opinst*    ops     = p->ops();
+
     
     // Get stacks.
-                        s           = t->stack( fp, p->stackcount() );
-    yl_upval**          locup       = t->locup( locup_base, p->locupcount() );
-    yl_iterator*        iters       = t->iters( iters_base, p->iterscount() );
+    yl_value* s = t->stack_peek( fp, p->stackcount() );
+    unsigned locup_base = t->get_locup_base();
+    unsigned iters_base = t->get_iters_base();
     
     
     // Main instruction dispatch loop.
+    unsigned ip = 0;
     while ( true )
     {
     
@@ -545,34 +527,28 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         assert( p->varargs() );
         
         unsigned count;
+        unsigned bcount;
         if ( b != yl_opinst::MARK )
         {
             count = std::min( b, fp - sp );
+            bcount = b;
         }
         else
         {
-            count = fp - sp;
-            s = t->stack( fp, r + count );
+            count = bcount = fp - sp;
         }
+        s = t->stack_mark( fp, r + bcount, p->stackcount() );
         
-        yl_value* varargs = t->stack( sp, fp - sp );
+        yl_value* varargs = t->stack_peek( sp, fp - sp );
         for ( unsigned i = 0; i < count; ++i )
         {
             s[ r + i ] = varargs[ i ];
         }
         
-        if ( b != yl_opinst::MARK )
+        for ( unsigned i = count; i < bcount; ++i )
         {
-            for ( unsigned i = count; i < b; ++i )
-            {
-                s[ r + i ] = yl_null;
-            }
+            s[ r + i ] = yl_null;
         }
-        else
-        {
-            t->set_mark( fp + r + count );
-        }
-
         break;
     }
     
@@ -600,11 +576,12 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             {
             case YL_UPLOCAL:
             {
-                if ( ! locup[ a ] )
+                yl_upval*& locup = t->locup( locup_base, a );
+                if ( ! locup )
                 {
-                    locup[ a ] = yl_upval::alloc( fp + b ).get();
+                    locup = yl_upval::alloc( fp + b ).get();
                 }
-                funcobj->set_upval( r, locup[ a ] );
+                funcobj->set_upval( r, locup );
                 break;
             }
             
@@ -650,50 +627,58 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             // This call requests b values.
             rcount = b;
 
-            // Get function and program.
-            f           = (yl_funcobj*)s[ r ].gcobject();
+            // Update locup/iter stack base.
+            locup_base += p->locupcount();
+            iters_base += p->iterscount();
+
+            // Build frame for this call.
+            auto ffp = build_frame( t, fp + r, a );
+            sp          = fp + r;
+            f           = ffp.first;
+            fp          = ffp.second;
             p           = f->program();
             values      = p->values();
             ops         = p->ops();
-            
-            // Build new frame.
-            ip          = 0;
-            sp          = fp + r;
-            fp          = build_frame( t, sp, a );
-            locup_base  += p->locupcount();
-            iters_base  += p->iterscount();
-            
-            // Get stacks.
-            s           = t->stack( fp, p->stackcount() );
-            locup       = t->locup( locup_base, p->locupcount() );
-            iters       = t->iters( iters_base, p->iterscount() );
-         
+
+            // Get stack.
+            s = t->stack_peek( fp, p->stackcount() );
+
             // Increase call depth.
             call_depth += 1;
+            
+            // Start at first op.
+            ip = 0;
         }
         else if ( s[ r ].is( YLOBJ_THUNKOBJ ) )
         {
+            if ( a == yl_opinst::MARK )
+            {
+                a = t->get_mark() - ( fp + r );
+            }
+        
             // Native thunk.
             yl_thunkobj* thunkobj = (yl_thunkobj*)s[ r ].gcobject();
+            t->stack_trim( fp + r, a );
             yl_callframe xf( t, fp + r, a );
             thunkobj->thunk()( xf );
-
-            // The thunk might have reallocated stacks.
-            s           = t->stack( fp, p->stackcount() );
-            locup       = t->locup( locup_base, p->locupcount() );
-            iters       = t->iters( iters_base, p->iterscount() );
-
-            // Fill missing results with null.
+            
+            // Get number of results.
+            unsigned count;
+            unsigned bcount;
             if ( b != yl_opinst::MARK )
             {
-                for ( size_t i = xf.size(); i < b; ++i )
-                {
-                    s[ r + i ] = yl_null;
-                }
+                count = std::min( b, (unsigned)xf.size() );
+                bcount = b;
             }
             else
             {
-                t->set_mark( fp + r + (unsigned)xf.size() );
+                count = bcount = (unsigned)xf.size();
+            }
+            s = t->stack_mark( fp, r + bcount, p->stackcount() );
+
+            for ( unsigned i = count; i < bcount; ++i )
+            {
+                s[ r + i ] = yl_null;
             }
         }
         else
@@ -711,48 +696,44 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_RETURN:
     {
-        // Find out how many results to copy.
         if ( a == yl_opinst::MARK )
         {
-            a = t->get_mark() - r;
+            a = t->get_mark() - ( fp + r );
         }
-        
+
         unsigned count;
-        if ( rcount != yl_opinst::MARK )
+        unsigned bcount;
+        b = rcount;
+        if ( b != yl_opinst::MARK )
         {
-            count = std::min( rcount, a );
+            count = std::min( b, a );
+            bcount = b;
         }
         else
         {
-            count = a;
+            count = bcount = a;
         }
         
-        // Perform copy relative to sp.
-        r = fp - sp + r;
-        if ( r != 0 )
+        // Perform copy down to sp.
+        assert( sp + count <= fp + r + count );
+        yl_value* z = t->stack_peek( sp, count );
+        for ( unsigned i = 0; i < count; ++i )
         {
-            s = t->stack( sp, r + a );
-            for ( unsigned i = 0; i < count; ++i )
-            {
-                s[ i ] = s[ r + i ];
-            }
+            z[ i ] = s[ r + i ];
         }
         
-        if ( rcount != yl_opinst::MARK )
+        // Add nulls.
+        s = t->stack_peek( sp, bcount );
+        for ( unsigned i = count; i < bcount; ++i )
         {
-            for ( unsigned i = count; i < rcount; ++i )
-            {
-                s[ i ] = yl_null;
-            }
-        }
-        else
-        {
-            t->set_mark( sp + count );
+            s[ i ] = yl_null;
         }
         
         // Return from previous call.
         if ( call_depth > 0 )
         {
+            unsigned mark = sp + bcount;
+        
             // Pop stack frame.
             yl_stackframe frame = t->pop_frame();
             f           = frame.funcobj;
@@ -768,16 +749,16 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             values      = p->values();
             ops         = p->ops();
             
-            // Get stacks.
-            s           = t->stack( fp, p->stackcount() );
-            locup       = t->locup( locup_base, p->locupcount() );
-            iters       = t->iters( iters_base, p->iterscount() );
+            // Get stack.
+            assert( mark >= fp );
+            s = t->stack_mark( fp, mark - fp, p->stackcount() );
             
             // Decrease call depth.
             call_depth -= 1;
         }
         else
         {
+            t->stack_trim( sp, bcount );
             return;
         }
 
@@ -786,37 +767,63 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_ITER:
     {
-        iters[ r ].open_vals( s[ a ] );
+        t->iterator( iters_base, r ).open_vals( s[ a ] );
         break;
     }
     
     case YL_ITERKEY:
     {
-        iters[ r ].open_keys( s[ a ] );
+        t->iterator( iters_base, r ).open_keys( s[ a ] );
         break;
     }
     
     case YL_NEXT1:
     {
-        iters[ a ].next1( &s[ r ] );
+        t->iterator( iters_base, a ).next1( &s[ r ] );
         break;
     }
     
     case YL_NEXT2:
     {
-        iters[ a ].next2( &s[ r ], &s[ b ] );
+        t->iterator( iters_base, a ).next2( &s[ r ], &s[ b ] );
         break;
     }
     
     case YL_NEXT:
     {
-        iters[ a ].next( t, fp + r, b );
+        // Get next set of values from iterator.
+        yl_value vspace[ 2 ];
+        yl_iternext next = t->iterator( iters_base, a ).next( vspace );
+        
+        // Place values in correct registers.
+        unsigned count;
+        unsigned bcount;
+        if ( b != yl_opinst::MARK )
+        {
+            count = std::min( b, (unsigned)next.vcount );
+            bcount = b;
+        }
+        else
+        {
+            count = bcount = (unsigned)next.vcount;
+        }
+        yl_value* s = t->stack_mark( fp, r + bcount, p->stackcount() );
+        
+        for ( unsigned i = 0; i < count; ++i )
+        {
+            s[ r + i ] = next.values[ i ];
+        }
+        
+        for ( unsigned i = count; i < bcount; ++i )
+        {
+            s[ r + i ] = yl_null;
+        }
         break;
     }
 
     case YL_JMPV:
     {
-        if ( iters[ r ].has_values() )
+        if ( t->iterator( iters_base, r ).has_values() )
         {
             ip += j;
         }
@@ -825,7 +832,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_JMPN:
     {
-        if ( ! iters[ r ].has_values() )
+        if ( ! t->iterator( iters_base, r ).has_values() )
         {
             ip += j;
         }
@@ -848,20 +855,8 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
 
     case YL_CLOSE:
     {
-        for ( size_t i = p->locupcount(); i-- > a; )
-        {
-            if ( locup[ i ] )
-            {
-                locup[ i ]->close( t );
-                locup[ i ] = nullptr;
-            }
-        }
-        
-        for ( size_t i = p->iterscount(); i-- > b; )
-        {
-            iters[ i ].close();
-        }
-        
+        t->close_locup( locup_base, a );
+        t->close_iterator( iters_base, b );
         break;
     }
 
@@ -1126,7 +1121,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         yl_array* array = (yl_array*)s[ b ].gcobject();
         if ( a == yl_opinst::MARK )
         {
-            a = t->get_mark() - r;
+            a = t->get_mark() - ( fp + r );
         }
         array->extend( s + r, a );
         break;
@@ -1140,37 +1135,31 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         }
         
         yl_array* array = (yl_array*)s[ a ].gcobject();
+        
         unsigned count;
+        unsigned bcount;
         if ( b != yl_opinst::MARK )
         {
             count = std::min( b, (unsigned)array->length() );
+            bcount = b;
         }
         else
         {
-            count = (unsigned)array->length();
-            s = t->stack( fp, r + count );
+            count = bcount = (unsigned)array->length();
         }
+        s = t->stack_mark( fp, r + bcount, p->stackcount() );
         
         for ( unsigned i = 0; i < count; ++i )
         {
             s[ r + i ] = array->get_index( i );
         }
         
-        if ( b != yl_opinst::MARK )
+        for ( unsigned i = count; i < bcount; ++i )
         {
-            for ( unsigned i = count; i < b; ++i )
-            {
-                s[ r + i ] = yl_null;
-            }
+            s[ r + i ] = yl_null;
         }
-        else
-        {
-            t->set_mark( fp + r + count );
-        }
-        
         break;
     }
-    
     
     /*
         Exception handling.

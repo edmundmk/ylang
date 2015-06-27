@@ -106,6 +106,13 @@ enum yl_iterkind
 };
 
 
+struct yl_iternext
+{
+    yl_value*   values;
+    unsigned    vcount;
+};
+
+
 class yl_iterator
 {
 public:
@@ -122,7 +129,7 @@ public:
     bool has_values();
     void next1( yl_value* r );
     void next2( yl_value* r, yl_value* b );
-    void next( yl_cothread* t, unsigned r, unsigned b );
+    yl_iternext next( yl_value vspace[ 2 ] );
 
 
 private:
@@ -150,6 +157,23 @@ private:
 
 /*
     A cothread, with stack frames and the actual stack.
+
+    The following opcodes always push/pop their operands at the stack top:
+    
+        YL_VARARG
+        YL_CALL
+        YL_YCALL
+        YL_YIELD
+        YL_RETURN
+        YL_NEXT (not YL_NEXT1 or YL_NEXT2)
+        YL_EXTEND
+        YL_UNPACK
+
+    When in a function, we request the appropriate stack space for the frame
+    by using the stack() method.  This function never shrinks the stack.
+    set_mark() sets the stack mark, which can be more or less than the
+    current frame, and which must mark the stack top.
+ 
 */
 
 
@@ -164,12 +188,17 @@ public:
     void            push_frame( const yl_stackframe& frame );
     yl_stackframe   pop_frame();
 
-    yl_value*       stack( size_t base, size_t count );
-    yl_upval**      locup( size_t base, size_t count );
-    yl_iterator*    iters( size_t base, size_t count );
+    yl_value*       stack_alloc( size_t base, unsigned size );
+    void            stack_trim( size_t base, unsigned size );
+    yl_value*       stack_peek( size_t base, unsigned size );
+    yl_value*       stack_mark( size_t base, unsigned mark, unsigned size );
+    unsigned        get_top();
+    unsigned        get_mark();
     
-    void            set_mark( unsigned mark );
-    unsigned        get_mark() const;
+    yl_upval*&      locup( size_t base, unsigned index );
+    void            close_locup( size_t base, unsigned index );
+    yl_iterator&    iterator( size_t base, unsigned index );
+    void            close_iterator( size_t base, unsigned index );
     
     unsigned        get_locup_base() const;
     unsigned        get_iters_base() const;
@@ -185,6 +214,9 @@ protected:
     
 
 private:
+
+    friend class yl_callframe;
+    friend class yl_upval;
 
     std::vector< yl_stackframe >    _frames;
     std::vector< yl_value >         _stack;
@@ -208,12 +240,17 @@ inline bool is_integer( double number )
 }
 
 
+
+/*
+    yl_upval
+*/
+
+
 inline void yl_upval::close( yl_cothread* cothread )
 {
     if ( check_gcflags( OPEN ) )
     {
-        yl_value* s = cothread->stack( _index, 1 );
-        _value.set( s[ 0 ] );
+        _value.set( cothread->_stack.at( _index ) );
         clear_gcflags( OPEN );
     }
 }
@@ -222,8 +259,7 @@ inline yl_value yl_upval::get_value( yl_cothread* cothread ) const
 {
     if ( check_gcflags( OPEN ) )
     {
-        yl_value* s = cothread->stack( _index, 1 );
-        return s[ 0 ];
+        return cothread->_stack.at( _index );
     }
     else
     {
@@ -235,8 +271,7 @@ inline void yl_upval::set_value( yl_cothread* cothread, yl_value value )
 {
     if ( check_gcflags( OPEN ) )
     {
-        yl_value* s = cothread->stack( _index, 1 );
-        s[ 0 ] = value;
+        cothread->_stack.at( _index ) = value;
     }
     else
     {
@@ -246,16 +281,62 @@ inline void yl_upval::set_value( yl_cothread* cothread, yl_value value )
 
 
 
-inline void yl_cothread::set_mark( unsigned mark )
+
+/*
+    yl_cothread
+*/
+
+
+inline yl_value* yl_cothread::stack_alloc( size_t base, unsigned size )
 {
-    _mark = mark;
+    _stack.resize( base + size );
+    return _stack.data() + base;
 }
 
-inline unsigned yl_cothread::get_mark() const
+inline void yl_cothread::stack_trim( size_t base, unsigned size )
+{
+    assert( _stack.size() >= base + size );
+    _stack.resize( base + size );
+}
+
+inline yl_value* yl_cothread::stack_peek( size_t base, unsigned size )
+{
+    assert( _stack.size() >= base + size );
+    return _stack.data() + base;
+}
+
+inline yl_value* yl_cothread::stack_mark( size_t base, unsigned mark, unsigned size )
+{
+    _stack.resize( base + std::max( mark, size ) );
+    _mark = mark;
+    return _stack.data() + base;
+}
+
+inline unsigned yl_cothread::get_top()
+{
+    return (unsigned)_stack.size();
+}
+
+inline unsigned yl_cothread::get_mark()
 {
     return _mark;
 }
 
+
+
+inline yl_upval*& yl_cothread::locup( size_t base, unsigned index )
+{
+    if ( _locup.size() <= base + index )
+        _locup.resize( base + index + 1 );
+    return _locup.at( base + index );
+}
+
+inline yl_iterator& yl_cothread::iterator( size_t base, unsigned index )
+{
+    if ( _iters.size() <= base + index )
+        _iters.resize( base + index + 1 );
+    return _iters.at( base + index );
+}
 
 
 

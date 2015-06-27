@@ -43,7 +43,7 @@ const char* yl_exception::what() const throw()
 
 yl_callframe::yl_callframe()
     :   _cothread( yl_current->get_cothread() )
-    ,   _base( 0 /* TODO */ )
+    ,   _base( _cothread->get_top() )
     ,   _size( 0 )
 {
 }
@@ -59,32 +59,32 @@ yl_callframe::~yl_callframe()
 {
 }
 
-
 void yl_callframe::push( std::nullptr_t )
 {
-    yl_value* s = _cothread->stack( _base, _size + 1 );
-    s[ _size ] = yl_null;
+    assert( _base + _size == _cothread->get_top() );
+    _cothread->_stack.push_back( yl_null );
     _size += 1;
 }
 
 void yl_callframe::push_bool( bool value )
 {
-    yl_value* s = _cothread->stack( _base, _size + 1 );
-    s[ _size ] = value ? yl_true : yl_false;
+    assert( _base + _size == _cothread->get_top() );
+    _cothread->_stack.push_back( value ? yl_true : yl_false );
     _size += 1;
 }
 
 void yl_callframe::push( const char* value )
 {
-    yl_value* s = _cothread->stack( _base, _size + 1 );
-    s[ _size ] = yl_value( YLOBJ_STRING, yl_string::alloc( value ).get() );
+    assert( _base + _size == _cothread->get_top() );
+    yl_stackref< yl_string > string = yl_string::alloc( value );
+    _cothread->_stack.push_back( yl_value( YLOBJ_STRING, string.get() ) );
     _size += 1;
 }
 
 void yl_callframe::push( double value )
 {
-    yl_value* s = _cothread->stack( _base, _size + 1 );
-    s[ _size ] = value;
+    assert( _base + _size == _cothread->get_top() );
+    _cothread->_stack.push_back( value );
     _size += 1;
 }
 
@@ -95,8 +95,9 @@ void yl_callframe::push( yl_expose* value )
 
 void yl_callframe::push( const yl_function& function )
 {
-    yl_value* s = _cothread->stack( _base, _size + 1 );
-    s[ _size ] = yl_value( function._function->kind(), function._function );
+    assert( _base + _size == _cothread->get_top() );
+    yl_value value = yl_value( function._function->kind(), function._function );
+    _cothread->_stack.push_back( value );
     _size += 1;
 }
 
@@ -113,12 +114,12 @@ yl_valkind yl_callframe::at( size_t index ) const
     {
         throw yl_exception( "missing argument" );
     }
-    yl_value* s = _cothread->stack( _base, _size );
-    if ( s[ index ].is_number() )
+    yl_value value = _cothread->_stack.at( _base + index );
+    if ( value.is_number() )
     {
         return YLVAL_NUMBER;
     }
-    switch ( s[ index ].kind() )
+    switch ( value.kind() )
     {
     case YLOBJ_EXPOBJ:
         return YLVAL_EXPOSE;
@@ -131,9 +132,9 @@ yl_valkind yl_callframe::at( size_t index ) const
         return YLVAL_FUNCTION;
         
     case YLOBJ_SINGULAR:
-        if ( s[ index ].is_true() || s[ index ].is_false() )
+        if ( value.is_true() || value.is_false() )
             return YLVAL_BOOL;
-        else if ( s[ index ].is_null() )
+        else if ( value.is_null() )
             return YLVAL_NULL;
         else
             return YLVAL_UNKNOWN;
@@ -149,12 +150,12 @@ bool yl_callframe::get_bool( size_t index ) const
     {
         throw yl_exception( "missing argument" );
     }
-    yl_value* s = _cothread->stack( _base, _size );
-    if ( s[ index ].is_true() )
+    yl_value value = _cothread->_stack.at( _base + index );
+    if ( value.is_true() )
     {
         return true;
     }
-    else if ( s[ index ].is_false() )
+    else if ( value.is_false() )
     {
         return false;
     }
@@ -167,10 +168,10 @@ double yl_callframe::get_number( size_t index ) const
     {
         throw yl_exception( "missing argument" );
     }
-    yl_value* s = _cothread->stack( _base, _size );
-    if ( s[ index ].is_number() )
+    yl_value value = _cothread->_stack.at( _base + index );
+    if ( value.is_number() )
     {
-        return s[ index ].number();
+        return value.number();
     }
     throw yl_exception( "expected number" );
 }
@@ -181,10 +182,10 @@ int yl_callframe::get_integer( size_t index ) const
     {
         throw yl_exception( "missing argument" );
     }
-    yl_value* s = _cothread->stack( _base, _size );
-    if ( s[ index ].is_number() )
+    yl_value value = _cothread->_stack.at( _base + index );
+    if ( value.is_number() )
     {
-        double number = s[ index ].number();
+        double number = value.number();
         if ( is_integer( number ) && number >= INT_MIN && number <= INT_MAX )
         {
             return (int)number;
@@ -199,10 +200,10 @@ const char* yl_callframe::get_string( size_t index ) const
     {
         throw yl_exception( "missing argument" );
     }
-    yl_value* s = _cothread->stack( _base, _size );
-    if ( s[ index ].is( YLOBJ_STRING ) )
+    yl_value value = _cothread->_stack.at( _base + index );
+    if ( value.is( YLOBJ_STRING ) )
     {
-        yl_string* string = (yl_string*)s[ index ].gcobject();
+        yl_string* string = (yl_string*)value.gcobject();
         return string->c_str();
     }
     throw yl_exception( "expected string" );
@@ -220,10 +221,10 @@ yl_function yl_callframe::get_function( size_t index ) const
     {
         throw yl_exception( "missing argument" );
     }
-    yl_value* s = _cothread->stack( _base, _size );
-    if ( s[ index ].is( YLOBJ_FUNCOBJ ) || s[ index ].is( YLOBJ_THUNKOBJ ) )
+    yl_value value = _cothread->_stack.at( _base + index );
+    if ( value.is( YLOBJ_FUNCOBJ ) || value.is( YLOBJ_THUNKOBJ ) )
     {
-        return yl_function( s[ index ].gcobject() );
+        return yl_function( value.gcobject() );
     }
     throw yl_exception( "expected function" );
 }
@@ -234,10 +235,10 @@ yl_gcobject* yl_callframe::get_gcobject( size_t index ) const
     {
         throw yl_exception( "missing argument" );
     }
-    yl_value* s = _cothread->stack( _base, _size );
-    if ( s[ index ].is_gcobject() )
+    yl_value value = _cothread->_stack.at( _base + index );
+    if ( value.is_gcobject() )
     {
-        return s[ index ].gcobject();
+        return value.gcobject();
     }
     return nullptr;
 }
@@ -245,9 +246,10 @@ yl_gcobject* yl_callframe::get_gcobject( size_t index ) const
 
 void yl_callframe::clear()
 {
+    assert( _base + _size == _cothread->get_top() );
+    _cothread->stack_trim( _base, 0 );
     _size = 0;
 }
-
 
 
 
@@ -262,7 +264,7 @@ void yl_invoke( yl_callframe& xf )
     yl_interp( xf._cothread, xf._base, xf._size, yl_opinst::MARK );
     
     // Recover number of results and update callframe.
-    xf._size = xf._cothread->get_mark() - xf._base;
+    xf._size = xf._cothread->get_top() - xf._base;
 }
 
 
@@ -541,41 +543,40 @@ void yl_iterator::next2( yl_value* r, yl_value* b )
     }
 }
 
-void yl_iterator::next( yl_cothread *t, unsigned r, unsigned b )
+yl_iternext yl_iterator::next( yl_value vspace[ 2 ] )
 {
-    // Get values.
-    yl_value values[ 2 ];
-    yl_value* v = values;
-    size_t vcount = 0;
+    yl_iternext next;
+    next.values = vspace;
+    next.vcount = 0;
 
     switch ( _kind )
     {
     case YLITER_KEYS:
     {
-        v[ 0 ] = yl_value( YLOBJ_STRING, _slot->_symbol.get() );
-        v[ 1 ] = _object->_slots.get()->at( _slot->_index ).get();
+        next.values[ 0 ] = yl_value( YLOBJ_STRING, _slot->_symbol.get() );
+        next.values[ 1 ] = _object->_slots.get()->at( _slot->_index ).get();
+        next.vcount = 2;
         assert( _slot->_index != yl_slot::EMPTY_KLASS );
         _slot = (yl_slot*)_slot->_parent.get();
-        vcount = 2;
         break;
     }
     
     case YLITER_ARRAY:
     {
-        v[ 0 ] = _array->get_index( _index );
+        next.values[ 0 ] = _array->get_index( _index );
+        next.vcount = 1;
         _index += 1;
-        vcount = 1;
         break;
     }
     
     case YLITER_TABLE:
     {
         yl_bucketlist::bucket& bucket = _buckets->at( _index );
-        v[ 0 ] = bucket.key.get();
-        v[ 1 ] = bucket.value.get();
+        next.values[ 0 ] = bucket.key.get();
+        next.values[ 1 ] = bucket.value.get();
+        next.vcount = 2;
         _index += 1;
         next_bucket();
-        vcount = 2;
         break;
     }
     
@@ -592,26 +593,8 @@ void yl_iterator::next( yl_cothread *t, unsigned r, unsigned b )
     }
     
     }
-
-    // Place them appropriately on the stack.
-    size_t rcount = b != yl_opinst::MARK ? b : vcount;
-    size_t count = std::min( rcount, vcount );
-
-    yl_value* s = t->stack( r, rcount );
-    for ( size_t i = 0; i < count; ++i )
-    {
-        s[ i ] = v[ i ];
-    }
-    for ( size_t i = count; i < rcount; ++i )
-    {
-        s[ i ] = yl_null;
-    }
-
-    if ( b == yl_opinst::MARK )
-    {
-        t->set_mark( r + (unsigned)rcount );
-    }
-
+    
+    return next;
 }
 
 
@@ -679,7 +662,6 @@ void yl_cothread::mark( yl_gcheap* heap, yl_gcobject* object )
         heap->mark( frame.funcobj );
     }
     
-    // TODO: have a better idea of the stack top.
     for ( const auto& value : self->_stack )
     {
         if ( value.is_gcobject() )
@@ -708,7 +690,6 @@ void yl_cothread::eager_mark( yl_gcheap* heap, yl_gcobject* object )
         heap->eager_mark( frame.funcobj );
     }
     
-    // TODO: have a better idea of the stack top.
     for ( const auto& value : self->_stack )
     {
         if ( value.is_gcobject() )
@@ -742,45 +723,31 @@ yl_stackframe yl_cothread::pop_frame()
     return frame;
 }
 
-yl_value* yl_cothread::stack( size_t base, size_t count )
+
+void yl_cothread::close_locup( size_t base, unsigned index )
 {
-    if ( _stack.capacity() < base + count )
+    for ( size_t i = _locup.size(); i-- > base + index; )
     {
-        _stack.reserve( _stack.capacity() * 2 );
+        yl_upval*& upval = _locup.at( i );
+        if ( upval )
+        {
+            upval->close( this );
+        }
     }
-    if ( _stack.size() < base + count )
-    {
-        _stack.resize( base + count );
-    }
-    return _stack.data() + base;
+    _locup.resize( base + index );
 }
 
-yl_upval** yl_cothread::locup( size_t base, size_t count )
+void yl_cothread::close_iterator( size_t base, unsigned index )
 {
-    if ( _locup.capacity() < base + count )
+    for ( size_t i = _iters.size(); i-- > base + index; )
     {
-        _locup.reserve( _stack.capacity() * 2 );
+        yl_iterator& iterator = _iters.at( i );
+        iterator.close();
     }
-    if ( _locup.size() < base + count )
-    {
-        _locup.resize( base + count );
-    }
-    return _locup.data() + base;
+    _iters.resize( base + index );
 }
 
-yl_iterator* yl_cothread::iters( size_t base, size_t count )
-{
-    if ( _iters.capacity() < base + count )
-    {
-        _iters.reserve( _stack.capacity() * 2 );
-    }
-    if ( _iters.size() < base + count )
-    {
-        _iters.resize( base + count );
-    }
-    return _iters.data() + base;
-}
-    
+
 unsigned yl_cothread::get_locup_base() const
 {
     if ( _frames.size() )

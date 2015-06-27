@@ -405,6 +405,12 @@ void ygen_emit::codegen_function( yssa_function* function )
 {
     ygen_program* p = add_program( function );
     
+    
+    // Every program has one hidden parameter, the function object.
+    assert( p->stackcount == 0 );
+    p->stackcount += 1;
+    
+    
     // Extract all constants.
     for ( size_t i = 0; i < function->ops.size(); ++i )
     {
@@ -1214,9 +1220,11 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
             yssa_opinst* param = function->ops.at( index + n );
             if ( param->opcode == YSSA_PARAM )
             {
+                unsigned a = param->select + 1;
+                p->stackcount = std::max( p->stackcount, (size_t)a + 1 );
                 if ( param->r != yl_opinst::NOVAL )
                 {
-                    params.move( param->r, param->select + 1 );
+                    params.move( param->r, a );
                 }
             }
             else

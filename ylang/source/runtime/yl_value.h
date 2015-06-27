@@ -94,7 +94,7 @@ public:
     bool            is_object() const;
 
     double          number() const;
-    yl_gcobject*     gcobject() const;
+    yl_gcobject*    gcobject() const;
 
 
 private:

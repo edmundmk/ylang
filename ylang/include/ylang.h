@@ -211,13 +211,13 @@ private:
 
 enum yl_valkind
 {
-    YLVAL_UNKNOWN,
     YLVAL_NULL,
     YLVAL_BOOL,
     YLVAL_NUMBER,
     YLVAL_STRING,
     YLVAL_EXPOSE,
     YLVAL_FUNCTION,
+    YLVAL_UNKNOWN,
 };
 
 

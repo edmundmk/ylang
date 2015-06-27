@@ -1,7 +1,7 @@
 
 **garbage collector (somewhat done?)
+**better stack top tracking
 
-better stack top tracking
 coroutines
 exceptions/stack unwind - unwind through coroutine resumes
 debugger
