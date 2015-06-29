@@ -169,13 +169,13 @@ private:
 
 #ifdef __YMETAC__
 
-#define ylcall          __attribute__(( annotate( "ylcall" ) ))
-#define ylevent         __attribute__(( annotate( "ylevent" ) ))
+#define yl_call     __attribute__(( annotate( "yl_call" ) ))
+#define yl_event    __attribute__(( annotate( "yl_event" ) ))
 
 #else
 
-#define ylcall
-#define ylevent
+#define yl_call
+#define yl_event
 
 #endif
 
