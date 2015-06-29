@@ -5,8 +5,8 @@ ylang is a dynamic, prototype-based language with clean semantics and a
 familiar syntax.
 
 The language is still under development.  Do not expect it to work at all.
-Important parts of the language and of the virtual machine (such as the
-garbage collector) are not yet implemented.
+Important parts of the language and of the virtual machine are not yet
+implemented.
 
 
 Features
