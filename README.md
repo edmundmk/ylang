@@ -34,7 +34,7 @@ Features
             var bindings = [];
             for ( var element : list )
             {
-                bindings.append( ?() { return element.invoke( token ); } );
+                bindings.append( ^() { return element.invoke( token ); } );
             }
         }
 
@@ -80,7 +80,7 @@ Features
         mapping[ "length" ] = 5;
         assert( mapping.length() == 1 );
         assert( mapping.[ "length" ] is function );
-        mapping.[ "length" ] = ?() { return 200; };
+        mapping.[ "length" ] = ^() { return 200; };
         assert( mapping.length() == 200 );
     
 
