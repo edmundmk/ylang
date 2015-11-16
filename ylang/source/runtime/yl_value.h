@@ -46,8 +46,8 @@ class yl_valarray;
                       11111110  expose
                       11111101  array
                       11111100  table
-                      11111011  cothread
-                      11111010  program
+                      11111011
+                      11111010
                       11111001
                       11111000  qnan
                       11110111  string

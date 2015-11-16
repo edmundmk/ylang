@@ -87,8 +87,8 @@ public:
 
     // Execution context.
 
-    yl_cothread*    get_cothread() const;
-    void            set_cothread( yl_cothread* cothread );
+    yl_cothread*                get_cothread() const;
+    void                        set_cothread( yl_cothread* cothread );
 
 
     // Object model.
@@ -108,8 +108,8 @@ public:
 
     // Global table.
 
-    yl_object*      globals();
-    void            set_global( const char* name, yl_value value );
+    yl_object*                  globals();
+    void                        set_global( const char* name, yl_value value );
 
 
 private:

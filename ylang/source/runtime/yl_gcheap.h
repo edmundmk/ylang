@@ -359,8 +359,8 @@ protected:
 
     explicit yl_gcobject( uint8_t kind, uint8_t gcflags = 0 );
 
-    void set_gcflags( uint8_t flags ) const;
-    void clear_gcflags( uint8_t flags ) const;
+    void    set_gcflags( uint8_t flags ) const;
+    void    clear_gcflags( uint8_t flags ) const;
     uint8_t check_gcflags( uint8_t flags ) const;
 
 

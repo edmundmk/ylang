@@ -113,13 +113,6 @@ private:
 
     static const size_t EMPTY_KLASS = (size_t)-1;
 
-    struct shortcut_hash
-    {
-        yl_object* superof;
-        std::unordered_map< yl_symbol, size_t > lookup;
-    };
-
-
     explicit yl_slot( yl_object* prototype );
     yl_slot( yl_slot* parent, yl_string* symbol );
 
@@ -129,8 +122,6 @@ private:
     yl_heapref< yl_gcobject >   _parent;    // parent slot, or prototype
     yl_heapref< yl_string >     _symbol;    // symbol string
     size_t                      _index;     // index into slot value array
-    
-    std::unique_ptr< shortcut_hash > _hash;
     
     /* weak */ yl_slot*         _head;      // first child
     /* weak */ yl_slot*         _next;      // next sibling

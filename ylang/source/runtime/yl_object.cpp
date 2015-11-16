@@ -58,11 +58,6 @@ yl_object* yl_object::superof() const
     yl_slot* slot = _klass.get();
     while ( true )
     {
-        if ( slot->_hash )
-        {
-            return slot->_hash->superof;
-        }
-        
         if ( slot->_index != yl_slot::EMPTY_KLASS )
         {
             slot = (yl_slot*)slot->_parent.get();
@@ -83,26 +78,6 @@ yl_value yl_object::get_key( const yl_symbol& key ) const
 
     while ( true )
     {
-        // Check for shortcut hash.
-        if ( slot->_hash )
-        {
-            auto i = slot->_hash->lookup.find( key );
-            if ( i != slot->_hash->lookup.end() )
-            {
-                index = i->second;
-                break;
-            }
-            else if ( slot->_hash->superof )
-            {
-                object = slot->_hash->superof;
-                slot = object->_klass.get();
-            }
-            else
-            {
-                return yl_undef;
-            }
-        }
-        
         // Check if this is a real slot or a pointer to the prototype.
         if ( slot->_index != yl_slot::EMPTY_KLASS )
         {
@@ -147,21 +122,6 @@ void yl_object::set_key( const yl_symbol& key, yl_value value )
     
     while ( true )
     {
-        // Check for shortcut hash.
-        if ( slot->_hash )
-        {
-            auto i = slot->_hash->lookup.find( key );
-            if ( i != slot->_hash->lookup.end() )
-            {
-                index = i->second;
-                break;
-            }
-            else
-            {
-                goto notfound;
-            }
-        }
-        
         // Check if this is a real slot or a pointer to the prototype.
         if ( slot->_index != yl_slot::EMPTY_KLASS )
         {
@@ -264,21 +224,6 @@ void yl_object::del_key( const yl_symbol& key )
 
     while ( true )
     {
-        // Check for shortcut hash.
-        if ( slot->_hash )
-        {
-            auto i = slot->_hash->lookup.find( key );
-            if ( i != slot->_hash->lookup.end() )
-            {
-                index = i->second;
-                break;
-            }
-            else
-            {
-                return;
-            }
-        }
-        
         // Check if this is a real slot or a pointer to the prototype.
         if ( slot->_index != yl_slot::EMPTY_KLASS )
         {

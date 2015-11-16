@@ -1,19 +1,58 @@
 
-**garbage collector (somewhat done?)
-**better stack top tracking
 
 coroutines
 exceptions/stack unwind - unwind through coroutine resumes
 debugger
 
 
+make yl_stackref use the refcounting machinery.
+make the list of types exposed to the user match yl_objkind.
+merge yl_funcobj and yl_thunkobj?
 
 
+---- INLINE CACHING
 
 inline caching for YL_KEY and YL_SETKEY
     when we do a lookup, we check if the klass is the same as the
     previous time we did the lookup, and if it is, we know the
     resulting index.  it's a kind of self-modifying code.
+
+inline cache instructions:
+
+    YL_KEY
+    YL_SETKEY
+    YL_GLOBAL
+    YL_SETGLOBAL
+
+
+remember the object's current klass.
+remember the prototype age.
+
+whenever an object is used as a prototype set a flag on it.
+whenever a key is set on a prototype, increment the prototype age,
+    thus invalidating all inline caches.
+
+
+representing lookups that found a key in the prototype:
+    with a special index.
+    store object's prototype in each klass explicitly.
+    run up the prototype
+
+or could have a pointer to the location in the prototype or just
+        cache the actual value?
+
+
+or, have an inline cache be a list of klasses, one for each prototype,
+and check each one, and the index is the index into the last prototype.
+
+need to have each slot point to the prototype.
+
+or just have prototype objects be immutable.
+
+
+
+----
+
 
 threaded dispatch for interpreter switch.
 
@@ -24,3 +63,13 @@ be made explicit in the bytecode.
 
 
 
+
+
+
+
+
+
+DONE
+
+**garbage collector (somewhat done?)
+**better stack top tracking
