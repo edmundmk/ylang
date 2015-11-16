@@ -202,8 +202,8 @@ public:
     ~yl_valarray();
     
     size_t              size() const;
-    const yl_heapval&    at( size_t index ) const;
-    yl_heapval&          at( size_t index );
+    const yl_heapval&   at( size_t index ) const;
+    yl_heapval&         at( size_t index );
 
 
 private:
@@ -215,7 +215,7 @@ private:
     static void mark( yl_gcheap* heap, yl_gcobject* object );
 
     size_t              _size;
-    yl_heapval           _elements[ 0 ];
+    yl_heapval          _elements[ 0 ];
 
 };
 
@@ -223,8 +223,35 @@ private:
 
 
 /*
-
+    Analogous to a yl_rootref, a rootval keeps references alive.
 */
+
+class yl_rootval
+{
+public:
+
+    yl_rootval();
+    yl_rootval( yl_value v );
+    yl_rootval( const yl_rootval& v );
+    yl_rootval& operator = ( yl_value v );
+    yl_rootval& operator = ( const yl_rootval& v );
+    ~yl_rootval();
+    
+    yl_value get() const;
+    
+    void reset( yl_value v = yl_undef );
+    void swap( yl_rootval& v );
+
+private:
+
+    yl_value _v;
+
+};
+
+
+
+
+
 
 
 /*
@@ -518,6 +545,67 @@ inline yl_heapval& yl_valarray::at( size_t index )
 {
     assert( index < _size );
     return _elements[ index ];
+}
+
+
+
+/*
+    yl_rootval
+*/
+
+
+inline yl_rootval::yl_rootval()
+{
+}
+
+inline yl_rootval::yl_rootval( yl_value v )
+{
+    reset( v );
+}
+
+inline yl_rootval::yl_rootval( const yl_rootval& v )
+{
+    reset( v.get() );
+}
+
+inline yl_rootval& yl_rootval::operator = ( yl_value v )
+{
+    reset( v );
+    return *this;
+}
+
+inline yl_rootval& yl_rootval::operator = ( const yl_rootval& v )
+{
+    reset( v.get() );
+    return *this;
+}
+
+inline yl_rootval::~yl_rootval()
+{
+    reset( yl_undef );
+}
+
+inline yl_value yl_rootval::get() const
+{
+    return _v;
+}
+    
+inline void yl_rootval::reset( yl_value v )
+{
+    if ( _v.is_gcobject() )
+    {
+        _v.gcobject()->decref();
+    }
+    _v = v;
+    if ( _v.is_gcobject() )
+    {
+        _v.gcobject()->incref();
+    }
+}
+
+inline void yl_rootval::swap( yl_rootval& v )
+{
+    std::swap( _v, v._v );
 }
 
 
