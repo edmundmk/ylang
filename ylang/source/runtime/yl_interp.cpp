@@ -224,7 +224,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     yl_funcobj*         f       = ffp.first;
     unsigned            fp      = ffp.second;
     yl_program*         p       = f->program();
-    const yl_valref*    values  = p->values();
+    const yl_heapval*    values  = p->values();
     const yl_opinst*    ops     = p->ops();
 
     

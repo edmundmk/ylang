@@ -1296,7 +1296,7 @@ void ygen_emit::emit( ygen_program* p )
 {
     p->program->_name = p->ssafunc->funcname;
 
-    yl_valref* values = p->program->_values();
+    yl_heapval* values = p->program->_values();
     for ( size_t i = 0; i < p->values.size(); ++i )
     {
         const ygen_value& value = p->values.at( i );

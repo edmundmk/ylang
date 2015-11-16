@@ -22,7 +22,7 @@ yl_gctype yl_valarray::gctype =
 
 yl_rootref< yl_valarray > yl_valarray::alloc( size_t size )
 {
-    size_t sz = sizeof( yl_valarray ) + sizeof( yl_valref ) * size;
+    size_t sz = sizeof( yl_valarray ) + sizeof( yl_heapval ) * size;
     return yl_gcalloc< yl_valarray >( sz, size );
 }
 
@@ -32,7 +32,7 @@ yl_valarray::yl_valarray( size_t size )
 {
     for ( size_t i = 0; i < _size; ++i )
     {
-        new ( _elements + i ) yl_valref();
+        new ( _elements + i ) yl_heapval();
     }
 }
 
@@ -40,7 +40,7 @@ yl_valarray::~yl_valarray()
 {
     for ( size_t i = 0; i < _size; ++i )
     {
-        _elements[ i ].~yl_valref();
+        _elements[ i ].~yl_heapval();
     }
 }
 

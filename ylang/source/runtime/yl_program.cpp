@@ -33,7 +33,7 @@ yl_rootref< yl_program > yl_program::alloc
 )
 {
     size_t size = sizeof( yl_program );
-    size += sizeof( yl_valref ) * valcount;
+    size += sizeof( yl_heapval ) * valcount;
     size += sizeof( yl_opinst ) * opcount;
     size += sizeof( yl_xframe ) * xfcount;
     size += sizeof( yl_debugvar ) * dvcount;
@@ -61,10 +61,10 @@ yl_program::yl_program
     ,   _varargs( false )
     ,   _coroutine( false )
 {
-    yl_valref* values = _values();
+    yl_heapval* values = _values();
     for ( size_t i = 0; i < _valcount; ++i )
     {
-        new ( values + i ) yl_valref();
+        new ( values + i ) yl_heapval();
     }
     
     yl_opinst* ops = _ops();
@@ -94,10 +94,10 @@ yl_program::yl_program
 
 yl_program::~yl_program()
 {
-    yl_valref* values = _values();
+    yl_heapval* values = _values();
     for ( size_t i = 0; i < _valcount; ++i )
     {
-        values[ i ].~yl_valref();
+        values[ i ].~yl_heapval();
     }
     
     yl_opinst* ops = _ops();
@@ -135,7 +135,7 @@ void yl_program::mark( yl_gcheap* heap, yl_gcobject* object )
 {
     yl_program* self = (yl_program*)object;
     
-    yl_valref* values = self->_values();
+    yl_heapval* values = self->_values();
     for ( size_t i = 0; i < self->_valcount; ++i )
     {
         values[ i ].mark( heap );
@@ -209,9 +209,9 @@ void yl_program::print()
 }
 
 
-yl_valref* yl_program::_values()
+yl_heapval* yl_program::_values()
 {
-    return (yl_valref*)( this + 1 );
+    return (yl_heapval*)( this + 1 );
 }
 
 yl_opinst* yl_program::_ops()

@@ -28,8 +28,8 @@ public:
     {
         bucket();
     
-        yl_valref   key;
-        yl_valref   value;
+        yl_heapval   key;
+        yl_heapval   value;
         bucket*     next;
     };
 

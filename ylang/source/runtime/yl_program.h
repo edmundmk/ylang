@@ -48,7 +48,7 @@ public:
     unsigned                iterscount();
     
     size_t                  valcount();
-    const yl_valref*        values();
+    const yl_heapval*        values();
     
     size_t                  opcount();
     const yl_opinst*        ops();
@@ -89,7 +89,7 @@ private:
 
     std::string     _name;
     
-    yl_valref*      _values();      // _values[ _valcount ]
+    yl_heapval*      _values();      // _values[ _valcount ]
     yl_opinst*      _ops();         // _ops[ _opcount ]
     yl_xframe*      _xframes();     // _xframes[ _xfcount ]
     yl_debugvar*    _debugvars();   // _debugvars[ _dvcount ]
@@ -151,9 +151,9 @@ inline size_t yl_program::valcount()
     return _valcount;
 }
 
-inline const yl_valref* yl_program::values()
+inline const yl_heapval* yl_program::values()
 {
-    return (yl_valref*)( this + 1 );
+    return (yl_heapval*)( this + 1 );
 }
 
 inline size_t yl_program::opcount()

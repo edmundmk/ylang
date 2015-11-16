@@ -17,7 +17,7 @@
 #include "yl_string.h"
 
 
-class yl_valref;
+class yl_heapval;
 class yl_value;
 class yl_valarray;
 
@@ -99,7 +99,7 @@ public:
 
 private:
 
-    friend class yl_valref;
+    friend class yl_heapval;
     
     friend hash32_t hash( yl_value v );
     friend bool     equal( yl_value a, yl_value b );
@@ -159,17 +159,17 @@ bool        test( yl_value v );
 
 
 /*
-    A valref is a value stored on the heap.  Accesses MUST be atomic in order
+    A heapval is a value stored on the heap.  Accesses MUST be atomic in order
     for garbage collection to work properly.
 */
 
 
-class yl_valref
+class yl_heapval
 {
 public:
 
-    yl_valref();
-    ~yl_valref();
+    yl_heapval();
+    ~yl_heapval();
 
     void        mark( yl_gcheap* heap ) const;
 
@@ -179,14 +179,12 @@ public:
 
 private:
 
-    yl_valref( const yl_valref& ) = delete;
-    yl_valref& operator = ( const yl_valref& ) = delete;
+    yl_heapval( const yl_heapval& ) = delete;
+    yl_heapval& operator = ( const yl_heapval& ) = delete;
 
     std::atomic< uint64_t > _value;
 
 };
-
-
 
 
 
@@ -204,8 +202,8 @@ public:
     ~yl_valarray();
     
     size_t              size() const;
-    const yl_valref&    at( size_t index ) const;
-    yl_valref&          at( size_t index );
+    const yl_heapval&    at( size_t index ) const;
+    yl_heapval&          at( size_t index );
 
 
 private:
@@ -217,7 +215,7 @@ private:
     static void mark( yl_gcheap* heap, yl_gcobject* object );
 
     size_t              _size;
-    yl_valref           _elements[ 0 ];
+    yl_heapval           _elements[ 0 ];
 
 };
 
@@ -460,20 +458,20 @@ inline bool test( yl_value v )
 
 
 /*
-    yl_valref
+    yl_heapval
 */
 
 
-inline yl_valref::yl_valref()
+inline yl_heapval::yl_heapval()
     :   _value( yl_value::VALUE_UNDEF )
 {
 }
 
-inline yl_valref::~yl_valref()
+inline yl_heapval::~yl_heapval()
 {
 }
 
-inline void yl_valref::set( yl_value value )
+inline void yl_heapval::set( yl_value value )
 {
     yl_value oldval = yl_value( _value.load( std::memory_order_relaxed ) );
     if ( oldval.is_gcobject() )
@@ -484,12 +482,12 @@ inline void yl_valref::set( yl_value value )
     _value.store( value._value, std::memory_order_relaxed );
 }
 
-inline yl_value yl_valref::get() const
+inline yl_value yl_heapval::get() const
 {
     return yl_value( _value.load( std::memory_order_relaxed ) );
 }
 
-inline void yl_valref::mark( yl_gcheap* heap ) const
+inline void yl_heapval::mark( yl_gcheap* heap ) const
 {
     yl_value value = yl_value( _value.load( std::memory_order_relaxed ) );
     if ( value.is_gcobject() )
@@ -510,13 +508,13 @@ inline size_t yl_valarray::size() const
     return _size;
 }
 
-inline const yl_valref& yl_valarray::at( size_t index ) const
+inline const yl_heapval& yl_valarray::at( size_t index ) const
 {
     assert( index < _size );
     return _elements[ index ];
 }
 
-inline yl_valref& yl_valarray::at( size_t index )
+inline yl_heapval& yl_valarray::at( size_t index )
 {
     assert( index < _size );
     return _elements[ index ];

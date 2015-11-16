@@ -44,7 +44,7 @@ private:
     static void mark( yl_gcheap* heap, yl_gcobject* object );
 
     unsigned    _index;
-    yl_valref   _value;
+    yl_heapval   _value;
 
 };
 
