@@ -46,7 +46,8 @@ public:
 
     static yl_gctype gctype;
 
-    static yl_stackref< yl_object > alloc( yl_object* prototype );
+    yl_object();
+    explicit yl_object( yl_object* prototype );
 
     yl_object*  superof() const;
 
@@ -54,18 +55,18 @@ public:
     void        set_key( const yl_symbol& key, yl_value value );
     void        del_key( const yl_symbol& key );
 
+    void        set_key( const char* key, yl_value value );
+
 
 protected:
-
-    explicit yl_object( yl_objkind kind, yl_object* prototype );
-
-
-private:
 
     friend class yl_iterator;
     
     static void destroy( yl_gcheap* heap, yl_gcobject* object );
     static void mark( yl_gcheap* heap, yl_gcobject* object );
+
+
+private:
 
     size_t lookup( yl_slot* klass, const yl_symbol& key ) const;
 
@@ -102,8 +103,8 @@ public:
 
     static yl_gctype gctype;
 
-    static yl_stackref< yl_slot > alloc( yl_object* prototype );
-    static yl_stackref< yl_slot > alloc( yl_slot* parent, yl_string* symbol );
+    explicit yl_slot( yl_object* prototype );
+    yl_slot( yl_slot* parent, yl_string* symbol );
 
 
 private:
@@ -113,8 +114,6 @@ private:
 
     static const size_t EMPTY_KLASS = (size_t)-1;
 
-    explicit yl_slot( yl_object* prototype );
-    yl_slot( yl_slot* parent, yl_string* symbol );
 
     static void destroy( yl_gcheap* heap, yl_gcobject* object );
     static void mark( yl_gcheap* heap, yl_gcobject* object );

@@ -12,6 +12,8 @@
 
 yl_gctype yl_object::gctype =
 {
+    YLOBJ_OBJECT,
+    YL_GCFLAG_NONE,
     "object",
     &yl_object::destroy,
     &yl_object::mark,
@@ -19,22 +21,15 @@ yl_gctype yl_object::gctype =
 };
 
 
-
-yl_stackref< yl_object > yl_object::alloc( yl_object* prototype )
+yl_object::yl_object()
+    :   yl_object( yl_current->proto_object() )
 {
-    void* p = yl_current->allocate( sizeof( yl_object ) );
-    return new ( p ) yl_object( YLOBJ_OBJECT, prototype );
 }
 
-
-
-yl_object::yl_object( yl_objkind kind, yl_object* prototype )
-    :   yl_gcobject( kind )
-    ,   _klass( nullptr )
+yl_object::yl_object( yl_object* prototype )
+    :   _klass( yl_current->klassof( prototype ) )
     ,   _slots( nullptr )
 {
-    yl_stackref< yl_object > self( this );
-    _klass.set( yl_current->klassof( prototype ) );
 }
 
 
@@ -151,7 +146,7 @@ notfound:
     // Need to add another slot with the key.  First check if an appropriate
     // slot already exists.  Otherwise, create a new one.
 
-    yl_stackref< yl_slot > new_klass = nullptr;
+    yl_rootref< yl_slot > new_klass = nullptr;
 
     yl_current->weak_lock();
 
@@ -170,7 +165,7 @@ notfound:
 
     if ( ! new_klass )
     {
-        new_klass = yl_slot::alloc( klass, key.string() );
+        new_klass = yl_gcnew< yl_slot >( klass, key.string() );
         
         // Link new slot into the list of child slots from the current klass.
         new_klass->_next = klass->_head;
@@ -184,7 +179,7 @@ notfound:
     yl_valarray* slots = _slots.get();
     if ( ! slots || slots->size() <= new_klass->_index )
     {
-        yl_stackref< yl_valarray > new_slots =
+        yl_rootref< yl_valarray > new_slots =
             yl_valarray::alloc( slots ? slots->size() * 2 : 4 );
         
         if ( slots )
@@ -250,10 +245,19 @@ void yl_object::del_key( const yl_symbol& key )
 
 
 
+void yl_object::set_key( const char* key, yl_value value )
+{
+    set_key( yl_string::alloc( key )->symbol().get(), value );
+}
+
+
+
 
 
 yl_gctype yl_slot::gctype =
 {
+    YLOBJ_SLOT,
+    YL_GCFLAG_NONE,
     "slot",
     &yl_slot::destroy,
     &yl_slot::mark,
@@ -261,24 +265,9 @@ yl_gctype yl_slot::gctype =
 };
 
 
-yl_stackref< yl_slot > yl_slot::alloc( yl_object* prototype )
-{
-    void* p = yl_current->allocate( sizeof( yl_slot ) );
-    return new ( p ) yl_slot( prototype );
-}
-
-
-yl_stackref< yl_slot > yl_slot::alloc( yl_slot* parent, yl_string* symbol )
-{
-    void* p = yl_current->allocate( sizeof( yl_slot ) );
-    return new ( p ) yl_slot( parent, symbol );
-}
-
-
 
 yl_slot::yl_slot( yl_object* prototype )
-    :   yl_gcobject( YLOBJ_SLOT )
-    ,   _parent( prototype )
+    :   _parent( prototype )
     ,   _index( EMPTY_KLASS )
     ,   _head( nullptr )
     ,   _next( nullptr )
@@ -287,8 +276,7 @@ yl_slot::yl_slot( yl_object* prototype )
 
 
 yl_slot::yl_slot( yl_slot* parent, yl_string* symbol )
-    :   yl_gcobject( YLOBJ_SLOT )
-    ,   _parent( parent )
+    :   _parent( parent )
     ,   _symbol( symbol )
     ,   _index( parent->_index + 1 )
     ,   _head( nullptr )

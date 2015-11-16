@@ -35,14 +35,12 @@ public:
 
     static yl_gctype gctype;
 
-    static yl_stackref< yl_thunkobj > alloc( yl_thunk_function thunk );
+    explicit yl_thunkobj( yl_thunk_function thunk );
 
     yl_thunk_function thunk();
 
 
 private:
-
-    explicit yl_thunkobj( yl_thunk_function thunk );
 
     static void destroy( yl_gcheap* heap, yl_gcobject* object );
 
@@ -62,8 +60,9 @@ public:
 
     static yl_gctype gctype;
 
-    static yl_function  make_function( yl_funcobj* funcobj );
-    static yl_stackref< yl_funcobj > alloc( yl_program* program );
+    static yl_function make_function( yl_funcobj* funcobj );
+
+    static yl_rootref< yl_funcobj > alloc( yl_program* program );
 
     yl_program*         program();
     
@@ -72,6 +71,8 @@ public:
 
 
 private:
+
+    friend_yl_gcalloc;
 
     explicit yl_funcobj( yl_program* program );
 

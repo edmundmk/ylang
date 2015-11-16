@@ -78,7 +78,7 @@ public:
     yl_value( yl_null_t );
     yl_value( yl_bool_t );
     yl_value( double number );
-    yl_value( uint8_t kind, yl_gcobject* gcobject );
+    yl_value( yl_gcobject* gcobject );
 
     yl_objkind      kind() const;
 
@@ -200,7 +200,7 @@ public:
 
     static yl_gctype gctype;
 
-    static yl_stackref< yl_valarray > alloc( size_t size );
+    static yl_rootref< yl_valarray > alloc( size_t size );
     ~yl_valarray();
     
     size_t              size() const;
@@ -210,6 +210,7 @@ public:
 
 private:
 
+    friend_yl_gcalloc;
     explicit yl_valarray( size_t size );
     
     static void destroy( yl_gcheap* heap, yl_gcobject* object );
@@ -263,8 +264,8 @@ inline yl_value::yl_value( double number )
     assert( ! isnan( number ) || _value == POS_NAN || _value == NEG_NAN );
 }
 
-inline yl_value::yl_value( uint8_t kind, yl_gcobject* gcobject )
-    :   _value( VALUE_BOXED | (uint64_t)kind << 48 | (uint64_t)gcobject )
+inline yl_value::yl_value( yl_gcobject* gcobject )
+    :   _value( VALUE_BOXED | (uint64_t)gcobject->kind() << 48 | (uint64_t)gcobject )
 {
     assert( (uintptr_t)gcobject <= UINT64_C( 0x0000FFFFFFFFFFFF ) );
 }

@@ -54,53 +54,66 @@ yl_context_impl::yl_context_impl()
     ,   _globals( nullptr )
 {
     // Register GC types.
-    register_type( YLOBJ_OBJECT, &yl_object::gctype );
-//    register_type( YLOBJ_EXPOBJ, &yl_expobj::gctype );
-    register_type( YLOBJ_ARRAY, &yl_array::gctype );
-    register_type( YLOBJ_TABLE, &yl_table::gctype );
-    register_type( YLOBJ_STRING, &yl_string::gctype );
-    register_type( YLOBJ_FUNCOBJ, &yl_funcobj::gctype );
-    register_type( YLOBJ_THUNKOBJ, &yl_thunkobj::gctype );
-    register_type( YLOBJ_COTHREAD, &yl_cothread::gctype );
-    register_type( YLOBJ_PROGRAM, &yl_program::gctype );
-    register_type( YLOBJ_VALARRAY, &yl_valarray::gctype );
-    register_type( YLOBJ_BUCKETLIST, &yl_bucketlist::gctype );
-    register_type( YLOBJ_SLOT, &yl_slot::gctype );
-    register_type( YLOBJ_UPVAL, &yl_upval::gctype );
+    register_type( &yl_object::gctype );
+//    register_type( &yl_expobj::gctype );
+    register_type( &yl_array::gctype );
+    register_type( &yl_table::gctype );
+    register_type( &yl_string::gctype );
+    register_type( &yl_funcobj::gctype );
+    register_type( &yl_thunkobj::gctype );
+    register_type( &yl_cothread::gctype );
+    register_type( &yl_program::gctype );
+    register_type( &yl_valarray::gctype );
+    register_type( &yl_bucketlist::gctype );
+    register_type( &yl_slot::gctype );
+    register_type( &yl_upval::gctype );
 
     // Initialize context.
     yl_scope scope( this );
     
-    // Default cothread.
-    _cothread = yl_cothread::alloc().incref();
-    eager_lock( _cothread );
-    
     // Prototypes.
-    _root_klass     = yl_slot::alloc( nullptr ).incref();
-    _proto_object   = yl_object::alloc( nullptr ).incref();
-    _proto_array    = yl_array::make_prototype().incref();
-    _proto_table    = yl_table::make_prototype().incref();
-    _proto_bool     = yl_object::alloc( _proto_object ).incref();
-    _proto_number   = yl_object::alloc( _proto_object ).incref();
-    _proto_string   = yl_object::alloc( _proto_object ).incref();
-    _proto_function = yl_object::alloc( _proto_object ).incref();
-    _proto_cothread = yl_object::alloc( _proto_object ).incref();
+    _root_klass     = yl_gcnew< yl_slot >( nullptr );
+    _proto_object   = yl_gcnew< yl_object >( nullptr );
+    _proto_array    = yl_array::make_prototype();
+    _proto_table    = yl_table::make_prototype();
+    _proto_bool     = yl_gcnew< yl_object >( _proto_object.get() );
+    _proto_number   = yl_gcnew< yl_object >( _proto_object.get() );
+    _proto_string   = yl_gcnew< yl_object >( _proto_object.get() );
+    _proto_function = yl_gcnew< yl_object >( _proto_object.get() );
+    _proto_cothread = yl_gcnew< yl_object >( _proto_object.get() );
     
     // Globals.
-    _globals = yl_object::alloc( _proto_object ).incref();
-    set_global( "global", yl_value( YLOBJ_OBJECT, _globals ) );
-    set_global( "object", yl_value( YLOBJ_OBJECT, _proto_object ) );
-    set_global( "array", yl_value( YLOBJ_OBJECT, _proto_array ) );
-    set_global( "table", yl_value( YLOBJ_OBJECT, _proto_table ) );
-    set_global( "bool", yl_value( YLOBJ_OBJECT, _proto_bool ) );
-    set_global( "number", yl_value( YLOBJ_OBJECT, _proto_number ) );
-    set_global( "string", yl_value( YLOBJ_OBJECT, _proto_string ) );
-    set_global( "function", yl_value( YLOBJ_OBJECT, _proto_function ) );
-    set_global( "cothread", yl_value( YLOBJ_OBJECT, _proto_cothread ) );
+    _globals = yl_gcnew< yl_object >( _proto_object.get() );
+    _globals->set_key( "global", _globals.get() );
+    _globals->set_key( "object", _proto_object.get() );
+    _globals->set_key( "array", _proto_array.get() );
+    _globals->set_key( "table", _proto_table.get() );
+    _globals->set_key( "bool", _proto_bool.get() );
+    _globals->set_key( "number", _proto_number.get() );
+    _globals->set_key( "string", _proto_string.get() );
+    _globals->set_key( "function", _proto_function.get() );
+    _globals->set_key( "cothread", _proto_cothread.get() );
+
+    // Default cothread.
+    _cothread = yl_gcnew< yl_cothread >();
+    eager_lock( _cothread.get() );
+    
 }
 
 yl_context_impl::~yl_context_impl()
 {
+    yl_scope scope( this );
+    _root_klass.reset();
+    _proto_object.reset();
+    _proto_array.reset();
+    _proto_table.reset();
+    _proto_bool.reset();
+    _proto_number.reset();
+    _proto_string.reset();
+    _proto_function.reset();
+    _proto_cothread.reset();
+    _globals.reset();
+    _cothread.reset();
 }
 
 
@@ -108,23 +121,23 @@ yl_context_impl::~yl_context_impl()
 
 void yl_context_impl::set_cothread( yl_cothread* cothread )
 {
-    if ( cothread == _cothread )
+    if ( cothread == _cothread.get() )
         return;
     
     if ( _cothread )
     {
-        eager_unlock( _cothread );
+        eager_unlock( _cothread.get() );
     }
     _cothread = cothread;
     if ( _cothread )
     {
-        eager_lock( _cothread );
+        eager_lock( _cothread.get() );
     }
 }
 
 
 
-yl_stackref< yl_string > yl_context_impl::symbol( yl_string* string )
+yl_rootref< yl_string > yl_context_impl::symbol( yl_string* string )
 {
     weak_lock();
 
@@ -133,7 +146,7 @@ yl_stackref< yl_string > yl_context_impl::symbol( yl_string* string )
     auto i = _symbols.find( key );
     if ( i != _symbols.end() )
     {
-        yl_stackref< yl_string > result = weak_obtain( i->second );
+        yl_rootref< yl_string > result = weak_obtain( i->second );
         if ( result )
         {
             weak_unlock();
@@ -177,7 +190,7 @@ yl_object* yl_context_impl::superof( yl_value value )
   
     if ( value.is_number() )
     {
-        return _proto_number;
+        return _proto_number.get();
     }
     
     switch ( value.kind() )
@@ -189,18 +202,18 @@ yl_object* yl_context_impl::superof( yl_value value )
         return ( (yl_object*)value.gcobject() )->superof();
 
     case YLOBJ_STRING:
-        return _proto_string;
+        return _proto_string.get();
 
     case YLOBJ_FUNCOBJ:
     case YLOBJ_THUNKOBJ:
-        return _proto_function;
+        return _proto_function.get();
 
     case YLOBJ_COTHREAD:
-        return _proto_cothread;
+        return _proto_cothread.get();
 
     case YLOBJ_SINGULAR:
         if ( value.is_true() || value.is_false() )
-            return _proto_bool;
+            return _proto_bool.get();
         else
             return nullptr;
         
@@ -215,7 +228,7 @@ yl_slot* yl_context_impl::klassof( yl_object* prototype )
 {
     if ( ! prototype )
     {
-        return _root_klass;
+        return _root_klass.get();
     }
 
     yl_gcobject* klass = get_oolref( prototype );
@@ -225,13 +238,13 @@ yl_slot* yl_context_impl::klassof( yl_object* prototype )
         return (yl_slot*)klass;
     }
 
-    yl_stackref< yl_slot > new_klass = yl_slot::alloc( prototype );
+    yl_rootref< yl_slot > new_klass = yl_gcnew< yl_slot >( prototype );
     set_oolref( prototype, new_klass.get() );
     return new_klass.get();
 }
 
 
-yl_stackref< yl_object > yl_context_impl::new_object( yl_object* prototype )
+yl_rootref< yl_object > yl_context_impl::new_object( yl_object* prototype )
 {
     /*
         Any object with the array prototype in its prototype chain is an array.
@@ -243,12 +256,12 @@ yl_stackref< yl_object > yl_context_impl::new_object( yl_object* prototype )
     {
         assert( p->kind() >= YLOBJ_TABLE );
 
-        if ( p == _proto_array )
+        if ( p == _proto_array.get() )
         {
             kind = YLOBJ_ARRAY;
             break;
         }
-        if ( p == _proto_table )
+        if ( p == _proto_table.get() )
         {
             kind = YLOBJ_TABLE;
             break;
@@ -257,25 +270,18 @@ yl_stackref< yl_object > yl_context_impl::new_object( yl_object* prototype )
     
     if ( kind == YLOBJ_OBJECT )
     {
-        return yl_object::alloc( prototype );
+        return yl_gcnew< yl_object >( prototype );
     }
     else if ( kind == YLOBJ_ARRAY )
     {
-        return yl_array::alloc( prototype, 0 );
+        return yl_gcnew< yl_array>( prototype, 0 );
     }
     else if ( kind == YLOBJ_TABLE )
     {
-        return yl_table::alloc( prototype, 0 );
+        return yl_gcnew< yl_table >( prototype, 0 );
     }
     
     throw yl_exception( "invalid prototype object" );
-}
-
-
-void yl_context_impl::set_global( const char* name, yl_value value )
-{
-    yl_stackref< yl_string > key = yl_string::alloc( name )->symbol();
-    _globals->set_key( key.get(), value );
 }
 
 
@@ -286,8 +292,7 @@ void yl_context_impl::set_global( const char* name, yl_value value )
 
 void _yl_global_function( const char* name, yl_thunk_function thunk )
 {
-    yl_stackref< yl_thunkobj > thunkobj = yl_thunkobj::alloc( thunk );
-    yl_current->set_global( name, yl_value( YLOBJ_THUNKOBJ, thunkobj.get() ) );
+    yl_current->globals()->set_key( name, yl_gcnew< yl_thunkobj >( thunk ).get() );
 }
 
 

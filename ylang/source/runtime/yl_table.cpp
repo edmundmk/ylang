@@ -14,6 +14,8 @@
 
 yl_gctype yl_bucketlist::gctype =
 {
+    YLOBJ_BUCKETLIST,
+    YL_GCFLAG_NONE,
     "bucketlist",
     &yl_bucketlist::destroy,
     &yl_bucketlist::mark,
@@ -26,17 +28,15 @@ yl_bucketlist::bucket::bucket()
 {
 }
 
-yl_stackref< yl_bucketlist > yl_bucketlist::alloc( size_t size )
+yl_rootref< yl_bucketlist > yl_bucketlist::alloc( size_t size )
 {
-    size_t s = sizeof( yl_bucketlist ) + sizeof( bucket ) * size;
-    void* p = yl_current->allocate( s );
-    return new ( p ) yl_bucketlist( size );
+    size_t sz = sizeof( yl_bucketlist ) + sizeof( bucket ) * size;
+    return yl_gcalloc< yl_bucketlist >( sz, size );
 }
 
 
 yl_bucketlist::yl_bucketlist( size_t size )
-    :   yl_gcobject( YLOBJ_BUCKETLIST )
-    ,   _size( size )
+    :   _size( size )
 {
     for ( size_t i = 0; i < _size; ++i )
     {
@@ -91,6 +91,8 @@ yl_bucketlist::bucket& yl_bucketlist::at( size_t index )
 
 yl_gctype yl_table::gctype =
 {
+    YLOBJ_TABLE,
+    YL_GCFLAG_NONE,
     "table",
     &yl_table::destroy,
     &yl_table::mark,
@@ -98,28 +100,16 @@ yl_gctype yl_table::gctype =
 };
 
 
-yl_stackref< yl_table > yl_table::alloc( size_t capacity )
+yl_table::yl_table( size_t capacity )
+    :   yl_table( yl_current->proto_table(), capacity )
 {
-    return alloc( yl_current->proto_table(), capacity );
 }
-
-yl_stackref< yl_table > yl_table::alloc( yl_object* prototype, size_t capacity )
-{
-    void* p = yl_current->allocate( sizeof( yl_table ) );
-    return new ( p ) yl_table( prototype, capacity );
-}
-
 
 yl_table::yl_table( yl_object* prototype, size_t capacity )
-    :   yl_object( YLOBJ_TABLE, prototype )
+    :   yl_object( prototype )
     ,   _occupancy( 0 )
-    ,   _buckets( nullptr )
+    ,   _buckets( yl_bucketlist::alloc( capacity ).get() )
 {
-    if ( capacity )
-    {
-        yl_stackref< yl_table > self( this );
-        _buckets.set( yl_bucketlist::alloc( capacity ).get() );
-    }
 }
 
 void yl_table::destroy( yl_gcheap* heap, yl_gcobject* object )
@@ -130,6 +120,7 @@ void yl_table::destroy( yl_gcheap* heap, yl_gcobject* object )
 
 void yl_table::mark( yl_gcheap* heap, yl_gcobject* object )
 {
+    yl_object::mark( heap, object );
     yl_table* self = (yl_table*)object;
     self->_buckets.mark( heap );
 }
@@ -326,14 +317,10 @@ void yl_table::rehash( size_t capacity )
 
 
 
-yl_stackref< yl_object > yl_table::make_prototype()
+yl_rootref< yl_object > yl_table::make_prototype()
 {
-    yl_stackref< yl_object > proto = yl_object::alloc( yl_current->proto_object() );
-    proto->set_key
-    (
-        yl_string::alloc( "length" )->symbol().get(),
-        yl_value( YLOBJ_THUNKOBJ, yl_thunkobj::alloc( &thunk_length ).get() )
-    );
+    yl_rootref< yl_object > proto = yl_gcnew< yl_object >();
+    proto->set_key( "length", yl_gcnew< yl_thunkobj >( &thunk_length ).get() );
     return proto;
 }
 

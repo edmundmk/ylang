@@ -12,6 +12,8 @@
 
 yl_gctype yl_array::gctype =
 {
+    YLOBJ_ARRAY,
+    YL_GCFLAG_NONE,
     "array",
     &yl_array::destroy,
     &yl_array::mark,
@@ -19,29 +21,16 @@ yl_gctype yl_array::gctype =
 };
 
 
-yl_stackref< yl_array > yl_array::alloc( size_t capacity )
+yl_array::yl_array( size_t capacity )
+    :   yl_array( yl_current->proto_array(), capacity )
 {
-    return alloc( yl_current->proto_array(), capacity );
 }
-
-yl_stackref< yl_array > yl_array::alloc( yl_object* prototype, size_t capacity )
-{
-    void* p = yl_current->allocate( sizeof( yl_array ) );
-    return new ( p ) yl_array( yl_current->proto_array(), capacity );
-}
-
-
 
 yl_array::yl_array( yl_object* prototype, size_t capacity )
-    :   yl_object( YLOBJ_ARRAY, prototype )
-    ,   _elements( nullptr )
+    :   yl_object( prototype )
+    ,   _elements( capacity ? yl_valarray::alloc( capacity ).get() : nullptr )
     ,   _length( 0 )
 {
-    if ( capacity )
-    {
-        yl_stackref< yl_array > self( this );
-        _elements.set( yl_valarray::alloc( capacity ).get() );
-    }
 }
 
 void yl_array::destroy( yl_gcheap* heap, yl_gcobject* object )
@@ -52,6 +41,7 @@ void yl_array::destroy( yl_gcheap* heap, yl_gcobject* object )
 
 void yl_array::mark( yl_gcheap* heap, yl_gcobject* object )
 {
+    yl_object::mark( heap, object );
     yl_array* self = (yl_array*)object;
     self->_elements.mark( heap );
 }
@@ -68,7 +58,7 @@ void yl_array::reserve( size_t capacity )
         return;
     }
     
-    yl_stackref< yl_valarray > newelems = yl_valarray::alloc( capacity );
+    yl_rootref< yl_valarray > newelems = yl_valarray::alloc( capacity );
     assert( elements || _length == 0 );
     for ( size_t i = 0; i < _length; ++i )
     {
@@ -103,19 +93,11 @@ void yl_array::resize( size_t length )
 
 
 
-yl_stackref< yl_object > yl_array::make_prototype()
+yl_rootref< yl_object > yl_array::make_prototype()
 {
-    yl_stackref< yl_object > proto = yl_object::alloc( yl_current->proto_object() );
-    proto->set_key
-    (
-        yl_string::alloc( "length" )->symbol().get(),
-        yl_value( YLOBJ_THUNKOBJ, yl_thunkobj::alloc( &thunk_length ).get() )
-    );
-    proto->set_key
-    (
-        yl_string::alloc( "resize" )->symbol().get(),
-        yl_value( YLOBJ_THUNKOBJ, yl_thunkobj::alloc( &thunk_resize ).get() )
-    );
+    yl_rootref< yl_object > proto = yl_gcnew< yl_object >();
+    proto->set_key( "length", yl_gcnew< yl_thunkobj >( &thunk_length ).get() );
+    proto->set_key( "resize", yl_gcnew< yl_thunkobj >( &thunk_resize ).get() );
     return proto;
 }
 

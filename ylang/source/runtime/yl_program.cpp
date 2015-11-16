@@ -14,6 +14,8 @@
 
 yl_gctype yl_program::gctype =
 {
+    YLOBJ_PROGRAM,
+    YL_GCFLAG_NONE,
     "program",
     &yl_program::destroy,
     &yl_program::mark,
@@ -21,7 +23,7 @@ yl_gctype yl_program::gctype =
 };
 
 
-yl_stackref< yl_program > yl_program::alloc
+yl_rootref< yl_program > yl_program::alloc
 (
     size_t valcount,
     size_t opcount,
@@ -36,21 +38,19 @@ yl_stackref< yl_program > yl_program::alloc
     size += sizeof( yl_xframe ) * xfcount;
     size += sizeof( yl_debugvar ) * dvcount;
     size += sizeof( yl_debugspan ) * dscount;
-    void* p = yl_current->allocate( size );
-    return new ( p ) yl_program( valcount, opcount, xfcount, dvcount, dscount );
+    return yl_gcalloc< yl_program >( size, valcount, opcount, xfcount, dvcount, dscount );
 }
 
 
 yl_program::yl_program
 (
-    uint16_t    valcount,
-    size_t      opcount,
-    size_t      xfcount,
-    size_t      dvcount,
-    size_t      dscount
+    size_t valcount,
+    size_t opcount,
+    size_t xfcount,
+    size_t dvcount,
+    size_t dscount
 )
-    :   yl_gcobject( YLOBJ_PROGRAM )
-    ,   _valcount( valcount )
+    :   _valcount( valcount )
     ,   _opcount( opcount )
     ,   _xfcount( xfcount )
     ,   _dvcount( dvcount )

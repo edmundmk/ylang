@@ -34,20 +34,20 @@ public:
 
     static yl_gctype gctype;
 
-    static yl_stackref< yl_string > alloc( const char* string );
-    static yl_stackref< yl_string > alloc( const char* string, size_t size );
-
-    static yl_string*   concat( yl_string* a, yl_string* b );
+    static yl_rootref< yl_string > alloc( const char* string );
+    static yl_rootref< yl_string > alloc( const char* string, size_t size );
+    static yl_rootref< yl_string > concat( yl_string* a, yl_string* b );
     
-    yl_stackref< yl_string > symbol();
+    yl_rootref< yl_string > symbol();
     
-    hash32_t            hash() const;
-    size_t              size() const;
-    const char*         c_str() const;
+    hash32_t                hash() const;
+    size_t                  size() const;
+    const char*             c_str() const;
     
 
 private:
 
+    friend_yl_gcalloc;
     friend class yl_context_impl;
     friend class yl_symbol;
     
@@ -120,7 +120,7 @@ template <> struct hash< yl_symbol >
     yl_string
 */
 
-inline yl_stackref< yl_string > yl_string::symbol()
+inline yl_rootref< yl_string > yl_string::symbol()
 {
     if ( check_gcflags( SYMBOL ) )
     {

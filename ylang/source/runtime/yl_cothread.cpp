@@ -20,6 +20,8 @@
 
 yl_gctype yl_cothread::gctype =
 {
+    YLOBJ_COTHREAD,
+    YL_GCFLAG_NONE,
     "cothread",
     &yl_cothread::destroy,
     &yl_cothread::mark,
@@ -27,14 +29,7 @@ yl_gctype yl_cothread::gctype =
 };
 
 
-yl_stackref< yl_cothread > yl_cothread::alloc()
-{
-    void* p = yl_current->allocate( sizeof( yl_cothread ) );
-    return new ( p ) yl_cothread();
-}
-
 yl_cothread::yl_cothread()
-    :   yl_gcobject( YLOBJ_COTHREAD )
 {
 }
 

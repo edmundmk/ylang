@@ -19,6 +19,7 @@
 
 
 #include <stdint.h>
+#include <assert.h>
 #include <vector>
 #include <unordered_set>
 #include <unordered_map>
@@ -26,14 +27,13 @@
 #include <thread>
 #include <atomic>
 #include <seglist.h>
-#include <anyalias.h>
 
 
 class yl_gcheap;
 class yl_gcobject;
 struct yl_gctype;
 template < typename object_t > class yl_heapref;
-template < typename object_t > class yl_stackref;
+template < typename object_t > class yl_rootref;
 
 
 #ifdef __GNUC__
@@ -104,6 +104,7 @@ enum yl_gccolour : uint8_t
 
 enum yl_gcflags : uint8_t
 {
+    YL_GCFLAG_NONE      = 0,
     YL_GCFLAG_LEAF      = ( 1 << 0 ),
     YL_GCFLAG_OOLREF    = ( 1 << 1 ),
     YL_GCFLAG_WEAK      = ( 1 << 2 ),
@@ -135,6 +136,8 @@ struct yl_gcheader
 
 struct yl_gctype
 {
+    uint8_t kind;
+    uint8_t flags;
     const char* name;
     void (*destroy)( yl_gcheap* heap, yl_gcobject* object );
     void (*mark)( yl_gcheap* heap, yl_gcobject* object );
@@ -159,7 +162,7 @@ public:
         Register GC type.
     */
     
-    void register_type( uint8_t kind, yl_gctype* type );
+    void register_type( yl_gctype* type );
     
     
     /*
@@ -171,7 +174,15 @@ public:
         reachable.
     */
     
-    void* allocate( size_t size );
+    void* allocate( uint8_t kind, size_t size );
+    
+    
+    /*
+        Add and remove objects from the root set.
+    */
+    
+    void add_root( yl_gcobject* root );
+    void remove_root( yl_gcobject* root );
     
     
     /*
@@ -226,7 +237,7 @@ public:
     
     void weak_lock();
     template < typename object_t > object_t* weak_create( object_t* weak );
-    template < typename object_t > yl_stackref< object_t > weak_obtain( object_t* weak );
+    template < typename object_t > yl_rootref< object_t > weak_obtain( object_t* weak );
     void weak_unlock();
     
     
@@ -254,7 +265,7 @@ public:
     
     /*
         Call only from a mark routine.  References should be loaded atomically
-        using yl_gcmemory_order_mark.
+        using yl_memory_order_mark.
     */
     
     void mark( yl_gcobject* object );
@@ -263,9 +274,6 @@ public:
     
     
 private:
-
-    friend class yl_gcobject;
-    template < typename object_t > friend class yl_stackref;
 
     static const size_t COLLECT_THRESHOLD = 32 * 1024;
     
@@ -305,7 +313,6 @@ private:
     size_t                      _alloc_bytes;
     
     // Mutator state.
-    seglist< anypointer_t* >    _stackrefs;
     std::unordered_set< yl_gcobject* > _roots;
     
     // Out-of-line references.
@@ -341,6 +348,10 @@ private:
 };
 
 
+
+
+
+
 /*
     Base class for all GC objects.
 */
@@ -351,13 +362,10 @@ public:
 
     uint8_t kind() const;
 
-    void incref();
-    void decref();
-
+    void    incref();
+    void    decref();
 
 protected:
-
-    explicit yl_gcobject( uint8_t kind, uint8_t gcflags = 0 );
 
     void    set_gcflags( uint8_t flags ) const;
     void    clear_gcflags( uint8_t flags ) const;
@@ -371,6 +379,25 @@ private:
     yl_gcheader _gcheader;
 
 };
+
+
+
+
+/*
+    Allocations.
+*/
+
+template < typename object_t, typename ... arguments_t >
+yl_rootref< object_t > yl_gcnew( arguments_t&& ... arguments );
+
+template < typename object_t, typename ... arguments_t >
+yl_rootref< object_t > yl_gcalloc( size_t size, arguments_t&& ... arguments );
+
+#define friend_yl_gcalloc \
+    template < typename object_t, typename ... arguments_t > friend \
+        yl_rootref< object_t > yl_gcalloc( size_t size, arguments_t&& ... arguments );
+
+
 
 
 
@@ -405,25 +432,31 @@ private:
 
 
 /*
-    A reference to a GC object from the stack.
+    Other references to a GC object.
 */
 
 template < typename object_t >
-class yl_stackref
+class yl_rootref
 {
 public:
 
-    yl_stackref();
-    yl_stackref( object_t* p );
-    yl_stackref( const yl_stackref& p );
-    template < typename derived_t > yl_stackref( const yl_stackref< derived_t >& p );
-    ~yl_stackref();
+    static yl_rootref< object_t > wrap( object_t* p );
+
+    yl_rootref();
+    yl_rootref( object_t* p );
+    yl_rootref( const yl_rootref& p );
+    template < typename derived_t > yl_rootref( const yl_rootref< derived_t >& p );
+    yl_rootref& operator = ( object_t* p );
+    yl_rootref& operator = ( const yl_rootref& p );
+    template < typename derived_t > yl_rootref& operator = ( const yl_rootref< derived_t >& p );
+    ~yl_rootref();
     
     explicit operator bool () const;
     object_t* operator -> () const;
     object_t* get() const;
     
-    object_t* incref() const;
+    void reset( object_t* p = nullptr );
+    void swap( yl_rootref& p );
     
     
 private:
@@ -433,13 +466,6 @@ private:
 };
 
 
-
-/*
-    Allocate new GC objects.
-*/
-
-template < typename object_t, typename ... arguments_t >
-yl_stackref< object_t > yl_gcnew( arguments_t&& ... arguments );
 
 
 
@@ -484,12 +510,12 @@ inline object_t* yl_gcheap::weak_create( object_t* object )
 }
 
 template < typename object_t >
-inline yl_stackref< object_t > yl_gcheap::weak_obtain( object_t* object )
+inline yl_rootref< object_t > yl_gcheap::weak_obtain( object_t* object )
 {
     // Check if weak object can be resurrected.
     if ( weak_obtain_impl( object ) )
     {
-        return yl_stackref< object_t >( object );
+        return yl_rootref< object_t >::wrap( object );
     }
     else
     {
@@ -530,6 +556,31 @@ inline void yl_gcheap::eager_mark( yl_gcobject* object )
 
 
 /*
+    Allocations.
+*/
+
+template < typename object_t, typename ... arguments_t >
+yl_rootref< object_t > yl_gcnew( arguments_t&& ... arguments )
+{
+    return yl_gcalloc< object_t >( sizeof( object_t ), std::forward< arguments_t >( arguments ) ... );
+}
+
+
+template < typename object_t, typename ... arguments_t >
+yl_rootref< object_t > yl_gcalloc( size_t size, arguments_t&& ... arguments )
+{
+    static_assert( std::is_base_of< yl_gcobject, object_t >::value, "cannot allocate non-gcobject" );
+    assert( size >= sizeof( object_t ) );
+    uint8_t kind = object_t::gctype.kind;
+    void* p = yl_current_gcheap->allocate( kind, size );
+    object_t* o = new ( p ) object_t( std::forward< arguments_t >( arguments ) ... );
+    return yl_rootref< object_t >::wrap( o );
+}
+
+
+
+
+/*
     yl_gcobject
 */
 
@@ -538,6 +589,25 @@ inline uint8_t yl_gcobject::kind() const
     return _gcheader.kind;
 }
 
+inline void yl_gcobject::incref()
+{
+    assert( _gcheader.refcount < 0xFF );
+    _gcheader.refcount += 1;
+    if ( YL_UNLIKELY( _gcheader.refcount == 1 ) )
+    {
+        yl_current_gcheap->add_root( this );
+    }
+}
+
+inline void yl_gcobject::decref()
+{
+    assert( _gcheader.refcount > 0 );
+    _gcheader.refcount -= 1;
+    if ( YL_UNLIKELY( _gcheader.refcount == 0 ) )
+    {
+        yl_current_gcheap->remove_root( this );
+    }
+}
 
 inline void yl_gcobject::set_gcflags( uint8_t flags ) const
 {
@@ -599,83 +669,115 @@ inline void yl_heapref< object_t >::mark( yl_gcheap* heap ) const
 
 
 /*
-    yl_stackref
+    yl_rootref
 */
 
+
 template < typename object_t >
-inline yl_stackref< object_t >::yl_stackref()
+yl_rootref< object_t > yl_rootref< object_t >::wrap( object_t* p )
+{
+    yl_rootref< object_t > result;
+    result._p = p;
+    return result;
+}
+
+template < typename object_t >
+yl_rootref< object_t >::yl_rootref()
     :   _p( nullptr )
 {
-    yl_current_gcheap->_stackrefs.push_back( (anypointer_t*)&_p );
 }
 
 template < typename object_t >
-inline yl_stackref< object_t >::yl_stackref( object_t* p )
-    :   _p( p )
+yl_rootref< object_t >::yl_rootref( object_t* p )
+    :   _p( nullptr )
 {
-    yl_current_gcheap->_stackrefs.push_back( (anypointer_t*)&_p );
+    reset( p );
 }
 
 template < typename object_t >
-inline yl_stackref< object_t >::yl_stackref( const yl_stackref& p )
-    :   _p( p._p )
+yl_rootref< object_t >::yl_rootref( const yl_rootref& p )
+    :   _p( nullptr )
 {
-    yl_current_gcheap->_stackrefs.push_back( (anypointer_t*)&_p );
+    reset( p.get() );
 }
 
 template < typename object_t >
 template < typename derived_t >
-inline yl_stackref< object_t >::yl_stackref( const yl_stackref< derived_t >& p )
-    :   _p( p.get() )
+yl_rootref< object_t >::yl_rootref( const yl_rootref< derived_t >& p )
+    :   _p( nullptr )
 {
-    yl_current_gcheap->_stackrefs.push_back( (anypointer_t*)&_p );
+    reset( p.get() );
 }
 
 template < typename object_t >
-inline yl_stackref< object_t >::~yl_stackref()
+yl_rootref< object_t >& yl_rootref< object_t >::operator = ( object_t* p )
 {
-    anypointer_t* pp = yl_current_gcheap->_stackrefs.back();
-    yl_current_gcheap->_stackrefs.pop_back();
-    
-    /*
-        In the case where a return value is copied from a local variable the
-        perfect stack order of constructors/destructors may be broken - the
-        return value is constructed before the local variables are destroyed.
-    */
-    if ( YL_UNLIKELY( pp != (anypointer_t*)&_p ) )
-    {
-        anypointer_t* qq = yl_current_gcheap->_stackrefs.back();
-        yl_current_gcheap->_stackrefs.pop_back();
-        assert( qq == (anypointer_t*)&_p );
-        yl_current_gcheap->_stackrefs.push_back( pp );
-    }
+    reset( p );
+    return *this;
+}
+
+template < typename object_t >
+yl_rootref< object_t >& yl_rootref< object_t >::operator = ( const yl_rootref& p )
+{
+    reset( p.get() );
+    return *this;
+}
+
+template < typename object_t >
+template < typename derived_t >
+yl_rootref< object_t >& yl_rootref< object_t >::operator = ( const yl_rootref< derived_t >& p )
+{
+    reset( p.get() );
+    return *this;
+}
+
+template < typename object_t >
+yl_rootref< object_t >::~yl_rootref()
+{
+    reset( nullptr );
 }
 
 
 template < typename object_t >
-inline yl_stackref< object_t >::operator bool () const
+yl_rootref< object_t >::operator bool () const
 {
     return _p != nullptr;
 }
 
 template < typename object_t >
-object_t* yl_stackref< object_t >::operator -> () const
+object_t* yl_rootref< object_t >::operator -> () const
 {
     return _p;
 }
 
 template < typename object_t >
-object_t* yl_stackref< object_t >::get() const
+object_t* yl_rootref< object_t >::get() const
 {
     return _p;
 }
 
+
 template < typename object_t >
-object_t* yl_stackref< object_t >::incref() const
+void yl_rootref< object_t >::reset( object_t* p )
 {
-    _p->incref();
-    return _p;
+    if ( _p )
+    {
+        _p->decref();
+    }
+    _p = p;
+    if ( _p )
+    {
+        _p->incref();
+    }
 }
+
+template < typename object_t >
+void yl_rootref< object_t >::swap( yl_rootref& p )
+{
+    std::swap( _p, p._p );
+}
+
+
 
 
 

@@ -47,8 +47,8 @@ void yl_callframe::push_bool( bool value )
 void yl_callframe::push( const char* value )
 {
     assert( _base + _size == _cothread->get_top() );
-    yl_stackref< yl_string > string = yl_string::alloc( value );
-    _cothread->_stack.push_back( yl_value( YLOBJ_STRING, string.get() ) );
+    yl_rootref< yl_string > string = yl_string::alloc( value );
+    _cothread->_stack.push_back( yl_value( string.get() ) );
     _size += 1;
 }
 
@@ -67,7 +67,7 @@ void yl_callframe::push( yl_expose* value )
 void yl_callframe::push( const yl_function& function )
 {
     assert( _base + _size == _cothread->get_top() );
-    yl_value value = yl_value( function._function->kind(), function._function );
+    yl_value value = yl_value( function._function );
     _cothread->_stack.push_back( value );
     _size += 1;
 }

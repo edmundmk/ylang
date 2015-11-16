@@ -23,10 +23,10 @@ public:
 
     static yl_gctype gctype;
 
-    static yl_stackref< yl_object > make_prototype();
+    static yl_rootref< yl_object > make_prototype();
 
-    static yl_stackref< yl_array > alloc( size_t capacity );
-    static yl_stackref< yl_array > alloc( yl_object* prototype, size_t capacity );
+    explicit yl_array( size_t capacity );
+    yl_array( yl_object* prototype, size_t capacity );
 
     size_t      length() const;
 
@@ -38,11 +38,6 @@ public:
 
     void        reserve( size_t capacity );
     void        resize( size_t length );
-
-
-protected:
-
-    yl_array( yl_object* prototype, size_t capacity );
 
 
 private:

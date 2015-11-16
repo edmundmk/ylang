@@ -12,6 +12,8 @@
 
 yl_gctype yl_upval::gctype =
 {
+    YLOBJ_UPVAL,
+    YL_GCFLAG_NONE,
     "upval",
     &yl_upval::destroy,
     &yl_upval::mark,
@@ -19,16 +21,10 @@ yl_gctype yl_upval::gctype =
 };
 
 
-yl_stackref< yl_upval > yl_upval::alloc( unsigned index )
-{
-    void* p = yl_current->allocate( sizeof( yl_upval ) );
-    return new ( p ) yl_upval( index );
-}
-
 yl_upval::yl_upval( unsigned index )
-    :   yl_gcobject( YLOBJ_UPVAL, OPEN )
-    ,   _index( index )
+    :   _index( index )
 {
+    set_gcflags( OPEN );
 }
 
 void yl_upval::destroy( yl_gcheap* heap, yl_gcobject* object )

@@ -11,6 +11,8 @@
 
 yl_gctype yl_valarray::gctype =
 {
+    YLOBJ_VALARRAY,
+    YL_GCFLAG_NONE,
     "valarray",
     &yl_valarray::destroy,
     &yl_valarray::mark,
@@ -18,17 +20,15 @@ yl_gctype yl_valarray::gctype =
 };
 
 
-yl_stackref< yl_valarray > yl_valarray::alloc( size_t size )
+yl_rootref< yl_valarray > yl_valarray::alloc( size_t size )
 {
-    size_t s = sizeof( yl_valarray ) + sizeof( yl_valref ) * size;
-    void* p = yl_current->allocate( s );
-    return new ( p ) yl_valarray( size );
+    size_t sz = sizeof( yl_valarray ) + sizeof( yl_valref ) * size;
+    return yl_gcalloc< yl_valarray >( sz, size );
 }
 
 
 yl_valarray::yl_valarray( size_t size )
-    :   yl_gcobject( YLOBJ_VALARRAY )
-    ,   _size( size )
+    :   _size( size )
 {
     for ( size_t i = 0; i < _size; ++i )
     {

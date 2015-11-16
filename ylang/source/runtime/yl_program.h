@@ -26,7 +26,7 @@ public:
 
     static yl_gctype gctype;
 
-    static yl_stackref< yl_program > alloc
+    static yl_rootref< yl_program > alloc
     (
         size_t valcount,
         size_t opcount,
@@ -34,7 +34,6 @@ public:
         size_t dvcount,
         size_t dscount
     );
-    ~yl_program();
     
     void                    print();
     const char*             name();
@@ -57,17 +56,20 @@ public:
 
 private:
 
+    friend_yl_gcalloc;
     friend class ygen_emit;
     
     yl_program
     (
-        uint16_t    valcount,
-        size_t      opcount,
-        size_t      xfcount,
-        size_t      dvcount,
-        size_t      dscount
+        size_t valcount,
+        size_t opcount,
+        size_t xfcount,
+        size_t dvcount,
+        size_t dscount
     );
-    
+
+    ~yl_program();
+
     static void destroy( yl_gcheap* heap, yl_gcobject* object );
     static void mark( yl_gcheap* heap, yl_gcobject* object );
 

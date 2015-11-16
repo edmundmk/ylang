@@ -93,7 +93,7 @@ public:
 
     // Object model.
 
-    yl_stackref< yl_string >    symbol( yl_string* symbol );
+    yl_rootref< yl_string >     symbol( yl_string* symbol );
     void                        destroy_symbol( yl_string* symbol );
     
     yl_object*                  superof( yl_value value );
@@ -103,33 +103,33 @@ public:
     yl_object*                  proto_array();
     yl_object*                  proto_table();
 
-    yl_stackref< yl_object >    new_object( yl_object* prototype );
+    yl_rootref< yl_object >     new_object( yl_object* prototype );
 
 
     // Global table.
 
     yl_object*                  globals();
-    void                        set_global( const char* name, yl_value value );
 
 
 private:
 
+    typedef std::unordered_map< symkey, yl_string* > symbol_map;
 
-    yl_cothread*    _cothread;
-    
-    std::unordered_map< symkey, yl_string* > _symbols;
-    
-    yl_slot*        _root_klass;
-    yl_object*      _proto_object;
-    yl_object*      _proto_array;
-    yl_object*      _proto_table;
-    yl_object*      _proto_bool;
-    yl_object*      _proto_number;
-    yl_object*      _proto_string;
-    yl_object*      _proto_function;
-    yl_object*      _proto_cothread;
-    yl_object*      _globals;
+    symbol_map                  _symbols;
 
+    yl_rootref< yl_slot >       _root_klass;
+    yl_rootref< yl_object >     _proto_object;
+    yl_rootref< yl_object >     _proto_array;
+    yl_rootref< yl_object >     _proto_table;
+    yl_rootref< yl_object >     _proto_bool;
+    yl_rootref< yl_object >     _proto_number;
+    yl_rootref< yl_object >     _proto_string;
+    yl_rootref< yl_object >     _proto_function;
+    yl_rootref< yl_object >     _proto_cothread;
+    yl_rootref< yl_object >     _globals;
+
+    yl_rootref< yl_cothread >   _cothread;
+    
 };
 
 
@@ -144,28 +144,28 @@ private:
 
 inline yl_cothread* yl_context_impl::get_cothread() const
 {
-    return _cothread;
+    return _cothread.get();
 }
 
 
 inline yl_object* yl_context_impl::proto_object()
 {
-    return _proto_object;
+    return _proto_object.get();
 }
 
 inline yl_object* yl_context_impl::proto_array()
 {
-    return _proto_array;
+    return _proto_array.get();
 }
 
 inline yl_object* yl_context_impl::proto_table()
 {
-    return _proto_table;
+    return _proto_table.get();
 }
 
 inline yl_object* yl_context_impl::globals()
 {
-    return _globals;
+    return _globals.get();
 }
 
 

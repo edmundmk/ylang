@@ -159,7 +159,7 @@ void yl_iterator::next1( yl_value* r )
     {
     case YLITER_KEYS:
     {
-        *r = yl_value( YLOBJ_STRING, _slot->_symbol.get() );
+        *r = _slot->_symbol.get();
         break;
     }
         
@@ -200,7 +200,7 @@ void yl_iterator::next2( yl_value* r, yl_value* b )
     {
     case YLITER_KEYS:
     {
-        *r = yl_value( YLOBJ_STRING, _slot->_symbol.get() );
+        *r = _slot->_symbol.get();
         *b = _object->_slots.get()->at( _slot->_index ).get();
         assert( _slot->_index != yl_slot::EMPTY_KLASS );
         _slot = (yl_slot*)_slot->_parent.get();
@@ -252,7 +252,7 @@ yl_iternext yl_iterator::next( yl_value vspace[ 2 ] )
     {
     case YLITER_KEYS:
     {
-        next.values[ 0 ] = yl_value( YLOBJ_STRING, _slot->_symbol.get() );
+        next.values[ 0 ] = _slot->_symbol.get();
         next.values[ 1 ] = _object->_slots.get()->at( _slot->_index ).get();
         next.vcount = 2;
         assert( _slot->_index != yl_slot::EMPTY_KLASS );

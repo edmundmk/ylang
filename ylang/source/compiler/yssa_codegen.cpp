@@ -67,10 +67,9 @@ struct ygen_module
 struct ygen_program
 {
     explicit ygen_program( yssa_function* ssafunc );
-    ~ygen_program();
 
     yssa_function*              ssafunc;
-    yl_program*                 program;
+    yl_rootref< yl_program >    program;
 
     std::vector< ygen_value >   values;
     std::vector< yl_opinst >    ops;
@@ -96,22 +95,12 @@ ygen_program::ygen_program( yssa_function* ssafunc )
 {
 }
 
-ygen_program::~ygen_program()
-{
-    if ( program )
-    {
-        program->decref();
-    }
-}
-
-
 
 struct ygen_string
 {
     ygen_string( const char* text, size_t size );
-    ~ygen_string();
 
-    yl_string*                  string;
+    yl_rootref< yl_string >     string;
 
     const char*                 text;
     size_t                      size;
@@ -127,13 +116,6 @@ ygen_string::ygen_string( const char* text, size_t size )
 {
 }
 
-ygen_string::~ygen_string()
-{
-    if ( string )
-    {
-        string->decref();
-    }
-}
 
 
 
@@ -349,8 +331,8 @@ yl_function yssa_codegen( yssa_module* module )
 
     // Create invoke.
     yssa_function* ssafunc = module->functions.at( 0 ).get();
-    yl_program* program = m.programs.at( ssafunc )->program;
-    yl_stackref< yl_funcobj > funcobj = yl_funcobj::alloc( program );
+    yl_rootref< yl_program > program = m.programs.at( ssafunc )->program;
+    yl_rootref< yl_funcobj > funcobj = yl_funcobj::alloc( program.get() );
     return yl_funcobj::make_function( funcobj.get() );
 }
 
@@ -1273,15 +1255,14 @@ void ygen_emit::make_string( ygen_string* s )
     if ( s->string )
         return;
     
-    yl_stackref< yl_string > string =
-            yl_string::alloc( s->text, s->size );
+    yl_rootref< yl_string > string = yl_string::alloc( s->text, s->size );
     if ( s->iskey )
     {
-        s->string = string->symbol().incref();
+        s->string = string->symbol();
     }
     else
     {
-        s->string = string.incref();
+        s->string = string;
     }
 }
 
@@ -1291,7 +1272,7 @@ void ygen_emit::make_program( ygen_program* p )
     if ( p->program )
         return;
     
-    yl_stackref< yl_program > program = yl_program::alloc
+    p->program = yl_program::alloc
     (
         p->values.size(),
         p->ops.size(),
@@ -1300,7 +1281,6 @@ void ygen_emit::make_program( ygen_program* p )
         p->debugspans.size()
     );
     
-    p->program = program.incref();
     p->program->_upcount    = p->ssafunc->upcount;
     p->program->_paramcount = p->ssafunc->paramcount;
     p->program->_stackcount = p->stackcount;
@@ -1324,13 +1304,13 @@ void ygen_emit::emit( ygen_program* p )
         {
         case YGEN_KEY:
         case YGEN_STRING:
-            values[ i ].set( yl_value( YLOBJ_STRING, value.string->string ) );
+            values[ i ].set( value.string->string.get() );
             break;
         case YGEN_NUMBER:
             values[ i ].set( value.number );
             break;
         case YGEN_PROGRAM:
-            values[ i ].set( yl_value( YLOBJ_PROGRAM, value.program->program ) );
+            values[ i ].set( value.program->program.get() );
             break;
         }
     }

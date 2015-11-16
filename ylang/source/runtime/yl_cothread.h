@@ -82,7 +82,7 @@ public:
 
     static yl_gctype gctype;
 
-    static yl_stackref< yl_cothread > alloc();
+    yl_cothread();
 
     void            push_frame( const yl_stackframe& frame );
     yl_stackframe   pop_frame();
@@ -104,8 +104,6 @@ public:
 
 
 protected:
-
-    yl_cothread();
 
     static void destroy( yl_gcheap* heap, yl_gcobject* object );
     static void mark( yl_gcheap* heap, yl_gcobject* object );
@@ -166,7 +164,7 @@ inline yl_value* yl_cothread::stack_peek( size_t base, unsigned size )
 inline yl_value* yl_cothread::stack_mark( size_t base, unsigned mark, unsigned size )
 {
     _stack.resize( base + std::max( mark, size ) );
-    _mark = mark;
+    _mark = (unsigned)base + mark;
     return _stack.data() + base;
 }
 

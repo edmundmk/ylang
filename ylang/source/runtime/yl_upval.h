@@ -26,8 +26,8 @@ public:
 
     static yl_gctype gctype;
 
-    static yl_stackref< yl_upval > alloc( unsigned index );
-
+    explicit yl_upval( unsigned index );
+    
     void        close( yl_cothread* cothread );
 
     yl_value    get_value( yl_cothread* cothread ) const;
@@ -40,8 +40,6 @@ private:
         OPEN = YL_GCFLAG_USER1,
     };
 
-    explicit yl_upval( unsigned index );
-    
     static void destroy( yl_gcheap* heap, yl_gcobject* object );
     static void mark( yl_gcheap* heap, yl_gcobject* object );
 

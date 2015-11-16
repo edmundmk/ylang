@@ -131,12 +131,8 @@ class yl_function
 public:
 
     yl_function();
-    yl_function( std::nullptr_t );
-    yl_function& operator = ( std::nullptr_t );
     yl_function( const yl_function& p );
     yl_function& operator = ( const yl_function& p );
-    yl_function( yl_function&& p );
-    yl_function& operator = ( yl_function&& p );
     ~yl_function();
     
     explicit operator bool () const;
@@ -148,9 +144,7 @@ private:
     friend class yl_callframe;
 
     explicit yl_function( yl_gcobject* function );
-
-    void acquire();
-    void release();
+    void reset( yl_gcobject* p );
 
     yl_gcobject* _function;
 
@@ -302,58 +296,26 @@ inline yl_function yl_compile( const char* path, arguments_t ... arguments )
 
 
 
-inline yl_function::yl_function( yl_gcobject* function )
-    :   _function( function )
-{
-    acquire();
-}
-
 inline yl_function::yl_function()
     :   _function( nullptr )
 {
 }
 
-inline yl_function::yl_function( std::nullptr_t )
+inline yl_function::yl_function( const yl_function& p )
     :   _function( nullptr )
 {
-}
-
-inline yl_function& yl_function::operator = ( std::nullptr_t )
-{
-    release();
-    return *this;
-}
-
-inline yl_function::yl_function( const yl_function& p )
-    :   _function( p._function )
-{
-    acquire();
+    reset( p._function );
 }
 
 inline yl_function& yl_function::operator = ( const yl_function& p )
 {
-    release();
-    _function = p._function;
-    acquire();
-    return *this;
-}
-
-inline yl_function::yl_function( yl_function&& p )
-{
-    _function = p._function;
-    p._function = nullptr;
-}
-
-inline yl_function& yl_function::operator = ( yl_function&& p )
-{
-    std::swap( _function, p._function );
-    p.release();
+    reset( p._function );
     return *this;
 }
 
 inline yl_function::~yl_function()
 {
-    release();
+    reset( nullptr );
 }
 
 inline yl_function::operator bool () const

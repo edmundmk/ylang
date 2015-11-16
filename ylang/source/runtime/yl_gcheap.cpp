@@ -11,7 +11,7 @@
 
 
 #define GC_DEBUG_REPORT 1
-#define GC_DEBUG_SCRIBBLE 0
+#define GC_DEBUG_SCRIBBLE 1
 #define GC_DEBUG_COLLECT_EVERY_TIME 0
 
 
@@ -46,18 +46,22 @@ yl_gcheap::~yl_gcheap()
 
 
 
-void yl_gcheap::register_type( uint8_t kind, yl_gctype* type )
+void yl_gcheap::register_type( yl_gctype* type )
 {
     collect_wait();
-    size_t index = yl_kind_to_index( kind );
+    size_t index = yl_kind_to_index( type->kind );
     if ( _types.size() <= index )
+    {
         _types.resize( index + 1 );
+    }
     _types[ index ] = type;
 }
 
 
-void* yl_gcheap::allocate( size_t size )
+void* yl_gcheap::allocate( uint8_t kind, size_t size )
 {
+    assert( size >= sizeof( yl_gcheader ) );
+
     // Count how many bytes are allocated and kick off collections.  Must
     // collect before we colour the new object, as collecting will change
     // the object colours.
@@ -85,8 +89,8 @@ void* yl_gcheap::allocate( size_t size )
     yl_gcheader* gcheader = (yl_gcheader*)p;
     gcheader->colour.store( _marked, std::memory_order_relaxed );
     gcheader->gcflags.store( 0, std::memory_order_relaxed );
-    gcheader->kind      = 0;
-    gcheader->refcount  = 0;
+    gcheader->kind      = kind;
+    gcheader->refcount  = 1;
     
     // Link it into the alloc list.
     if ( next )
@@ -105,11 +109,30 @@ void* yl_gcheap::allocate( size_t size )
         _alloc_list.store( gcheader, std::memory_order_release );
     }
     
+    // Clear rest of object.
+    memset( gcheader + 1, 0, size - sizeof( yl_gcheader ) );
+    
+    // Add to roots.
+    _roots.insert( (yl_gcobject*)p );
+    
     // Extra release fence to ensure that colouring of the new object
     // is visible to the mark thread before any reference to it.
     std::atomic_thread_fence( std::memory_order_release );
     
     return p;
+}
+
+
+void yl_gcheap::add_root( yl_gcobject* root )
+{
+    auto i = _roots.insert( root );
+    assert( i.second );
+}
+
+void yl_gcheap::remove_root( yl_gcobject* root )
+{
+    size_t count = _roots.erase( root );
+    assert( count );
 }
 
 
@@ -126,16 +149,9 @@ bool yl_gcheap::collect()
     printf( "GC : collect()\n" );
     printf( "    unmarked   : %d\n", _unmarked );
     printf( "    marked     : %d\n", _marked );
-    printf( "    stackrefs  : %zu\n", _stackrefs.size() );
     printf( "    roots      : %zu\n", _roots.size() );
     printf( "    eager      : %zu\n", _eager.size() );
 #endif
-    
-    // Mark stack references.
-    for ( const auto& stackref : _stackrefs )
-    {
-        mark( (yl_gcobject*)( *stackref ) );
-    }
     
     // Mark roots.
     for ( const auto& root : _roots )
@@ -350,37 +366,46 @@ bool yl_gcheap::weak_obtain_impl( yl_gcobject* object )
     // Check colour.
     yl_gcheader* gcheader = &object->_gcheader;
     yl_gccolour colour = gcheader->colour.load( std::memory_order_relaxed );
-    if ( YL_LIKELY( colour != _unmarked ) )
-        return true;
-
-
-    /*
-        Resurrecting objects is not simple, because by resurrecting an object
-        you not only make it live, but also all the objects it references
-        must be made live as well.  Once the mark phase is over and sweeping
-        has begun, any non-leaf unmarked weak objects are on death row and can
-        no longer be resurrected.
-    */
-    
-    std::lock_guard< std::mutex > lock( _grey_mutex );
-
-    if ( ! object->check_gcflags( YL_GCFLAG_LEAF ) )
+    if ( YL_UNLIKELY( colour == _unmarked ) )
     {
-        if ( _can_resurrect )
+        
+        /*
+            Resurrecting objects is not simple, because by resurrecting an object
+            you not only make it live, but also all the objects it references
+            must be made live as well.  Once the mark phase is over and sweeping
+            has begun, any non-leaf unmarked weak objects are on death row and can
+            no longer be resurrected.
+        */
+        
+        std::lock_guard< std::mutex > lock( _grey_mutex );
+    
+        if ( YL_UNLIKELY( object->check_gcflags( YL_GCFLAG_LEAF ) ) )
         {
+            // Leaf objects can always be resurrected.
+            gcheader->colour.store( _marked, std::memory_order_relaxed );
+        }
+        else
+        {
+            // Check if its too late to ressurect this object.
+            if ( ! _can_resurrect )
+            {
+                return false;
+            }
+
+            // Mark object grey so that its children are marked.
             gcheader->colour.store( YL_GCCOLOUR_GREY, std::memory_order_relaxed );
             _grey_list.push_back( object );
-            return true;
-        }
+        }        
     }
-    else
+    
+    // Obtain root reference to object.    
+    gcheader->refcount += 1;
+    if ( YL_UNLIKELY( gcheader->refcount == 1 ) )
     {
-        // Leaf objects can always be resurrected.
-        gcheader->colour.store( _marked, std::memory_order_relaxed );
-        return true;
+        add_root( object );
     }
-
-    return false;
+    
+    return true;
 }
 
 
@@ -669,38 +694,6 @@ void yl_gcheap::collect_sweep()
 }
 
 
-
-
-yl_gcobject::yl_gcobject( uint8_t kind, uint8_t gcflags )
-{
-    assert( _gcheader.colour.load( std::memory_order_relaxed ) == yl_current_gcheap->_marked );
-    assert( _gcheader.gcflags.load( std::memory_order_relaxed ) == 0 );
-    assert( _gcheader.kind == 0 );
-    assert( _gcheader.refcount == 0 );
-    
-    _gcheader.gcflags.store( gcflags, std::memory_order_relaxed );
-    _gcheader.kind = kind;
-}
-
-void yl_gcobject::incref()
-{
-    assert( _gcheader.refcount < 0xFF );
-    _gcheader.refcount += 1;
-    if ( _gcheader.refcount == 1 )
-    {
-        yl_current_gcheap->_roots.insert( this );
-    }
-}
-
-void yl_gcobject::decref()
-{
-    assert( _gcheader.refcount > 0 );
-    _gcheader.refcount -= 1;
-    if ( _gcheader.refcount == 0 )
-    {
-        yl_current_gcheap->_roots.erase( this );
-    }
-}
 
 
 

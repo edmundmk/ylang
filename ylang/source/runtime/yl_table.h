@@ -34,7 +34,7 @@ public:
     };
 
 
-    static yl_stackref< yl_bucketlist > alloc( size_t size );
+    static yl_rootref< yl_bucketlist > alloc( size_t size );
     ~yl_bucketlist();
     
     size_t          size() const;
@@ -44,6 +44,7 @@ public:
     
 private:
 
+    friend_yl_gcalloc;
     explicit yl_bucketlist( size_t size );
     
     static void destroy( yl_gcheap* heap, yl_gcobject* object );
@@ -74,22 +75,15 @@ public:
 
     static yl_gctype gctype;
 
-    typedef yl_bucketlist::bucket bucket;
+    static yl_rootref< yl_object > make_prototype();
 
-    static yl_stackref< yl_object > make_prototype();
-
-    static yl_stackref< yl_table > alloc( size_t capacity );
-    static yl_stackref< yl_table > alloc( yl_object* prototype, size_t capacity );
+    explicit yl_table( size_t capacity );
+    yl_table( yl_object* prototype, size_t capacity );
 
     size_t      length() const;
 
     yl_value    get_index( yl_value key ) const;
     void        set_index( yl_value key, yl_value value );
-
-
-protected:
-
-    yl_table( yl_object* prototype, size_t capacity );
 
 
 private:
@@ -98,6 +92,8 @@ private:
     
     static void destroy( yl_gcheap* heap, yl_gcobject* object );
     static void mark( yl_gcheap* heap, yl_gcobject* object );
+
+    typedef yl_bucketlist::bucket bucket;
 
     bucket* lookup( yl_value key ) const;
     bucket* main_position( yl_value key ) const;

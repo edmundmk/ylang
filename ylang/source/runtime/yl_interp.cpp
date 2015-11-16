@@ -412,7 +412,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         yl_string* sa = cast_string( s[ a ] );
         yl_string* sb = cast_string( s[ b ] );
-        s[ r ] = yl_value( YLOBJ_STRING, yl_string::concat( sa, sb ) );
+        s[ r ] = yl_string::concat( sa, sb ).get();
         break;
     }
     
@@ -582,7 +582,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         yl_program* program = (yl_program*)value.gcobject();
         
         // Create funcobj.
-        yl_stackref< yl_funcobj > funcobj = yl_funcobj::alloc( program );
+        yl_rootref< yl_funcobj > funcobj = yl_funcobj::alloc( program );
 
         // Add upvals.
         for ( size_t i = 0; i < program->upcount(); ++i )
@@ -601,7 +601,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
                 yl_upval*& locup = t->locup( locup_base, a );
                 if ( ! locup )
                 {
-                    locup = yl_upval::alloc( fp + b ).get();
+                    locup = yl_gcnew< yl_upval >( fp + b ).get();
                 }
                 funcobj->set_upval( r, locup );
                 break;
@@ -621,7 +621,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             }
         }
         
-        s[ r ] = yl_value( YLOBJ_FUNCOBJ, funcobj.get() );
+        s[ r ] = funcobj.get();
         break;
     }
     
@@ -897,20 +897,19 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         {
             prototype = yl_current->proto_object();
         }
-        yl_stackref< yl_object > object = yl_current->new_object( prototype );
-        s[ r ] = yl_value( object->kind(), object.get() );
+        s[ r ] = yl_current->new_object( prototype ).get();
         break;
     }
     
     case YL_ARRAY:
     {
-        s[ r ] = yl_value( YLOBJ_ARRAY, yl_array::alloc( c ).get() );
+        s[ r ] = yl_gcnew< yl_array >( c ).get();
         break;
     }
     
     case YL_TABLE:
     {
-        s[ r ] = yl_value( YLOBJ_TABLE, yl_table::alloc( c ).get() );
+        s[ r ] = yl_gcnew< yl_table >( c ).get();
         break;
     }
     
@@ -918,7 +917,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         yl_object* object = superof( s[ a ] );
         if ( object )
-            s[ r ] = yl_value( object->kind(), object );
+            s[ r ] = object;
         else
             s[ r ] = yl_null;
         break;
