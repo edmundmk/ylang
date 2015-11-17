@@ -81,6 +81,7 @@ struct ygen_program
     std::unordered_map< double, size_t > numvals;
     std::unordered_map< yssa_function*, size_t > funvals;
     
+    size_t                      ilcount;
     size_t                      stackcount;
     size_t                      localupcount;
     size_t                      itercount;
@@ -89,6 +90,7 @@ struct ygen_program
 ygen_program::ygen_program( yssa_function* ssafunc )
     :   ssafunc( ssafunc )
     ,   program( nullptr )
+    ,   ilcount( 0 )
     ,   stackcount( 0 )
     ,   localupcount( 0 )
     ,   itercount( 0 )
@@ -910,6 +912,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         {
             unsigned b = (unsigned)p->strvals.at( op->key );
             p->ops.emplace_back( YL_GLOBAL, op->r, 0, b );
+            p->ops.emplace_back( YL_ILCACHE, 0, (unsigned)( p->ilcount++ ) );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
         return 1;
@@ -921,6 +924,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         unsigned r = operand( op, 0 );
         unsigned b = (unsigned)p->strvals.at( op->key );
         p->ops.emplace_back( YL_SETGLOBAL, r, 0, b );
+        p->ops.emplace_back( YL_ILCACHE, 0, (unsigned)( p->ilcount++ ) );
         return 1;
     }
 
@@ -1102,6 +1106,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         {
             unsigned b = (unsigned)p->strvals.at( op->key );
             p->ops.emplace_back( YL_KEY, op->r, operand( op, 0 ), b );
+            p->ops.emplace_back( YL_ILCACHE, 0, (unsigned)( p->ilcount++ ) );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
         return 1;
@@ -1113,6 +1118,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         unsigned a = operand( op, 1 );
         unsigned b = (unsigned)p->strvals.at( op->key );
         p->ops.emplace_back( YL_SETKEY, r, a, b );
+        p->ops.emplace_back( YL_ILCACHE, 0, (unsigned)( p->ilcount++ ) );
         return 1;
     }
     
@@ -1276,6 +1282,7 @@ void ygen_emit::make_program( ygen_program* p )
     (
         p->values.size(),
         p->ops.size(),
+        p->ilcount,
         p->xframes.size(),
         p->debugvars.size(),
         p->debugspans.size()

@@ -224,8 +224,9 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     yl_funcobj*         f       = ffp.first;
     unsigned            fp      = ffp.second;
     yl_program*         p       = f->program();
-    const yl_heapval*    values  = p->values();
+    const yl_heapval*   values  = p->values();
     const yl_opinst*    ops     = p->ops();
+    yl_ilcache*         ilcache = p->ilcache();
 
     
     // Get stacks.
@@ -295,10 +296,14 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
 
     case YL_GLOBAL:
     {
+        assert( ops[ ip ].opcode() == YL_ILCACHE );
+        yl_ilcache* ilc = ilcache + ops[ ip ].c();
+        ip += 1;
+    
         yl_value value = values[ b ].get();
         assert( value.is( YLOBJ_STRING ) );
         yl_string* key = (yl_string*)value.gcobject();
-        s[ r ] = yl_current->globals()->get_key( key );
+        s[ r ] = yl_current->globals()->get_key( key, ilc );
         if ( s[ r ].is_undef() )
         {
             throw yl_exception( "unknown global '%s'", key->c_str() );
@@ -308,10 +313,14 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_SETGLOBAL:
     {
+        assert( ops[ ip ].opcode() == YL_ILCACHE );
+        yl_ilcache* ilc = ilcache + ops[ ip ].c();
+        ip += 1;
+    
         yl_value value = values[ b ].get();
         assert( value.is( YLOBJ_STRING ) );
         yl_string* key = (yl_string*)value.gcobject();
-        yl_current->globals()->set_key( key, s[ r ] );
+        yl_current->globals()->set_key( key, s[ r ], ilc );
         break;
     }
 
@@ -661,6 +670,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             p           = f->program();
             values      = p->values();
             ops         = p->ops();
+            ilcache     = p->ilcache();
 
             // Get stack.
             s = t->stack_peek( fp, p->stackcount() );
@@ -770,6 +780,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             p           = f->program();
             values      = p->values();
             ops         = p->ops();
+            ilcache     = p->ilcache();
             
             // Get stack.
             assert( mark >= fp );
@@ -925,10 +936,14 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_KEY:
     {
+        assert( ops[ ip ].opcode() == YL_ILCACHE );
+        yl_ilcache* ilc = ilcache + ops[ ip ].c();
+        ip += 1;
+    
         yl_value value = values[ b ].get();
         assert( value.is( YLOBJ_STRING ) );
         yl_string* string = (yl_string*)value.gcobject();
-        s[ r ] = keyerof( s[ a ] )->get_key( string );
+        s[ r ] = keyerof( s[ a ] )->get_key( string, ilc );
         if ( s[ r ].is_undef() )
         {
             throw yl_exception( "key not found '%s'", string->c_str() );
@@ -985,13 +1000,17 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_SETKEY:
     {
+        assert( ops[ ip ].opcode() == YL_ILCACHE );
+        yl_ilcache* ilc = ilcache + ops[ ip ].c();
+        ip += 1;
+    
         if ( s[ r ].is_object() )
         {
             yl_object* object = (yl_object*)s[ r ].gcobject();
             yl_value value = values[ b ].get();
             assert( value.is( YLOBJ_STRING ) );
             yl_string* string = (yl_string*)value.gcobject();
-            object->set_key( string, s[ a ] );
+            object->set_key( string, s[ a ], ilc );
         }
         else
         {
@@ -1207,6 +1226,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
 
     case YL_UPLOCAL:
     case YL_UPUPVAL:
+    case YL_ILCACHE:
     {
         assert( ! "invalid code" );
         break;

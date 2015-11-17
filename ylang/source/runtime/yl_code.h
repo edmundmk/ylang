@@ -15,6 +15,10 @@
 #include "yl_string.h"
 
 
+class yl_heapval;
+
+
+
 /*
     yl script bytecodes.  The yl bytecode interpreter owes a large debt to Lua.
 */
@@ -176,6 +180,15 @@ enum yl_opcode
     YL_UPUPVAL,      // closure.upvals[ r ] = upvals[ a ]
 
 
+    /*
+        After all key instructions there should be an inline cache
+        instruction naming an ilcache slot.
+    */
+    
+    YL_ILCACHE,     // use ilcache[ c ]
+    
+    
+
 };
 
 
@@ -221,9 +234,37 @@ public:
 
 private:
 
-    uint32_t i;
+    uint32_t _i;
     
 };
+
+
+
+/*
+    An inline cache entry.
+*/
+
+class yl_ilcache
+{
+public:
+
+    yl_ilcache();
+    yl_ilcache( uintptr_t klassid, yl_heapval* heapval );
+    yl_ilcache( uintptr_t klassid, size_t index );
+
+    uintptr_t   klassid();
+    bool        is_direct();
+    yl_heapval* heapval();
+    size_t      index();
+
+
+private:
+
+    uintptr_t _klassid;
+    uintptr_t _indexp;
+    
+};
+
 
 
 
@@ -279,35 +320,74 @@ void ylop_print( size_t index, yl_opinst* op );
 
 inline yl_opcode yl_opinst::opcode() const
 {
-    return (yl_opcode)(uint8_t)i;
+    return (yl_opcode)(uint8_t)_i;
 }
 
 inline unsigned yl_opinst::r() const
 {
-    return (uint8_t)( i >> 8 );
+    return (uint8_t)( _i >> 8 );
 }
 
 inline unsigned yl_opinst::a() const
 {
-    return (uint8_t)( i >> 16 );
+    return (uint8_t)( _i >> 16 );
 }
 
 inline unsigned yl_opinst::b() const
 {
-    return (uint8_t)( i >> 24 );
+    return (uint8_t)( _i >> 24 );
 }
 
 inline unsigned yl_opinst::c() const
 {
-    return (uint16_t)( i >> 16 );
+    return (uint16_t)( _i >> 16 );
 }
 
 inline signed yl_opinst::j() const
 {
-    return (int16_t)( i >> 16 );
+    return (int16_t)( _i >> 16 );
 }
 
 
+
+inline yl_ilcache::yl_ilcache()
+    :   yl_ilcache( 0, nullptr )
+{
+}
+
+inline yl_ilcache::yl_ilcache( uintptr_t klassid, yl_heapval* p )
+    :   _klassid( klassid )
+    ,   _indexp( (uintptr_t)p )
+{
+    assert( ( _indexp & 1 ) == 0 );
+}
+
+inline yl_ilcache::yl_ilcache( uintptr_t klassid, size_t index )
+    :   _klassid( klassid )
+    ,   _indexp( ( index << 1 ) | 1 )
+{
+}
+
+inline uintptr_t yl_ilcache::klassid()
+{
+    return _klassid;
+}
+
+inline bool yl_ilcache::is_direct()
+{
+    return ( _indexp & 1 ) == 0;
+}
+
+inline yl_heapval* yl_ilcache::heapval()
+{
+    assert( is_direct() );
+    return (yl_heapval*)_indexp;
+}
+
+inline size_t yl_ilcache::index()
+{
+    return _indexp >> 1;
+}
 
 
 

@@ -30,6 +30,7 @@ public:
     (
         size_t valcount,
         size_t opcount,
+        size_t ilcount,
         size_t xfcount,
         size_t dvcount,
         size_t dscount
@@ -48,10 +49,13 @@ public:
     unsigned                iterscount();
     
     size_t                  valcount();
-    const yl_heapval*        values();
+    const yl_heapval*       values();
     
     size_t                  opcount();
     const yl_opinst*        ops();
+    
+    size_t                  ilcount();
+    yl_ilcache*             ilcache();
     
 
 private:
@@ -75,6 +79,7 @@ private:
 
     size_t          _valcount;
     size_t          _opcount;
+    size_t          _ilcount;
     size_t          _xfcount;
     size_t          _dvcount;
     size_t          _dscount;
@@ -89,8 +94,9 @@ private:
 
     std::string     _name;
     
-    yl_heapval*      _values();      // _values[ _valcount ]
+    yl_heapval*     _values();      // _values[ _valcount ]
     yl_opinst*      _ops();         // _ops[ _opcount ]
+    yl_ilcache*     _ilcache();     // _ilcache[ _ilcount ]
     yl_xframe*      _xframes();     // _xframes[ _xfcount ]
     yl_debugvar*    _debugvars();   // _debugvars[ _dvcount ]
     yl_debugspan*   _debugspans();  // _debugspans[ _dscount ]
@@ -164,6 +170,16 @@ inline size_t yl_program::opcount()
 inline const yl_opinst* yl_program::ops()
 {
     return (yl_opinst*)( values() + valcount() );
+}
+
+inline size_t yl_program::ilcount()
+{
+    return _ilcount;
+}
+
+inline yl_ilcache* yl_program::ilcache()
+{
+    return (yl_ilcache*)( ops() + opcount() );
 }
 
 

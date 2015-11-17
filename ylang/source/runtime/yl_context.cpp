@@ -43,6 +43,7 @@ yl_context_impl* yl_context_impl::unwrap( yl_context* context )
 
 yl_context_impl::yl_context_impl()
     :   _cothread( nullptr )
+    ,   _klassid( 1 )
     ,   _proto_object( nullptr )
     ,   _proto_array( nullptr )
     ,   _proto_table( nullptr )
@@ -178,6 +179,11 @@ void yl_context_impl::destroy_symbol( yl_string* symbol )
     
 }
 
+
+uintptr_t yl_context_impl::klassid()
+{
+    return _klassid++;
+}
 
 
 yl_object* yl_context_impl::superof( yl_value value )

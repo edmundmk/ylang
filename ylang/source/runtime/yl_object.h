@@ -15,6 +15,7 @@
 #include "yl_context.h"
 #include "yl_value.h"
 #include "yl_string.h"
+#include "yl_code.h"
 
 
 class yl_object;
@@ -49,13 +50,18 @@ public:
     yl_object();
     explicit yl_object( yl_object* prototype );
 
+    void        seal();
+
     yl_object*  superof() const;
 
-    yl_value    get_key( const yl_symbol& key ) const;
-    void        set_key( const yl_symbol& key, yl_value value );
-    void        del_key( const yl_symbol& key );
+    yl_value    get_key( const yl_symbol& key, yl_ilcache* ilc ) const;
+    bool        set_key( const yl_symbol& key, yl_value value, yl_ilcache* ilc );
 
-    void        set_key( const char* key, yl_value value );
+    yl_value    get_key( const yl_symbol& key ) const;
+    bool        set_key( const yl_symbol& key, yl_value value );
+    bool        del_key( const yl_symbol& key );
+
+    bool        set_key( const char* key, yl_value value );
 
 
 protected:
@@ -68,7 +74,14 @@ protected:
 
 private:
 
-    size_t lookup( yl_slot* klass, const yl_symbol& key ) const;
+    enum
+    {
+        SEALED = YL_GCFLAG_USER1,
+    };
+    
+    yl_value    get_key_impl( const yl_symbol& key, yl_ilcache* ilc ) const;
+    bool        set_key_impl( const yl_symbol& key, yl_value value, yl_ilcache* ilc );
+    
 
     yl_heapref< yl_slot >       _klass;     // start of slot chain
     yl_heapref< yl_valarray >   _slots;     // array of slot values
@@ -114,10 +127,10 @@ private:
 
     static const size_t EMPTY_KLASS = (size_t)-1;
 
-
     static void destroy( yl_gcheap* heap, yl_gcobject* object );
     static void mark( yl_gcheap* heap, yl_gcobject* object );
 
+    uintptr_t                   _klassid;
     yl_heapref< yl_gcobject >   _parent;    // parent slot, or prototype
     yl_heapref< yl_string >     _symbol;    // symbol string
     size_t                      _index;     // index into slot value array
@@ -126,6 +139,50 @@ private:
     /* weak */ yl_slot*         _next;      // next sibling
     
 };
+
+
+
+/*
+
+*/
+
+
+inline yl_value yl_object::get_key( const yl_symbol& key, yl_ilcache* ilc ) const
+{
+    if ( ilc->klassid() == _klass.get()->_klassid )
+    {
+        if ( ilc->is_direct() )
+            return ilc->heapval()->get();
+        else
+            return _slots.get()->at( ilc->index() ).get();
+    }
+    return get_key_impl( key, ilc );
+}
+
+inline bool yl_object::set_key( const yl_symbol& key, yl_value value, yl_ilcache* ilc )
+{
+    if ( ilc->klassid() == _klass.get()->_klassid )
+    {
+        if ( ! ilc->is_direct() )
+        {
+            _slots.get()->at( ilc->index() ).set( value );
+            return true;
+        }
+    }
+    return set_key_impl( key, value, ilc );
+}
+
+
+inline yl_value yl_object::get_key( const yl_symbol& key ) const
+{
+    return get_key_impl( key, nullptr );
+}
+
+inline bool yl_object::set_key( const yl_symbol& key, yl_value value )
+{
+    return set_key_impl( key, value, nullptr );
+}
+
 
 
 

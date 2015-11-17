@@ -96,6 +96,7 @@ public:
     yl_rootref< yl_string >     symbol( yl_string* symbol );
     void                        destroy_symbol( yl_string* symbol );
     
+    uintptr_t                   klassid();
     yl_object*                  superof( yl_value value );
     yl_slot*                    klassof( yl_object* prototype );
 
@@ -116,6 +117,8 @@ private:
     typedef std::unordered_map< symkey, yl_string* > symbol_map;
 
     symbol_map                  _symbols;
+
+    uintptr_t                   _klassid;
 
     yl_rootref< yl_slot >       _root_klass;
     yl_rootref< yl_object >     _proto_object;

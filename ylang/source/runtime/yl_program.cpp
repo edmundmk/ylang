@@ -27,6 +27,7 @@ yl_rootref< yl_program > yl_program::alloc
 (
     size_t valcount,
     size_t opcount,
+    size_t ilcount,
     size_t xfcount,
     size_t dvcount,
     size_t dscount
@@ -35,6 +36,7 @@ yl_rootref< yl_program > yl_program::alloc
     size_t size = sizeof( yl_program );
     size += sizeof( yl_heapval ) * valcount;
     size += sizeof( yl_opinst ) * opcount;
+    size += sizeof( yl_ilcache ) * ilcount;
     size += sizeof( yl_xframe ) * xfcount;
     size += sizeof( yl_debugvar ) * dvcount;
     size += sizeof( yl_debugspan ) * dscount;
@@ -73,6 +75,12 @@ yl_program::yl_program
         new ( ops + i ) yl_opinst();
     }
     
+    yl_ilcache* ilcache = _ilcache();
+    for ( size_t i = 0; i < _ilcount; ++i )
+    {
+        new ( ilcache + i ) yl_ilcache();
+    }
+    
     yl_xframe* xframes = _xframes();
     for ( size_t i = 0; i < _xfcount; ++i )
     {
@@ -104,6 +112,12 @@ yl_program::~yl_program()
     for ( size_t i = 0; i < _opcount; ++i )
     {
         ops[ i ].~yl_opinst();
+    }
+    
+    yl_ilcache* ilcache = _ilcache();
+    for ( size_t i = 0; i < _ilcount; ++i )
+    {
+        ilcache[ i ].~yl_ilcache();
     }
     
     yl_xframe* xframes = _xframes();
@@ -219,9 +233,14 @@ yl_opinst* yl_program::_ops()
     return (yl_opinst*)( _values() + _valcount );
 }
 
+yl_ilcache* yl_program::_ilcache()
+{
+    return (yl_ilcache*)( _ops() + _opcount );
+}
+
 yl_xframe* yl_program::_xframes()
 {
-    return (yl_xframe*)( _ops() + _opcount );
+    return (yl_xframe*)( _ilcache() + _ilcount );
 }
 
 yl_debugvar* yl_program::_debugvars()
