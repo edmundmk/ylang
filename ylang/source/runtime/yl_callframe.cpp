@@ -102,13 +102,11 @@ yl_valkind yl_callframe::at( size_t index ) const
     case YLOBJ_THUNKOBJ:
         return YLVAL_FUNCTION;
         
-    case YLOBJ_SINGULAR:
-        if ( value.is_true() || value.is_false() )
-            return YLVAL_BOOL;
-        else if ( value.is_null() )
-            return YLVAL_NULL;
-        else
-            return YLVAL_UNKNOWN;
+    case YLOBJ_BOOLEAN:
+        return YLVAL_BOOL;
+    
+    case YLOBJ_NULLUNDEF:
+        return YLVAL_NULL;
     
     default:
         return YLVAL_UNKNOWN;

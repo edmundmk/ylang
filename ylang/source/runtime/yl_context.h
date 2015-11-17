@@ -49,8 +49,8 @@ enum yl_objkind : uint8_t
     YLOBJ_THUNKOBJ      = 0xF5,     // native function
     YLOBJ_COTHREAD      = 0xF4,     // ylang stack object/coroutine
     YLOBJ_PROGRAM       = 0xF3,     // bytecode program (not user-visible)
-//                        0xF2,
-    YLOBJ_SINGULAR      = 0xF1,     // null/undefined/true/false
+    YLOBJ_BOOLEAN       = 0xF2,     // true/false
+    YLOBJ_NULLUNDEF     = 0xF1,     // null/undefined
     YLOBJ_INFINITY      = 0xF0,     // number: infinity
 
     // Not user-visible and never NaN-boxed.

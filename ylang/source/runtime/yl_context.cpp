@@ -211,11 +211,11 @@ yl_object* yl_context_impl::superof( yl_value value )
     case YLOBJ_COTHREAD:
         return _proto_cothread.get();
 
-    case YLOBJ_SINGULAR:
-        if ( value.is_true() || value.is_false() )
-            return _proto_bool.get();
-        else
-            return nullptr;
+    case YLOBJ_BOOLEAN:
+        return _proto_bool.get();
+        
+    case YLOBJ_NULLUNDEF:
+        return nullptr;
         
     default:
         assert( ! "invalid value in superof()" );

@@ -55,8 +55,8 @@ class yl_valarray;
                       11110101  thunkobj
                       11110100  cothread
                       11110011  program
-                      11110010
-                      11110001  null/undefined/false/true
+                      11110010  true/false
+                      11110001  null/undefined
                       11110000  infinity
 
 
@@ -116,9 +116,9 @@ private:
     static const uint64_t VALUE_BOXED       = UINT64_C( 0xFF00000000000000 );
     static const uint64_t VALUE_NULL        = UINT64_C( 0xFFF1000000000000 );
     static const uint64_t VALUE_UNDEF       = UINT64_C( 0xFFF1000100000000 );
-    static const uint64_t VALUE_FALSE       = UINT64_C( 0xFFF1000200000000 );
-    static const uint64_t VALUE_TRUE        = UINT64_C( 0xFFF1000300000000 );
-    static const uint64_t FIRST_GCOBJECT    = UINT64_C( 0xFFF2000000000000 );
+    static const uint64_t VALUE_FALSE       = UINT64_C( 0xFFF2000000000000 );
+    static const uint64_t VALUE_TRUE        = UINT64_C( 0xFFF2000100000000 );
+    static const uint64_t FIRST_GCOBJECT    = UINT64_C( 0xFFF3000000000000 );
     static const uint64_t FIRST_OBJECT      = UINT64_C( 0xFFFC000000000000 );
     
     static const uint64_t TAG_BITS          = UINT64_C( 0x00FF000000000000 );
