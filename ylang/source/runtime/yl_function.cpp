@@ -15,6 +15,8 @@
 yl_function::yl_function( yl_gcobject* function )
     :   _function( nullptr )
 {
+    assert( function->kind() == YLOBJ_FUNCOBJ
+            || function->kind() == YLOBJ_THUNKOBJ );
     reset( function );
 }
 

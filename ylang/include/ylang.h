@@ -25,8 +25,10 @@ class yl_callframe;
 
 
 class yl_context_impl;
+class yl_exception_impl;
 class yl_gcobject;
 class yl_cothread;
+class yl_funcobj;
 
 
 
@@ -41,13 +43,21 @@ class yl_exception : public std::exception
 public:
 
     yl_exception( const char* format, ... );
+    yl_exception( const yl_exception& e );
+    yl_exception( yl_exception&& e );
+    ~yl_exception();
     
+    yl_exception_impl* impl() const;
     const char* what() const throw() override;
     
     
 private:
 
-    std::string message;
+    friend class yl_context_impl;
+
+    yl_exception();
+
+    std::unique_ptr< yl_exception_impl > _impl;
 
 };
 

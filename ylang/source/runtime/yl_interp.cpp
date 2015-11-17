@@ -1207,7 +1207,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_THROW:
     {
-        assert( ! "exception handling unimplemented" );
+        yl_current->throw_exception( s[ r ] );
         break;
     }
     

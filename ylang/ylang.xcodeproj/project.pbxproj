@@ -153,6 +153,7 @@
 		DB5B1FF71AE70B9500701000 /* yl_array.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_array.cpp; sourceTree = "<group>"; };
 		DB5B1FF81AE70B9500701000 /* yl_array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = yl_array.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		DB7DF2151AFC0814002D0327 /* TODO */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TODO; sourceTree = "<group>"; };
+		DB80B0611BFBE25400F59000 /* yl_exception.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_exception.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -180,6 +181,7 @@
 				4B4E55591ADC41CA00C276A2 /* yl_context.h */,
 				DB5B1FEA1ADDB2B200701000 /* yl_cothread.cpp */,
 				DB5B1FEB1ADDB2B200701000 /* yl_cothread.h */,
+				DB80B0611BFBE25400F59000 /* yl_exception.h */,
 				4B7145CB1B3F550000349ADD /* yl_exception.cpp */,
 				4B24D8B61AD160E900A83A4C /* yl_function.cpp */,
 				4B24D8B71AD160E900A83A4C /* yl_function.h */,

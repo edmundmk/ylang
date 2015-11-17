@@ -112,6 +112,12 @@ public:
     yl_object*                  globals();
 
 
+    // Throw.
+    
+    void                        throw_exception( yl_value value );
+
+
+
 private:
 
     typedef std::unordered_map< symkey, yl_string* > symbol_map;

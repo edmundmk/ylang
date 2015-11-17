@@ -16,6 +16,7 @@
 #include "yl_upval.h"
 #include "yl_function.h"
 #include "yl_program.h"
+#include "yl_exception.h"
 
 
 
@@ -290,6 +291,13 @@ yl_rootref< yl_object > yl_context_impl::new_object( yl_object* prototype )
     throw yl_exception( "invalid prototype object" );
 }
 
+
+void yl_context_impl::throw_exception( yl_value value )
+{
+    yl_exception e;
+    e._impl->value = value;
+    throw e;
+}
 
 
 
