@@ -10,4 +10,32 @@
    <FileRef
       location = "group:yl/yl.xcodeproj">
    </FileRef>
+   <Group
+      location = "container:tests"
+      name = "tests">
+      <FileRef
+         location = "group:fannkuch-redux.lua">
+      </FileRef>
+      <FileRef
+         location = "group:fannkuch-redux.py">
+      </FileRef>
+      <FileRef
+         location = "group:fannkuch-redux.yl">
+      </FileRef>
+      <FileRef
+         location = "group:n-body.lua">
+      </FileRef>
+      <FileRef
+         location = "group:n-body.py">
+      </FileRef>
+      <FileRef
+         location = "group:n-body.yl">
+      </FileRef>
+      <FileRef
+         location = "group:switch.yl">
+      </FileRef>
+      <FileRef
+         location = "group:test.yl">
+      </FileRef>
+   </Group>
 </Workspace>

@@ -100,14 +100,6 @@
 		4B4176F11AA3849C00C014EB /* yl_code.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = yl_code.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		4B4176F41AA5033100C014EB /* yl_value.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = yl_value.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		4B4176F51AA503DD00C014EB /* yl_object.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = yl_object.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		4B4231491ABF39AC0065BDAF /* fannkuch-redux.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fannkuch-redux.lua"; sourceTree = "<group>"; };
-		4B42314A1ABF39AC0065BDAF /* fannkuch-redux.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = "fannkuch-redux.py"; sourceTree = "<group>"; };
-		4B42314B1ABF39AC0065BDAF /* fannkuch-redux.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "fannkuch-redux.yl"; sourceTree = "<group>"; };
-		4B42314C1ABF39AC0065BDAF /* n-body.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "n-body.lua"; sourceTree = "<group>"; };
-		4B42314D1ABF39AC0065BDAF /* n-body.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = "n-body.py"; sourceTree = "<group>"; };
-		4B42314E1ABF39AC0065BDAF /* n-body.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "n-body.yl"; sourceTree = "<group>"; };
-		4B42314F1ABF39AC0065BDAF /* switch.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = switch.yl; sourceTree = "<group>"; };
-		4B4231501ABF39AC0065BDAF /* test.yl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test.yl; sourceTree = "<group>"; };
 		4B4231511AC407C70065BDAF /* yssa_constfold.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yssa_constfold.cpp; sourceTree = "<group>"; };
 		4B4231521AC407C70065BDAF /* yssa_constfold.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = yssa_constfold.h; sourceTree = "<group>"; };
 		4B4231551AC4D9950065BDAF /* yssa_analyze.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yssa_analyze.cpp; sourceTree = "<group>"; };
@@ -213,21 +205,6 @@
 			path = runtime;
 			sourceTree = "<group>";
 		};
-		4B4231481ABF39AC0065BDAF /* tests */ = {
-			isa = PBXGroup;
-			children = (
-				4B4231491ABF39AC0065BDAF /* fannkuch-redux.lua */,
-				4B42314A1ABF39AC0065BDAF /* fannkuch-redux.py */,
-				4B42314B1ABF39AC0065BDAF /* fannkuch-redux.yl */,
-				4B42314C1ABF39AC0065BDAF /* n-body.lua */,
-				4B42314D1ABF39AC0065BDAF /* n-body.py */,
-				4B42314E1ABF39AC0065BDAF /* n-body.yl */,
-				4B42314F1ABF39AC0065BDAF /* switch.yl */,
-				4B4231501ABF39AC0065BDAF /* test.yl */,
-			);
-			path = tests;
-			sourceTree = "<group>";
-		};
 		4B6FDA991AA654AE001096B0 /* parser */ = {
 			isa = PBXGroup;
 			children = (
@@ -284,7 +261,6 @@
 			children = (
 				4B78BEC31A8DF47000918400 /* include */,
 				4BCF3D5A1A85709800B9AB3A /* source */,
-				4B4231481ABF39AC0065BDAF /* tests */,
 				DB7DF2151AFC0814002D0327 /* TODO */,
 				4BCF3D531A856FF500B9AB3A /* Products */,
 			);
