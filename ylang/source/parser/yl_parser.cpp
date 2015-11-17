@@ -232,6 +232,19 @@ void yl_parser::prototype( int sloc,
     n->prototype = alloc< yl_ast_prototype >( sloc );
     n->prototype->parameters    = params;
     n->prototype->coroutine     = yield;
+    
+
+    // Assign as null.
+    yl_ast_scope* scope = get_scope();
+    if ( scope->kind == YL_SCOPE_OBJECT )
+    {
+        yl_new_object* object = (yl_new_object*)scope->node;
+        yl_expr_assign* assign = alloc< yl_expr_assign >( sloc, YL_ASTOP_ASSIGN );
+        yl_expr_objref* objref = alloc< yl_expr_objref >( sloc, object );
+        assign->lvalue = alloc< yl_expr_key >( sloc, objref, m->name );
+        assign->rvalue = alloc< yl_expr_null >( sloc );
+        object->members.push_back( assign );
+    }
 }
 
 
@@ -362,7 +375,9 @@ void yl_parser::var( int sloc, yl_ast_node* names, yl_ast_node* rvals )
             declare( n->sloc, n->name );
 
             if ( ! rvals )
-                return;
+            {
+                rvals = alloc< yl_expr_null >( sloc );
+            }
             
             yl_expr_assign* assign = alloc< yl_expr_assign >(
                             sloc, YL_ASTOP_ASSIGN );
@@ -381,7 +396,9 @@ void yl_parser::var( int sloc, yl_ast_node* names, yl_ast_node* rvals )
             }
 
             if ( ! rvals )
-                return;
+            {
+                rvals = alloc< yl_expr_null >( sloc );
+            }
          
             yl_expr_assign_list* assign = alloc< yl_expr_assign_list >(
                             sloc, YL_ASTOP_ASSIGN );

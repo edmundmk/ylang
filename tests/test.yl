@@ -118,6 +118,8 @@ def derived : base
     var intensity = "hello";
     var not_really_here;
 
+    def declared();
+
     def method()
     {
         printf( "went there!\n" );
@@ -154,9 +156,15 @@ for ( var key, value :: derived )
     {
         printf( "<function>" );
     }
+    else if ( value is null )
+    {
+        printf( "null" );
+    }
 
     printf( "\n" );
 }
+
+
 
 
 printf( "done!\n" );
