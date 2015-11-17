@@ -15,6 +15,9 @@
 #include "yl_code.h"
 
 
+class yl_debuginfo;
+
+
 
 /*
     A compiled function.
@@ -31,13 +34,10 @@ public:
         size_t valcount,
         size_t opcount,
         size_t ilcount,
-        size_t xfcount,
-        size_t dvcount,
-        size_t dscount
+        size_t xfcount
     );
     
     void                    print();
-    const char*             name();
     
     unsigned                upcount();
     unsigned                paramcount();
@@ -67,9 +67,8 @@ private:
     (
         size_t valcount,
         size_t opcount,
-        size_t xfcount,
-        size_t dvcount,
-        size_t dscount
+        size_t ilcount,
+        size_t xfcount
     );
 
     ~yl_program();
@@ -77,12 +76,10 @@ private:
     static void destroy( yl_gcheap* heap, yl_gcobject* object );
     static void mark( yl_gcheap* heap, yl_gcobject* object );
 
-    size_t          _valcount;
-    size_t          _opcount;
-    size_t          _ilcount;
-    size_t          _xfcount;
-    size_t          _dvcount;
-    size_t          _dscount;
+    unsigned        _valcount;
+    unsigned        _opcount;
+    unsigned        _ilcount;
+    unsigned        _xfcount;
     
     uint8_t         _upcount;
     uint8_t         _paramcount;
@@ -91,15 +88,13 @@ private:
     uint8_t         _iterscount;
     bool            _varargs;
     bool            _coroutine;
-
-    std::string     _name;
     
+    std::unique_ptr< yl_debuginfo > _debuginfo;
+
     yl_heapval*     _values();      // _values[ _valcount ]
     yl_opinst*      _ops();         // _ops[ _opcount ]
     yl_ilcache*     _ilcache();     // _ilcache[ _ilcount ]
     yl_xframe*      _xframes();     // _xframes[ _xfcount ]
-    yl_debugvar*    _debugvars();   // _debugvars[ _dvcount ]
-    yl_debugspan*   _debugspans();  // _debugspans[ _dscount ]
 
 };
 
@@ -110,12 +105,6 @@ private:
 */
 
 
-
-
-inline const char* yl_program::name()
-{
-    return _name.c_str();
-}
 
 inline unsigned yl_program::paramcount()
 {

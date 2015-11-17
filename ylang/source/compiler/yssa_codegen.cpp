@@ -13,6 +13,7 @@
 #include "yl_string.h"
 #include "yl_function.h"
 #include "yl_program.h"
+#include "yl_debuginfo.h"
 
 
 struct ygen_module;
@@ -64,6 +65,14 @@ struct ygen_module
 };
 
 
+struct ygen_debugspan
+{
+    unsigned varindex;
+    unsigned start;
+    unsigned end;
+};
+
+
 struct ygen_program
 {
     explicit ygen_program( yssa_function* ssafunc );
@@ -73,9 +82,10 @@ struct ygen_program
 
     std::vector< ygen_value >   values;
     std::vector< yl_opinst >    ops;
+    std::vector< int >          slocs;
     std::vector< yl_xframe >    xframes;
     std::vector< yssa_variable* > debugvars;
-    std::vector< yl_debugspan > debugspans;
+    std::vector< ygen_debugspan > debugspans;
 
     std::unordered_map< symkey, size_t > strvals;
     std::unordered_map< double, size_t > numvals;
@@ -677,7 +687,7 @@ void ygen_emit::codegen_function( yssa_function* function )
         
         for ( yssa_live_range* live = v->live; live; live = live->next )
         {
-            yl_debugspan span;
+            ygen_debugspan span;
             span.varindex   = varindex;
             span.start      = (unsigned)indexes.at( live->start );
             span.end        = (unsigned)indexes.at( live->final );
@@ -698,7 +708,7 @@ void ygen_emit::codegen_function( yssa_function* function )
     (
         p->debugspans.begin(),
         p->debugspans.end(),
-        []( const yl_debugspan& a, const yl_debugspan& b )
+        []( const ygen_debugspan& a, const ygen_debugspan& b )
         {
             if ( a.start < b.start )
                 return true;
@@ -1283,9 +1293,7 @@ void ygen_emit::make_program( ygen_program* p )
         p->values.size(),
         p->ops.size(),
         p->ilcount,
-        p->xframes.size(),
-        p->debugvars.size(),
-        p->debugspans.size()
+        p->xframes.size()
     );
     
     p->program->_upcount    = p->ssafunc->upcount;
@@ -1301,8 +1309,7 @@ void ygen_emit::make_program( ygen_program* p )
 
 void ygen_emit::emit( ygen_program* p )
 {
-    p->program->_name = p->ssafunc->funcname;
-
+    // Build program.
     yl_heapval* values = p->program->_values();
     for ( size_t i = 0; i < p->values.size(); ++i )
     {
@@ -1334,25 +1341,40 @@ void ygen_emit::emit( ygen_program* p )
         xframes[ i ] = p->xframes.at( i );
     }
     
-    yl_debugvar* debugvars = p->program->_debugvars();
+
+    // Build debug info.
+    auto debuginfo = std::make_unique< yl_debuginfo >();
+    debuginfo->_funcname = p->ssafunc->funcname;
+
+    debuginfo->_upcount = p->ssafunc->upnames.size();
+    debuginfo->_variables.reserve( p->debugvars.size() );
     for ( size_t i = 0; i < p->ssafunc->upnames.size(); ++i )
     {
-        debugvars[ i ].name = p->ssafunc->upnames.at( i );
-        debugvars[ i ].r = (unsigned)i;
+        yl_debuginfo::variable v;
+        v.name = p->ssafunc->upnames.at( i );
+        v.r = (unsigned)i;
+        debuginfo->_variables.push_back( v );
     }
     for ( size_t i = p->ssafunc->upnames.size(); i < p->debugvars.size(); ++i )
     {
         yssa_variable* variable = p->debugvars.at( i );
-        debugvars[ i ].name = variable->name;
-        debugvars[ i ].r = variable->r;
+        yl_debuginfo::variable v;
+        v.name = variable->name;
+        v.r = variable->r;
+        debuginfo->_variables.push_back( v );
     }
     
-    yl_debugspan* debugspans = p->program->_debugspans();
+    debuginfo->_varspans.reserve( p->debugspans.size() );
     for ( size_t i = 0; i < p->debugspans.size(); ++i )
     {
-        debugspans[ i ] = p->debugspans.at( i );
+        const ygen_debugspan& ds = p->debugspans.at( i );
+        yl_debuginfo::varspan vs;
+        vs.varindex = ds.varindex;
+        vs.start = ds.start;
+        vs.end = ds.end;
+        debuginfo->_varspans.push_back( vs );
     }
-    
+
     
 //    p->program->print();
 //    printf( "\n" );

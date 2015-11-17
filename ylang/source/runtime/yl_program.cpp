@@ -7,8 +7,7 @@
 
 
 #include "yl_program.h"
-
-
+#include "yl_debuginfo.h"
 
 
 
@@ -28,9 +27,7 @@ yl_rootref< yl_program > yl_program::alloc
     size_t valcount,
     size_t opcount,
     size_t ilcount,
-    size_t xfcount,
-    size_t dvcount,
-    size_t dscount
+    size_t xfcount
 )
 {
     size_t size = sizeof( yl_program );
@@ -38,9 +35,7 @@ yl_rootref< yl_program > yl_program::alloc
     size += sizeof( yl_opinst ) * opcount;
     size += sizeof( yl_ilcache ) * ilcount;
     size += sizeof( yl_xframe ) * xfcount;
-    size += sizeof( yl_debugvar ) * dvcount;
-    size += sizeof( yl_debugspan ) * dscount;
-    return yl_gcalloc< yl_program >( size, valcount, opcount, xfcount, dvcount, dscount );
+    return yl_gcalloc< yl_program >( size, valcount, opcount, ilcount, xfcount );
 }
 
 
@@ -48,15 +43,13 @@ yl_program::yl_program
 (
     size_t valcount,
     size_t opcount,
-    size_t xfcount,
-    size_t dvcount,
-    size_t dscount
+    size_t ilcount,
+    size_t xfcount
 )
-    :   _valcount( valcount )
-    ,   _opcount( opcount )
-    ,   _xfcount( xfcount )
-    ,   _dvcount( dvcount )
-    ,   _dscount( dscount )
+    :   _valcount( (unsigned)valcount )
+    ,   _opcount( (unsigned)opcount )
+    ,   _ilcount( (unsigned)ilcount )
+    ,   _xfcount( (unsigned)xfcount )
     ,   _paramcount( 0 )
     ,   _upcount( 0 )
     ,   _stackcount( 0 )
@@ -86,18 +79,6 @@ yl_program::yl_program
     {
         new ( xframes + i ) yl_xframe();
     }
-    
-    yl_debugvar* debugvars = _debugvars();
-    for ( size_t i = 0; i < _dvcount; ++i )
-    {
-        new ( debugvars + i ) yl_debugvar();
-    }
-    
-    yl_debugspan* debugspans = _debugspans();
-    for ( size_t i = 0; i < _dscount; ++i )
-    {
-        new ( debugspans + i ) yl_debugspan();
-    }
 }
 
 yl_program::~yl_program()
@@ -125,18 +106,6 @@ yl_program::~yl_program()
     {
         xframes[ i ].~yl_xframe();
     }
-    
-    yl_debugvar* debugvars = _debugvars();
-    for ( size_t i = 0; i < _dvcount; ++i )
-    {
-        debugvars[ i ].~yl_debugvar();
-    }
-    
-    yl_debugspan* debugspans = _debugspans();
-    for ( size_t i = 0; i < _dscount; ++i )
-    {
-        debugspans[ i ].~yl_debugspan();
-    }
 }
 
 void yl_program::destroy( yl_gcheap* heap, yl_gcobject* object )
@@ -159,7 +128,7 @@ void yl_program::mark( yl_gcheap* heap, yl_gcobject* object )
 
 void yl_program::print()
 {
-    printf( "%s\n", _name.c_str() );
+    printf( "%s\n", _debuginfo ? _debuginfo->funcname() : "[program]" );
 
     printf( "    paramcount : %u\n", _paramcount );
     printf( "    upcount    : %u\n", _upcount );
@@ -187,34 +156,11 @@ void yl_program::print()
         }
     }
     
-    if ( _dvcount )
+    if ( _debuginfo )
     {
-        printf( "    debugvars:\n" );
-        yl_debugvar* debugvars = _debugvars();
-        yl_debugspan* debugspans = _debugspans();
-        for ( size_t varindex = 0; varindex < _dvcount; ++varindex )
-        {
-            const yl_debugvar& dv = debugvars[ varindex ];
-            printf
-            (
-                "        %s %s%u",
-                dv.name.c_str(),
-                varindex < _upcount ? "*" : "",
-                dv.r
-            );
-            for ( size_t i = 0; i < _dscount; ++i )
-            {
-                const yl_debugspan& ds = debugspans[ i ];
-
-                if ( ds.varindex != varindex )
-                    continue;
-                
-                printf( " %04X:%04X", ds.start, ds.end );
-            }
-            printf( "\n" );
-        }
+        _debuginfo->print();
     }
-
+    
     yl_opinst* ops = _ops();
     for ( size_t i = 0; i < _opcount; ++i )
     {
@@ -241,16 +187,6 @@ yl_ilcache* yl_program::_ilcache()
 yl_xframe* yl_program::_xframes()
 {
     return (yl_xframe*)( _ilcache() + _ilcount );
-}
-
-yl_debugvar* yl_program::_debugvars()
-{
-    return (yl_debugvar*)( _xframes() + _xfcount );
-}
-
-yl_debugspan* yl_program::_debugspans()
-{
-    return (yl_debugspan*)( _debugvars() + _dvcount );
 }
 
 

@@ -61,6 +61,7 @@
 		DB5B1FF61AE70A0400701000 /* yl_table.h in Headers */ = {isa = PBXBuildFile; fileRef = DB5B1FF41AE70A0400701000 /* yl_table.h */; };
 		DB5B1FF91AE70B9500701000 /* yl_array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB5B1FF71AE70B9500701000 /* yl_array.cpp */; };
 		DB5B1FFA1AE70B9500701000 /* yl_array.h in Headers */ = {isa = PBXBuildFile; fileRef = DB5B1FF81AE70B9500701000 /* yl_array.h */; };
+		DB80B0641BFBEEFA00F59000 /* yl_debuginfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB80B0631BFBEEFA00F59000 /* yl_debuginfo.cpp */; settings = {ASSET_TAGS = (); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -154,6 +155,8 @@
 		DB5B1FF81AE70B9500701000 /* yl_array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = yl_array.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		DB7DF2151AFC0814002D0327 /* TODO */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TODO; sourceTree = "<group>"; };
 		DB80B0611BFBE25400F59000 /* yl_exception.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_exception.h; sourceTree = "<group>"; };
+		DB80B0621BFBEAB700F59000 /* yl_debuginfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = yl_debuginfo.h; sourceTree = "<group>"; };
+		DB80B0631BFBEEFA00F59000 /* yl_debuginfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = yl_debuginfo.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -181,6 +184,8 @@
 				4B4E55591ADC41CA00C276A2 /* yl_context.h */,
 				DB5B1FEA1ADDB2B200701000 /* yl_cothread.cpp */,
 				DB5B1FEB1ADDB2B200701000 /* yl_cothread.h */,
+				DB80B0631BFBEEFA00F59000 /* yl_debuginfo.cpp */,
+				DB80B0621BFBEAB700F59000 /* yl_debuginfo.h */,
 				DB80B0611BFBE25400F59000 /* yl_exception.h */,
 				4B7145CB1B3F550000349ADD /* yl_exception.cpp */,
 				4B24D8B61AD160E900A83A4C /* yl_function.cpp */,
@@ -392,6 +397,7 @@
 				4B4231571AC4D9950065BDAF /* yssa_analyze.cpp in Sources */,
 				4B4E555B1ADC665800C276A2 /* yl_object.cpp in Sources */,
 				4B6FDAB51AA654AE001096B0 /* yl_token.cpp in Sources */,
+				DB80B0641BFBEEFA00F59000 /* yl_debuginfo.cpp in Sources */,
 				DB5B1FE81ADDB13A00701000 /* yl_interp.cpp in Sources */,
 				4B6FDE851AA855C0001096B0 /* yssa.cpp in Sources */,
 				4B6FDAAA1AA654AE001096B0 /* yl_ast.cpp in Sources */,

@@ -284,27 +284,6 @@ struct yl_xframe
 
 
 /*
-    Debug information linking a variable to a register.
-*/
-
-struct yl_debugvar
-{
-    static const unsigned UPVAL = 0x8000;
-
-    std::string name;               // Name.
-    unsigned    r;                  // Register or upval index.
-};
-
-struct yl_debugspan
-{
-    unsigned    varindex;           // Variable index.
-    unsigned    start;              // First instruction in span.
-    unsigned    end;                // One past last instruction in span.
-};
-
-
-
-/*
     Code printing.
 */
 
