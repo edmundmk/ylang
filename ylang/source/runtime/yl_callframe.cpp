@@ -92,21 +92,15 @@ yl_valkind yl_callframe::at( size_t index ) const
     }
     switch ( value.kind() )
     {
-    case YLOBJ_EXPOBJ:
-        return YLVAL_EXPOSE;
-        
+    case YLOBJ_NULLUNDEF:
+    case YLOBJ_BOOLEAN:
     case YLOBJ_STRING:
-        return YLVAL_STRING;
+    case YLOBJ_EXPOBJ:
+        return (yl_valkind)value.kind();
         
     case YLOBJ_FUNCOBJ:
     case YLOBJ_THUNKOBJ:
         return YLVAL_FUNCTION;
-        
-    case YLOBJ_BOOLEAN:
-        return YLVAL_BOOL;
-    
-    case YLOBJ_NULLUNDEF:
-        return YLVAL_NULL;
     
     default:
         return YLVAL_UNKNOWN;

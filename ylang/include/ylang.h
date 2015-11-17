@@ -205,13 +205,13 @@ private:
 
 enum yl_valkind
 {
-    YLVAL_NULL,
-    YLVAL_BOOL,
-    YLVAL_NUMBER,
-    YLVAL_STRING,
-    YLVAL_EXPOSE,
-    YLVAL_FUNCTION,
-    YLVAL_UNKNOWN,
+    YLVAL_UNKNOWN   = 0x00,
+    YLVAL_NULL      = 0xF1,
+    YLVAL_BOOLEAN   = 0xF2,
+    YLVAL_NUMBER    = 0x01,
+    YLVAL_STRING    = 0xF7,
+    YLVAL_EXPOSE    = 0xFE,
+    YLVAL_FUNCTION  = 0x02,
 };
 
 
