@@ -1375,6 +1375,9 @@ void ygen_emit::emit( ygen_program* p )
         debuginfo->_varspans.push_back( vs );
     }
 
+    p->program->_debuginfo = std::move( debuginfo );
+
+
     
 //    p->program->print();
 //    printf( "\n" );
