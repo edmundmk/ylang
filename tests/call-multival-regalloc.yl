@@ -1,0 +1,27 @@
+/*
+
+    check that register allocation for nested unpacked calls works.
+
+*/
+
+
+
+def a( n )
+{
+    return 1, n, 3;
+}
+
+
+def b( n )
+{
+    n = n ? n + 4 : 7;
+    printf( "%g %g %g\n", a( n )... );
+    return 0;
+}
+
+
+return b( 0 );
+
+
+
+
