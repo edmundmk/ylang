@@ -239,10 +239,6 @@
 		4B6FDACF1AA66113001096B0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/ylang-ccbfbdxrvquufjajqktjflfvxmhp/Build/Products/Debug",
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -250,10 +246,6 @@
 		4B6FDAD01AA66113001096B0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/ylang-ccbfbdxrvquufjajqktjflfvxmhp/Build/Products/Debug",
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

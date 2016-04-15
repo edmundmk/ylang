@@ -148,11 +148,10 @@ struct yssa_opinst
     
     bool has_multival() const
     {
-        return opcode == YL_RETURN
-            || opcode == YL_EXTEND
-            || opcode == YL_CALL
+        return opcode == YL_CALL
             || opcode == YL_YCALL
             || opcode == YL_YIELD
+            || opcode == YL_RETURN
             || opcode == YL_EXTEND;
     }
     

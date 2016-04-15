@@ -981,19 +981,175 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
     case YL_YCALL:
     case YL_YIELD:
     case YL_RETURN:
+    case YL_NEXT:
+    case YL_EXTEND:
+    case YL_UNPACK:
     {
+        assert( op->is_call() );
+    
+        // These ops can either produce or consume multiple values.  We must
+        // treat chains of multivals as a single operation on top of stack.
+        yssa_opinst* multival = op;
+        yssa_opinst* finalop = op;
+        size_t ilast = index + 1;
+        for ( ; ilast < function->ops.size(); ++ilast )
+        {
+            yssa_opinst* op = function->ops.at( ilast );
+
+            if ( op->opcode == YSSA_IMPLICIT )
+            {
+                continue;
+            }
+            
+            if ( op->is_call() && op->multival == multival )
+            {
+                // Follow the multival chain.
+                multival = op;
+                finalop = op;
+                continue;
+            }
+
+            // Multival results must be consumed by the next instruction.
+            assert( ! op->has_multival() || ! op->multival );
+            break;
+        }
+    
+        
         // Get all operands into the correct registers.
-        arguments( p, index, 0 );
+        ygen_movgraph arguments;
+
+        for ( size_t iop = index; iop < ilast; ++iop )
+        {
+            op = function->ops.at( iop );
+            if ( op->opcode == YSSA_IMPLICIT )
+            {
+                continue;
+            }
+            
+            // First argument of UNPACK and EXTEND can be any register.
+            unsigned first = 0;
+            if ( op->opcode == YL_UNPACK || op->opcode == YL_EXTEND )
+            {
+                unsigned a = operand( op, first++ );
+                if ( a >= multival->stacktop )
+                {
+                    arguments.move( op->stacktop, a );
+                    op->operand[ 0 ]->r = op->stacktop;
+                }
+            }
+            
+            // Move remaining operands.
+            for ( unsigned iarg = first; iarg < op->operand_count; ++iarg )
+            {
+                unsigned a = operand( op, iarg );
+                unsigned r = op->stacktop + iarg - first;
+                arguments.move( r, a );
+            }
+        }
         
-        // Emit call instruction.
-        assert( op->stacktop != yl_opinst::NOVAL );
-        unsigned a = op->multival ? yl_opinst::MARK : op->operand_count;
-        unsigned b = op->result_count;
-        p->ops.emplace_back( (yl_opcode)op->opcode, op->stacktop, a, b );
-        stack( p, op->stacktop, op->result_count );
+        arguments.emit( p );
         
-        // Move all results into correct registers.
-        return select( p, index );
+
+        // Emit instructions.
+        for ( size_t iop = index; iop < ilast; ++iop )
+        {
+            op = function->ops.at( iop );
+            if ( op->opcode == YSSA_IMPLICIT )
+            {
+                continue;
+            }
+            
+            assert( op->is_call() );
+            assert( op->stacktop != yl_opinst::NOVAL );
+        
+            switch ( op->opcode )
+            {
+            case YL_VARARG:
+            case YL_CALL:
+            case YL_YCALL:
+            case YL_YIELD:
+            case YL_RETURN:
+            {
+                unsigned a = op->multival ? yl_opinst::MARK : op->operand_count;
+                unsigned b = op->result_count;
+                p->ops.emplace_back( (yl_opcode)op->opcode, op->stacktop, a, b );
+                stack( p, op->stacktop, op->result_count );
+                break;
+            }
+            
+            case YL_NEXT:
+            {
+                p->ops.emplace_back( YL_NEXT, op->stacktop, op->a, op->result_count );
+                stack( p, op->stacktop, op->result_count );
+                break;
+            }
+            
+            case YL_EXTEND:
+            {
+                unsigned a = op->multival ? yl_opinst::MARK : op->operand_count;
+                unsigned b = operand( op, 0 );
+                p->ops.emplace_back( YL_EXTEND, op->stacktop, a, b );
+                break;
+            }
+            
+            case YL_UNPACK:
+            {
+                unsigned a = operand( op, 0 );
+                p->ops.emplace_back( YL_UNPACK, op->stacktop, a, op->result_count );
+                stack( p, op->stacktop, op->result_count );
+                break;
+            }
+            
+            default:
+                assert( ! "unexpected multival operation" );
+                break;
+            }
+        }
+
+
+        // Results of final op.
+        op = finalop;
+        assert( op->is_call() );
+        
+        // RETURN and EXTEND don't return any results.
+        if ( op->opcode == YL_RETURN || op->opcode == YL_EXTEND )
+        {
+            assert( op->result_count == 0 );
+            return ilast - index;
+        }
+        
+        // Move all results into the correct registers.
+        ygen_movgraph results;
+        
+        if ( op->r != yl_opinst::NOVAL )
+        {
+            results.move( op->r, op->stacktop );
+        }
+        
+        for ( ; ilast < function->ops.size(); ++ilast )
+        {
+            yssa_opinst* sel = function->ops.at( ilast );
+            if ( sel->opcode == YSSA_IMPLICIT )
+            {
+                continue;
+            }
+
+            if ( sel->opcode == YSSA_SELECT )
+            {
+                assert( sel->operand_count == 1 );
+                assert( sel->operand[ 0 ] == op );
+                if ( sel->r != yl_opinst::NOVAL )
+                {
+                    results.move( sel->r, op->stacktop + sel->select );
+                }
+                continue;
+            }
+
+            break;
+        }
+    
+        results.emit( p );
+        return ilast - index;
     }
      
     case YL_ITER:
@@ -1057,14 +1213,6 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         return n;
     }
     
-    case YL_NEXT:
-    {
-        assert( op->stacktop != yl_opinst::NOVAL );
-        p->ops.emplace_back( YL_NEXT, op->stacktop, op->a, op->result_count );
-        stack( p, op->stacktop, op->result_count );
-        return select( p, index );
-    }
- 
     case YL_GETUP:
     {
         if ( op->r != yl_opinst::NOVAL )
@@ -1165,25 +1313,6 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         unsigned r = operand( op, 1 );
         p->ops.emplace_back( YL_APPEND, r, a, 0 );
         return 1;
-    }
-    
-    case YL_EXTEND:
-    {
-        arguments( p, index, 1 );
-        assert( op->stacktop != yl_opinst::NOVAL );
-        unsigned a = op->multival ? yl_opinst::MARK : op->operand_count;
-        unsigned b = operand( op, 0 );
-        p->ops.emplace_back( YL_EXTEND, op->stacktop, a, b );
-        return 1;
-    }
-    
-    case YL_UNPACK:
-    {
-        assert( op->stacktop != yl_opinst::NOVAL );
-        unsigned a = operand( op, 0 );
-        p->ops.emplace_back( YL_UNPACK, op->stacktop, a, op->result_count );
-        stack( p, op->stacktop, op->result_count );
-        return select( p, index );
     }
      
     case YL_THROW:

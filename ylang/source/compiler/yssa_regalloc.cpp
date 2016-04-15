@@ -58,6 +58,9 @@
     arguments will be encountered after all values live across the call,
     meaning that in most cases there will be no delay after all.
  
+ 
+    For register allocation, we treat a call and all its associated multivals
+    as a single unit.
 
 */
 
@@ -91,8 +94,10 @@ struct yssa_regcall
     size_t                          index;
     yssa_opinst*                    op;
     std::vector< yssa_regvalue* >   arguments;
+    std::vector< yssa_opinst* >     multival;
     size_t                          across_count;
 };
+
 
 
 struct yssa_regvalue_priority
@@ -240,11 +245,6 @@ static uint8_t preferred_stacktop( yssa_function* function, yssa_regcall* call )
         {
             return argof->stacktop + i;
         }
-        
-        if ( argof->has_multival() && argof->multival == call->op )
-        {
-            return argof->stacktop + argof->operand_count;
-        }
     }
     
     return yl_opinst::NOVAL;
@@ -268,11 +268,6 @@ static uint8_t preferred_register( yssa_regvalue* value )
                 if ( argof->operand[ i ] == op )
                 {
                     return argof->stacktop + i;
-                }
-                
-                if ( argof->has_multival() && argof->multival == op )
-                {
-                    return argof->stacktop + argof->operand_count;
                 }
             }
         }
@@ -344,20 +339,42 @@ void yssa_regalloc( yssa_module* module, yssa_function* function )
         else
         {
             assert( ! values.count( op ) );
-            yssa_regvalue_p value = std::make_unique< yssa_regvalue >();
-            value->live     = op->live;
-            value->variable = nullptr;
-            
+
+            yssa_opinst* argof = nullptr;
             auto j = function->argof.find( op );
             if ( j != function->argof.end() )
             {
-                value->argof = j->second;
+                argof = j->second;
+
+                // Do not create values for multival arguments.
+                if ( argof->has_multival() && argof->multival == op )
+                {
+                    continue;
+                }
+                
+                // Look through multivals to the base op.
+                while ( true )
+                {
+                    auto j = function->argof.find( argof );
+                    if ( j != function->argof.end() )
+                    {
+                        yssa_opinst* base = j->second;
+                        if ( base->has_multival() && base->multival == argof )
+                        {
+                            argof = base;
+                            continue;
+                        }
+                    }
+                    break;
+                }
+
             }
-            else
-            {
-                value->argof = nullptr;
-            }
-            
+        
+            // Create value structure.
+            yssa_regvalue_p value = std::make_unique< yssa_regvalue >();
+            value->live     = op->live;
+            value->variable = nullptr;
+            value->argof    = argof;
             value->ops.push_back( op );
             values.emplace( op, std::move( value ) );
         }
@@ -375,6 +392,19 @@ void yssa_regalloc( yssa_module* module, yssa_function* function )
             continue;
         }
         
+        if ( op->result_count == yl_opinst::MARK )
+        {
+            auto j = function->argof.find( op );
+            if ( j != function->argof.end() )
+            {
+                yssa_opinst* argof = j->second;
+                if ( argof->has_multival() && argof->multival == op )
+                {
+                    continue;
+                }
+            }
+        }
+        
         yssa_regcall_p call = std::make_unique< yssa_regcall >();
         call->index         = i;
         call->op            = op;
@@ -382,14 +412,15 @@ void yssa_regalloc( yssa_module* module, yssa_function* function )
         
         for ( const auto& v : values )
         {
-            for ( yssa_live_range* live = v.second->live;
-                        live; live = live->next )
+            yssa_regvalue* val = v.second.get();
+        
+            for ( yssa_live_range* live = val->live; live; live = live->next )
             {
                 // Note that if i == live->start then the live range begins at
                 // the call itself.  Calls are not live across themselves.
                 if ( i > live->start && i < live->final )
                 {
-                    v.second->across.push_back( call.get() );
+                    val->across.push_back( call.get() );
                     call->across_count += 1;
                 }
             }
@@ -403,7 +434,18 @@ void yssa_regalloc( yssa_module* module, yssa_function* function )
         if ( call->across_count == 0 )
         {
             // No variables are live across the call.
-            call->op->stacktop = 0;
+            uint8_t stacktop = 0;
+            call->op->stacktop = stacktop;
+            
+            yssa_opinst* op = call->op;
+            while ( op->has_multival() && op->multival )
+            {
+                stacktop += op->operand_count;
+                op = op->multival;
+                op->r = stacktop;
+                op->stacktop = stacktop;
+            }
+
             for ( yssa_regvalue* value : call->arguments )
             {
                 value->argof = nullptr;
@@ -498,6 +540,15 @@ void yssa_regalloc( yssa_module* module, yssa_function* function )
                 // Assign stack top.
                 assert( call->op->stacktop == yl_opinst::NOVAL );
                 call->op->stacktop = stacktop;
+
+                yssa_opinst* op = call->op;
+                while ( op->has_multival() && op->multival )
+                {
+                    stacktop += op->operand_count;
+                    op = op->multival;
+                    op->r = stacktop;
+                    op->stacktop = stacktop;
+                }
                 
                 // All arguments to this call are now free to be allocated.
                 for ( yssa_regvalue* argument : call->arguments )
