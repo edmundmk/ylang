@@ -14,6 +14,9 @@
       location = "container:tests"
       name = "tests">
       <FileRef
+         location = "group:call-multival-regalloc.yl">
+      </FileRef>
+      <FileRef
          location = "group:fannkuch-redux.lua">
       </FileRef>
       <FileRef
