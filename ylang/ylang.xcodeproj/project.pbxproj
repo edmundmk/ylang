@@ -61,7 +61,7 @@
 		DB5B1FF61AE70A0400701000 /* yl_table.h in Headers */ = {isa = PBXBuildFile; fileRef = DB5B1FF41AE70A0400701000 /* yl_table.h */; };
 		DB5B1FF91AE70B9500701000 /* yl_array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB5B1FF71AE70B9500701000 /* yl_array.cpp */; };
 		DB5B1FFA1AE70B9500701000 /* yl_array.h in Headers */ = {isa = PBXBuildFile; fileRef = DB5B1FF81AE70B9500701000 /* yl_array.h */; };
-		DB80B0641BFBEEFA00F59000 /* yl_debuginfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB80B0631BFBEEFA00F59000 /* yl_debuginfo.cpp */; settings = {ASSET_TAGS = (); }; };
+		DB80B0641BFBEEFA00F59000 /* yl_debuginfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DB80B0631BFBEEFA00F59000 /* yl_debuginfo.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXBuildRule section */
@@ -74,7 +74,7 @@
 			outputFiles = (
 				"$(DERIVED_FILES_DIR)/$(INPUT_FILE_BASE).rl.cpp",
 			);
-			script = "/usr/local/bin/ragel -G1 -o \"$DERIVED_FILES_DIR/$INPUT_FILE_BASE.rl.cpp\" \"$INPUT_FILE_PATH\"";
+			script = "/usr/local/bin/ragel -o \"$DERIVED_FILES_DIR/$INPUT_FILE_BASE.rl.cpp\" \"$INPUT_FILE_PATH\"";
 		};
 		4BCF3D7A1A85815D00B9AB3A /* PBXBuildRule */ = {
 			isa = PBXBuildRule;
