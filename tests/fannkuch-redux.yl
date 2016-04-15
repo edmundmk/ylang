@@ -6,78 +6,105 @@
 //
 
 
+
 def fannkuch( n )
 {
-    var max_flips_count = 0;
-    var perm_count = 0;
-    var checksum = 0;
-
     var p = []; p.resize( n );
     var q = []; q.resize( n );
-    var c = []; c.resize( n );
-    
+    var s = []; s.resize( n );
+
+    var sign = 1;
+    var maxflips = 0;
+    var sum = 0;
+
     for ( var i = 0; i < n; ++i )
     {
         p[ i ] = i;
         q[ i ] = i;
-        c[ i ] = i;
+        s[ i ] = i;
     }
 
-    var r = n;
-    
     while ( true )
     {
-        while ( r != 1 )
+        var q0 = p[ 0 ];
+        if ( q0 != 0 )
         {
-            c[ r - 1 ] = r;
-            r -= 1;
-        }
-        
-        for ( var i = 0; i < n; ++i )
-            p[ i ] = q[ i ];
-        
-        var flips_count = 0;
-
-        var k;
-        while ( ( k = p[ 0 ] ) != 0 )
-        {
-            var k2 = ( k + 1 ) >> 1;
-            for ( var i = 0; i < k2; ++i )
-                p[ i ], p[ k - i ] = p[ k - i ], p[ i ];
-            flips_count += 1;
-        }
-        
-        max_flips_count = max( max_flips_count, flips_count );
-        checksum += perm_count % 2 == 0 ? flips_count : -flips_count;
-        
-        // Use incremental change to generate another permutation.
-        while ( true )
-        {
-            if ( r == n )
+            for ( var i = 1; i < n; ++i )
             {
-                printf( "%g\n", checksum );
-                return max_flips_count;
+                q[ i ] = p[ i ];
             }
-            
-            var q0 = q[ 0 ];
-            for ( var i = 0; i < r; ++i )
-                q[ i ] = q[ i + 1 ];
-            q[ r ] = q0;
-            c[ r ] = c[ r ] - 1;
-            if ( c[ r ] > 0 )
-                break;
-            
-            r += 1;
+            var flips = 1;
+            while ( true )
+            {
+                var qq = q[ q0 ];
+                if ( qq == 0 )
+                {
+                    sum += sign * flips;
+                    if ( flips > maxflips )
+                        maxflips = flips;
+                    break;
+                }
+
+                q[ q0 ] = q0;
+                var i = 1;
+                var j = q0 - 1;
+                while ( i < j )
+                {
+                    q[ i ], q[ j ] = q[ j ], q[ i ];
+                    ++i;
+                    --j;
+                }
+
+                q0 = qq;
+                ++flips;
+            }
         }
 
-        perm_count += 1;
+        if ( sign == 1 )
+        {
+            p[ 1 ], p[ 0 ] = p[ 0 ], p[ 1 ];
+            sign = -1;
+        }
+        else
+        {
+            p[ 1 ], p[ 2 ] = p[ 2 ], p[ 1 ];
+            sign = 1;
+            for ( var i = 2; i < n; ++i )
+            {
+                var sx = s[ i ];
+                if ( sx != 0 )
+                {
+                    s[ i ] = sx - 1;
+                    break;
+                }
+
+                if ( i == n - 1 )
+                {
+                    printf( "%g\n", sum );
+                    return maxflips;
+                }
+
+                s[ i ] = i;
+                var t = p[ 0 ];
+                for ( var j = 0; j <= i; ++j )
+                {
+                    p[ j ] = p[ j + 1 ];
+                }
+                p[ i + 1 ] = t;
+            }
+        }
+
     }
+
 }
+
+
 
 
 def main( n )
 {
     n = n ? atoi( n ) : 7;
+//    printf( "%g\nPfannkuchen(%g) = %g\n", fannkuch( n ) ... );
     printf( "Pfannkuchen(%g) = %g\n", n, fannkuch( n ) );
     return 0;
 }
