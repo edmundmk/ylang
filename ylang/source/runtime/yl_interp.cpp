@@ -123,8 +123,7 @@ static void reverse( yl_value* array, size_t size )
 }
 
 
-static std::pair< yl_funcobj*, unsigned >
-            build_frame( yl_cothread* t, unsigned sp, unsigned acount )
+static void build_frame( yl_stackframe* frame, yl_cothread* t, unsigned sp, unsigned acount )
 {
     // If acount is MARK then the mark points after the last argument.
     if ( acount == yl_opinst::MARK )
@@ -200,9 +199,60 @@ static std::pair< yl_funcobj*, unsigned >
     }
 
 
-    return std::make_pair( f, fp );
+    // And return a stackframe.
+    frame->funcobj   = f;
+    frame->ip        = 0;
+    frame->sp        = sp;
+    frame->fp        = fp;
 }
 
+/*
+static void cocall( yl_cothread* t, yl_value* s, unsigned fp,
+        yl_funcobj* funcobj, unsigned r, unsigned a, unsigned b )
+{
+    yl_rootref< yl_cothread > cothread = yl_gcnew< yl_cothread >();
+    
+    unsigned acount;
+    if ( a != yl_opinst::MARK )
+    {
+        acount = a;
+    }
+    else
+    {
+        acount = t->get_mark() - ( fp + r );
+    }
+    
+    yl_value* c = cothread->stack_mark( 0, acount, acount );
+    for ( unsigned i = 0; i < acount; ++i )
+    {
+        c[ i ] = s[ r + i ];
+    }
+    
+    yl_stackframe suspend;
+    suspend.funcobj = nullptr;
+    suspend.ip      = 0;
+    suspend.sp      = 
+    
+    unsigned bcount;
+    if ( b != yl_opinst::MARK )
+    {
+        bcount = b;
+    }
+    else
+    {
+        bcount = 1;
+    }
+    
+    if ( bcount )
+    {
+        s[ r ] = cothread.get();
+        for ( unsigned i = 1; i < bcount; ++i )
+        {
+            s[ r + i ] = yl_null;
+        }
+    }
+}
+*/
 
 
 /*
@@ -220,23 +270,24 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     
     // Build frame for this call.
-    auto ffp = build_frame( t, sp, acount );
-    yl_funcobj*         f       = ffp.first;
-    unsigned            fp      = ffp.second;
-    yl_program*         p       = f->program();
+    yl_stackframe frame;
+    build_frame( &frame, t, sp, acount );
+    frame.locup_base = t->get_locup_base();
+    frame.iters_base = t->get_iters_base();
+    frame.rcount = rcount;
+
+    // Cache values.
+    yl_program*         p       = frame.funcobj->program();
     const yl_heapval*   values  = p->values();
     const yl_opinst*    ops     = p->ops();
     yl_ilcache*         ilcache = p->ilcache();
-
     
-    // Get stacks.
-    yl_value* s = t->stack_peek( fp, p->stackcount() );
-    unsigned locup_base = t->get_locup_base();
-    unsigned iters_base = t->get_iters_base();
+    unsigned            ip      = frame.ip;
+    unsigned            fp      = frame.fp;
+    yl_value*           s       = t->stack_peek( fp, p->stackcount() );
     
     
     // Main instruction dispatch loop.
-    unsigned ip = 0;
     while ( true )
     {
     
@@ -607,7 +658,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             {
             case YL_UPLOCAL:
             {
-                yl_upval*& locup = t->locup( locup_base, a );
+                yl_upval*& locup = t->locup( frame.locup_base, a );
                 if ( ! locup )
                 {
                     locup = yl_gcnew< yl_upval >( fp + b ).get();
@@ -618,7 +669,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             
             case YL_UPUPVAL:
             {
-                funcobj->set_upval( r, f->get_upval( a ) );
+                funcobj->set_upval( r, frame.funcobj->get_upval( a ) );
                 break;
             }
             
@@ -637,49 +688,40 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     case YL_CALL:
     case YL_YCALL:
     {
-        // TODO:
-        //     If you call a coroutine, then we construct a new cothread.
-        //     If you call a cothread, then we pass a new set of parameters in.
-        //     Ycalls are always real calls.
-        
         if ( s[ r ].is( YLOBJ_FUNCOBJ ) )
         {
+            yl_funcobj* funcobj = (yl_funcobj*)s[ r ].gcobject();
+            
+            // Check for call of coroutine which constructs a new cothread.
+            if ( op->opcode() == YL_CALL && funcobj->program()->coroutine() )
+            {
+                assert( ! "coroutines not implemented yet" );
+                break;
+            }
+
             // Push current stack frame.
-            yl_stackframe frame;
-            frame.funcobj       = f;
-            frame.ip            = ip;
-            frame.sp            = sp;
-            frame.fp            = fp;
-            frame.locup_base    = locup_base;
-            frame.iters_base    = iters_base;
-            frame.rcount        = rcount;
+            frame.ip = ip;
             t->push_frame( frame );
 
-            // This call requests b values.
-            rcount = b;
-
-            // Update locup/iter stack base.
-            locup_base += p->locupcount();
-            iters_base += p->iterscount();
-
             // Build frame for this call.
-            auto ffp = build_frame( t, fp + r, a );
-            sp          = fp + r;
-            f           = ffp.first;
-            fp          = ffp.second;
-            p           = f->program();
-            values      = p->values();
-            ops         = p->ops();
-            ilcache     = p->ilcache();
+            build_frame( &frame, t, fp + r, a );
+            frame.locup_base += p->locupcount();
+            frame.iters_base += p->iterscount();
+            frame.rcount = b;
 
-            // Get stack.
-            s = t->stack_peek( fp, p->stackcount() );
+            // Recache values.
+            p       = frame.funcobj->program();
+            values  = p->values();
+            ops     = p->ops();
+            ilcache = p->ilcache();
+            
+            ip      = frame.ip;
+            sp      = frame.sp;
+            fp      = frame.fp;
+            s       = t->stack_peek( fp, p->stackcount() );
 
             // Increase call depth.
             call_depth += 1;
-            
-            // Start at first op.
-            ip = 0;
         }
         else if ( s[ r ].is( YLOBJ_THUNKOBJ ) )
         {
@@ -713,6 +755,11 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
                 s[ r + i ] = yl_null;
             }
         }
+        else if ( op->opcode() == YL_CALL && s[ r ].is( YLOBJ_COTHREAD ) )
+        {
+            assert( ! "coroutines not yet implemented" );
+            break;
+        }
         else
         {
             throw yl_exception( "attempt to call an uncallable object" );
@@ -735,7 +782,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
 
         unsigned count;
         unsigned bcount;
-        b = rcount;
+        b = frame.rcount;
         if ( b != yl_opinst::MARK )
         {
             count = std::min( b, a );
@@ -767,22 +814,19 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             unsigned mark = sp + bcount;
         
             // Pop stack frame.
-            yl_stackframe frame = t->pop_frame();
-            f           = frame.funcobj;
-            ip          = frame.ip;
-            sp          = frame.sp;
-            fp          = frame.fp;
-            locup_base  = frame.locup_base;
-            iters_base  = frame.iters_base;
-            rcount      = frame.rcount;
+            frame = t->pop_frame();
             
-            // Get function and program.
-            p           = f->program();
-            values      = p->values();
-            ops         = p->ops();
-            ilcache     = p->ilcache();
+            // Cache values.
+            p       = frame.funcobj->program();
+            values  = p->values();
+            ops     = p->ops();
+            ilcache = p->ilcache();
             
-            // Get stack.
+            ip      = frame.ip;
+            sp      = frame.sp;
+            fp      = frame.fp;
+            
+            // Stack mark.
             assert( mark >= fp );
             s = t->stack_mark( fp, mark - fp, p->stackcount() );
             
@@ -800,25 +844,25 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_ITER:
     {
-        t->iterator( iters_base, r ).open_vals( s[ a ] );
+        t->iterator( frame.iters_base, r ).open_vals( s[ a ] );
         break;
     }
     
     case YL_ITERKEY:
     {
-        t->iterator( iters_base, r ).open_keys( s[ a ] );
+        t->iterator( frame.iters_base, r ).open_keys( s[ a ] );
         break;
     }
     
     case YL_NEXT1:
     {
-        t->iterator( iters_base, a ).next1( &s[ r ] );
+        t->iterator( frame.iters_base, a ).next1( &s[ r ] );
         break;
     }
     
     case YL_NEXT2:
     {
-        t->iterator( iters_base, a ).next2( &s[ r ], &s[ b ] );
+        t->iterator( frame.iters_base, a ).next2( &s[ r ], &s[ b ] );
         break;
     }
     
@@ -826,7 +870,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     {
         // Get next set of values from iterator.
         yl_value vspace[ 2 ];
-        yl_iternext next = t->iterator( iters_base, a ).next( vspace );
+        yl_iternext next = t->iterator( frame.iters_base, a ).next( vspace );
         
         // Place values in correct registers.
         unsigned count;
@@ -856,7 +900,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
 
     case YL_JMPV:
     {
-        if ( t->iterator( iters_base, r ).has_values() )
+        if ( t->iterator( frame.iters_base, r ).has_values() )
         {
             ip += j;
         }
@@ -865,7 +909,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     
     case YL_JMPN:
     {
-        if ( ! t->iterator( iters_base, r ).has_values() )
+        if ( ! t->iterator( frame.iters_base, r ).has_values() )
         {
             ip += j;
         }
@@ -874,22 +918,22 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
 
     case YL_GETUP:
     {
-        yl_upval* upval = f->get_upval( a );
+        yl_upval* upval = frame.funcobj->get_upval( a );
         s[ r ] = upval->get_value( t );
         break;
     }
     
     case YL_SETUP:
     {
-        yl_upval* upval = f->get_upval( a );
+        yl_upval* upval = frame.funcobj->get_upval( a );
         upval->set_value( t, s[ r ] );
         break;
     }
 
     case YL_CLOSE:
     {
-        t->close_locup( locup_base, a );
-        t->close_iterator( iters_base, b );
+        t->close_locup( frame.locup_base, a );
+        t->close_iterator( frame.iters_base, b );
         break;
     }
 
