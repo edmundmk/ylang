@@ -123,11 +123,21 @@ private:
     Compile a ylang script and return a callable function.
 */
 
+enum
+{
+    YL_COMPILE_PRINT_AST,
+    YL_COMPILE_PRINT_SSA,
+    YL_COMPILE_PRINT_OPS,
+};
+
+
+template < typename ... arguments_t >
+    yl_function yl_compile( unsigned debug, const char* path, arguments_t ... arguments );
 
 template < typename ... arguments_t >
     yl_function yl_compile( const char* path, arguments_t ... arguments );
 
-yl_function yl_compile( const char* path, size_t paramc, const char* paramv[] );
+yl_function yl_compile( const char* path, size_t paramc, const char* paramv[], unsigned debug = 0 );
 
 
 
@@ -297,10 +307,18 @@ void _yl_global_function( const char*, void (*)( yl_callframe& ) );
 
 
 template < typename ... arguments_t >
+inline yl_function yl_compile( unsigned debug, const char* path, arguments_t ... arguments )
+{
+    const char* paramv[] = { arguments ... };
+    return yl_compile( path, sizeof ... ( arguments ), paramv, debug );
+}
+
+
+template < typename ... arguments_t >
 inline yl_function yl_compile( const char* path, arguments_t ... arguments )
 {
     const char* paramv[] = { arguments ... };
-    return yl_compile( path, sizeof ... ( arguments ), paramv );
+    return yl_compile( path, sizeof ... ( arguments ), paramv, 0 );
 }
 
 

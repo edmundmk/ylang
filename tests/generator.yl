@@ -1,0 +1,28 @@
+/*
+
+    check that generators work
+
+*/
+
+
+
+
+def generator() yield
+{
+    yield 1;
+    yield 2;
+    yield 3;
+    yield 4;
+}
+
+
+
+for ( var x : generator() )
+{
+    printf( "%g", x );
+}
+
+
+
+
+

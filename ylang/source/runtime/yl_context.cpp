@@ -43,8 +43,7 @@ yl_context_impl* yl_context_impl::unwrap( yl_context* context )
 
 
 yl_context_impl::yl_context_impl()
-    :   _cothread( nullptr )
-    ,   _klassid( 1 )
+    :   _klassid( 1 )
     ,   _proto_object( nullptr )
     ,   _proto_array( nullptr )
     ,   _proto_table( nullptr )
@@ -57,7 +56,6 @@ yl_context_impl::yl_context_impl()
 {
     // Register GC types.
     register_type( &yl_object::gctype );
-//    register_type( &yl_expobj::gctype );
     register_type( &yl_array::gctype );
     register_type( &yl_table::gctype );
     register_type( &yl_string::gctype );
@@ -97,9 +95,7 @@ yl_context_impl::yl_context_impl()
     _globals->set_key( "cothread", _proto_cothread.get() );
 
     // Default cothread.
-    _cothread = yl_gcnew< yl_cothread >();
-    eager_lock( _cothread.get() );
-    
+    push_cothread( yl_gcnew< yl_cothread >().get() );
 }
 
 yl_context_impl::~yl_context_impl()
@@ -115,26 +111,32 @@ yl_context_impl::~yl_context_impl()
     _proto_function.reset();
     _proto_cothread.reset();
     _globals.reset();
-    _cothread.reset();
+    _cothreads.clear();
 }
 
 
 
 
-void yl_context_impl::set_cothread( yl_cothread* cothread )
+void yl_context_impl::push_cothread( yl_cothread* cothread )
 {
-    if ( cothread == _cothread.get() )
-        return;
-    
-    if ( _cothread )
+    if ( _cothreads.size() )
     {
-        eager_unlock( _cothread.get() );
+        eager_unlock( _cothreads.back().get() );
     }
-    _cothread = cothread;
-    if ( _cothread )
+    _cothreads.push_back( cothread );
+    eager_lock( cothread );
+}
+
+yl_rootref< yl_cothread > yl_context_impl::pop_cothread()
+{
+    eager_unlock( _cothreads.back().get() );
+    yl_rootref< yl_cothread > cothread = std::move( _cothreads.back() );
+    _cothreads.pop_back();
+    if ( _cothreads.size() )
     {
-        eager_lock( _cothread.get() );
+        eager_lock( _cothreads.back().get() );
     }
+    return cothread;
 }
 
 

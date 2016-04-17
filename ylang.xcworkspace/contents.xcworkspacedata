@@ -17,6 +17,12 @@
          location = "group:call-multival-regalloc.yl">
       </FileRef>
       <FileRef
+         location = "group:coroutine.yl">
+      </FileRef>
+      <FileRef
+         location = "group:generator.yl">
+      </FileRef>
+      <FileRef
          location = "group:fannkuch-redux.lua">
       </FileRef>
       <FileRef

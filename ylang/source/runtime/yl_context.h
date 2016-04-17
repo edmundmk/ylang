@@ -87,8 +87,9 @@ public:
 
     // Execution context.
 
+    void                        push_cothread( yl_cothread* cothread );
+    yl_rootref< yl_cothread >   pop_cothread();
     yl_cothread*                get_cothread() const;
-    void                        set_cothread( yl_cothread* cothread );
 
 
     // Object model.
@@ -121,6 +122,7 @@ public:
 private:
 
     typedef std::unordered_map< symkey, yl_string* > symbol_map;
+    typedef std::vector< yl_rootref< yl_cothread > > cothread_stack;
 
     symbol_map                  _symbols;
 
@@ -137,7 +139,7 @@ private:
     yl_rootref< yl_object >     _proto_cothread;
     yl_rootref< yl_object >     _globals;
 
-    yl_rootref< yl_cothread >   _cothread;
+    cothread_stack              _cothreads;
     
 };
 
@@ -153,7 +155,7 @@ private:
 
 inline yl_cothread* yl_context_impl::get_cothread() const
 {
-    return _cothread.get();
+    return _cothreads.back().get();
 }
 
 

@@ -118,7 +118,7 @@ void yl_cothread::close_locup( size_t base, unsigned index )
         yl_upval*& upval = _locup.at( i );
         if ( upval )
         {
-            upval->close( this );
+            upval->close();
         }
     }
     _locup.resize( base + index );

@@ -21,8 +21,9 @@ yl_gctype yl_upval::gctype =
 };
 
 
-yl_upval::yl_upval( unsigned index )
-    :   _index( index )
+yl_upval::yl_upval( yl_cothread* cothread, unsigned index )
+    :   _cothread( cothread )
+    ,   _index( index )
 {
     set_gcflags( OPEN );
 }
@@ -36,6 +37,7 @@ void yl_upval::destroy( yl_gcheap* heap, yl_gcobject* object )
 void yl_upval::mark( yl_gcheap* heap, yl_gcobject* object )
 {
     yl_upval* self = (yl_upval*)object;
+    self->_cothread.mark( heap );
     self->_value.mark( heap );
 }
 

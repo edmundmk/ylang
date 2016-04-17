@@ -445,10 +445,14 @@ public:
     yl_rootref();
     yl_rootref( object_t* p );
     yl_rootref( const yl_rootref& p );
+    yl_rootref( yl_rootref&& p );
     template < typename derived_t > yl_rootref( const yl_rootref< derived_t >& p );
+    template < typename derived_t > yl_rootref( yl_rootref< derived_t >&& p );
     yl_rootref& operator = ( object_t* p );
     yl_rootref& operator = ( const yl_rootref& p );
+    yl_rootref& operator = ( yl_rootref&& p );
     template < typename derived_t > yl_rootref& operator = ( const yl_rootref< derived_t >& p );
+    template < typename derived_t > yl_rootref& operator = ( yl_rootref< derived_t >&& p );
     ~yl_rootref();
     
     explicit operator bool () const;
@@ -460,6 +464,8 @@ public:
     
     
 private:
+
+    template < typename T > friend class yl_rootref;
 
     object_t* _p;
 
@@ -702,11 +708,27 @@ yl_rootref< object_t >::yl_rootref( const yl_rootref& p )
 }
 
 template < typename object_t >
+yl_rootref< object_t >::yl_rootref( yl_rootref&& p )
+    :   _p( nullptr )
+{
+    std::swap( _p, p._p );
+}
+
+template < typename object_t >
 template < typename derived_t >
 yl_rootref< object_t >::yl_rootref( const yl_rootref< derived_t >& p )
     :   _p( nullptr )
 {
     reset( p.get() );
+}
+
+template < typename object_t >
+template < typename derived_t >
+yl_rootref< object_t >::yl_rootref( yl_rootref< derived_t >&& p )
+    :   _p( nullptr )
+{
+    _p = p._p;
+    p._p = nullptr;
 }
 
 template < typename object_t >
@@ -724,10 +746,28 @@ yl_rootref< object_t >& yl_rootref< object_t >::operator = ( const yl_rootref& p
 }
 
 template < typename object_t >
+yl_rootref< object_t >& yl_rootref< object_t >::operator = ( yl_rootref&& p )
+{
+    reset( nullptr );
+    std::swap( _p, p._p );
+    return *this;
+}
+
+template < typename object_t >
 template < typename derived_t >
 yl_rootref< object_t >& yl_rootref< object_t >::operator = ( const yl_rootref< derived_t >& p )
 {
     reset( p.get() );
+    return *this;
+}
+
+template < typename object_t >
+template < typename derived_t >
+yl_rootref< object_t >& yl_rootref< object_t >::operator = ( yl_rootref< derived_t >&& p )
+{
+    reset( nullptr );
+    _p = p._p;
+    p._p = nullptr;
     return *this;
 }
 

@@ -39,6 +39,14 @@ bool is_integer( double number );
     A stack frame.
 */
 
+enum yl_framekind : uint8_t
+{
+    YL_FRAME_LOCAL,     // call on same cothread
+    YL_FRAME_YCALL,     // first call on new cothread
+    YL_FRAME_NATIVE,    // first call from native code
+};
+
+
 struct yl_stackframe
 {
     yl_funcobj*     funcobj;        // function
@@ -47,7 +55,8 @@ struct yl_stackframe
     unsigned        fp;             // frame pointer (after vararg adjustment)
     unsigned        locup_base;     // local upval pointer
     unsigned        iters_base;     // iterators pointer
-    unsigned        rcount;         // requested number of result values
+    uint8_t         rcount;         // requested number of result values
+    yl_framekind    kind;           // kind.
 };
 
 
@@ -84,6 +93,7 @@ public:
 
     yl_cothread();
 
+    bool            has_frames() const;
     void            push_frame( const yl_stackframe& frame );
     yl_stackframe   pop_frame();
 
@@ -141,6 +151,12 @@ inline bool is_integer( double number )
 /*
     yl_cothread
 */
+
+
+inline bool yl_cothread::has_frames() const
+{
+    return ! _frames.empty();
+}
 
 
 inline yl_value* yl_cothread::stack_alloc( size_t base, unsigned size )

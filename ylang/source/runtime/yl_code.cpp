@@ -177,7 +177,7 @@ const ylop_disasm disasm;
 
 
 
-void ylop_print( size_t index, yl_opinst* op )
+void ylop_print( size_t index, const yl_opinst* op )
 {
     printf( "%04zX ", index );
     

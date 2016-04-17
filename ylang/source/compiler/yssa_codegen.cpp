@@ -309,7 +309,7 @@ private:
 
 
 
-yl_function yssa_codegen( yssa_module* module )
+yl_function yssa_codegen( yssa_module* module, bool debugprint )
 {
     ygen_module m;
     ygen_emit emit( &m );
@@ -338,6 +338,10 @@ yl_function yssa_codegen( yssa_module* module )
     for ( const auto& p : m.programs )
     {
         emit.emit( p.second.get() );
+        if ( debugprint )
+        {
+            p.second->program->print();
+        }
     }
     
 
@@ -1505,11 +1509,6 @@ void ygen_emit::emit( ygen_program* p )
     }
 
     p->program->_debuginfo = std::move( debuginfo );
-
-
-    
-//    p->program->print();
-//    printf( "\n" );
     
 }
 

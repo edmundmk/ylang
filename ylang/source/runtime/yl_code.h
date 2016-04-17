@@ -287,7 +287,7 @@ struct yl_xframe
     Code printing.
 */
 
-void ylop_print( size_t index, yl_opinst* op );
+void ylop_print( size_t index, const yl_opinst* op );
 
 
 

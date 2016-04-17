@@ -21,6 +21,12 @@
 
 
 
+//#define TRACE
+#ifdef TRACE
+static void trace( yl_cothread* t, const yl_stackframe& f, unsigned ip );
+#endif
+
+
 
 /*
     yl_invoke
@@ -206,53 +212,6 @@ static void build_frame( yl_stackframe* frame, yl_cothread* t, unsigned sp, unsi
     frame->fp        = fp;
 }
 
-/*
-static void cocall( yl_cothread* t, yl_value* s, unsigned fp,
-        yl_funcobj* funcobj, unsigned r, unsigned a, unsigned b )
-{
-    yl_rootref< yl_cothread > cothread = yl_gcnew< yl_cothread >();
-    
-    unsigned acount;
-    if ( a != yl_opinst::MARK )
-    {
-        acount = a;
-    }
-    else
-    {
-        acount = t->get_mark() - ( fp + r );
-    }
-    
-    yl_value* c = cothread->stack_mark( 0, acount, acount );
-    for ( unsigned i = 0; i < acount; ++i )
-    {
-        c[ i ] = s[ r + i ];
-    }
-    
-    yl_stackframe suspend;
-    suspend.funcobj = nullptr;
-    suspend.ip      = 0;
-    suspend.sp      = 
-    
-    unsigned bcount;
-    if ( b != yl_opinst::MARK )
-    {
-        bcount = b;
-    }
-    else
-    {
-        bcount = 1;
-    }
-    
-    if ( bcount )
-    {
-        s[ r ] = cothread.get();
-        for ( unsigned i = 1; i < bcount; ++i )
-        {
-            s[ r + i ] = yl_null;
-        }
-    }
-}
-*/
 
 
 /*
@@ -265,16 +224,13 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     assert( yl_current->get_cothread() == t );
     
     
-    // Remember call depth.
-    unsigned call_depth = 0;
-    
-    
     // Build frame for this call.
     yl_stackframe frame;
     build_frame( &frame, t, sp, acount );
     frame.locup_base = t->get_locup_base();
     frame.iters_base = t->get_iters_base();
     frame.rcount = rcount;
+    frame.kind = YL_FRAME_NATIVE;
 
     // Cache values.
     yl_program*         p       = frame.funcobj->program();
@@ -290,10 +246,14 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     // Main instruction dispatch loop.
     while ( true )
     {
-    
+
+#ifdef TRACE
+    trace( t, frame, ip );
+#endif
+        
     const yl_opinst* op = ops + ip;
     ip += 1;
-    
+
     unsigned r = op->r();
     unsigned a = op->a();
     unsigned b = op->b();
@@ -661,7 +621,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
                 yl_upval*& locup = t->locup( frame.locup_base, a );
                 if ( ! locup )
                 {
-                    locup = yl_gcnew< yl_upval >( fp + b ).get();
+                    locup = yl_gcnew< yl_upval >( t, fp + b ).get();
                 }
                 funcobj->set_upval( r, locup );
                 break;
@@ -691,37 +651,69 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         if ( s[ r ].is( YLOBJ_FUNCOBJ ) )
         {
             yl_funcobj* funcobj = (yl_funcobj*)s[ r ].gcobject();
-            
-            // Check for call of coroutine which constructs a new cothread.
-            if ( op->opcode() == YL_CALL && funcobj->program()->coroutine() )
+            if ( op->opcode() == YL_YCALL || ! funcobj->program()->coroutine() )
             {
-                assert( ! "coroutines not implemented yet" );
-                break;
+                // Push current stack frame.
+                frame.ip = ip;
+                t->push_frame( frame );
+
+                // Build frame for this call.
+                build_frame( &frame, t, fp + r, a );
+                frame.locup_base += p->locupcount();
+                frame.iters_base += p->iterscount();
+                frame.rcount = b;
+                frame.kind = YL_FRAME_LOCAL;
+
+                // Recache values.
+                p       = frame.funcobj->program();
+                values  = p->values();
+                ops     = p->ops();
+                ilcache = p->ilcache();
+                
+                ip      = frame.ip;
+                sp      = frame.sp;
+                fp      = frame.fp;
+                s       = t->stack_peek( fp, p->stackcount() );
+            
+            }
+            else
+            {
+                // Call of coroutine which constructs a new cothread.
+                yl_rootref< yl_cothread > cothread = yl_gcnew< yl_cothread >();
+                
+                if ( a == yl_opinst::MARK )
+                {
+                    a = t->get_mark() - ( fp + r );
+                }
+                
+                // Copy arguments into cothread, but do not create call frame.
+                yl_value* c = cothread->stack_mark( 0, a, a );
+                for ( unsigned i = 0; i < a; ++i )
+                {
+                    c[ i ] = s[ r + i ];
+                }
+            
+                unsigned bcount;
+                if ( b != yl_opinst::MARK )
+                {
+                    bcount = b;
+                }
+                else
+                {
+                    bcount = 1;
+                }
+                yl_value* s = t->stack_mark( fp, r + bcount, p->stackcount() );
+                
+                if ( bcount )
+                {
+                    s[ r ] = cothread.get();
+                    for ( unsigned i = 1; i < bcount; ++i )
+                    {
+                        s[ r + i ] = yl_null;
+                    }
+                }
             }
 
-            // Push current stack frame.
-            frame.ip = ip;
-            t->push_frame( frame );
-
-            // Build frame for this call.
-            build_frame( &frame, t, fp + r, a );
-            frame.locup_base += p->locupcount();
-            frame.iters_base += p->iterscount();
-            frame.rcount = b;
-
-            // Recache values.
-            p       = frame.funcobj->program();
-            values  = p->values();
-            ops     = p->ops();
-            ilcache = p->ilcache();
-            
-            ip      = frame.ip;
-            sp      = frame.sp;
-            fp      = frame.fp;
-            s       = t->stack_peek( fp, p->stackcount() );
-
-            // Increase call depth.
-            call_depth += 1;
         }
         else if ( s[ r ].is( YLOBJ_THUNKOBJ ) )
         {
@@ -748,6 +740,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             {
                 count = bcount = (unsigned)xf.size();
             }
+            
             s = t->stack_mark( fp, r + bcount, p->stackcount() );
 
             for ( unsigned i = count; i < bcount; ++i )
@@ -757,8 +750,102 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         }
         else if ( op->opcode() == YL_CALL && s[ r ].is( YLOBJ_COTHREAD ) )
         {
-            assert( ! "coroutines not yet implemented" );
-            break;
+            yl_cothread* cothread = (yl_cothread*)s[ r ].gcobject();
+            
+            // Get arguments.
+            if ( a == yl_opinst::MARK )
+            {
+                a = t->get_mark() - ( fp + r );
+            }
+
+            // Push current stack frame.
+            frame.ip = ip;
+            t->push_frame( frame );
+
+            // Switch cothread.
+            yl_current->push_cothread( cothread );
+            t = cothread;
+            
+            if ( t->has_frames() )
+            {
+                // Resume cothread.
+                frame = t->pop_frame();
+
+                // Recache values.
+                p       = frame.funcobj->program();
+                values  = p->values();
+                ops     = p->ops();
+                ilcache = p->ilcache();
+
+                ip      = frame.ip;
+                sp      = frame.sp;
+                fp      = frame.fp;
+                
+                // Must resume at a YIELD instruction.
+                op = ops + ip - 1;
+                assert( op->opcode() == YL_YIELD );
+                
+                // Copy arguments into the new cothread.
+                unsigned count;
+                unsigned bcount;
+                if ( op->b() != yl_opinst::MARK )
+                {
+                    count = std::min( op->b(), a - 1 );
+                    bcount = op->b();
+                }
+                else
+                {
+                    assert( a > 0 );
+                    count = bcount = a - 1;
+                }
+                
+                yl_value* c = t->stack_mark( fp, op->r() + bcount, p->stackcount() );
+
+                for ( unsigned i = 0; i < count; ++i )
+                {
+                    c[ op->r() + i ] = s[ r + 1 + i ];
+                }
+                
+                for ( unsigned i = count; i < bcount; ++i )
+                {
+                    c[ op->r() + i ] = yl_null;
+                }
+                
+                s = c;
+
+            }
+            else
+            {
+                // First call, overwrite arguments.
+                if ( a > 1 )
+                {
+                    yl_value* c = t->stack_mark( 0, a, a );
+                    for ( unsigned i = 1; i < a; ++i )
+                    {
+                        c[ i ] = s[ r + i ];
+                    }
+                }
+                
+                // Construct call frame.
+                build_frame( &frame, t, 0, cothread->get_mark() );
+                frame.locup_base = 0;
+                frame.iters_base = 0;
+                frame.rcount = 0;
+                frame.kind = YL_FRAME_YCALL;
+                
+                // Recache values.
+                p       = frame.funcobj->program();
+                values  = p->values();
+                ops     = p->ops();
+                ilcache = p->ilcache();
+
+                ip      = frame.ip;
+                sp      = frame.sp;
+                fp      = frame.fp;
+
+                s       = t->stack_peek( fp, p->stackcount() );
+            }
+
         }
         else
         {
@@ -768,11 +855,6 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     }
     
     case YL_YIELD:
-    {
-        assert( ! "coroutines are unimplemented" );
-        break;
-    }
-    
     case YL_RETURN:
     {
         if ( a == yl_opinst::MARK )
@@ -780,65 +862,133 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             a = t->get_mark() - ( fp + r );
         }
 
-        unsigned count;
-        unsigned bcount;
-        b = frame.rcount;
-        if ( b != yl_opinst::MARK )
+        if ( op->opcode() == YL_RETURN && frame.kind != YL_FRAME_YCALL )
         {
-            count = std::min( b, a );
-            bcount = b;
+            // Perform copy down to sp.
+            unsigned count;
+            unsigned bcount;
+            b = frame.rcount;
+            if ( b != yl_opinst::MARK )
+            {
+                count = std::min( b, a );
+                bcount = b;
+            }
+            else
+            {
+                count = bcount = a;
+            }
+
+            assert( sp + count <= fp + r + count );
+            yl_value* z = t->stack_peek( sp, count );
+            for ( unsigned i = 0; i < count; ++i )
+            {
+                z[ i ] = s[ r + i ];
+            }
+            
+            // Add nulls.
+            s = t->stack_peek( sp, bcount );
+            for ( unsigned i = count; i < bcount; ++i )
+            {
+                s[ i ] = yl_null;
+            }
+            
+            if ( frame.kind == YL_FRAME_LOCAL )
+            {
+                // Return on same cothread.
+                unsigned mark = sp + bcount;
+            
+                // Pop stack frame.
+                frame = t->pop_frame();
+                
+                // Cache values.
+                p       = frame.funcobj->program();
+                values  = p->values();
+                ops     = p->ops();
+                ilcache = p->ilcache();
+                
+                ip      = frame.ip;
+                sp      = frame.sp;
+                fp      = frame.fp;
+                
+                // Stack mark.
+                assert( mark >= fp );
+                s = t->stack_mark( fp, mark - fp, p->stackcount() );
+                break;
+            }
+            else if ( frame.kind == YL_FRAME_NATIVE )
+            {
+                // Return native call.
+                t->stack_trim( sp, bcount );
+                return;
+            }
+            else
+            {
+                assert( ! "invalid call frame" );
+            }
+            
         }
         else
         {
-            count = bcount = a;
-        }
-        
-        // Perform copy down to sp.
-        assert( sp + count <= fp + r + count );
-        yl_value* z = t->stack_peek( sp, count );
-        for ( unsigned i = 0; i < count; ++i )
-        {
-            z[ i ] = s[ r + i ];
-        }
-        
-        // Add nulls.
-        s = t->stack_peek( sp, bcount );
-        for ( unsigned i = count; i < bcount; ++i )
-        {
-            s[ i ] = yl_null;
-        }
-        
-        // Return from previous call.
-        if ( call_depth > 0 )
-        {
-            unsigned mark = sp + bcount;
-        
-            // Pop stack frame.
-            frame = t->pop_frame();
             
-            // Cache values.
+            if ( op->opcode() == YL_YIELD )
+            {
+                // Push current stack frame.
+                frame.ip = ip;
+                t->push_frame( frame );
+            }
+            
+            // Switch cothread.
+            yl_rootref< yl_cothread > cothread = yl_current->pop_cothread();
+            assert( t == cothread.get() );
+            t = yl_current->get_cothread();
+        
+            // Resume.
+            frame = t->pop_frame();
+        
+            // Recache values.
             p       = frame.funcobj->program();
             values  = p->values();
             ops     = p->ops();
             ilcache = p->ilcache();
-            
+
             ip      = frame.ip;
             sp      = frame.sp;
             fp      = frame.fp;
             
-            // Stack mark.
-            assert( mark >= fp );
-            s = t->stack_mark( fp, mark - fp, p->stackcount() );
+            // Must resume at a CALL instruction.
+            op = ops + ip - 1;
+            assert( op->opcode() == YL_CALL );
             
-            // Decrease call depth.
-            call_depth -= 1;
+            // Copy arguments out into calling cothread.
+            unsigned count;
+            unsigned bcount;
+            if ( op->b() != yl_opinst::MARK )
+            {
+                count = std::min( op->b(), a );
+                bcount = op->b();
+            }
+            else
+            {
+                assert( a > 0 );
+                count = bcount = a;
+            }
+            
+            yl_value* c = t->stack_mark( fp, op->r() + bcount, p->stackcount() );
+            
+            for ( unsigned i = 0; i < count; ++i )
+            {
+                c[ op->r() + i ] = s[ r + i ];
+            }
+            
+            for ( unsigned i = count; i < bcount; ++i )
+            {
+                c[ op->r() + i ] = yl_null;
+            }
+            
+            s = c;
+            
         }
-        else
-        {
-            t->stack_trim( sp, bcount );
-            return;
-        }
-
+        
         break;
     }
     
@@ -919,14 +1069,14 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     case YL_GETUP:
     {
         yl_upval* upval = frame.funcobj->get_upval( a );
-        s[ r ] = upval->get_value( t );
+        s[ r ] = upval->get_value();
         break;
     }
     
     case YL_SETUP:
     {
         yl_upval* upval = frame.funcobj->get_upval( a );
-        upval->set_value( t, s[ r ] );
+        upval->set_value( s[ r ] );
         break;
     }
 
@@ -1283,4 +1433,80 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
 }
 
 
+
+
+#ifdef TRACE
+
+
+static void print_string( const yl_value& v )
+{
+    const char* s = ( (yl_string*)v.gcobject() )->c_str();
+    for ( ; *s; ++s )
+    {
+        if ( *s >= 0x20 && *s < 0x7F )
+        {
+            printf( "%c", *s );
+        }
+        else
+        {
+            printf( "\\x%02X", *s );
+        }
+    }
+}
+
+
+static void print_value( const yl_value& v )
+{
+    if ( v.is_number() )
+    {
+        printf( "%g", v.number() );
+    }
+    else
+    {
+        switch ( v.kind() )
+        {
+        case YLOBJ_OBJECT:      printf( "object(%p)", v.gcobject() );              break;
+        case YLOBJ_EXPOBJ:      printf( "expobj(%p)", v.gcobject() );              break;
+        case YLOBJ_ARRAY:       printf( "array(%p)", v.gcobject() );               break;
+        case YLOBJ_TABLE:       printf( "table(%p)", v.gcobject() );               break;
+        case YLOBJ_STRING:      print_string( v );                                 break;
+        case YLOBJ_FUNCOBJ:     printf( "%s", ( (yl_funcobj*)v.gcobject() )->program()->name() );  break;
+        case YLOBJ_THUNKOBJ:    printf( "thunkobj(%p)", v.gcobject() );            break;
+        case YLOBJ_COTHREAD:    printf( "cothread(%p)", v.gcobject() );            break;
+        case YLOBJ_BOOLEAN:     printf( "%s", v.is_true() ? "true" : "false" );    break;
+        case YLOBJ_NULLUNDEF:   printf( "%s", v.is_null() ? "null" : "undef" );    break;
+        }
+    }
+    printf( "\n" );
+}
+
+
+static void trace( yl_cothread* t, const yl_stackframe& f, unsigned ip )
+{
+    unsigned upcount = f.funcobj->program()->upcount();
+    for ( unsigned i = 0; i < upcount; ++i )
+    {
+        yl_upval* uv = f.funcobj->get_upval( i );
+        if ( uv )
+        {
+            printf( "    ^%2u ", i );
+            print_value( uv->get_value() );
+        }
+    }
+
+    unsigned top = t->get_top() - f.fp;
+    yl_value* s = t->stack_peek( f.fp, top );
+    for ( unsigned i = 0; i < top; ++i )
+    {
+        printf( "     %2u ", i );
+        print_value( s[ i ] );
+    }
+
+    printf( "%p %-20s:", t, f.funcobj->program()->name() );
+    ylop_print( f.ip, f.funcobj->program()->ops() + ip );
+    
+}
+
+
+#endif
 

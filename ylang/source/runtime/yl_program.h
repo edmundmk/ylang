@@ -37,6 +37,7 @@ public:
         size_t xfcount
     );
     
+    const char*             name();
     void                    print();
     
     unsigned                upcount();

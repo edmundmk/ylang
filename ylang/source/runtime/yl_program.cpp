@@ -126,9 +126,15 @@ void yl_program::mark( yl_gcheap* heap, yl_gcobject* object )
 }
 
 
+const char* yl_program::name()
+{
+    return _debuginfo ? _debuginfo->funcname() : "[program]";
+}
+
+
 void yl_program::print()
 {
-    printf( "%s\n", _debuginfo ? _debuginfo->funcname() : "[program]" );
+    printf( "%s\n", name() );
 
     printf( "    paramcount : %u\n", _paramcount );
     printf( "    upcount    : %u\n", _upcount );

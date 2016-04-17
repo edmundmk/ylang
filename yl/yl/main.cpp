@@ -13,13 +13,39 @@
 
 int main( int argc, const char* argv[] )
 {
+    // Check arguments.
+    unsigned debug = 0;
+    int argi = 1;
+    while ( true )
+    {
+        if ( strcmp( argv[ argi ], "--ast" ) == 0 )
+        {
+            debug |= YL_COMPILE_PRINT_AST;
+            argi += 1;
+        }
+        else if ( strcmp( argv[ argi ], "--ssa" ) == 0 )
+        {
+            debug |= YL_COMPILE_PRINT_SSA;
+            argi += 1;
+        }
+        else if ( strcmp( argv[ argi ], "--ops" ) == 0 )
+        {
+            debug |= YL_COMPILE_PRINT_OPS;
+            argi += 1;
+        }
+        else
+        {
+            break;
+        }
+    }
+
     // Set up ylang context.
     yl_context ylcontext;
     yl_scope ylscope( &ylcontext );
     lib_expose( &ylcontext );
     
     // Compile ylang function.
-    yl_function function = yl_compile( argv[ 1 ], "argv0", "..." );
+    yl_function function = yl_compile( debug, argv[ argi ], "argv0", "..." );
     if ( ! function )
     {
         return EXIT_FAILURE;
@@ -28,7 +54,7 @@ int main( int argc, const char* argv[] )
     // Execute it.
     yl_callframe callframe;
     callframe.push( function );
-    for ( int i = 1; i < argc; ++i )
+    for ( int i = argi; i < argc; ++i )
     {
         callframe.push( argv[ i ] );
     }
