@@ -238,12 +238,14 @@ static uint8_t preferred_stacktop( yssa_function* function, yssa_regcall* call )
     
     // The call is itself an argument.
     yssa_opinst* argof = i->second;
-    assert( argof->stacktop != yl_opinst::NOVAL );
-    for ( size_t i = 0; i < argof->operand_count; ++i )
+    if ( argof->stacktop != yl_opinst::NOVAL )
     {
-        if ( argof->operand[ i ] == call->op )
+        for ( size_t i = 0; i < argof->operand_count; ++i )
         {
-            return argof->stacktop + i;
+            if ( argof->operand[ i ] == call->op )
+            {
+                return argof->stacktop + i;
+            }
         }
     }
     
