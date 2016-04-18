@@ -1237,6 +1237,7 @@ stmt_common(x)  ::= token_yield(token) SEMICOLON .
                 }
 stmt_common(x)  ::= token_yield(token) expr_list(expr) SEMICOLON .
                 {
+                    p->check_yield( token->sloc );
                     x = p->alloc< yl_expr_yield >( token->sloc, expr );
                     p->destroy( token );
                 }

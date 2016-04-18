@@ -6,7 +6,7 @@
 
 
 
-def subroutine()
+def subroutine() yield
 {
     yield 3;
     yield 5;
@@ -17,7 +17,7 @@ def subroutine()
 def coroutine( x ) yield
 {
     x = yield( x * 2 );
-    subroutine();
+    subroutine() yield;
     x = yield( x * 3 );
     x = yield( x * 4 );
 }
