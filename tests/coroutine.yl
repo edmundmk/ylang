@@ -18,8 +18,12 @@ def coroutine( x ) yield
 {
     x = yield( x * 2 );
     subroutine() yield;
+    printf( "- %g\n", x );
     x = yield( x * 3 );
+    printf( "- %g\n", x );
     x = yield( x * 4 );
+    printf( "- %g\n", x );
+    return x;
 }
 
 
@@ -28,6 +32,21 @@ var c = coroutine();
 printf( "%g\n", c( 4 ) );
 printf( "%g\n", c( 5 ) );
 printf( "%g\n", c( 6 ) );
+
+for ( var i = 0; i < 4; ++i )
+{
+    printf( "%g : %g\n", i, c( i ) );
+}
+
+
+c = coroutine( 10 );
+printf( "%g\n", c() );
+for ( var i = 0; i < 40; ++i )
+{
+    printf( "%g : %g\n", i, c( i ) );
+}
+
+
 
 
 

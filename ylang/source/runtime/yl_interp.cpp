@@ -686,7 +686,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
                     a = t->get_mark() - ( fp + r );
                 }
                 
-                // Copy arguments into cothread, but do not create call frame.
+                // Copy arguments into cothread.
                 yl_value* c = cothread->stack_mark( 0, a, a );
                 for ( unsigned i = 0; i < a; ++i )
                 {
@@ -712,6 +712,12 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
                         s[ r + i ] = yl_null;
                     }
                 }
+                
+                // Create open call frame.
+                yl_stackframe yopen;
+                memset( &yopen, 0, sizeof( yl_stackframe ) );
+                yopen.kind = YL_FRAME_YOPEN;
+                cothread->push_frame( yopen );
             }
 
         }
@@ -765,12 +771,17 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
             // Switch cothread.
             yl_current->push_cothread( cothread );
             t = cothread;
-            
-            if ( t->has_frames() )
-            {
-                // Resume cothread.
-                frame = t->pop_frame();
 
+            if ( ! t->has_frames() )
+            {
+                throw yl_exception( "attempt to resume finished cothread" );
+            }
+
+            // Resume cothread.
+            frame = t->pop_frame();
+
+            if ( frame.kind != YL_FRAME_YOPEN )
+            {
                 // Recache values.
                 p       = frame.funcobj->program();
                 values  = p->values();

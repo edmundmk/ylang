@@ -41,9 +41,10 @@ bool is_integer( double number );
 
 enum yl_framekind : uint8_t
 {
-    YL_FRAME_LOCAL,     // call on same cothread
-    YL_FRAME_YCALL,     // first call on new cothread
     YL_FRAME_NATIVE,    // first call from native code
+    YL_FRAME_LOCAL,     // call on same cothread
+    YL_FRAME_YOPEN,     // before first call on new cothread
+    YL_FRAME_YCALL,     // first call on new cothread
 };
 
 
