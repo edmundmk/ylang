@@ -294,8 +294,8 @@ private:
 
     void write_barrier_impl( yl_gcobject* object );
     bool weak_obtain_impl( yl_gcobject* object );
-    void mark_impl( yl_gcobject* object );
-    void eager_mark_impl( yl_gcobject* object );
+    void mark_impl_collect( yl_gcobject* object );
+    void mark_impl_mutator( yl_gcobject* object );
     
     void collect_mark();
     void mark_object( yl_gcobject* object );
@@ -541,7 +541,7 @@ inline void yl_gcheap::mark( yl_gcobject* object )
         return;
 
     // Perform main work of marking.
-    mark_impl( object );
+    mark_impl_collect( object );
 }
 
 inline void yl_gcheap::eager_mark( yl_gcobject* object )
@@ -556,7 +556,7 @@ inline void yl_gcheap::eager_mark( yl_gcobject* object )
         return;
 
     // Perform main work of marking.
-    eager_mark_impl( object );
+    mark_impl_mutator( object );
 }
 
 

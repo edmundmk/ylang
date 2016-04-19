@@ -354,7 +354,7 @@ void yl_gcheap::collect_thread()
 void yl_gcheap::write_barrier_impl( yl_gcobject* object )
 {
     std::lock_guard< std::mutex > lock( _grey_mutex );
-    eager_mark_impl( object );
+    mark_impl_mutator( object );
 }
 
 
@@ -409,7 +409,7 @@ bool yl_gcheap::weak_obtain_impl( yl_gcobject* object )
 }
 
 
-void yl_gcheap::mark_impl( yl_gcobject* object )
+void yl_gcheap::mark_impl_collect( yl_gcobject* object )
 {
     yl_gcheader* gcheader = &object->_gcheader;
     if ( ! object->check_gcflags( YL_GCFLAG_LEAF ) )
@@ -424,7 +424,7 @@ void yl_gcheap::mark_impl( yl_gcobject* object )
 }
 
 
-void yl_gcheap::eager_mark_impl( yl_gcobject* object )
+void yl_gcheap::mark_impl_mutator( yl_gcobject* object )
 {
     yl_gcheader* gcheader = &object->_gcheader;
     if ( ! object->check_gcflags( YL_GCFLAG_LEAF ) )
