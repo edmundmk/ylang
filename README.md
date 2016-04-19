@@ -1,16 +1,19 @@
-ylang
-=====
+## Ylang
 
-ylang is a dynamic, prototype-based language with clean semantics and a
+Ylang is a dynamic, prototype-based language with clean semantics and a
 familiar syntax.
+
+Ylang is licensed under the MIT license.
 
 The language is still under development.  Do not expect it to work at all.
 Important parts of the language and of the virtual machine are not yet
 implemented.
 
+See the [wiki](https://github.com/edmundmk/ylang/wiki) for documentation,
+such as there is!
 
-Features
---------
+
+## Features
 
 - Object literals, including out-of-line methods.
 
@@ -83,28 +86,14 @@ Features
         mapping.[ "length" ] = ^() { return 200; };
         assert( mapping.length() == 200 );
     
+    
+## Implementation
 
-Afterword
----------
-
-Poor workmen may blame their tools, but programmers inevitably get frustrated
-with the idosyncracies of programming languages.  I think perhaps every
-programmer has a language grammar hidden in the contours of their synapses.
-ylang is my attempt to create an clean language for scripting which matches my
-own mental model.
-
-Like Lua, I have tried to keep it simple.  Multiple return values provide an
-alternative to reference parameters or lots of small custom structures.  Unlike
-Lua, it is hard to pollute ylang's global namespace with typos, and array
-indexes are zero-based.
-
-Like Javascript, it has prototype-based inheritance and a C-like braces and
-semicolons syntax, but it fixes the broken scoping rules, adds object literals
-actually useful for prototypes, and removes the need to type 'function' out
-longhand every three lines.
+The implementation is a register-based virtual machine.  The compiler uses
+an pseudo-SSA form as an intermediate representation and makes an attempt at
+sensible register allocation using a modified linear scan algorithm.
 
 
-_Edmund Kapusniak_
 
         
 
