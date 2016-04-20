@@ -10,11 +10,20 @@
 #define YL_INTERP_H
 
 
+class yl_callframe;
 class yl_cothread;
-class yl_funcobj;
 
 
-void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount );
+// Invoke interpreter.
+
+void yl_invoke( yl_callframe& xf );
+
+
+// Generate one value from cothread.
+
+struct yl_genvalues { unsigned base; unsigned count; };
+yl_genvalues yl_generate( yl_cothread* generator );
+
 
 
 

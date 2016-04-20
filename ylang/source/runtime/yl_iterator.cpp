@@ -12,6 +12,8 @@
 #include "yl_array.h"
 #include "yl_table.h"
 #include "yl_cothread.h"
+#include "yl_function.h"
+#include "yl_cothread.h"
 
 
 
@@ -97,6 +99,7 @@ void yl_iterator::open_vals( yl_value value )
     {
         _kind       = YLITER_GENERATOR;
         _generator  = (yl_cothread*)value.gcobject();
+        _genvalues  = { 0, (unsigned)-1 };
     }
     else
     {
@@ -144,8 +147,8 @@ bool yl_iterator::has_values()
         return _buckets && _index < _buckets->size();
         
     case YLITER_GENERATOR:
-        // TODO.
-        return false;
+        generate();
+        return _generator->has_frames();
 
     default:
         assert( ! "invalid iterator" );
@@ -180,7 +183,10 @@ void yl_iterator::next1( yl_value* r )
     
     case YLITER_GENERATOR:
     {
-        // TODO.
+        generate();
+        yl_value* s = _generator->stack_peek( _genvalues.base, _genvalues.count );
+        *r = _genvalues.count >= 1 ? s[ 0 ] : yl_null;
+        _genvalues = { 0, (unsigned)-1 };
         break;
     }
 
@@ -227,7 +233,11 @@ void yl_iterator::next2( yl_value* r, yl_value* b )
     
     case YLITER_GENERATOR:
     {
-        // TODO.
+        generate();
+        yl_value* s = _generator->stack_peek( _genvalues.base, _genvalues.count );
+        *r = _genvalues.count >= 1 ? s[ 0 ] : yl_null;
+        *b = _genvalues.count >= 2 ? s[ 1 ] : yl_null;
+        _genvalues = { 0, (unsigned)-1 };
         break;
     }
 
@@ -281,7 +291,10 @@ yl_iternext yl_iterator::next( yl_value vspace[ 2 ] )
     
     case YLITER_GENERATOR:
     {
-        // TODO.
+        generate();
+        next.values = _generator->stack_peek( _genvalues.base, _genvalues.count );;
+        next.vcount = _genvalues.count;
+        _genvalues = { 0, (unsigned)-1 };
         break;
     }
     
@@ -314,5 +327,16 @@ void yl_iterator::next_bucket()
         _index += 1;
     }
 }
+
+
+void yl_iterator::generate()
+{
+    if ( _genvalues.count == -1 )
+    {
+        _genvalues = yl_generate( _generator );
+    }
+}
+
+
 
 

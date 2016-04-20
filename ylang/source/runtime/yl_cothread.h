@@ -45,6 +45,7 @@ enum yl_framekind : uint8_t
     YL_FRAME_LOCAL,     // call on same cothread
     YL_FRAME_YOPEN,     // before first call on new cothread
     YL_FRAME_YCALL,     // first call on new cothread
+    YL_FRAME_GENERATE,  // call from generator
 };
 
 
@@ -96,6 +97,7 @@ public:
 
     bool            has_frames() const;
     void            push_frame( const yl_stackframe& frame );
+    yl_stackframe   get_frame() const;
     yl_stackframe   pop_frame();
 
     yl_value*       stack_alloc( size_t base, unsigned size );
@@ -157,6 +159,11 @@ inline bool is_integer( double number )
 inline bool yl_cothread::has_frames() const
 {
     return ! _frames.empty();
+}
+
+inline yl_stackframe yl_cothread::get_frame() const
+{
+    return _frames.back();
 }
 
 

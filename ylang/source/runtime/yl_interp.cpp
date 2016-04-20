@@ -21,26 +21,86 @@
 
 
 
-//#define TRACE
-#ifdef TRACE
-static void trace( yl_cothread* t, const yl_stackframe& f, unsigned ip );
-#endif
-
-
 
 /*
-    yl_invoke
+    Trace
 */
 
 
-void yl_invoke( yl_callframe& xf )
+#ifdef TRACE
+
+
+static void print_string( const yl_value& v )
 {
-    // Enter interpreter.
-    yl_interp( xf._cothread, xf._base, xf._size, yl_opinst::MARK );
-    
-    // Recover number of results and update callframe.
-    xf._size = xf._cothread->get_top() - xf._base;
+    const char* s = ( (yl_string*)v.gcobject() )->c_str();
+    for ( ; *s; ++s )
+    {
+        if ( *s >= 0x20 && *s < 0x7F )
+        {
+            printf( "%c", *s );
+        }
+        else
+        {
+            printf( "\\x%02X", *s );
+        }
+    }
 }
+
+
+static void print_value( const yl_value& v )
+{
+    if ( v.is_number() )
+    {
+        printf( "%g", v.number() );
+    }
+    else
+    {
+        switch ( v.kind() )
+        {
+        case YLOBJ_OBJECT:      printf( "object(%p)", v.gcobject() );              break;
+        case YLOBJ_EXPOBJ:      printf( "expobj(%p)", v.gcobject() );              break;
+        case YLOBJ_ARRAY:       printf( "array(%p)", v.gcobject() );               break;
+        case YLOBJ_TABLE:       printf( "table(%p)", v.gcobject() );               break;
+        case YLOBJ_STRING:      print_string( v );                                 break;
+        case YLOBJ_FUNCOBJ:     printf( "%s", ( (yl_funcobj*)v.gcobject() )->program()->name() );  break;
+        case YLOBJ_THUNKOBJ:    printf( "thunkobj(%p)", v.gcobject() );            break;
+        case YLOBJ_COTHREAD:    printf( "cothread(%p)", v.gcobject() );            break;
+        case YLOBJ_BOOLEAN:     printf( "%s", v.is_true() ? "true" : "false" );    break;
+        case YLOBJ_NULLUNDEF:   printf( "%s", v.is_null() ? "null" : "undef" );    break;
+        }
+    }
+    printf( "\n" );
+}
+
+
+static void trace( yl_cothread* t, const yl_stackframe& f, unsigned ip )
+{
+    unsigned upcount = f.funcobj->program()->upcount();
+    for ( unsigned i = 0; i < upcount; ++i )
+    {
+        yl_upval* uv = f.funcobj->get_upval( i );
+        if ( uv )
+        {
+            printf( "    ^%2u ", i );
+            print_value( uv->get_value() );
+        }
+    }
+
+    unsigned top = t->get_top() - f.fp;
+    yl_value* s = t->stack_peek( f.fp, top );
+    for ( unsigned i = 0; i < top; ++i )
+    {
+        printf( "     %2u ", i );
+        print_value( s[ i ] );
+    }
+
+    printf( "%p %-20s:", t, f.funcobj->program()->name() );
+    ylop_print( f.ip, f.funcobj->program()->ops() + ip );
+    
+}
+
+
+#endif
 
 
 
@@ -218,19 +278,10 @@ static void build_frame( yl_stackframe* frame, yl_cothread* t, unsigned sp, unsi
     Main interpreter loop.
 */
 
-void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
+void yl_interp( yl_cothread* t, yl_stackframe frame )
 {
-    // Ensure that the cothread is unlocked.
     assert( yl_current->get_cothread() == t );
-    
-    
-    // Build frame for this call.
-    yl_stackframe frame;
-    build_frame( &frame, t, sp, acount );
-    frame.locup_base = t->get_locup_base();
-    frame.iters_base = t->get_iters_base();
-    frame.rcount = rcount;
-    frame.kind = YL_FRAME_NATIVE;
+
 
     // Cache values.
     yl_program*         p       = frame.funcobj->program();
@@ -239,6 +290,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
     yl_ilcache*         ilcache = p->ilcache();
     
     unsigned            ip      = frame.ip;
+    unsigned            sp      = frame.sp;
     unsigned            fp      = frame.fp;
     yl_value*           s       = t->stack_peek( fp, p->stackcount() );
     
@@ -838,7 +890,7 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
                 }
                 
                 // Construct call frame.
-                build_frame( &frame, t, 0, cothread->get_mark() );
+                build_frame( &frame, t, 0, t->get_mark() );
                 frame.locup_base = 0;
                 frame.iters_base = 0;
                 frame.rcount = 0;
@@ -955,6 +1007,12 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
         
             // Resume.
             frame = t->pop_frame();
+
+            // Check for call from generator.
+            if ( frame.kind == YL_FRAME_GENERATE )
+            {
+                return;
+            }
         
             // Recache values.
             p       = frame.funcobj->program();
@@ -1446,78 +1504,139 @@ void yl_interp( yl_cothread* t, unsigned sp, unsigned acount, unsigned rcount )
 
 
 
-#ifdef TRACE
+
+/*
+    yl_invoke
+*/
 
 
-static void print_string( const yl_value& v )
+void yl_invoke( yl_callframe& xf )
 {
-    const char* s = ( (yl_string*)v.gcobject() )->c_str();
-    for ( ; *s; ++s )
+    // Build frame for this call.
+    yl_stackframe frame;
+    build_frame( &frame, xf._cothread, xf._base, xf._size );
+    frame.locup_base = xf._cothread->get_locup_base();
+    frame.iters_base = xf._cothread->get_iters_base();
+    frame.rcount = yl_opinst::MARK;
+    frame.kind = YL_FRAME_NATIVE;
+
+
+    // Enter interpreter.
+    yl_interp( xf._cothread, frame );
+
+
+    // Recover number of results and update callframe.
+    xf._size = xf._cothread->get_top() - xf._base;
+}
+
+
+
+
+/*
+    yl_generate
+*/
+
+yl_genvalues yl_generate( yl_cothread* generator )
+{
+    if ( ! generator->has_frames() )
     {
-        if ( *s >= 0x20 && *s < 0x7F )
+        return { 0, 0 };
+    }
+
+
+    // Get cothread.
+    yl_cothread* cthread = yl_current->get_cothread();
+    
+    
+    // Push GENERATE frame on this cothread so that yields (or final return)
+    // will return back here.
+    yl_stackframe generate;
+    memset( &generate, 0, sizeof( yl_stackframe ) );
+    generate.kind = YL_FRAME_GENERATE;
+    cthread->push_frame( generate );
+    
+    
+    // Switch cothreads.
+    yl_current->push_cothread( generator );
+    yl_cothread* t = generator;
+    
+    
+    // Resume cothread.
+    yl_stackframe frame = t->pop_frame();
+    
+    if ( frame.kind != YL_FRAME_YOPEN )
+    {
+        // Must resume at a YIELD instruction
+        yl_program* p = frame.funcobj->program();
+        const yl_opinst* op = p->ops() + frame.ip - 1;
+        assert( op->opcode() == YL_YIELD );
+        
+        unsigned bcount;
+        if ( op->b() != yl_opinst::MARK )
         {
-            printf( "%c", *s );
+            bcount = op->b();
         }
         else
         {
-            printf( "\\x%02X", *s );
+            bcount = 0;
         }
-    }
-}
-
-
-static void print_value( const yl_value& v )
-{
-    if ( v.is_number() )
-    {
-        printf( "%g", v.number() );
+        
+        // There are no arguments, so if we need any they are null.
+        yl_value* c = t->stack_mark( frame.fp, op->r() + bcount, p->stackcount() );
+        for ( unsigned i = 0; i < bcount; ++i )
+        {
+            c[ op->r() + i ] = yl_null;
+        }
     }
     else
     {
-        switch ( v.kind() )
-        {
-        case YLOBJ_OBJECT:      printf( "object(%p)", v.gcobject() );              break;
-        case YLOBJ_EXPOBJ:      printf( "expobj(%p)", v.gcobject() );              break;
-        case YLOBJ_ARRAY:       printf( "array(%p)", v.gcobject() );               break;
-        case YLOBJ_TABLE:       printf( "table(%p)", v.gcobject() );               break;
-        case YLOBJ_STRING:      print_string( v );                                 break;
-        case YLOBJ_FUNCOBJ:     printf( "%s", ( (yl_funcobj*)v.gcobject() )->program()->name() );  break;
-        case YLOBJ_THUNKOBJ:    printf( "thunkobj(%p)", v.gcobject() );            break;
-        case YLOBJ_COTHREAD:    printf( "cothread(%p)", v.gcobject() );            break;
-        case YLOBJ_BOOLEAN:     printf( "%s", v.is_true() ? "true" : "false" );    break;
-        case YLOBJ_NULLUNDEF:   printf( "%s", v.is_null() ? "null" : "undef" );    break;
-        }
+        // First call.
+        build_frame( &frame, t, 0, t->get_mark() );
+        frame.locup_base = 0;
+        frame.iters_base = 0;
+        frame.rcount = 0;
+        frame.kind = YL_FRAME_YCALL;
     }
-    printf( "\n" );
-}
-
-
-static void trace( yl_cothread* t, const yl_stackframe& f, unsigned ip )
-{
-    unsigned upcount = f.funcobj->program()->upcount();
-    for ( unsigned i = 0; i < upcount; ++i )
-    {
-        yl_upval* uv = f.funcobj->get_upval( i );
-        if ( uv )
-        {
-            printf( "    ^%2u ", i );
-            print_value( uv->get_value() );
-        }
-    }
-
-    unsigned top = t->get_top() - f.fp;
-    yl_value* s = t->stack_peek( f.fp, top );
-    for ( unsigned i = 0; i < top; ++i )
-    {
-        printf( "     %2u ", i );
-        print_value( s[ i ] );
-    }
-
-    printf( "%p %-20s:", t, f.funcobj->program()->name() );
-    ylop_print( f.ip, f.funcobj->program()->ops() + ip );
     
+    
+    // Invoke interpreter.
+    yl_interp( t, frame );
+    
+    
+    // Should have switched back to original cothread, and
+    // the GENERATE frame has been popped of.
+    assert( yl_current->get_cothread() == cthread );
+    
+    
+    // If there are no frames the generator is done.
+    if ( ! generator->has_frames() )
+    {
+        return { 0, 0 };
+    }
+    
+    // Otherwise we must have suspended at a YIELD.
+    frame = t->get_frame();
+    yl_program* p = frame.funcobj->program();
+    const yl_opinst* op = p->ops() + frame.ip - 1;
+    assert( op->opcode() == YL_YIELD );
+
+    unsigned a = op->a();
+    if ( a == yl_opinst::MARK )
+    {
+        a = t->get_mark() - ( frame.fp + op->r() );
+    }
+    
+    return { frame.fp + op->r(), a };
 }
 
 
-#endif
+
+
+
+
+
+
+
+
+
 

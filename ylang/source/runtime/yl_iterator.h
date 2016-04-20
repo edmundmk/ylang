@@ -11,6 +11,7 @@
 
 
 #include <stddef.h>
+#include "yl_interp.h"
 
 
 class yl_value;
@@ -66,7 +67,8 @@ public:
 private:
 
     void next_bucket();
-
+    void generate();
+ 
 
     yl_iterkind _kind;
     union
@@ -80,6 +82,7 @@ private:
     {
         size_t          _index;
         yl_slot*        _slot;
+        yl_genvalues    _genvalues;
     };
     
 };

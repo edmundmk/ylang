@@ -29,7 +29,7 @@ class yl_exception_impl;
 class yl_gcobject;
 class yl_cothread;
 class yl_funcobj;
-
+struct yl_stackframe;
 
 
 
@@ -266,7 +266,7 @@ public:
 private:
 
     friend void yl_invoke( yl_callframe& );
-    friend void yl_interp( yl_cothread*, unsigned, unsigned, unsigned );
+    friend void yl_interp( yl_cothread*, yl_stackframe );
 
     yl_callframe( yl_cothread* cothread, unsigned base, unsigned size );
 

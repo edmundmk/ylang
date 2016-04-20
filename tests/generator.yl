@@ -19,8 +19,31 @@ def generator() yield
 
 for ( var x : generator() )
 {
-    printf( "%g", x );
+    printf( "%g\n", x );
 }
+
+
+
+def generator2( base ) yield
+{
+    for ( var i = 0; i < 10; ++i )
+    {
+        yield base + i;
+    }
+}
+
+var g = generator2( 7 );
+g();
+g();
+
+for ( var x : g )
+{
+    printf( "%g\n", x );
+}
+
+
+
+
 
 
 
