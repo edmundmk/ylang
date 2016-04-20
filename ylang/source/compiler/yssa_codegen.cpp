@@ -1335,6 +1335,12 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         return 1;
     }
     
+    case YL_HANDLE:
+    {
+        p->ops.emplace_back( YL_HANDLE, 0, 0, 0 );
+        return 1;
+    }
+    
     case YL_UNWIND:
     {
         p->ops.emplace_back( YL_UNWIND, 0, 0, 0 );

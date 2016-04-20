@@ -17,7 +17,7 @@
 #include "yl_upval.h"
 #include "yl_function.h"
 #include "yl_program.h"
-
+#include "yl_exception.h"
 
 
 
@@ -281,7 +281,10 @@ static void build_frame( yl_stackframe* frame, yl_cothread* t, unsigned sp, unsi
 void yl_interp( yl_cothread* t, yl_stackframe frame )
 {
     assert( yl_current->get_cothread() == t );
+    yl_exception e( nullptr );
 
+    while ( true )
+    {
 
     // Cache values.
     yl_program*         p       = frame.funcobj->program();
@@ -298,6 +301,10 @@ void yl_interp( yl_cothread* t, yl_stackframe frame )
     // Main instruction dispatch loop.
     while ( true )
     {
+
+    try
+    {
+
 
 #ifdef TRACE
     trace( t, frame, ip );
@@ -784,7 +791,19 @@ void yl_interp( yl_cothread* t, yl_stackframe frame )
             yl_thunkobj* thunkobj = (yl_thunkobj*)s[ r ].gcobject();
             t->stack_trim( fp + r, a );
             yl_callframe xf( t, fp + r, a );
-            thunkobj->thunk()( xf );
+            
+            try
+            {
+                thunkobj->thunk()( xf );
+            }
+            catch ( yl_exception& )
+            {
+                throw;
+            }
+            catch ( std::exception& ex )
+            {
+                throw yl_exception( "native exception: %s", ex.what() );
+            }
             
             // Get number of results.
             unsigned count;
@@ -1470,22 +1489,35 @@ void yl_interp( yl_cothread* t, yl_stackframe frame )
     
     case YL_THROW:
     {
-        yl_current->throw_exception( s[ r ] );
-        break;
+        e = yl_exception();
+        e._impl->value = s[ r ];
+        throw e;
     }
     
     case YL_EXCEPT:
     {
-        assert( ! "exception handling unimplemented" );
+        s[ r ] = e._impl->value.get();
+        break;
+    }
+    
+    case YL_HANDLE:
+    {
+        e = yl_exception( nullptr );
         break;
     }
     
     case YL_UNWIND:
     {
-        // TODO.
+        if ( e._impl )
+        {
+            goto unwind;
+        }
         break;
     }
 
+    /*
+        Should never be encountered.
+    */
 
     case YL_UPLOCAL:
     case YL_UPUPVAL:
@@ -1495,9 +1527,59 @@ void yl_interp( yl_cothread* t, yl_stackframe frame )
         break;
     }
     
-    }
+    } // switch
+
 
     }
+    catch ( yl_exception& ex )
+    {
+        e = std::move( ex );
+        e._impl->unwound.push_back( { frame.funcobj, ip } );
+        goto unwind;
+    }
+    
+    
+    } // interpeter loop
+    
+          
+    unwind:
+    {
+        frame.ip = ip;
+    
+        while ( true )
+        {
+            // Check for exception frame.
+            yl_program* p = frame.funcobj->program();
+            const yl_xframe* xf = p->xframes();
+            for ( size_t i = 0; i < p->xfcount(); ++i )
+            {
+                const yl_xframe& xframe = xf[ i ];
+                if ( frame.ip > xframe.start && frame.ip <= xframe.end )
+                {
+                    // close.
+                
+                    // jump to handler.
+
+                    
+                }
+            }
+            
+            
+            // Unwind one stack frame.
+            
+            // close all.
+        
+            // YL_FRAME_NATIVE  -> throw exception to C++
+            // YL_FRAME_YCALL   -> switch cothread, ...
+                    // =>? YL_FRAME_GENERATE -> throw C++
+            // YL_FRAME_LOCAL   -> pop, add unwound from new frame, keep unwinding.
+        
+        }
+    }
+    
+    
+    } // recache frame loop
+    
     
 }
 

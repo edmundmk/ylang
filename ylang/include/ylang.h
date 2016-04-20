@@ -45,6 +45,7 @@ public:
     yl_exception( const char* format, ... );
     yl_exception( const yl_exception& e );
     yl_exception( yl_exception&& e );
+    yl_exception& operator = ( yl_exception&& e );
     ~yl_exception();
     
     yl_exception_impl* impl() const;
@@ -53,9 +54,10 @@ public:
     
 private:
 
-    friend class yl_context_impl;
+    friend void yl_interp( yl_cothread*, yl_stackframe );
 
     yl_exception();
+    yl_exception( std::nullptr_t );
 
     std::unique_ptr< yl_exception_impl > _impl;
 

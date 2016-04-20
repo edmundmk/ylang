@@ -58,6 +58,9 @@ public:
     size_t                  ilcount();
     yl_ilcache*             ilcache();
     
+    size_t                  xfcount();
+    const yl_xframe*        xframes();
+    
 
 private:
 
@@ -172,6 +175,15 @@ inline yl_ilcache* yl_program::ilcache()
     return (yl_ilcache*)( ops() + opcount() );
 }
 
+inline size_t yl_program::xfcount()
+{
+    return _xfcount;
+}
+
+inline const yl_xframe* yl_program::xframes()
+{
+    return (yl_xframe*)( ilcache() + ilcount() );
+}
 
 
 #endif

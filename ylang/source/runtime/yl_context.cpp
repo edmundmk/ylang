@@ -294,14 +294,6 @@ yl_rootref< yl_object > yl_context_impl::new_object( yl_object* prototype )
 }
 
 
-void yl_context_impl::throw_exception( yl_value value )
-{
-    yl_exception e;
-    e._impl->value = value;
-    throw e;
-}
-
-
 
 
 

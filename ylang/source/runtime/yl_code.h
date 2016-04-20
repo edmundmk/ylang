@@ -168,6 +168,7 @@ enum yl_opcode
     
     YL_THROW,        // throw r
     YL_EXCEPT,       // r = current exception
+    YL_HANDLE,       // exception filter succeeded, stop unwinding
     YL_UNWIND,       // continue exception unwinding (if unwinding)
 
 

@@ -979,6 +979,7 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
         next_catch:
             filter
             if ( failed ) goto finally
+            handle
             catch
             goto finally
         ]
@@ -1098,6 +1099,7 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
                 pop_lvalue( cstmt->lvalue, lvalue );
             }
             
+            op( cstmt->sloc, YL_HANDLE, 0, 0 );
             execute( cstmt->body );
             close_scope( node->sloc, cstmt->scope );
             
@@ -1141,8 +1143,9 @@ int yssa_builder::visit( yl_stmt_try* node, int count )
     if ( node->fstmt )
     {
         execute( node->fstmt );
-        op( node->sloc, YL_UNWIND, 0, 0 );
     }
+
+    op( node->sloc, YL_UNWIND, 0, 0 );
     
     return 0;
 }

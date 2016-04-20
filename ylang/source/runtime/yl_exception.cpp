@@ -17,6 +17,11 @@ yl_exception::yl_exception()
 {
 }
 
+yl_exception::yl_exception( std::nullptr_t )
+    :   _impl( nullptr )
+{
+}
+
 yl_exception::yl_exception( const char* format, ... )
     :   _impl( new yl_exception_impl() )
 {
@@ -35,6 +40,12 @@ yl_exception::yl_exception( const yl_exception& e )
 yl_exception::yl_exception( yl_exception&& e )
     :   _impl( std::move( e._impl ) )
 {
+}
+
+yl_exception& yl_exception::operator = ( yl_exception&& e )
+{
+    std::swap( _impl, e._impl );
+    return *this;
 }
 
 yl_exception::~yl_exception()

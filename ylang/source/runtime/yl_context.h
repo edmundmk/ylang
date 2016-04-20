@@ -113,11 +113,6 @@ public:
     yl_object*                  globals();
 
 
-    // Throw.
-    
-    void                        throw_exception( yl_value value );
-
-
 
 private:
 
