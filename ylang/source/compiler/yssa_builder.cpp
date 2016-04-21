@@ -2486,8 +2486,10 @@ int yssa_builder::visit( yl_expr_assign_list* node, int count )
 
 yssa_block* yssa_builder::make_block( unsigned flags )
 {
-    function->blocks.emplace_back( new yssa_block( flags ) );
-    return function->blocks.back().get();
+    yssa_block* block = new yssa_block( flags );
+    block->xchandler = scopes.size() ? scopes.back().xchandler : nullptr;
+    function->blocks.emplace_back( block );
+    return block;
 }
 
 yssa_block* yssa_builder::next_block( unsigned flags )

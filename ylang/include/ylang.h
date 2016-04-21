@@ -128,9 +128,9 @@ private:
 
 enum
 {
-    YL_COMPILE_PRINT_AST,
-    YL_COMPILE_PRINT_SSA,
-    YL_COMPILE_PRINT_OPS,
+    YL_COMPILE_PRINT_AST = ( 1 << 0 ),
+    YL_COMPILE_PRINT_SSA = ( 1 << 1 ),
+    YL_COMPILE_PRINT_OPS = ( 1 << 2 ),
 };
 
 

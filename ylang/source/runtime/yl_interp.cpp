@@ -26,7 +26,6 @@
     Trace
 */
 
-
 #ifdef TRACE
 
 
@@ -1560,6 +1559,9 @@ void yl_interp( yl_cothread* t, yl_stackframe frame )
                     t->close_locup( frame.locup_base, xframe.close_upvals );
                     t->close_iterator( frame.iters_base, xframe.close_iterators );
                 
+                    // Undo any previous stack trimming.
+                    s = t->stack_alloc( frame.sp, p->stackcount() );
+
                     // Jump to handler.
                     frame.ip = xframe.handler;
                     goto resume;

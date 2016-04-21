@@ -140,6 +140,7 @@ public:
     
         add( YL_THROW,      "throw %r" );
         add( YL_EXCEPT,     "except %r" );
+        add( YL_HANDLE,     "handle" ); 
         add( YL_UNWIND,     "unwind" );
 
         add( YL_UPLOCAL,    "uplocal -%r, *%a, %b" );
