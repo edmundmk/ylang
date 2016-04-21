@@ -24,14 +24,11 @@ struct yl_debuginfo
 {
 public:
 
-    const char*             funcname();
-    
-    const char*             filename();
-    std::pair< int, int >   line_column( unsigned ip );
-
-    void                    variables( unsigned ip );
-
-    void                    print();
+    const char*             funcname() const;
+    const char*             filename() const;
+    std::pair< int, int >   line_column( unsigned ip ) const;
+    void                    variables( unsigned ip ) const;
+    void                    print() const;
     
 
 private:

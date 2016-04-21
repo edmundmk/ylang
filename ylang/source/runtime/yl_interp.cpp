@@ -1020,8 +1020,8 @@ void yl_interp( yl_cothread* t, yl_stackframe frame )
             }
             
             // Switch cothread.
-            yl_rootref< yl_cothread > cothread = yl_current->pop_cothread();
-            assert( t == cothread.get() );
+            yl_cothread* cothread = yl_current->pop_cothread().get();
+            assert( t == cothread );
             t = yl_current->get_cothread();
         
             // Resume.
@@ -1556,27 +1556,62 @@ void yl_interp( yl_cothread* t, yl_stackframe frame )
                 const yl_xframe& xframe = xf[ i ];
                 if ( frame.ip > xframe.start && frame.ip <= xframe.end )
                 {
-                    // close.
+                    // Close.
+                    t->close_locup( frame.locup_base, xframe.close_upvals );
+                    t->close_iterator( frame.iters_base, xframe.close_iterators );
                 
-                    // jump to handler.
-
-                    
+                    // Jump to handler.
+                    frame.ip = xframe.handler;
+                    goto resume;
                 }
             }
             
+
+            // Close everything in this call.
+            t->close_locup( frame.locup_base, 0 );
+            t->close_iterator( frame.iters_base, 0 );
+                
             
-            // Unwind one stack frame.
+            // Unwind one frame on same cothread.
+            if ( frame.kind == YL_FRAME_LOCAL )
+            {
+                frame = t->pop_frame();
+                e._impl->unwound.push_back( { frame.funcobj, frame.ip } );
+                continue;
+            }
             
-            // close all.
-        
-            // YL_FRAME_NATIVE  -> throw exception to C++
-            // YL_FRAME_YCALL   -> switch cothread, ...
-                    // =>? YL_FRAME_GENERATE -> throw C++
-            // YL_FRAME_LOCAL   -> pop, add unwound from new frame, keep unwinding.
+            
+            // Or, throw exception to C++.
+            if ( frame.kind == YL_FRAME_NATIVE )
+            {
+                throw e;
+            }
+            
+            
+            // Or, unwind by switching cothread.
+            assert( frame.kind == YL_FRAME_YCALL );
+            yl_cothread* cothread = yl_current->pop_cothread().get();
+            assert( t == cothread );
+            t = yl_current->get_cothread();
+            
+            // Resume on this cothread.
+            frame = t->pop_frame();
+            
+            // Unwound through call of generator, throw exception out.
+            if ( frame.kind == YL_FRAME_GENERATE )
+            {
+                throw e;
+            }
+            
+            // Otherwise continue unwinding on new cothread.
+            e._impl->unwound.push_back( { frame.funcobj, frame.ip } );
+            continue;
         
         }
     }
     
+    
+    resume: continue;
     
     } // recache frame loop
     

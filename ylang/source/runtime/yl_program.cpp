@@ -126,13 +126,18 @@ void yl_program::mark( yl_gcheap* heap, yl_gcobject* object )
 }
 
 
-const char* yl_program::name()
+const char* yl_program::name() const
 {
     return _debuginfo ? _debuginfo->funcname() : "[program]";
 }
 
+const yl_debuginfo* yl_program::debuginfo() const
+{
+    return _debuginfo.get();
+}
 
-void yl_program::print()
+
+void yl_program::print() const
 {
     printf( "%s\n", name() );
 
@@ -146,10 +151,10 @@ void yl_program::print()
     if ( _xfcount )
     {
         printf( "    xframes:\n" );
-        yl_xframe* xframes = _xframes();
-        for ( size_t i = 0; i < _xfcount; ++i )
+        const yl_xframe* xfs = xframes();
+        for ( size_t i = 0; i < xfcount(); ++i )
         {
-            const yl_xframe& xf = xframes[ i ];
+            const yl_xframe& xf = xfs[ i ];
             printf
             (
                 "        %04X:%04X *%u ~%u @%04X\n",
@@ -167,10 +172,10 @@ void yl_program::print()
         _debuginfo->print();
     }
     
-    yl_opinst* ops = _ops();
-    for ( size_t i = 0; i < _opcount; ++i )
+    const yl_opinst* o = ops();
+    for ( size_t i = 0; i < opcount(); ++i )
     {
-        ylop_print( i, ops + i );
+        ylop_print( i, o + i );
     }
 }
 

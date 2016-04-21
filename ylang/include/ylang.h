@@ -50,6 +50,7 @@ public:
     
     yl_exception_impl* impl() const;
     const char* what() const throw() override;
+    std::string stacktrace() const throw();
     
     
 private:

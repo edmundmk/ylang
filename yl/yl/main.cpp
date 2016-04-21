@@ -59,7 +59,16 @@ int main( int argc, const char* argv[] )
         callframe.push( argv[ i ] );
     }
     
-    yl_invoke( callframe );
+    try
+    {
+        yl_invoke( callframe );
+    }
+    catch ( const yl_exception& e )
+    {
+        fprintf( stderr, "uncaught exception: %s\n", e.what() );
+        fprintf( stderr, "%s", e.stacktrace().c_str() );
+        return EXIT_FAILURE;
+    }
     
     if ( callframe.size() && callframe.at( 0 ) == YLVAL_NUMBER )
     {

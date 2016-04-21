@@ -10,20 +10,31 @@
 
 
 
-const char* yl_debuginfo::funcname()
+const char* yl_debuginfo::funcname() const
 {
     return _funcname.c_str();
 }
 
-const char* yl_debuginfo::filename()
+const char* yl_debuginfo::filename() const
 {
     return _filename.c_str();
 }
 
+std::pair< int, int > yl_debuginfo::line_column( unsigned ip ) const
+{
+    if ( _slocs.size() )
+    {
+        sloc sloc = _slocs.at( ip );
+        return std::make_pair( (int)sloc.line, (int)sloc.column );
+    }
+    else
+    {
+        return std::make_pair( -1, -1 );
+    }
+}
 
 
-
-void yl_debuginfo::print()
+void yl_debuginfo::print() const
 {
     if ( _variables.size() )
     {

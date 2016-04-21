@@ -46,5 +46,8 @@
       <FileRef
          location = "group:test.yl">
       </FileRef>
+      <FileRef
+         location = "group:unwind.yl">
+      </FileRef>
    </Group>
 </Workspace>

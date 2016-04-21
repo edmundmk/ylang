@@ -9,6 +9,9 @@
 #include "ylang.h"
 #include "yl_exception.h"
 #include <stringf.h>
+#include "yl_function.h"
+#include "yl_program.h"
+#include "yl_debuginfo.h"
 
 
 
@@ -66,6 +69,35 @@ const char* yl_exception::what() const throw()
         return "[ylang value]";
     }
 }
+
+
+std::string yl_exception::stacktrace() const throw()
+{
+    std::string stacktrace;
+    for ( const auto& unwound : _impl->unwound )
+    {
+        if ( unwound.function->kind() == YLOBJ_FUNCOBJ )
+        {
+            yl_funcobj* funcobj = (yl_funcobj*)unwound.function.get();
+            const yl_debuginfo* dinfo = funcobj->program()->debuginfo();
+            auto lc = dinfo->line_column( unwound.ip - 1 );
+            stacktrace += stringf
+                (
+                    "    %s:%d:%d: %s\n",
+                    dinfo->filename(),
+                    lc.first,
+                    lc.second,
+                    dinfo->funcname()
+                );
+        }
+    }
+    return stacktrace;
+}
+
+
+
+
+
 
 
 

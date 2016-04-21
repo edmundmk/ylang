@@ -37,29 +37,30 @@ public:
         size_t xfcount
     );
     
-    const char*             name();
-    void                    print();
+    const char*             name() const;
+    void                    print() const;
+    const yl_debuginfo*     debuginfo() const;
     
-    unsigned                upcount();
-    unsigned                paramcount();
-    bool                    varargs();
-    bool                    coroutine();
+    unsigned                upcount() const;
+    unsigned                paramcount() const;
+    bool                    varargs() const;
+    bool                    coroutine() const;
 
-    unsigned                stackcount();
-    unsigned                locupcount();
-    unsigned                iterscount();
+    unsigned                stackcount() const;
+    unsigned                locupcount() const;
+    unsigned                iterscount() const;
     
-    size_t                  valcount();
-    const yl_heapval*       values();
+    size_t                  valcount() const;
+    const yl_heapval*       values() const;
     
-    size_t                  opcount();
-    const yl_opinst*        ops();
+    size_t                  opcount() const;
+    const yl_opinst*        ops() const;
     
-    size_t                  ilcount();
+    size_t                  ilcount() const;
     yl_ilcache*             ilcache();
     
-    size_t                  xfcount();
-    const yl_xframe*        xframes();
+    size_t                  xfcount() const;
+    const yl_xframe*        xframes() const;
     
 
 private:
@@ -110,62 +111,62 @@ private:
 
 
 
-inline unsigned yl_program::paramcount()
+inline unsigned yl_program::paramcount() const
 {
     return _paramcount;
 }
 
-inline bool yl_program::varargs()
+inline bool yl_program::varargs() const
 {
     return _varargs;
 }
 
-inline bool yl_program::coroutine()
+inline bool yl_program::coroutine() const
 {
     return _coroutine;
 }
 
-inline unsigned yl_program::upcount()
+inline unsigned yl_program::upcount() const
 {
     return _upcount;
 }
 
-inline unsigned yl_program::stackcount()
+inline unsigned yl_program::stackcount() const
 {
     return _stackcount;
 }
 
-inline unsigned yl_program::locupcount()
+inline unsigned yl_program::locupcount() const
 {
     return _locupcount;
 }
 
-inline unsigned yl_program::iterscount()
+inline unsigned yl_program::iterscount() const
 {
     return _iterscount;
 }
 
-inline size_t yl_program::valcount()
+inline size_t yl_program::valcount() const
 {
     return _valcount;
 }
 
-inline const yl_heapval* yl_program::values()
+inline const yl_heapval* yl_program::values() const
 {
     return (yl_heapval*)( this + 1 );
 }
 
-inline size_t yl_program::opcount()
+inline size_t yl_program::opcount() const
 {
     return _opcount;
 }
 
-inline const yl_opinst* yl_program::ops()
+inline const yl_opinst* yl_program::ops() const
 {
     return (yl_opinst*)( values() + valcount() );
 }
 
-inline size_t yl_program::ilcount()
+inline size_t yl_program::ilcount() const
 {
     return _ilcount;
 }
@@ -175,14 +176,14 @@ inline yl_ilcache* yl_program::ilcache()
     return (yl_ilcache*)( ops() + opcount() );
 }
 
-inline size_t yl_program::xfcount()
+inline size_t yl_program::xfcount() const
 {
     return _xfcount;
 }
 
-inline const yl_xframe* yl_program::xframes()
+inline const yl_xframe* yl_program::xframes() const
 {
-    return (yl_xframe*)( ilcache() + ilcount() );
+    return (yl_xframe*)( (yl_ilcache*)( ops() + opcount() ) + ilcount() );
 }
 
 
