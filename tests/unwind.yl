@@ -1,0 +1,70 @@
+/*
+    Test exception unwinding.
+*/
+
+
+
+
+
+def lilliput()
+{
+    throw "test exception";
+}
+
+def bluegrass()
+{
+    lilliput();
+}
+
+def generator() yield
+{
+    bluegrass();
+}
+
+def shoreditch()
+{
+    for ( var x : generator() )
+    {
+    }
+}
+
+def coroutine() yield
+{
+    shoreditch();
+}
+
+def quagmire()
+{
+    coroutine()();
+}
+
+
+var args = [ ... ];
+
+
+
+var p = 4;
+if ( args[ 0 ] )
+    p = 34;
+
+
+try
+{
+    quagmire();
+}
+catch ( var e )
+{
+    printf( "%g %s\n", p, e );
+}
+
+try
+{
+    var p = 18;
+    quagmire();
+}
+finally
+{
+    printf( "%g ooooh\n", p );
+}
+
+
