@@ -1560,7 +1560,7 @@ void yl_interp( yl_cothread* t, yl_stackframe frame )
                     t->close_iterator( frame.iters_base, xframe.close_iterators );
                 
                     // Undo any previous stack trimming.
-                    s = t->stack_alloc( frame.sp, p->stackcount() );
+                    s = t->stack_alloc( frame.fp, p->stackcount() );
 
                     // Jump to handler.
                     frame.ip = xframe.handler;
