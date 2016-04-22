@@ -78,7 +78,7 @@ yl_function yl_compile( const char* path, size_t paramc, const char* paramv[], u
     }
     
     bool debugprint = debug & YL_COMPILE_PRINT_OPS;
-    yl_function function = yssa_codegen( module, debugprint );
+    yl_function function = yssa_codegen( &diagnostics, module, debugprint );
     return function;
 }
 

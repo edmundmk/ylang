@@ -77,24 +77,24 @@ struct ygen_program
 {
     explicit ygen_program( yssa_function* ssafunc );
 
-    yssa_function*              ssafunc;
-    yl_rootref< yl_program >    program;
+    yssa_function*                  ssafunc;
+    yl_rootref< yl_program >        program;
 
-    std::vector< ygen_value >   values;
-    std::vector< yl_opinst >    ops;
-    std::vector< int >          slocs;
-    std::vector< yl_xframe >    xframes;
-    std::vector< yssa_variable* > debugvars;
-    std::vector< ygen_debugspan > debugspans;
+    std::vector< ygen_value >       values;
+    std::vector< yl_opinst >        ops;
+    std::vector< int >              slocs;
+    std::vector< yl_xframe >        xframes;
+    std::vector< yssa_variable* >   debugvars;
+    std::vector< ygen_debugspan >   debugspans;
 
     std::unordered_map< symkey, size_t > strvals;
     std::unordered_map< double, size_t > numvals;
     std::unordered_map< yssa_function*, size_t > funvals;
     
-    size_t                      ilcount;
-    size_t                      stackcount;
-    size_t                      localupcount;
-    size_t                      itercount;
+    size_t ilcount;
+    size_t stackcount;
+    size_t localupcount;
+    size_t itercount;
 };
 
 ygen_program::ygen_program( yssa_function* ssafunc )
@@ -171,7 +171,7 @@ struct ygen_movgraph
 {
     explicit operator bool ();
     void move( unsigned target, unsigned source );
-    void emit( ygen_program* p );
+    void emit( ygen_program* p, int sloc );
     
     std::unordered_map< unsigned, unsigned > moves;
 };
@@ -190,7 +190,7 @@ void ygen_movgraph::move( unsigned target, unsigned source )
     }
 }
 
-void ygen_movgraph::emit( ygen_program* p )
+void ygen_movgraph::emit( ygen_program* p, int sloc )
 {
     // Count outgoing edges.
     std::unordered_map< unsigned, unsigned > outcount;
@@ -225,6 +225,7 @@ void ygen_movgraph::emit( ygen_program* p )
         
         // Perform move.
         p->ops.emplace_back( YL_MOV, target, source, 0 );
+        p->slocs.push_back( sloc );
         p->stackcount = std::max( p->stackcount, (size_t)target + 1 );
         
         // Target is no longer in the set.
@@ -250,6 +251,7 @@ void ygen_movgraph::emit( ygen_program* p )
         
         // Swap.
         p->ops.emplace_back( YL_SWP, a, b, 0 );
+        p->slocs.push_back( sloc );
         
         if ( c == a )
         {
@@ -282,7 +284,7 @@ class ygen_emit
 {
 public:
 
-    explicit ygen_emit( ygen_module* m );
+    ygen_emit( yl_diagnostics* d, ygen_module* m );
 
     void codegen_function( yssa_function* function );
 
@@ -295,24 +297,23 @@ private:
 
     ygen_string*    add_string( symkey k );
     ygen_program*   add_program( yssa_function* function );
-
+    
     void            stack( ygen_program* p, uint8_t stacktop, uint8_t rcount );
 
     unsigned        operand( yssa_opinst* op, size_t index );
-    void            arguments( ygen_program* p, size_t index, unsigned first );
-    size_t          select( ygen_program* p, size_t index );
     size_t          opgen( ygen_program* p, size_t index );
     
+    yl_diagnostics* d;
     ygen_module*    m;
 
 };
 
 
 
-yl_function yssa_codegen( yssa_module* module, bool debugprint )
+yl_function yssa_codegen( yl_diagnostics* d, yssa_module* module, bool debugprint )
 {
     ygen_module m;
-    ygen_emit emit( &m );
+    ygen_emit emit( d, &m );
     
     // Generate each function.
     for ( size_t i = 0; i < module->functions.size(); ++i )
@@ -355,8 +356,9 @@ yl_function yssa_codegen( yssa_module* module, bool debugprint )
 
 
 
-ygen_emit::ygen_emit( ygen_module* m )
-    :   m( m )
+ygen_emit::ygen_emit( yl_diagnostics* d, ygen_module* m )
+    :   d( d )
+    ,   m( m )
 {
 }
 
@@ -585,21 +587,25 @@ void ygen_emit::codegen_function( yssa_function* function )
             {
                 size_t index = p->ops.size();
                 p->ops.emplace_back( jmpf, r, (signed)0 );
+                p->slocs.push_back( block->test->sloc );
                 jumps.emplace_back( index, block->fail->lstart );
             }
             else if ( block->fail == next_block )
             {
                 size_t index = p->ops.size();
                 p->ops.emplace_back( jmpt, r, (signed)0 );
+                p->slocs.push_back( block->test->sloc );
                 jumps.emplace_back( index, block->next->lstart );
             }
             else
             {
                 size_t index = p->ops.size();
                 p->ops.emplace_back( jmpt, r, (signed)0 );
+                p->slocs.push_back( block->test->sloc );
                 jumps.emplace_back( index, block->next->lstart );
                 index = p->ops.size();
                 p->ops.emplace_back( YL_JMP, 0, (signed)0 );
+                p->slocs.push_back( block->test->sloc );
                 jumps.emplace_back( index, block->fail->lstart );
             }
         }
@@ -607,6 +613,7 @@ void ygen_emit::codegen_function( yssa_function* function )
         {
             size_t index = p->ops.size();
             p->ops.emplace_back( YL_JMP, 0, (signed)0 );
+            p->slocs.push_back( block->ops.size() ? block->ops.back()->sloc : -1 );
             jumps.emplace_back( index, block->next->lstart );
         }
     }
@@ -749,70 +756,6 @@ unsigned ygen_emit::operand( yssa_opinst* op, size_t index )
 }
 
 
-void ygen_emit::arguments( ygen_program* p, size_t index, unsigned first )
-{
-    yssa_function* function = p->ssafunc;
-    yssa_opinst* op = function->ops.at( index );
-
-    ygen_movgraph arguments;
-    for ( unsigned i = first; i < op->operand_count; ++i )
-    {
-        assert( op->operand[ i ] );
-        assert( op->operand[ i ]->r != yl_opinst::NOVAL );
-        arguments.move( op->stacktop + i - first, op->operand[ i ]->r );
-    }
-
-    if ( op->multival )
-    {
-        assert( op->multival->r == op->stacktop + op->operand_count );
-        if ( op->multival->is_call() )
-        {
-            assert( op->multival->r == op->multival->stacktop );
-        }
-    }
-    
-    arguments.emit( p );
-}
-
-
-size_t ygen_emit::select( ygen_program* p, size_t index )
-{
-    yssa_function* function = p->ssafunc;
-    yssa_opinst* op = function->ops.at( index );
-
-    ygen_movgraph results;
-    if ( op->r != yl_opinst::NOVAL )
-    {
-        results.move( op->r, op->stacktop );
-    }
-    
-    size_t n;
-    for ( n = 1; index + n < function->ops.size(); ++n )
-    {
-        yssa_opinst* sel = function->ops.at( index + n );
-        if ( sel->opcode == YSSA_SELECT )
-        {
-            assert( sel->operand_count == 1 );
-            assert( sel->operand[ 0 ] == op );
-            if ( sel->r != yl_opinst::NOVAL )
-            {
-                results.move( sel->r, op->stacktop + sel->select );
-            }
-        }
-        else if ( sel->opcode == YSSA_IMPLICIT )
-        {
-            // Ignore YSSA_IMPLICIT ops.
-        }
-        else
-        {
-            break;
-        }
-    }
-    
-    results.emit( p );
-    return n;
-}
-
 
 size_t ygen_emit::opgen( ygen_program* p, size_t index )
 {
@@ -824,6 +767,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
     case YL_NOP:
     {
         p->ops.emplace_back( YL_NOP, 0, 0, 0 );
+        p->slocs.push_back( op->sloc );
         return 1;
     }
     
@@ -836,6 +780,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
             unsigned a = op->operand[ 0 ]->r;
             assert( a != yl_opinst::NOVAL );
             p->ops.emplace_back( (yl_opcode)op->opcode, op->r, a, 0 );
+            p->slocs.push_back( op->sloc );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
         return 1;
@@ -877,6 +822,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
             unsigned a = operand( op, 0 );
             unsigned b = operand( op, 1 );
             p->ops.emplace_back( (yl_opcode)op->opcode, op->r, a, b );
+            p->slocs.push_back( op->sloc );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
         return 1;
@@ -889,6 +835,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         {
             unsigned a = op->boolean ? 1 : 0;
             p->ops.emplace_back( YL_BOOL, op->r, a, 0 );
+            p->slocs.push_back( op->sloc );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
         return 1;
@@ -901,6 +848,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         {
             unsigned c = (unsigned)p->numvals.at( op->number );
             p->ops.emplace_back( YL_NUMBER, op->r, c );
+            p->slocs.push_back( op->sloc );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
         return 1;
@@ -914,6 +862,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
             symkey k( op->string->string, op->string->length );
             unsigned c = (unsigned)p->strvals.at( k );
             p->ops.emplace_back( YL_STRING, op->r, c );
+            p->slocs.push_back( op->sloc );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
         return 1;
@@ -926,7 +875,9 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         {
             unsigned b = (unsigned)p->strvals.at( op->key );
             p->ops.emplace_back( YL_GLOBAL, op->r, 0, b );
+            p->slocs.push_back( op->sloc );
             p->ops.emplace_back( YL_ILCACHE, 0, (unsigned)( p->ilcount++ ) );
+            p->slocs.push_back( op->sloc );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
         return 1;
@@ -938,7 +889,9 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         unsigned r = operand( op, 0 );
         unsigned b = (unsigned)p->strvals.at( op->key );
         p->ops.emplace_back( YL_SETGLOBAL, r, 0, b );
+        p->slocs.push_back( op->sloc );
         p->ops.emplace_back( YL_ILCACHE, 0, (unsigned)( p->ilcount++ ) );
+        p->slocs.push_back( op->sloc );
         return 1;
     }
 
@@ -948,6 +901,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         {
             unsigned c = (unsigned)p->funvals.at( op->function );
             p->ops.emplace_back( YL_FUNCTION, op->r, c );
+            p->slocs.push_back( op->sloc );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
     
@@ -961,8 +915,8 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
                 {
                     unsigned b = operand( up, 0 );
                     p->ops.emplace_back( YL_UPLOCAL, up->r, up->a, b );
-                    p->localupcount =
-                            std::max( p->localupcount, (size_t)up->a + 1 );
+                    p->slocs.push_back( op->sloc );
+                    p->localupcount = std::max( p->localupcount, (size_t)up->a + 1 );
                 }
             }
             else if ( up->opcode == YL_UPUPVAL )
@@ -970,6 +924,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
                 if ( op->r != yl_opinst::NOVAL )
                 {
                     p->ops.emplace_back( YL_UPUPVAL, up->r, up->a, 0 );
+                    p->slocs.push_back( op->sloc );
                 }
             }
             else
@@ -994,6 +949,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         // These ops can either produce or consume multiple values.  We must
         // treat chains of multivals as a single operation on top of stack.
         yssa_opinst* multival = op;
+        yssa_opinst* firstop = op;
         yssa_opinst* finalop = op;
         size_t ilast = index + 1;
         for ( ; ilast < function->ops.size(); ++ilast )
@@ -1051,7 +1007,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
             }
         }
         
-        arguments.emit( p );
+        arguments.emit( p, firstop->sloc );
         
 
         // Emit instructions.
@@ -1077,6 +1033,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
                 unsigned a = op->multival ? yl_opinst::MARK : op->operand_count;
                 unsigned b = op->result_count;
                 p->ops.emplace_back( (yl_opcode)op->opcode, op->stacktop, a, b );
+                p->slocs.push_back( op->sloc );
                 stack( p, op->stacktop, op->result_count );
                 break;
             }
@@ -1084,6 +1041,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
             case YL_NEXT:
             {
                 p->ops.emplace_back( YL_NEXT, op->stacktop, op->a, op->result_count );
+                p->slocs.push_back( op->sloc );
                 stack( p, op->stacktop, op->result_count );
                 break;
             }
@@ -1093,6 +1051,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
                 unsigned a = op->multival ? yl_opinst::MARK : op->operand_count;
                 unsigned b = operand( op, 0 );
                 p->ops.emplace_back( YL_EXTEND, op->stacktop, a, b );
+                p->slocs.push_back( op->sloc );
                 break;
             }
             
@@ -1100,6 +1059,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
             {
                 unsigned a = operand( op, 0 );
                 p->ops.emplace_back( YL_UNPACK, op->stacktop, a, op->result_count );
+                p->slocs.push_back( op->sloc );
                 stack( p, op->stacktop, op->result_count );
                 break;
             }
@@ -1152,7 +1112,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
             break;
         }
     
-        results.emit( p );
+        results.emit( p, finalop->sloc );
         return ilast - index;
     }
      
@@ -1161,6 +1121,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
     {
         unsigned a = operand( op, 0 );
         p->ops.emplace_back( (yl_opcode)op->opcode, op->r, a, 0 );
+        p->slocs.push_back( op->sloc );
         p->itercount = std::max( p->itercount, (size_t)op->r + 1 );
         return 1;
     }
@@ -1170,6 +1131,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         if ( op->r != yl_opinst::NOVAL )
         {
             p->ops.emplace_back( YL_NEXT1, op->r, op->a );
+            p->slocs.push_back( op->sloc );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
         return 1;
@@ -1212,6 +1174,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         assert( r != yl_opinst::NOVAL );
         assert( b != yl_opinst::NOVAL );
         p->ops.emplace_back( YL_NEXT2, r, op->a, b );
+        p->slocs.push_back( op->sloc );
         p->stackcount = std::max( p->stackcount, (size_t)r + 1 );
         p->stackcount = std::max( p->stackcount, (size_t)b + 1 );
         return n;
@@ -1222,6 +1185,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         if ( op->r != yl_opinst::NOVAL )
         {
             p->ops.emplace_back( YL_GETUP, op->r, op->a, 0 );
+            p->slocs.push_back( op->sloc );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
         return 1;
@@ -1230,6 +1194,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
     case YL_SETUP:
     {
         p->ops.emplace_back( YL_SETUP, operand( op, 0 ), op->a, 0 );
+        p->slocs.push_back( op->sloc );
         return 1;
     }
     
@@ -1240,6 +1205,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         {
             unsigned a = op->operand_count ? operand( op, 0 ) : yl_opinst::NOVAL;
             p->ops.emplace_back( (yl_opcode)op->opcode, op->r, a, 0 );
+            p->slocs.push_back( op->sloc );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
         return 1;
@@ -1248,6 +1214,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
     case YL_CLOSE:
     {
         p->ops.emplace_back( YL_CLOSE, 0, op->a, op->b );
+        p->slocs.push_back( op->sloc );
         return 1;
     }
  
@@ -1257,6 +1224,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         if ( op->r != yl_opinst::NOVAL )
         {
             p->ops.emplace_back( (yl_opcode)op->opcode, op->r, op->c );
+            p->slocs.push_back( op->sloc );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
         return 1;
@@ -1268,7 +1236,9 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         {
             unsigned b = (unsigned)p->strvals.at( op->key );
             p->ops.emplace_back( YL_KEY, op->r, operand( op, 0 ), b );
+            p->slocs.push_back( op->sloc );
             p->ops.emplace_back( YL_ILCACHE, 0, (unsigned)( p->ilcount++ ) );
+            p->slocs.push_back( op->sloc );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
         return 1;
@@ -1280,7 +1250,9 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         unsigned a = operand( op, 1 );
         unsigned b = (unsigned)p->strvals.at( op->key );
         p->ops.emplace_back( YL_SETKEY, r, a, b );
+        p->slocs.push_back( op->sloc );
         p->ops.emplace_back( YL_ILCACHE, 0, (unsigned)( p->ilcount++ ) );
+        p->slocs.push_back( op->sloc );
         return 1;
     }
     
@@ -1292,6 +1264,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         unsigned a = operand( op, 1 );
         unsigned b = operand( op, 2 );
         p->ops.emplace_back( (yl_opcode)op->opcode, r, a, b );
+        p->slocs.push_back( op->sloc );
         return 1;
     }
     
@@ -1300,6 +1273,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         unsigned a = operand( op, 0 );
         unsigned b = (unsigned)p->strvals.at( op->key );
         p->ops.emplace_back( YL_DELKEY, 0, a, b );
+        p->slocs.push_back( op->sloc );
         return 1;
     }
 
@@ -1308,6 +1282,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         unsigned a = operand( op, 0 );
         unsigned b = operand( op, 1 );
         p->ops.emplace_back( YL_DELINKEY, 0, a, b );
+        p->slocs.push_back( op->sloc );
         return 1;
     }
      
@@ -1316,12 +1291,14 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         unsigned a = operand( op, 0 );
         unsigned r = operand( op, 1 );
         p->ops.emplace_back( YL_APPEND, r, a, 0 );
+        p->slocs.push_back( op->sloc );
         return 1;
     }
      
     case YL_THROW:
     {
         p->ops.emplace_back( YL_THROW, operand( op, 0 ), 0, 0 );
+        p->slocs.push_back( op->sloc );
         return 1;
     }
     
@@ -1330,6 +1307,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
         if ( op->r != yl_opinst::NOVAL )
         {
             p->ops.emplace_back( YL_EXCEPT, op->r, 0, 0 );
+            p->slocs.push_back( op->sloc );
             p->stackcount = std::max( p->stackcount, (size_t)op->r + 1 );
         }
         return 1;
@@ -1338,12 +1316,14 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
     case YL_HANDLE:
     {
         p->ops.emplace_back( YL_HANDLE, 0, 0, 0 );
+        p->slocs.push_back( op->sloc );
         return 1;
     }
     
     case YL_UNWIND:
     {
         p->ops.emplace_back( YL_UNWIND, 0, 0, 0 );
+        p->slocs.push_back( op->sloc );
         return 1;
     }
  
@@ -1371,7 +1351,7 @@ size_t ygen_emit::opgen( ygen_program* p, size_t index )
             }
         }
         
-        params.emit( p );
+        params.emit( p, op->sloc );
         return n;
     }
 
@@ -1484,6 +1464,17 @@ void ygen_emit::emit( ygen_program* p )
     // Build debug info.
     auto debuginfo = std::make_unique< yl_debuginfo >();
     debuginfo->_funcname = p->ssafunc->funcname;
+
+    debuginfo->_filename = d->get_filename();
+    assert( p->ops.size() == p->slocs.size() );
+    for ( size_t i = 0; i < p->slocs.size(); ++i )
+    {
+        int sloc = p->slocs.at( i );
+        yl_debuginfo::sloc dsloc;
+        dsloc.line = d->get_line( sloc );
+        dsloc.column = d->get_column( sloc );
+        debuginfo->_slocs.push_back( dsloc );
+    }
 
     debuginfo->_upcount = p->ssafunc->upnames.size();
     debuginfo->_variables.reserve( p->debugvars.size() );

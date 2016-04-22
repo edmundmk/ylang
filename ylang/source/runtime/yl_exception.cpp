@@ -79,16 +79,28 @@ std::string yl_exception::stacktrace() const throw()
         if ( unwound.function->kind() == YLOBJ_FUNCOBJ )
         {
             yl_funcobj* funcobj = (yl_funcobj*)unwound.function.get();
-            const yl_debuginfo* dinfo = funcobj->program()->debuginfo();
-            auto lc = dinfo->line_column( unwound.ip - 1 );
-            stacktrace += stringf
-                (
-                    "    %s:%d:%d: %s\n",
-                    dinfo->filename(),
-                    lc.first,
-                    lc.second,
-                    dinfo->funcname()
-                );
+            const yl_program* program = funcobj->program();
+            const yl_debuginfo* dinfo = program->debuginfo();
+            if ( dinfo )
+            {
+                auto lc = dinfo->line_column( unwound.ip - 1 );
+                stacktrace += stringf
+                    (
+                        "    %s:%d:%d: %s\n",
+                        dinfo->filename(),
+                        lc.first,
+                        lc.second,
+                        program->name()
+                    );
+            }
+            else
+            {
+                stacktrace += stringf
+                    (
+                        "    [unknown]:0:0: %s\n",
+                        program->name()
+                    );
+            }
         }
     }
     return stacktrace;

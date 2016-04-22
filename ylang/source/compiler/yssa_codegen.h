@@ -13,9 +13,10 @@
 
 struct yssa_module;
 class yl_function;
+class yl_diagnostics;
 
 
-yl_function yssa_codegen( yssa_module* module, bool debugprint );
+yl_function yssa_codegen( yl_diagnostics* d, yssa_module* module, bool debugprint );
 
 
 
