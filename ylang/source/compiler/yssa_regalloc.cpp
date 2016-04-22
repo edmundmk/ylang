@@ -443,6 +443,11 @@ void yssa_regalloc( yssa_module* module, yssa_function* function )
             while ( op->has_multival() && op->multival )
             {
                 stacktop += op->operand_count;
+                if ( op->opcode == YL_EXTEND )
+                {
+                    stacktop -= 1;
+                }
+                
                 op = op->multival;
                 op->r = stacktop;
                 op->stacktop = stacktop;
@@ -547,6 +552,11 @@ void yssa_regalloc( yssa_module* module, yssa_function* function )
                 while ( op->has_multival() && op->multival )
                 {
                     stacktop += op->operand_count;
+                    if ( op->opcode == YL_EXTEND )
+                    {
+                        stacktop -= 1;
+                    }
+                    
                     op = op->multival;
                     op->r = stacktop;
                     op->stacktop = stacktop;
