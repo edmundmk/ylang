@@ -5,9 +5,8 @@ familiar syntax.
 
 Ylang is licensed under the MIT license.
 
-The language is still under development.  Do not expect it to work at all.
-Important parts of the language and of the virtual machine are not yet
-implemented.
+The language is still under development.  I make no guarantees that it will
+work for your use case!
 
 See the [wiki](https://github.com/edmundmk/ylang/wiki) for documentation,
 such as there is!
