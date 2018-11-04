@@ -154,7 +154,7 @@ bool seglist< element_t, segsize, allocator_t >::basic_iterator< result_t >::ope
 
 template < typename element_t, size_t segsize, typename allocator_t >
 template < typename result_t >
-seglist< element_t, segsize, allocator_t >::basic_iterator< result_t >&
+typename seglist< element_t, segsize, allocator_t >::template basic_iterator< result_t >&
         seglist< element_t, segsize, allocator_t >::basic_iterator< result_t >::operator ++ ()
 {
     index += 1;
@@ -168,7 +168,7 @@ seglist< element_t, segsize, allocator_t >::basic_iterator< result_t >&
 
 template < typename element_t, size_t segsize, typename allocator_t >
 template < typename result_t >
-seglist< element_t, segsize, allocator_t >::basic_iterator< result_t >
+typename seglist< element_t, segsize, allocator_t >::template basic_iterator< result_t >
         seglist< element_t, segsize, allocator_t >::basic_iterator< result_t >::operator ++ ( int )
 {
     basic_iterator result( *this );
