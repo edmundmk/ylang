@@ -1,5 +1,5 @@
 //
-//  yvm_heap.h
+//  yvm_gcheap.cpp
 //
 //  Created by Edmund Kapusniak on 29/09/2019.
 //  Copyright © 2019 Edmund Kapusniak.
@@ -8,8 +8,7 @@
 //  full license information.
 //
 
-#ifndef YVM_HEAP_H
-#define YVM_HEAP_H
+#include "yvm_gcheap.h"
 
 
 /*
@@ -47,24 +46,10 @@
                 u32 size of next chunk/C/P=0
 
 
-    The maximum size of a heap is 4GiB.  Chunk and object addresses are always
-    a multiple of eight bytes.  It's important that the entire heap can be
-    scanned by the garbage collector, visiting each allocated object.
+    Chunk and object addresses are always a multiple of eight bytes.  It's
+    important that the entire heap can be scanned by the garbage collector,
+    visiting each allocated object.
 
     When the heap runs out of memory it attempts to grow.  If this fails, the
     allocation fails.
 */
-
-struct yvm_heap
-{
-    void*   heap_base;
-
-};
-
-
-
-
-
-
-#endif
-

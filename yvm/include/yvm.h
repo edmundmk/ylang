@@ -8,10 +8,35 @@
 #ifndef YVM_H
 #define YVM_H
 
+namespace yvm
+{
+
+/*
+    Values.
+*/
+
+enum { undefined };
+
+struct value
+{
+
+
+};
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+}
 
 #endif
 

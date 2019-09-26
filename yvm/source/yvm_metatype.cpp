@@ -1,5 +1,5 @@
 //
-//  yvm_value.h
+//  yvm_metatype.cpp
 //
 //  Created by Edmund Kapusniak on 29/09/2019.
 //  Copyright © 2019 Edmund Kapusniak.
@@ -8,5 +8,5 @@
 //  full license information.
 //
 
-#include "yvm_value.h"
+#include "yvm_metatype.h"
 
