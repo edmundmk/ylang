@@ -45,7 +45,7 @@ struct diagnostics
 
     void set_filename( std::string_view filename );
     void newline( srcloc srcloc );
-    line_column line_column( srcloc srcloc ) const;
+    struct line_column line_column( srcloc srcloc ) const;
 
     void error( srcloc srcloc, const char* message, ... ) PRINTF_FORMAT( 3, 4 );
 

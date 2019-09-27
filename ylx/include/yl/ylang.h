@@ -284,7 +284,7 @@ struct cothread;
 struct cothread_value
 {
     bool is_completed() const;
-    call_frame call_frame();
+    class call_frame call_frame();
 
     cothread* c;
 };

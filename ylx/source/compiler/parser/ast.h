@@ -32,12 +32,67 @@ struct ast_key_value;
 struct ast_node;
 struct ast_function;
 
+struct ast_expr_null;
+struct ast_expr_bool;
+struct ast_expr_number;
+struct ast_expr_string;
+
+struct ast_expr_local;
+struct ast_expr_global;
+struct ast_expr_upref;
+struct ast_expr_objref;
+
+struct ast_expr_superof;
+struct ast_expr_key;
+struct ast_expr_inkey;
+struct ast_expr_index;
+struct ast_expr_responds;
+struct ast_expr_inresponds;
+
+struct ast_expr_preop;
+struct ast_expr_postop;
+struct ast_expr_unary;
+struct ast_expr_binary;
+struct ast_expr_compare;
+struct ast_expr_logical;
+struct ast_expr_qmark;
+
+struct ast_make_new;
+struct ast_make_object;
+struct ast_make_array;
+struct ast_make_table;
+
+struct ast_expr_mono;
+struct ast_expr_call;
+struct ast_expr_yield;
+struct ast_expr_vararg;
+struct ast_expr_unpack;
+struct ast_expr_list;
+
+struct ast_expr_assign;
+struct ast_expr_assign_list;
 
 struct ast_stmt_block;
-struct ast_make_object;
+struct ast_stmt_if;
+struct ast_stmt_switch;
+struct ast_stmt_while;
+struct ast_stmt_do;
+struct ast_stmt_foreach;
+struct ast_stmt_for;
+struct ast_stmt_using;
+struct ast_stmt_try;
+struct ast_stmt_catch;
 
-struct ast_decl_name;
+struct ast_stmt_delete;
+struct ast_stmt_case;
+struct ast_stmt_continue;
+struct ast_stmt_break;
+struct ast_stmt_return;
+struct ast_stmt_throw;
 
+struct ast_bind_name;
+struct ast_bind_list;
+struct ast_bind_qual;
 
 enum ast_node_kind
 {
@@ -112,9 +167,9 @@ enum ast_node_kind
     AST_STMT_THROW,
 
     // Unresolved and unqualified (should not appear in final AST).
-    AST_DECL_NAME,
-    AST_DECL_NAME_LIST,
-    AST_DECL_QUAL_NAME,
+    AST_BIND_NAME,
+    AST_BIND_LIST,
+    AST_BIND_QUAL,
 };
 
 enum ast_op_kind
@@ -229,7 +284,7 @@ struct ast_scope
 
 typedef region_list< ast_node* > ast_node_list;
 typedef region_list< ast_name* > ast_name_list;
-typedef region_list< ast_decl_name* > ast_decl_name_list;
+typedef region_list< ast_bind_name* > ast_bind_name_list;
 typedef region_list< ast_op_kind > ast_op_kind_list;
 typedef region_list< ast_key_value > ast_key_value_list;
 typedef region_list< ast_upval > ast_upval_list;
@@ -260,7 +315,7 @@ struct ast_prototype
     ast_prototype( srcloc sloc );
 
     srcloc              sloc;           // source location
-    ast_decl_name_list* parameters;     // parameter declarations
+    ast_bind_name_list* parameters;     // parameter declarations
     bool                generator;      // is a generator
 };
 
@@ -351,6 +406,475 @@ struct ast_expr_bool : public ast_node
     ast_expr_bool( srcloc sloc, bool value );
 
     bool                value;
+};
+
+struct ast_expr_number : public ast_node
+{
+    ast_expr_number( srcloc sloc, double value );
+
+    double              value;
+};
+
+
+struct ast_expr_string : public ast_node
+{
+    ast_expr_string( srcloc sloc, const char* string, size_t length );
+
+    const char*         string;
+    size_t              length;
+};
+
+
+/*
+    Names.
+*/
+
+struct ast_expr_local : public ast_node
+{
+    ast_expr_local( srcloc sloc, ast_name* name );
+
+    ast_name*           name;
+};
+
+
+struct ast_expr_global : public ast_node
+{
+    ast_expr_global( srcloc sloc, const char* name, bool gexplicit );
+
+    const char*         name;
+    bool                gexplicit;
+};
+
+
+struct ast_expr_upref : public ast_node
+{
+    ast_expr_upref( srcloc sloc, ast_function* func, int index );
+
+    ast_function*       func;
+    int                 index;
+};
+
+
+struct ast_expr_objref : public ast_node
+{
+    ast_expr_objref( srcloc sloc, ast_make_object* object );
+
+    ast_make_object*    object;
+};
+
+/*
+    Lookup.
+*/
+
+struct ast_expr_superof : public ast_node
+{
+    ast_expr_superof( srcloc sloc, ast_node* expr );
+
+    ast_node*           expr;
+};
+
+struct ast_expr_key : public ast_node
+{
+    ast_expr_key( srcloc sloc, ast_node* object, const char* key );
+
+    ast_node*           object;
+    const char*         key;
+};
+
+
+struct ast_expr_inkey : public ast_node
+{
+    ast_expr_inkey( srcloc sloc, ast_node* object, ast_node* key );
+
+    ast_node*           object;
+    ast_node*           key;
+};
+
+
+struct ast_expr_index : public ast_node
+{
+    ast_expr_index( srcloc sloc, ast_node* object, ast_node* index );
+
+    ast_node*           object;
+    ast_node*           index;
+};
+
+
+struct ast_expr_responds : public ast_node
+{
+    ast_expr_responds( srcloc sloc, ast_node* object, const char* key );
+
+    ast_node*           object;
+    const char*         key;
+};
+
+
+struct ast_expr_inresponds : public ast_node
+{
+    ast_expr_inresponds( srcloc sloc, ast_node* object, ast_node* key );
+
+    ast_node*           object;
+    ast_node*           key;
+};
+
+/*
+    Operators.
+*/
+
+struct ast_expr_preop : public ast_node
+{
+    ast_expr_preop( srcloc sloc, ast_op_kind opkind, ast_node* lvalue );
+
+    ast_op_kind         opkind;
+    ast_node*           lvalue;
+};
+
+
+struct ast_expr_postop : public ast_node
+{
+    ast_expr_postop( srcloc sloc, ast_op_kind opkind, ast_node* lvalue );
+
+    ast_op_kind         opkind;
+    ast_node*           lvalue;
+};
+
+
+struct ast_expr_unary : public ast_node
+{
+    ast_expr_unary( srcloc sloc, ast_op_kind opkind, ast_node* operand );
+
+    ast_op_kind         opkind;
+    ast_node*           operand;
+};
+
+
+struct ast_expr_binary : public ast_node
+{
+    ast_expr_binary( srcloc sloc, ast_op_kind opkind, ast_node* lhs, ast_node* rhs );
+
+    ast_op_kind         opkind;
+    ast_node*           lhs;
+    ast_node*           rhs;
+};
+
+
+struct ast_expr_compare : public ast_node
+{
+    ast_expr_compare( srcloc sloc, ast_node* first );
+
+    ast_node*           first;
+    ast_op_kind_list    opkinds;
+    ast_node_list       terms;
+};
+
+
+struct ast_expr_logical : public ast_node
+{
+    ast_expr_logical( srcloc sloc, ast_op_kind opkind, ast_node* lhs, ast_node* rhs );
+
+    ast_op_kind         opkind;
+    ast_node*           lhs;
+    ast_node*           rhs;
+};
+
+
+struct ast_expr_qmark : public ast_node
+{
+    ast_expr_qmark( srcloc sloc, ast_node* condition, ast_node* iftrue, ast_node* iffalse );
+
+    ast_node*           condition;
+    ast_node*           iftrue;
+    ast_node*           iffalse;
+};
+
+/*
+    New.
+*/
+
+struct ast_make_new : public ast_node
+{
+    ast_make_new( srcloc sloc, ast_node* proto, ast_expr_list* args );
+
+    ast_node*           proto;
+    ast_expr_list*      arguments;
+};
+
+
+struct ast_make_object : public ast_node
+{
+    ast_make_object( srcloc sloc, ast_node* proto );
+
+    ast_scope*          scope;
+    ast_node*           proto;
+    ast_node_list       members;
+    bool                upval;
+};
+
+struct ast_make_array : public ast_node
+{
+    ast_make_array( srcloc sloc );
+
+    ast_node_list       values;
+    ast_node*           final;
+};
+
+struct ast_make_table : public ast_node
+{
+    ast_make_table( srcloc sloc );
+
+    ast_key_value_list  elements;
+};
+
+/*
+    Unpack.
+*/
+
+struct ast_expr_mono : public ast_node
+{
+    ast_expr_mono( srcloc sloc, ast_node* expr );
+
+    ast_node*           expr;
+};
+
+struct ast_expr_call : public ast_node
+{
+    ast_expr_call( srcloc sloc, ast_node* function, ast_expr_list* args, bool yieldcall );
+
+    ast_node*           function;
+    ast_expr_list*      arguments;
+    bool                yieldcall;
+    bool                unpack;
+};
+
+struct ast_expr_yield : public ast_node
+{
+    ast_expr_yield( srcloc sloc, ast_node* args );
+
+    ast_node*           arguments;
+    bool                unpack;
+};
+
+
+struct ast_expr_vararg : public ast_node
+{
+    ast_expr_vararg( srcloc sloc );
+};
+
+
+struct ast_expr_unpack : public ast_node
+{
+    ast_expr_unpack( srcloc sloc, ast_node* list );
+
+    ast_node*           array;
+};
+
+
+struct ast_expr_list : public ast_node
+{
+    explicit ast_expr_list( srcloc sloc );
+
+    ast_node_list       values;
+    ast_node*           final;
+};
+
+/*
+    Assignment.
+*/
+
+struct ast_expr_assign : public ast_node
+{
+    ast_expr_assign( srcloc sloc, ast_op_kind assignop );
+
+    ast_op_kind         ssignop;
+    ast_node*           lvalue;
+    ast_node*           rvalue;
+};
+
+struct ast_expr_assign_list : public ast_node
+{
+    ast_expr_assign_list( srcloc sloc, ast_op_kind assignop );
+
+    ast_op_kind         assignop;
+    ast_node_list       lvalues;
+    ast_node*           rvalues;
+};
+
+/*
+    Statements w/ scopes.
+*/
+
+struct ast_stmt_block : public ast_node
+{
+    ast_stmt_block( srcloc sloc );
+
+    ast_scope*          scope;
+    ast_node_list       stmts;
+};
+
+struct ast_stmt_if : public ast_node
+{
+    ast_stmt_if( srcloc sloc );
+
+    ast_scope*          scope;
+    ast_node*           condition;
+    ast_node*           iftrue;
+    ast_node*           iffalse;
+};
+
+struct ast_stmt_switch : public ast_node
+{
+    ast_stmt_switch( srcloc sloc );
+
+    ast_scope*          scope;
+    ast_node*           value;
+    ast_stmt_block*      body;
+};
+
+struct ast_stmt_while : public ast_node
+{
+    ast_stmt_while( srcloc sloc );
+
+    ast_scope*          scope;
+    ast_node*           condition;
+    ast_node*           body;
+};
+
+struct ast_stmt_do : public ast_node
+{
+    ast_stmt_do( srcloc sloc );
+
+    ast_scope*          scope;
+    ast_node*           body;
+    ast_node*           condition;
+};
+
+struct ast_stmt_foreach : public ast_node
+{
+    ast_stmt_foreach( srcloc sloc );
+
+    ast_scope*          scope;
+    ast_node_list       lvalues;
+    ast_node*           list;
+    ast_node*           body;
+    bool                eachkey;
+    bool                declare;
+};
+
+struct ast_stmt_for : public ast_node
+{
+    ast_stmt_for( srcloc sloc );
+
+    ast_scope*          scope;
+    ast_node*           init;
+    ast_node*           condition;
+    ast_node*           update;
+    ast_node*           body;
+};
+
+struct ast_stmt_using : public ast_node
+{
+    ast_stmt_using( srcloc sloc );
+
+    ast_scope*          scope;
+    ast_node*           uvalue;
+    ast_node*           body;
+};
+
+struct ast_stmt_try : public ast_node
+{
+    ast_stmt_try( srcloc sloc, ast_node* tstmt );
+
+    ast_node*           tstmt;
+    ast_node_list       clist;
+    ast_node*           fstmt;
+};
+
+struct ast_stmt_catch : public ast_node
+{
+    ast_stmt_catch( srcloc sloc );
+
+    ast_scope*          scope;
+    ast_node*           lvalue;
+    ast_node*           proto;
+    ast_node*           body;
+    bool                declare;
+};
+
+/*
+    Statements.
+*/
+
+struct ast_stmt_delete : public ast_node
+{
+    ast_stmt_delete( srcloc sloc );
+
+    ast_node_list       delvals;
+};
+
+struct ast_stmt_case : public ast_node
+{
+    ast_stmt_case( srcloc sloc, ast_node* value );
+
+    ast_node*           value;
+};
+
+struct ast_stmt_continue : public ast_node
+{
+    ast_stmt_continue( srcloc sloc, ast_scope* scope,  ast_scope* target );
+
+    ast_scope*          scope;
+    ast_scope*          target;
+};
+
+struct ast_stmt_break : public ast_node
+{
+    ast_stmt_break( srcloc sloc, ast_scope* scope, ast_scope* target );
+
+    ast_scope*          scope;
+    ast_scope*          target;
+};
+
+struct ast_stmt_return : public ast_node
+{
+    ast_stmt_return( srcloc sloc, ast_scope* scope, ast_node* values );
+
+    ast_scope*          scope;
+    ast_node*           values;
+};
+
+struct ast_stmt_throw : public ast_node
+{
+    ast_stmt_throw( srcloc sloc, ast_node* value );
+
+    ast_node*           value;
+};
+
+/*
+    Unresolved and unqualified.
+*/
+
+struct ast_bind_name : public ast_node
+{
+    ast_bind_name( srcloc sloc, const char* name );
+
+    const char*         name;
+};
+
+struct ast_bind_list : public ast_node
+{
+    ast_bind_list( srcloc sloc );
+
+    ast_bind_name_list  names;
+    bool                varargs;
+};
+
+
+struct ast_bind_qual : public ast_node
+{
+    ast_bind_qual( srcloc sloc, ast_node* scope, const char* name );
+
+    ast_node*           scope;
+    const char*         name;
 };
 
 }
