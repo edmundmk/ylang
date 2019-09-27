@@ -225,6 +225,7 @@ struct array_value
     void clear();
     void resize( size_t size );
 
+    value* elements();
     value get( size_t i ) const;
     value set( size_t i, value v );
     value append( value v );

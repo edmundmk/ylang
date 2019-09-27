@@ -28,6 +28,7 @@ struct ast_name;
 struct ast_prototype;
 struct ast_upval;
 struct ast_key_value;
+struct ast_op_value;
 
 struct ast_node;
 struct ast_function;
@@ -285,8 +286,8 @@ struct ast_scope
 typedef region_list< ast_node* > ast_node_list;
 typedef region_list< ast_name* > ast_name_list;
 typedef region_list< ast_bind_name* > ast_bind_name_list;
-typedef region_list< ast_op_kind > ast_op_kind_list;
 typedef region_list< ast_key_value > ast_key_value_list;
+typedef region_list< ast_op_value > ast_op_value_list;
 typedef region_list< ast_upval > ast_upval_list;
 
 /*
@@ -315,7 +316,7 @@ struct ast_prototype
     ast_prototype( srcloc sloc );
 
     srcloc              sloc;           // source location
-    ast_bind_name_list* parameters;     // parameter declarations
+    ast_bind_list*      parameters;     // parameter declarations
     bool                generator;      // is a generator
 };
 
@@ -358,6 +359,18 @@ struct ast_key_value
     ast_key_value( ast_node* key, ast_node* value );
 
     ast_node*           key;
+    ast_node*           value;
+};
+
+/*
+    Comparison operator and value.
+*/
+
+struct ast_op_value
+{
+    ast_op_value( ast_op_kind op, ast_node* value );
+
+    ast_op_kind         op;
     ast_node*           value;
 };
 
@@ -563,8 +576,7 @@ struct ast_expr_compare : public ast_node
     ast_expr_compare( srcloc sloc, ast_node* first );
 
     ast_node*           first;
-    ast_op_kind_list    opkinds;
-    ast_node_list       terms;
+    ast_op_value_list   terms;
 };
 
 

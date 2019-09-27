@@ -17,6 +17,7 @@ sources = [
     'ylx/source/compiler/common/alloc_region.cpp',
     'ylx/source/compiler/common/string_hash.cpp',
     'ylx/source/compiler/parser/ast.cpp',
+    'ylx/source/compiler/parser/ast_print.cpp',
     'ylx/source/compiler/parser/diagnostics.cpp',
 ]
 

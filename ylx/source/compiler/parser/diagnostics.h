@@ -8,8 +8,8 @@
 //  full license information.
 //
 
-#ifndef SRCLOC_H
-#define SRCLOC_H
+#ifndef DIAGNOSTICS_H
+#define DIAGNOSTICS_H
 
 #include <stdint.h>
 #include <stdlib.h>
