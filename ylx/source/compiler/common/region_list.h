@@ -66,7 +66,7 @@ private:
 
 public:
 
-    static_assert( std::is_trivially_copyable_v< T > );
+    static_assert( std::is_trivially_copyable< T >::value );
 
     typedef T value_type;
     typedef T& reference;

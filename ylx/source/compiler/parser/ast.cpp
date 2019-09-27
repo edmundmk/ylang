@@ -534,3 +534,11 @@ ast_bind_list::ast_bind_list( srcloc sloc )
 
 }
 
+
+template class region_list< yl::ast_node* >;
+template class region_list< yl::ast_name* >;
+template class region_list< yl::ast_bind_name* >;
+template class region_list< yl::ast_op_kind >;
+template class region_list< yl::ast_key_value >;
+template class region_list< yl::ast_upval >;
+

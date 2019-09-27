@@ -879,5 +879,12 @@ struct ast_bind_qual : public ast_node
 
 }
 
+extern template class region_list< yl::ast_node* >;
+extern template class region_list< yl::ast_name* >;
+extern template class region_list< yl::ast_bind_name* >;
+extern template class region_list< yl::ast_op_kind >;
+extern template class region_list< yl::ast_key_value >;
+extern template class region_list< yl::ast_upval >;
+
 #endif
 
