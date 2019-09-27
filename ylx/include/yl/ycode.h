@@ -8,8 +8,8 @@
 //  full license information.
 //
 
-#ifndef YCODE_H
-#define YCODE_H
+#ifndef YL_YCODE_H
+#define YL_YCODE_H
 
 #include <stdint.h>
 

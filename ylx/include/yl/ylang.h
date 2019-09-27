@@ -8,8 +8,8 @@
 //  full license information.
 //
 
-#ifndef YLANG_H
-#define YLANG_H
+#ifndef YL_YLANG_H
+#define YL_YLANG_H
 
 #include <cstddef>
 #include <string_view>
@@ -366,7 +366,7 @@ public:
 
 private:
 
-    void* p;
+    void* _p;
 };
 
 /*
@@ -382,7 +382,7 @@ public:
 
 private:
 
-    void* p;
+    void* _p;
 };
 
 class scope
@@ -394,8 +394,8 @@ public:
 
 private:
 
-    context* c;
-    context* prev;
+    context* _context;
+    context* _previous_context;
 };
 
 /*
@@ -426,7 +426,7 @@ private:
     void incref( T p );
     void decref( T p );
 
-    T p;
+    T _p;
 };
 
 }
