@@ -19,6 +19,7 @@ sources = [
     'ylx/source/compiler/parser/ast.cpp',
     'ylx/source/compiler/parser/ast_print.cpp',
     'ylx/source/compiler/parser/diagnostics.cpp',
+    'ylx/source/compiler/parser/token.cpp',
 ]
 
 # sources += lemon.process( 'compiler/ph_grammar.ly' )
