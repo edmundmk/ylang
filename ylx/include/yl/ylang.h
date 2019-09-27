@@ -11,6 +11,15 @@
 #ifndef YLANG_H
 #define YLANG_H
 
+#include <cstddef>
+#include <string_view>
+
+#if defined( __GNUC__ )
+#define PRINTF_FORMAT( x, y ) __attribute__(( format( printf, x, y ) ))
+#else
+#define PRINTF_FORMAT( x, y )
+#endif
+
 namespace yl
 {
 
@@ -54,6 +63,7 @@ enum value_kind
 
 struct value;
 struct value_list;
+struct string_value;
 struct object_value;
 struct array_value;
 struct table_value;
@@ -323,8 +333,8 @@ public:
 private:
 
     friend struct cothread_value;
-    call_frame( cothread* c );
-    cothread* c;
+    call_frame( struct cothread* c );
+    struct cothread* c;
 };
 
 /*
@@ -343,7 +353,7 @@ class exception : public std::exception
 {
 public:
 
-    exception( const char* format, ... ) PRINTF_FORMAT( 1, 2 );
+    exception( const char* format, ... ) PRINTF_FORMAT( 2, 3 );
     exception( exception&& e );
     exception( const exception& e );
     exception& operator = ( exception&& e );
