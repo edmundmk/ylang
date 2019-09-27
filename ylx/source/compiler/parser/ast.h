@@ -190,19 +190,19 @@ struct ast_script
 
 /*
     Scopes.  Names are declared in a scope.  Implied scopes form a tree of
-    delcarations which are used to look up unqualified names.
+    declarations which are used to look up unqualified names.
 
     Scopes require destruction and are not allocated from the region.
 */
 
 enum ast_scope_kind
 {
-    AST_SCOPE_SCRIPT,
-    AST_SCOPE_BLOCK,
-    AST_SCOPE_SWITCH,
-    AST_SCOPE_IMPLICIT,
-    AST_SCOPE_OBJECT,
-    AST_SCOPE_IMPLIED,
+    AST_SCOPE_SCRIPT,                   // global scope of script
+    AST_SCOPE_BLOCK,                    // scope for a code block
+    AST_SCOPE_SWITCH,                   // scope for a switch statement
+    AST_SCOPE_IMPLICIT,                 // implicit scope for a switch case
+    AST_SCOPE_OBJECT,                   // scope in an object declaration
+    AST_SCOPE_IMPLIED,                  // scope implied by object/function declarations
 };
 
 typedef std::unordered_map< string_hash, ast_scope* > ast_scope_map;
@@ -212,15 +212,15 @@ struct ast_scope
 {
     ast_scope( ast_scope_kind kind, ast_scope* outer, ast_node* node, ast_function* function );
 
-    ast_scope_kind      kind;
-    ast_scope*          outer;
-    ast_node*           node;
-    ast_function*       function;
-    ast_stmt_block*     block;
-    ast_scope_map       implied;
-    ast_name_map        names;
-    bool                continued;
-    bool                do_while;
+    ast_scope_kind      kind;           // scope kind
+    ast_scope*          outer;          // outer scope
+    ast_node*           node;           // function, block, switch, or object declaration
+    ast_function*       function;       // function, used to differentiate upvals
+    ast_stmt_block*     block;          // block to which statements are appended
+    ast_scope_map       implied;        // named implied child scopes
+    ast_name_map        names;          // names declared in this scope
+    bool                continued;      // set when we reach a 'continue' in a loop
+    bool                do_while;       // set when we reach the end of the block in a do while loop
 };
 
 /*
@@ -242,13 +242,13 @@ struct ast_name
 {
     ast_name( srcloc sloc, ast_scope* scope, const char* name );
 
-    srcloc              sloc;
-    ast_scope*          scope;
-    const char*         name;
-    ast_name*           super_this;
-    ast_prototype*      prototype;
-    bool                upval;
-    bool                continued;
+    srcloc              sloc;           // source location
+    ast_scope*          scope;          // scope containing this name
+    const char*         name;           // name
+    ast_name*           super_this;     // for 'super', links to 'this'
+    ast_prototype*      prototype;      // for names implying prototypes
+    bool                upval;          // name is an upval
+    bool                continued;      // name was declared after first continue
 };
 
 /*
@@ -259,9 +259,9 @@ struct ast_prototype
 {
     ast_prototype( srcloc sloc );
 
-    srcloc              sloc;
-    ast_name_list*      parameters;
-    bool                coroutine;
+    srcloc              sloc;           // source location
+    ast_decl_name_list* parameters;     // parameter declarations
+    bool                generator;      // is a generator
 };
 
 /*
@@ -270,9 +270,9 @@ struct ast_prototype
 
 enum ast_upval_kind
 {
-    AST_UPVAL_LOCAL,
-    AST_UPVAL_OBJECT,
-    AST_UPVAL_UPVAL,
+    AST_UPVAL_LOCAL,                    // refers to local in outer function
+    AST_UPVAL_OBJECT,                   // refers to object being constructed
+    AST_UPVAL_UPVAL,                    // refers to an upval chained from outer function
 };
 
 struct ast_upval
@@ -284,12 +284,12 @@ struct ast_upval
     bool operator == ( const ast_upval& b ) const;
     bool operator != ( const ast_upval& b ) const;
 
-    ast_upval_kind      kind;
+    ast_upval_kind      kind;           // upval kind
     union
     {
-        ast_name*           local;
-        ast_make_object*    object;
-        int                 upval;
+        ast_name*           local;      // name of local variable
+        ast_make_object*    object;     // object being constructed
+        int                 upval;      // index of upval
     };
 
 };
@@ -326,15 +326,15 @@ struct ast_function : public ast_node
 {
     ast_function( srcloc sloc );
 
-    const char*         name;
-    ast_scope*          scope;
-    ast_upval_list      upvals;
-    ast_make_object*    member_of;
-    ast_name*           this_name;
-    ast_name_list       parameters;
-    ast_stmt_block*     block;
-    bool                varargs;
-    bool                generator;
+    const char*         name;           // name of function
+    ast_scope*          scope;          // scope of function (includes parameters)
+    ast_upval_list      upvals;         // list of upvals this function requires
+    ast_make_object*    member_of;      // object construction we're a method of
+    ast_name*           this_name;      // 'this' parameter
+    ast_name_list       parameters;     // explicit parameters
+    ast_stmt_block*     block;          // block containing statements
+    bool                varargs;        // parameter list ends in ...
+    bool                generator;      // is a generator
 };
 
 /*
