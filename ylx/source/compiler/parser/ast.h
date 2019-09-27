@@ -685,7 +685,7 @@ struct ast_expr_assign : public ast_node
 {
     ast_expr_assign( srcloc sloc, ast_op_kind assignop );
 
-    ast_op_kind         ssignop;
+    ast_op_kind         assignop;
     ast_node*           lvalue;
     ast_node*           rvalue;
 };
