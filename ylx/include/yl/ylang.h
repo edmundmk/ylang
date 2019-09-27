@@ -11,181 +11,415 @@
 #ifndef YLANG_H
 #define YLANG_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
-
-typedef struct yl_runtime yl_runtime;
-typedef struct yl_context yl_context;
-typedef struct { uint64_t value; } yl_value;
-typedef struct { const char* text; size_t size; } yl_string_view;
-typedef struct { const char* key; } yl_key;
-typedef struct { yl_value* values; size_t count; } yl_value_unpack;
+namespace yl
+{
 
 /*
-    A runtime is a single garbage collector and object model.
+    Private structures.
 */
 
-yl_runtime* yl_runtime_create();
-yl_runtime* yl_runtime_retain( yl_runtime* yr );
-void yl_runtime_release( yl_runtime* yr );
+struct runtime;
+struct context;
+struct object;
+struct array;
+struct table;
+struct function;
+struct cothread;
+struct native;
+
+/*
+    Forward declaration of runtime and context.
+*/
+
+struct runtime_handle;
+struct context_handle;
+
+/*
+    Forward declarations of values.
+*/
+
+enum value_kind
+{
+    VALUE_NULL,
+    VALUE_BOOL,
+    VALUE_NUMBER,
+    VALUE_STRING,
+    VALUE_OBJECT,
+    VALUE_ARRAY,
+    VALUE_TABLE,
+    VALUE_FUNCTION,
+    VALUE_COTHREAD,
+    VALUE_NATIVE,
+};
+
+struct value;
+struct value_list;
+struct object_value;
+struct array_value;
+struct table_value;
+struct function_value;
+struct cothread_value;
+struct native_value;
+
+/*
+    Forward declaration of call frame.
+*/
+
+enum call_return
+{
+    CALL_RETURN,
+    CALL_YIELD,
+};
+
+class call_frame;
+
+/*
+    Forward declaration of exception.
+*/
+
+struct stack_trace;
+class exception;
+
+/*
+    Other objects.
+*/
+
+class scope;
+class key;
+
+/*
+    Forward declaration of ref pointer, which keeps values alive.
+*/
+
+template < typename T > class ref;
+typedef ref< runtime_handle > runtime_ref;
+typedef ref< context_handle > context_ref;
+typedef ref< value > value_ref;
+typedef ref< object_value > object_ref;
+typedef ref< array_value > array_ref;
+typedef ref< table_value > table_ref;
+typedef ref< function_value > function_ref;
+typedef ref< cothread_value > cothread_ref;
+typedef ref< native_value > native_ref;
+
+/*
+    A runtime is a single garbage collected heap and object model.
+*/
+
+struct runtime_handle { runtime* r; };
+runtime_ref create_runtime();
 
 /*
     A context is a global scope.
 */
 
-yl_context* yl_context_create( yl_runtime* yr );
-yl_context* yl_context_retain( yl_context* yc );
-void yl_context_release( yl_context* yc );
-void yl_context_set_current( yl_context* yc );
+struct context_handle { context* c; };
+context_ref create_context( const runtime_ref& runtime );
+
+object_value superof( value_kind kind );
+object_value superof( value v );
+void assign_global( const char* k, value v );
+void delete_global( const char* k );
 
 /*
-    Globals.
+    Values.  Values are opaque handles to any ylang object.
 */
 
-bool yl_assign_global( const char* key, yl_value value );
-bool yl_delete_global( const char* key );
-
-/*
-    Key registration.
-*/
-
-bool yl_register_key( yl_key* key );
-
-/*
-    Values.
-*/
-
-enum yl_value_kind
+struct value
 {
-    YL_VALUE_NULL,
-    YL_VALUE_BOOL,
-    YL_VALUE_NUMBER,
-    YL_VALUE_STRING,
-    YL_VALUE_OBJECT,
-    YL_VALUE_ARRAY,
-    YL_VALUE_TABLE,
-    YL_VALUE_FUNCTION,
-    YL_VALUE_COTHREAD,
-    YL_VALUE_NATIVE_OBJECT,
-    YL_VALUE_NATIVE_FUNCTION,
+    value();
+    value( std::nullptr_t );
+    value( bool b );
+    value( double n );
+    value( std::string_view s );
+    value( object_value o );
+    value( array_value a );
+    value( table_value t );
+    value( function_value f );
+    value( cothread_value c );
+    value( native_value n );
+
+    value( const char* s );
+    value( int i );
+    value( unsigned u );
+    value( long i );
+    value( unsigned long u );
+    value( long long i );
+    value( unsigned long long u );
+
+    value_kind kind() const;
+    bool is( value_kind kind ) const;
+
+    bool to_bool() const;
+    double to_number() const;
+    std::string_view to_string() const;
+
+    object_value to_object() const;
+    array_value to_array() const;
+    table_value to_table() const;
+    function_value to_function() const;
+    cothread_value to_cothread() const;
+    native_value to_native() const;
+
+    template < typename T > T* cast_native( void* nclass ) const;
+
+    uint64_t v;
 };
 
-yl_value_kind yl_value_get_kind( yl_value value );
-yl_value yl_value_retain( yl_value value );
-void yl_value_release( yl_value value );
-
-/*
-    Get builtin prototypes.
-*/
-
-yl_value yl_prototype_object();
-yl_value yl_prototype_bool();
-yl_value yl_prototype_number();
-yl_value yl_prototype_string();
-yl_value yl_prototype_object();
-yl_value yl_prototype_array();
-yl_value yl_prototype_table();
-yl_value yl_prototype_function();
-yl_value yl_prototype_cothread();
-
-/*
-    Primitive values.
-*/
-
-yl_value yl_value_null();
-yl_value yl_value_bool( bool b );
-yl_value yl_value_number( double n );
-yl_value yl_value_string( const char* text, size_t size );
-
-bool yl_value_to_bool( yl_value v );
-double yl_value_to_number( yl_value v );
-yl_string_view yl_value_to_string( yl_value v );
+struct value_list
+{
+    value operator [] ( size_t i ) const;
+    value* values;
+    size_t count;
+};
 
 /*
     Objects.
 */
 
-yl_value yl_object_create( yl_value prototype );
-yl_value yl_object_prototype( yl_value object );
-yl_value yl_object_lookup( yl_value object, yl_key key );
-bool yl_object_assign( yl_value object, yl_key key, yl_value value );
+struct object;
+struct object_value
+{
+    value lookup( key k ) const;
+    value lookup( string_value k ) const;
+    void assign( key k, value v );
+    void assign( string_value k, value v );
+
+    value_kind kind();
+    bool is( value_kind kind ) const;
+    array_value to_array() const;
+    table_value to_table() const;
+    native_value to_native() const;
+
+    template < typename T > T* cast_native( void* nclass ) const;
+
+    object* o;
+};
+
+object_ref create_object();
+object_ref create_object( object_value prototype );
 
 /*
     Arrays.
 */
 
-yl_value yl_array_create( yl_value prototype );
-size_t yl_array_size( yl_value array );
-yl_value yl_array_get( yl_value array, size_t index );
-bool yl_array_set( yl_value array, size_t index, yl_value value );
-bool yl_array_append( yl_value array, yl_value value );
-bool yl_array_resize( yl_value array, size_t size );
+struct array;
+struct array_value
+{
+    value lookup( key k ) const;
+    value lookup( string_value k ) const;
+    void assign( key k, value v );
+    void assign( string_value k, value v );
+
+    size_t size() const;
+    void clear();
+    void resize( size_t size );
+
+    value get( size_t i ) const;
+    value set( size_t i, value v );
+    value append( value v );
+
+    array* a;
+};
 
 /*
     Tables.
 */
 
-yl_value yl_table_create( yl_value prototype );
-size_t yl_table_size( yl_value table );
-bool yl_table_get( yl_value table, yl_value key, yl_value* out_value );
-bool yl_table_set( yl_value table, yl_value key, yl_value value );
+struct table;
+struct table_value
+{
+    value lookup( key k ) const;
+    value lookup( string_value k ) const;
+    void assign( key k, value v );
+    void assign( string_value k, value v );
+
+    size_t length() const;
+    void clear();
+
+    value get( value k ) const;
+    bool get( value k, value* out_v ) const;
+    value set( value k, value v );
+
+    table* t;
+};
 
 /*
     Functions.
 */
 
-enum yl_call_result
+struct function;
+struct function_value
 {
-    YL_CALL_DONE,       // call completed.
-    YL_CALL_YIELD,      // call constructed cothread, or cothread has yielded.
-    YL_CALL_SUSPEND,    // call suspended in native code.
-    YL_CALL_EXCEPTION,  // call threw exception.
+    std::string_view name() const;
+    bool is_generator() const;
+    value call( value* arguments, size_t argument_count );
+    value_list callm( void* arguments, size_t argument_count );
+    template < typename ... A > value call( A ... arguments );
+    template < typename ... A > value_list callm( A ... arguments );
+
+    function* f;
 };
 
-// HMMM.
+typedef call_return (*native_function)( void* ndata, call_frame xf );
 
-yl_value yl_function_create( void* code, size_t size );
-yl_value yl_function_call( yl_value function, yl_value* arguments, size_t argcount );
-yl_value_unpack yl_function_call_unpack( yl_value function, yl_value* arguments, size_t argcount );
-
-/*
-    Cothreads.
-*/
-
-yl_value yl_cothread_call( yl_value cothread, yl_value* arguments, size_t argcount );
-yl_value_unpack yl_cothread_call_unpack( yl_value cothread, yl_value* arguments, size_t argcount );
-bool yl_cothread_finished( yl_value cothread ); 
+function_ref create_function( void* data, size_t size );
+function_ref create_function( std::string_view name, native_function function, size_t argument_count, void* ndata );
 
 /*
-    Native objects.
+    Cothread.
 */
 
-yl_value yl_native_object_create( yl_value prototype, void* native );
-void* yl_native_object_get( yl_value v );
-void yl_native_object_set( yl_value v, void* native );
+struct cothread;
+struct cothread_value
+{
+    bool is_completed() const;
+    call_frame call_frame();
+
+    cothread* c;
+};
+
+cothread_value current_cothread();
+cothread_ref create_cothread();
 
 /*
-    Native functions.
+    Native.
 */
 
-// TODO.  native functions need to be able to yield, or suspend entirely.
+struct native;
+struct native_value
+{
+    value lookup( key k ) const;
+    void assign( key k, value v );
 
+    void* nclass() const;
+    void* object() const;
+    template < typename T > T* cast_native( void* nclass );
+
+    native* n;
+};
+
+native_ref create_native( object_value prototype, void* nclass, void* object );
 
 /*
-    Errors.
+    Call frames.
 */
 
-// TODO.
+class call_frame
+{
+public:
 
+    cothread_value cothread() const;
 
-#ifdef __cplusplus
+    size_t count() const;
+    value operator [] ( size_t i ) const;
+
+    void clear() const;
+    void push( value v );
+    value_list pushm( size_t count );
+
+    call_return result( value v );
+
+private:
+
+    friend struct cothread_value;
+    call_frame( cothread* c );
+    cothread* c;
+};
+
+/*
+    Exception.
+*/
+
+struct stack_trace
+{
+    function_value function;
+    int line;
+    int column;
+};
+
+struct exception_impl;
+class exception : public std::exception
+{
+public:
+
+    exception( const char* format, ... ) PRINTF_FORMAT( 1, 2 );
+    exception( exception&& e );
+    exception( const exception& e );
+    exception& operator = ( exception&& e );
+    exception& operator = ( const exception& e );
+    ~exception();
+
+    const char* what() const noexcept override;
+    size_t trace_count() const noexcept;
+    stack_trace trace( size_t i ) const noexcept;
+
+private:
+
+    void* p;
+};
+
+/*
+    Other objects.
+*/
+
+class key
+{
+public:
+
+    key( std::string_view string );
+    ~key();
+
+private:
+
+    void* p;
+};
+
+class scope
+{
+public:
+
+    explicit scope( const context_ref& c );
+    ~scope();
+
+private:
+
+    context* c;
+    context* prev;
+};
+
+/*
+    Ref.
+*/
+
+template < typename T >
+class ref
+{
+public:
+
+    ref();
+    ref( T p );
+    ref( ref&& r );
+    ref( const ref& r );
+    ref& operator = ( ref&& r );
+    ref& operator = ( const ref& r );
+    ~ref();
+
+    explicit operator bool ();
+    T get() const;
+    T operator -> () const;
+
+    void reset( T p );
+
+private:
+
+    void incref( T p );
+    void decref( T p );
+
+    T p;
+};
+
 }
-#endif
 
 #endif
 

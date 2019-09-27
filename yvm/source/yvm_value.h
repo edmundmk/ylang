@@ -24,7 +24,6 @@ struct string;
         0000'----'----'---- yvm_object*
         0001'0000'0000'0000 undefined
         0001'----'----'---- yvm_string*
-
         000E'FFFF'FFFF'FFFE true
         000E'FFFF'FFFF'FFFF false
 
@@ -95,8 +94,8 @@ inline bool value::is_bool() const              { return ( v & 0xFFFF'0000'0000'
 inline bool value::is_number() const            { return v > 0x000E'FFFF'FFFF'FFFF; }
 inline bool value::is_object() const            { return v < 0x0001'0000'0000'0000; }
 inline bool value::is_string() const            { return ( v & 0xFFFF'0000'0000'0000 ) == 0x0001'0000'0000'0000; }
-inline bool value::as_bool() const              { return v != VALUE_FALSE; }
 
+inline bool value::as_bool() const              { return v != VALUE_FALSE; }
 inline double value::as_number() const          { uint64_t u = ~v; double n; memcpy( &n, &u, sizeof( d ) ); return n; }
 inline object* value::as_object() const         { return (object*)v; }
 inline string* value::as_string() const         { return (string*)( v & 0x0000'FFFF'FFFF'FFFF ); }
