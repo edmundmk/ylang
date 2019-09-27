@@ -125,5 +125,15 @@ inline size_t alloc_region::align( size_t x, size_t alignment )
     return ( x + ( alignment - 1 ) ) & ~( alignment - 1 );
 }
 
+inline void* operator new ( size_t size, alloc_region& region )
+{
+    return region.malloc( size );
+}
+
+inline void operator delete ( void* p, alloc_region& region )
+{
+    // Just leave it.
+}
+
 #endif
 
