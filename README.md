@@ -92,7 +92,9 @@ The implementation is a register-based virtual machine.  The compiler uses
 an pseudo-SSA form as an intermediate representation and makes an attempt at
 sensible register allocation using a modified linear scan algorithm.
 
+## Status
 
-
-        
+This project is archived.  However, see my latest scripting language,
+(kenaf)[https://github.com/edmundmk/kenaf], the implementation of which owes
+a lot to what I learned from ylang.
 
