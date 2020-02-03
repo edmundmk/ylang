@@ -95,6 +95,6 @@ sensible register allocation using a modified linear scan algorithm.
 ## Status
 
 This project is archived.  However, see my latest scripting language,
-(kenaf)[https://github.com/edmundmk/kenaf], the implementation of which owes
+[kenaf](https://github.com/edmundmk/kenaf), the implementation of which owes
 a lot to what I learned from ylang.
 
